@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/exxcellent/olingo-jpa-processor-v4.svg?branch=eXXcellent_adaptions)](https://travis-ci.org/exxcellent/olingo-jpa-processor-v4)
+
 # First words...
 This is a major refactoring of the content now provided via [SAP/olingo-jpa-processor-v4](https://github.com/SAP/olingo-jpa-processor-v4). The content in this fork was modified before the GitHub project provided by SAP/Olingo was created and based on a initial archive attached to an [Olingo Issue](https://issues.apache.org/jira/browse/OLINGO-1010). One of the goals of this GitHub fork is to give back most of the code contributions to the origin project.
 
