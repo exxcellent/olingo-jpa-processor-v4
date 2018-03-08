@@ -5,7 +5,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -167,6 +169,7 @@ public class JPAEntityConverter extends JPAAbstractConverter {
 		return Collections.emptyList();
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void convertOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType, final ManagedType<?> persistenceType, final JPAAttribute jpaAttribute, final Property sourceOdataProperty) throws ODataApplicationException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, ODataJPAModelException {
 		final Attribute<?, ?> persistenceAttribute = persistenceType.getAttribute(jpaAttribute.getInternalName());
 
@@ -184,7 +187,6 @@ public class JPAEntityConverter extends JPAAbstractConverter {
 			final JPAStructuredType embeddedJPAType = jpaAttribute.getStructuredType();
 			if (sourceOdataProperty.isCollection()) {
 				// manage structured types in a collection
-				@SuppressWarnings("unchecked")
 				final Collection<Object> collectionOfComplexTypes = (Collection<Object>) embeddedFieldObject;
 				if (!collectionOfComplexTypes.isEmpty()) {
 					throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR, HttpStatusCode.EXPECTATION_FAILED);
@@ -210,15 +212,35 @@ public class JPAEntityConverter extends JPAAbstractConverter {
 			}
 		} else {
 			// convert simple/primitive value
-			final Object jpaPropertyValue = sourceOdataProperty.getValue();// assume primitive value
+			Object jpaPropertyValue = sourceOdataProperty.getValue();// assume primitive value
 			final boolean isGenerated = ((Field)persistenceAttribute.getJavaMember()).getAnnotation(GeneratedValue.class) != null;
 			// do not allow to set ID attributes if that attributes must be generated
 			if(isGenerated && SingularAttribute.class.isInstance(persistenceAttribute) && ((SingularAttribute<?,?>)persistenceAttribute).isId()) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR, HttpStatusCode.INTERNAL_SERVER_ERROR, new IllegalArgumentException("The id attribute must not be set, because is generated"));
 			}
+			if (persistenceAttribute.getJavaType().isEnum() && Number.class.isInstance(jpaPropertyValue)) {
+				// convert enum ordinal value into enum literal
+				jpaPropertyValue = lookupEnum((Class<Enum>) persistenceAttribute.getJavaType(),
+						((Number) jpaPropertyValue).intValue());
+			}
 			writeJPAValue(targetJPAObject, persistenceAttribute, jpaPropertyValue);
 		}
 
+	}
+
+	private static <E extends Enum<E>> E lookupEnum(final Class<E> clzz, final int ordinal) {
+		final EnumSet<E> set = EnumSet.allOf(clzz);
+		if (ordinal < set.size()) {
+			final Iterator<E> iter = set.iterator();
+			for (int i = 0; i < ordinal; i++) {
+				iter.next();
+			}
+			final E rval = iter.next();
+			assert (rval.ordinal() == ordinal);
+			return rval;
+		}
+		throw new IllegalArgumentException(
+				"Invalid value " + ordinal + " for " + clzz.getName() + ", must be < " + set.size());
 	}
 
 	/**
