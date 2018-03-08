@@ -14,8 +14,8 @@ There are some assumptions to enable this JPA adapter library for your project:
   <mirrors>
     <mirror>
       <id>eXXcellent</id>
-      <name>eXXcellent internal repository</name>
-      <url>http://nexus.exxcellent.de/repository/maven-public/</url>
+      <name>my internal repository</name>
+      <url>http://nexus.anywhere.org/repository/maven-public/</url>
       <mirrorOf>external:*</mirrorOf>
     </mirror>
   </mirrors>
@@ -43,17 +43,6 @@ We have to differentiate two phases of application lifecycle having different re
 
 ```
 <dependencies>
-	<dependency>
-		<groupId>org.apache.olingo</groupId>
-		<artifactId>odata-server-api</artifactId>
-		<version>...</version>
-	</dependency>
-	<dependency>
-	    <groupId>org.apache.olingo</groupId>
-	    <artifactId>odata-client-core</artifactId>
-		<version>...</version>
-	</dependency>
-
 	<dependency>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa-processor</artifactId>
