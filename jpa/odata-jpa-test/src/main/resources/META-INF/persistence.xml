@@ -1,44 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence version="2.1"
-	xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
+	
+	<!-- 
+		The transaction type is defined for local junit testing;
+		to reuse the persistence.xml another transaction type must be set outside for EntityManagerFactory
+	-->
+	<persistence-unit name="org.apache.olingo.jpa" transaction-type="RESOURCE_LOCAL"> 
 
-	<persistence-unit name="com.sap.olingo.jpa"
-		transaction-type="RESOURCE_LOCAL">
+        <!-- Attribute converters -->
+        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.JPAUrlConverter</class>
+        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.JPAUuidConverter</class>
 
-		<class>com.sap.olingo.jpa.processor.core.testmodel.AccessRightsConverter</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.AdministrativeDivision</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.BestOrganization</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.BusinessPartner</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.BusinessPartnerRole</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.ByteConverter</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.Comment</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.Country</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.DateConverter</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.DummyEmbeddedToIgnore</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.JoinRelation</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.JoinSource</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.JoinTarget</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.Membership</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.Organization</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.Person</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.PersonImage</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.StringConverter</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.SupportRelationship</class>
-		<class>com.sap.olingo.jpa.processor.core.testmodel.Team</class>
+        <!-- Persistent entities -->
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Organization</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Person</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Country</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.DateConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.PersonImage</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity</class>
 		<properties>
 			<property name="eclipselink.logging.level.sql" value="FINEST" />
-			<property name="eclipselink.logging.level" value="WARNING"/> 
+			<!-- <property name="eclipselink.logging.level" value="FINER"/> -->
 			<property name="eclipselink.logging.parameters" value="true" />
 			<property name="eclipselink.logging.timestamp" value="true" />
 			<property name="eclipselink.weaving" value="static" />
 			<property name="eclipselink.persistence-context.flush-mode"
 				value="commit" />
 			<property name="javax.persistence.validation.mode" value="NONE" />
-			<property name="eclipselink.logging.level" value="WARNING"/>
 		</properties>
 	</persistence-unit>
 </persistence>

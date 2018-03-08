@@ -1,0 +1,142 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.apache.olingo.jpa.examples</groupId>
+		<artifactId>odata-jpa-examples</artifactId>
+		<version>0.3.2-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+  <artifactId>olingo-generic-servlet-example</artifactId>
+  <packaging>war</packaging>
+
+  <name>olingo-jpa-servlet-example</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <disable.jetty>true</disable.jetty>
+  </properties>
+
+  <dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+		<!-- dependency>
+			<groupId>org.apache.olingo</groupId>
+			<artifactId>odata-server-api</artifactId>
+		</dependency-->
+		<dependency>
+		    <groupId>org.apache.olingo</groupId>
+		    <artifactId>odata-client-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-processor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-test</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-test</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+		</dependency>
+		<dependency>
+			<groupId>javax</groupId>
+			<artifactId>javaee-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>ch.qos.logback</groupId>
+		    <artifactId>logback-classic</artifactId>
+	        <scope>runtime</scope>
+		</dependency>
+  </dependencies>
+
+	<build>
+		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-io</artifactId>
+						<version>${jetty.version}</version>
+					</dependency>
+				</dependencies>
+			    <configuration>
+					<stopKey>stop</stopKey>
+					<stopPort>9199</stopPort>
+					<dumpOnStart>false</dumpOnStart>
+					<skip>${disable.jetty}</skip>
+			      	<httpConnector>
+						<port>8080</port>
+					</httpConnector>
+					<webApp>
+						<contextPath>/</contextPath>
+						<jettyEnvXml>${project.basedir}/src/main/jetty/jetty-env.xml</jettyEnvXml>
+						<!-- descriptor>${project.basedir}/src/main/jetty/web.xml</descriptor-->
+					</webApp>
+					<war>${project.build.directory}/${project.build.finalName}.war</war>
+					<loginServices>
+						<!-- see http://www.eclipse.org/jetty/documentation/current/jetty-maven-plugin.html#configuring-security-settings -->
+						<loginService implementation="org.eclipse.jetty.security.HashLoginService">
+						  <name>Example Realm</name>
+						  <config>${project.basedir}/src/main/jetty/jetty-realm.properties</config>
+						</loginService>
+					</loginServices>
+			    </configuration>
+				<executions>
+					<execution>
+					  <id>start-jetty</id>
+					  <phase>pre-integration-test</phase>
+					  <goals>
+						<goal>start</goal>
+					  </goals>
+					  <configuration>
+						<scanIntervalSeconds>0</scanIntervalSeconds>
+					  </configuration>
+					</execution>
+					<execution>
+					  <id>stop-jetty</id>
+					  <phase>post-integration-test</phase>
+					   <goals>
+						 <goal>stop</goal>
+					   </goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- enable deployment of this module -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+				  <skip>false</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+  
+</project>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+    <New id="DerbyDBDataSource" class="org.eclipse.jetty.plus.jndi.Resource">
+        <Arg>java:comp/env/jdbc/testDS</Arg>
+        <Arg>
+            <New class="org.apache.derby.jdbc.EmbeddedDataSource">
+				<Set name="databaseName">target/testdb</Set>
+                <Set name="user"></Set>
+                <Set name="password"></Set>            
+				<Set name="createDatabase">create</Set>
+            </New>
+        </Arg>
+    </New>
+</Configure>
