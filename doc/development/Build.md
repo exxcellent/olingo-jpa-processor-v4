@@ -1,7 +1,7 @@
 # Fast Build to package the artifacts
 * Unit and integration tests are disabled
 
-_<GIT>/source_: `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip [-s maven_project_settings_exxcellent.xml]`
+_<GIT>/source_: `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
 
 # Debug (example) code in a running servlet container
 * Jetty is used for integration tests and local debugging of developers
@@ -16,7 +16,7 @@ Start Jetty from command line in _<GIT>/source_ directory via:
 
 ```
 export JAVA_HOME=/usr/lib/jvm/default-java
-mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false [-s maven_project_settings_exxcellent.xml]
+mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false
 ```
 
 # Release (+Build) artifacts to public (exxcellent) Maven repository
@@ -25,5 +25,5 @@ mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false [-s 
 * We don't use _deploy:deploy_, because this goal involves a _install_ that we want to avoid
 * You must build/package **all** the artifacts **before** deploying
 
-_<GIT>/source_: `clean verify deploy:deploy -DskipTests [-s maven_project_settings_exxcellent.xml]`
+_<GIT>/source_: `clean verify deploy:deploy -DskipTests`
 
