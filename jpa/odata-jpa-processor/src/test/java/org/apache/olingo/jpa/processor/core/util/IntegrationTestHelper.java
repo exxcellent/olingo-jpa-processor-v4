@@ -71,7 +71,7 @@ public class IntegrationTestHelper {
 
 	public IntegrationTestHelper(final EntityManagerFactory localEmf, final String urlPath,
 			final StringBuffer requestBody, final HttpMethod requestMethod)
-			throws IOException, ODataException {
+					throws IOException, ODataException {
 		this(localEmf, null, urlPath, requestBody, requestMethod);
 	}
 
@@ -83,8 +83,11 @@ public class IntegrationTestHelper {
 		this.req = new HttpServletRequestDouble(uriPrefix + urlPath, requestBody);
 		req.setMethod(requestMethod);
 		this.resp = new HttpServletResponseDouble();
-		final JPAPersistenceAdapter mappingAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-				new JPADefaultDatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
+		JPAPersistenceAdapter mappingAdapter = persistenceAdapter;
+		if (mappingAdapter == null) {
+			mappingAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
+					new JPADefaultDatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
+		}
 		final JPAODataGetHandler handler = new JPAODataGetHandler(mappingAdapter) {
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,

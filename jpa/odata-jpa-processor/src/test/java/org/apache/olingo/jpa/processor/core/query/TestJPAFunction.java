@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -52,6 +54,7 @@ public class TestJPAFunction {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')");
 		helper.assertStatus(200);
+		assertTrue(helper.getValues().size() > 0);
 	}
 
 	private void createSiblingsFunction() {

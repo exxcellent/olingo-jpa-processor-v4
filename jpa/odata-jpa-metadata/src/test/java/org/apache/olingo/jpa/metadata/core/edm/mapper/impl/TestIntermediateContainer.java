@@ -16,11 +16,13 @@ import org.junit.Test;
 
 public class TestIntermediateContainer extends TestMappingRoot {
 	private ServiceDocument serviceDocument;
+	private AbstractJPASchema schema;
 
 	@Before
 	public void setup() throws ODataJPAModelException {
 		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		serviceDocument = new ServiceDocument(PUNIT_NAME);
+		schema = serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
 	}
 
 	@Test
@@ -48,9 +50,7 @@ public class TestIntermediateContainer extends TestMappingRoot {
 	@Test
 	public void checkGetEntitySetName() throws ODataJPAModelException {
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+		final List<CsdlEntitySet> entitySets = serviceDocument.getEntityContainer().getEntitySets();
 		for (final CsdlEntitySet entitySet : entitySets) {
 			if (entitySet.getName().equals("BusinessPartners")) {
 				return;
@@ -62,9 +62,7 @@ public class TestIntermediateContainer extends TestMappingRoot {
 	@Test
 	public void checkGetEntitySetType() throws ODataJPAModelException {
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+		final List<CsdlEntitySet> entitySets = serviceDocument.getEntityContainer().getEntitySets();
 		for (final CsdlEntitySet entitySet : entitySets) {
 			if (entitySet.getName().equals("BusinessPartners")) {
 				assertEquals(new JPAEdmNameBuilder(PUNIT_NAME).buildFQN("BusinessPartner"), entitySet.getTypeFQN());

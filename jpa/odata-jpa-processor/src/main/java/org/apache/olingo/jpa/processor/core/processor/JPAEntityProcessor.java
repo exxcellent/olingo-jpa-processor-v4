@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.processor;
 
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
 
@@ -14,11 +15,14 @@ import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEntityHelper;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.jpa.processor.core.query.JPAInstanceResultConverter;
 import org.apache.olingo.jpa.processor.core.query.JPAQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCollection;
@@ -38,6 +42,8 @@ import org.apache.olingo.server.api.processor.EntityProcessor;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResource;
+import org.apache.olingo.server.api.uri.UriResourceFunction;
+import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.queryoption.CountOptionImpl;
 
@@ -207,13 +213,51 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 
 	}
 
+	private EntityCollection retrieveFunctionData(final ODataRequest request, final UriInfo uriInfo)
+			throws ODataApplicationException, ODataLibraryException {
+
+		final UriResourceFunction uriResourceFunction = (UriResourceFunction) uriInfo.getUriResourceParts().get(0);
+		final JPAFunction jpaFunction = sd.getFunction(uriResourceFunction.getFunction());
+		final JPAEntityType returnType = sd.getEntityType(jpaFunction.getResultParameter().getTypeFQN());
+
+		// dbProcessor.query
+		final JPAODataDatabaseProcessor dbProcessor = context.getDatabaseProcessor();
+		final List<?> nr = dbProcessor.executeFunctionQuery(uriResourceFunction, jpaFunction, returnType, em);
+
+		final EdmEntitySet returnEntitySet = uriResourceFunction.getFunctionImport().getReturnedEntitySet();
+		try {
+			final JPAInstanceResultConverter converter = new JPAInstanceResultConverter(getOData().createUriHelper(),
+					sd, nr, returnEntitySet, returnType.getTypeClass());
+			return converter.getResult();
+		} catch (final ODataJPAModelException e) {
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+		} catch (final URISyntaxException e) {
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_URI_ERROR,
+					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+		}
+
+	}
+
 	private EntityCollection retrieveEntityData(final ODataRequest request, final UriInfo uriInfo)
 			throws ODataApplicationException, ODataLibraryException {
 
 		final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+		final int lastPathSegmentIndex = resourceParts.size() - 1;
+		final UriResource lastPathSegment = resourceParts.get(lastPathSegmentIndex);
+		final OData odata = getOData();
+		if (lastPathSegment.getKind() == UriResourceKind.function) {
+			// entity dispatching is also called for functions (but not actions)
+			return retrieveFunctionData(request, uriInfo);
+		}
+
+		// continue with normal entity (collection) query
 		final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 
-		final OData odata = getOData();
+		if (targetEdmEntitySet == null) {
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+					HttpStatusCode.BAD_REQUEST, new IllegalArgumentException("EntitySet not found"));
+		}
 		final ServiceMetadata serviceMetadata = getServiceMetadata();
 
 		// Create a JPQL Query and execute it
