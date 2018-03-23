@@ -71,7 +71,7 @@ public @interface EdmFunction {
    * Indicates that a Function Import shall be generated into the Container. For details see:
    * <a href =
    * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406398042"
-   * /> edm:FunctionImport</a> <p>
+   * > edm:FunctionImport</a> <p>
    * hasFunctionImport is handled as follows:<p>
    * <ol>
    * <li>For <b>bound</b> functions hasFunctionImport is always treated as <b>false</b></li>
