@@ -81,13 +81,6 @@ public class AdministrativeDivision {
 	private AdministrativeDivision parent;
 
 	@OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumns({
-			@JoinColumn(name = "\"CodePublisher\"", referencedColumnName = "\"CodePublisher\"", nullable = false,
-				insertable = false, updatable = false),
-			@JoinColumn(name = "\"CodeID\"", referencedColumnName = "\"ParentCodeID\"", nullable = false,
-		insertable = false, updatable = false),
-			@JoinColumn(name = "\"DivisionCode\"", referencedColumnName = "\"ParentDivisionCode\"", nullable = false,
-		insertable = false, updatable = false) })
 	private List<AdministrativeDivision> children;
 
 	//  @EdmIgnore
