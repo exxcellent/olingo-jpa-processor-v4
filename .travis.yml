@@ -2,6 +2,8 @@ language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
 sudo: false
 dist: trusty
+services:
+- docker
 jdk:
     - oraclejdk8
     - oraclejdk9
@@ -14,3 +16,9 @@ branches:
   only:
   - master
   - develop
+deploy:
+  provider: script
+  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy -DskipTests -Djetty.skip -Dmaven.source.skip"
+  skip_cleanup: true
+  on:
+    tags: true
