@@ -39,7 +39,7 @@ We have to differentiate two phases of application lifecycle having different re
 ## 3. Runtime
 * The target type containing all the dependencies for runtime is controlled by the integrator. The following documentation will assume a WAR as target to explain a example integration.
 * You need to have the OLingo base libraries for OData protocol handling as dependecies for your WAR module.
-* And you need to have the OLingo JPA libraries to make your JPA entities OData capable
+* And you need to have the OLingo JPA processor libraries to make your JPA entities OData capable
 
 ```
 <dependencies>

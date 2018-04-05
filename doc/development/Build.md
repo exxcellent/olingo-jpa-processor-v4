@@ -1,7 +1,7 @@
 # Fast Build to package the artifacts
 * Unit and integration tests are disabled
 
-_<GIT>/source_: `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
+_<GIT>/_: `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
 
 # Debug (example) code in a running servlet container
 * Jetty is used for integration tests and local debugging of developers
@@ -12,18 +12,17 @@ _<GIT>/source_: `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javado
 it will take the wrong one. So we have explicit to set a JAVA_HOME if not already predefined.
 Check the Java version used by Maven via: `mvn -version`.
 
-Start Jetty from command line in _<GIT>/source_ directory via:
+Start Jetty from command line in _<GIT>/_ directory via:
 
 ```
 export JAVA_HOME=/usr/lib/jvm/default-java
 mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false
 ```
 
-# Release (+Build) artifacts to public (exxcellent) Maven repository
+# Release (+Build) artifacts to public Maven repository
 * Currently deploying is based on single files (artifacts) to publish
 * We have to deploy multiple artifacts with a list of Maven commands
-* We don't use _deploy:deploy_, because this goal involves a _install_ that we want to avoid
 * You must build/package **all** the artifacts **before** deploying
 
-_<GIT>/source_: `clean verify deploy:deploy -DskipTests`
+_<GIT>/_: `clean verify deploy:deploy`
 

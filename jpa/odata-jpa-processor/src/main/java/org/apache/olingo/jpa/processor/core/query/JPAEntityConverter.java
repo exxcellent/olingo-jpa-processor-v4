@@ -370,7 +370,17 @@ public class JPAEntityConverter extends JPAAbstractConverter {
 			field.setAccessible(true);
 			revertAccessibility = true;
 		}
-		field.set(jpaEntity, jpaPropertyValue);
+		if (attribute.isCollection() && Collection.class.isInstance(jpaPropertyValue) && field.get(jpaEntity) != null) {
+			// do not set the collection directly, because some specific implementations may
+			// cause problems... add entries in collection instead
+			@SuppressWarnings("unchecked")
+			final Collection<Object> target = (Collection<Object>) field.get(jpaEntity);
+			@SuppressWarnings("unchecked")
+			final Collection<Object> source = (Collection<Object>) jpaPropertyValue;
+			target.addAll(source);
+		} else {
+			field.set(jpaEntity, jpaPropertyValue);
+		}
 		if(revertAccessibility) {
 			field.setAccessible(false);
 		}
