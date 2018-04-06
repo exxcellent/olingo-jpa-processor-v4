@@ -16,7 +16,7 @@ cache:
 install: true
 script:
     - cp .travis.settings.xml $HOME/.m2/settings.xml
-    - mvn clean verify -Ddisable.jetty=false
+    - mvn clean verify -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
 deploy:
   provider: script
   # deploy script must be single line command
