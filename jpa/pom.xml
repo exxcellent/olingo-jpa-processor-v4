@@ -82,14 +82,6 @@
 		
 		<plugins>
 			<plugin>
-				<!-- enable deployment of this module -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-				  <skip>false</skip>
-				</configuration>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 			</plugin>

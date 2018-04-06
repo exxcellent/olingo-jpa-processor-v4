@@ -281,9 +281,11 @@
 				<!-- enable deployment of this module -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<inherited>false</inherited>
+				<!-- upload also all child modules without separate configuration -->
+				<inherited>true</inherited>
 				<configuration>
 					<skip>false</skip>
+					<deployAtEnd>true</deployAtEnd>
 				</configuration>
 			</plugin>
 		</plugins>

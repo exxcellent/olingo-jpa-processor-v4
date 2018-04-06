@@ -8,6 +8,7 @@ There are some assumptions to enable this JPA adapter library for your project:
 ## 1. Configure repository to resolve artifacts
 * You need to add a repository configuration to download the dependencies as part of your Maven build.
 * You should have a project specific _settings.xml_.
+* The repository can be configured like a mirror:
 
 ```
 <settings>
@@ -21,6 +22,42 @@ There are some assumptions to enable this JPA adapter library for your project:
   </mirrors>
 </settings>
 ```
+
+* The repository can also be configured as a repository (in _settings.xml_ or simply the _pom.xml_):
+
+```
+<settings>
+  <profiles>
+    <profile>
+      <repositories>...same as in pom.xml...</repositories>
+    </profile>
+  </profiles>
+</settings>
+```
+
+or in the _pom.xml_:
+
+```
+<project>
+  <repositories>
+    <repository>
+      <id>maven-central</id>
+      <url>http://repo2.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>packagecloud</id>
+      <url>https://packagecloud.io/exxcellent/olingo-jpa-processor-v4/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+</project>
+```
+
 
 We have to differentiate two phases of application lifecycle having different requirements on dependencies:
 ## 2. Compile time (meaning editing source and compiling that)

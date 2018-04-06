@@ -24,5 +24,5 @@ mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false
 * We have to deploy multiple artifacts with a list of Maven commands
 * You must build/package **all** the artifacts **before** deploying
 
-_<GIT>/_: `clean verify deploy:deploy`
+_<GIT>/_: `clean verify deploy:deploy -DskipTests -Djetty.skip`
 
