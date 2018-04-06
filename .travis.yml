@@ -10,15 +10,18 @@ jdk:
 cache:
   directories:
     - $HOME/.m2/repository
+install: false
 script:
-    - cd jpa && mvn clean verify
+    - mvn clean verify
 branches:
   only:
   - master
   - exxcellent_adaptions
 deploy:
   provider: script
-  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn clean verify deploy:deploy"
+  script: 
+      - cp .travis.settings.xml $HOME/.m2/settings.xml
+      - mvn clean verify deploy:deploy
   skip_cleanup: true
   on:
     tags: false
