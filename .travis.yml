@@ -12,7 +12,8 @@ jdk:
 cache:
   directories:
     - $HOME/.m2/repository
-install: false
+# 'true' will skip install step
+install: true
 script:
     - cp .travis.settings.xml $HOME/.m2/settings.xml
     - mvn clean verify
