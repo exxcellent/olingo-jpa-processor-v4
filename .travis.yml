@@ -20,7 +20,7 @@ script:
 deploy:
   provider: script
   # deploy script must bea single line command
-  script: mvn deploy:deploy -DskipTests -Djetty.skip
+  script: sh -c 'mvn deploy:deploy -DskipTests -Djetty.skip'
   skip_cleanup: true
   on:
     all_branches: true
