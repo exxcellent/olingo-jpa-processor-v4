@@ -19,8 +19,8 @@ script:
     - mvn clean verify -Ddisable.jetty=false
 deploy:
   provider: script
-  # deploy script must bea single line command
-  script: sh -c 'mvn deploy:deploy -DskipTests -Djetty.skip'
-  skip_cleanup: true
+  # deploy script must be single line command
+  script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
+  skip_cleanup: false
   on:
     all_branches: true
