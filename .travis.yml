@@ -1,22 +1,21 @@
+branches:
+  only:
+  - master
+  - eXXcellent_adaptions
 language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
-sudo: false
+sudo: required
 dist: trusty
-services:
-- docker
 jdk:
     - oraclejdk8
-    - oraclejdk9
+#    - oraclejdk9
 cache:
   directories:
     - $HOME/.m2/repository
 install: false
 script:
+    - cp .travis.settings.xml $HOME/.m2/settings.xml
     - mvn clean verify
-branches:
-  only:
-  - master
-  - eXXcellent_adaptions
 deploy:
   provider: script
   script: 
