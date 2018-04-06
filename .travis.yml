@@ -24,4 +24,4 @@ deploy:
       - mvn deploy:deploy -DskipTests -Djetty.skip
   skip_cleanup: true
   on:
-    branch: eXXcellent_adaptions
+    all_branches: true
