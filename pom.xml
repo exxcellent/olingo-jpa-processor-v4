@@ -16,7 +16,7 @@
 		<java.source.version>1.8</java.source.version>
 		<java.target.version>1.8</java.target.version>
 
-		<slf4j.version>1.7.7</slf4j.version>
+		<slf4j.version>1.7.25</slf4j.version>
 		<logback.version>1.0.9</logback.version>
 		<olingo.version>4.4.0</olingo.version>
 		<jetty.version>9.4.7.v20170914</jetty.version>
@@ -92,12 +92,12 @@
 				<!-- EclipseLink independent API's for JPA 2.x -->
 				<groupId>org.eclipse.persistence</groupId>
 				<artifactId>javax.persistence</artifactId>
-				<version>2.1.1</version>
+				<version>2.2.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.persistence</groupId>
 				<artifactId>eclipselink</artifactId>
-				<version>2.7.0</version>
+				<version>2.7.1</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-httpclient</groupId>

@@ -1,7 +1,5 @@
 **/.project
-
 **/.classpath
-
+**/.settings/
 **/derby.log
-
 **/target/
