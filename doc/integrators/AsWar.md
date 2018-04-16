@@ -11,7 +11,6 @@ The template for an standalone servlet managing OData/REST requests is:
 
 ```java
 @WebServlet(name = "odata-servlet", loadOnStartup = 1, urlPatterns = { "/odata/*" })
-@RequestScoped
 @ServletSecurity(httpMethodConstraints = { @HttpMethodConstraint(value = "GET", rolesAllowed = { "Reader" }),
 		@HttpMethodConstraint(value = "POST", rolesAllowed = { "Writer" }) })
 public class ODataServlet extends HttpServlet {

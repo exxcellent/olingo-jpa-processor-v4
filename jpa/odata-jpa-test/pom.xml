@@ -28,8 +28,14 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+		    <groupId>javax.persistence</groupId>
+		    <artifactId>javax.persistence-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
+			<artifactId>org.eclipse.persistence.jpa</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<!-- Our mapping doesn't work with Hibernate :-( -->
 		<!-- dependency>
@@ -40,6 +46,7 @@
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.flyway</groupId>

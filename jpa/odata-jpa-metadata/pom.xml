@@ -19,6 +19,11 @@
 	</properties>
 	<dependencies>
 		<dependency>
+		    <groupId>javax.persistence</groupId>
+		    <artifactId>javax.persistence-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
@@ -47,15 +52,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<!--
-				This dependency doesn't include EclipseLink specific artifacts, it's simply the JPA 2.x
-				API declaration. We have to use one from Hibernate, EclipseLink, OpenJPA or JavaEE, because
-				Oracle (via javax.persistence:persistence-api) hasn't provided API's higher than JPA 1.0.2 
-			-->
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>javax.persistence</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.olingo</groupId>
 			<artifactId>odata-server-core</artifactId>
 			<scope>runtime</scope>
@@ -72,7 +68,12 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<scope>provided</scope>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>org.eclipse.persistence.jpa</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	
 	<build>

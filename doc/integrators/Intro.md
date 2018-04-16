@@ -87,6 +87,30 @@ We have to differentiate two phases of application lifecycle having different re
 	</dependency>
 </dependencies>
 ```
+
+* Other dependencies are:
+
+```
+<dependencies>
+	<dependency>
+	    <groupId>javax.persistence</groupId>
+	    <artifactId>javax.persistence-api</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>org.eclipse.persistence</groupId>
+		<artifactId>org.eclipse.persistence.jpa</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>javax.validation</groupId>
+		<artifactId>validation-api</artifactId>
+	</dependency>
+	<dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>slf4j-api</artifactId>
+	</dependency>
+</dependencies>
+
+```
 ---
 
 The next steps are explained in [servlet configuration](AsWar.md)

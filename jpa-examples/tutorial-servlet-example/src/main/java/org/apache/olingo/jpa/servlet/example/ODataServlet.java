@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.RequestScoped;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
@@ -41,7 +40,6 @@ import org.apache.olingo.server.api.processor.Processor;
  *
  */
 @WebServlet(name = "odata-servlet", loadOnStartup = 1, urlPatterns = { "/odata/*" })
-@RequestScoped
 @ServletSecurity(httpMethodConstraints = { @HttpMethodConstraint(value = "GET", rolesAllowed = { "Reader" }),
 		@HttpMethodConstraint(value = "POST", rolesAllowed = { "Writer" }) })
 public class ODataServlet extends HttpServlet {
