@@ -93,10 +93,15 @@ We have to differentiate two phases of application lifecycle having different re
 ```
 <dependencies>
 	<dependency>
+		<groupId>javax.servlet</groupId>
+		<artifactId>javax.servlet-api</artifactId>
+	</dependency>
+	<dependency>
 	    <groupId>javax.persistence</groupId>
 	    <artifactId>javax.persistence-api</artifactId>
 	</dependency>
 	<dependency>
+		<!-- Using EclipseLink as JPA provider -->
 		<groupId>org.eclipse.persistence</groupId>
 		<artifactId>org.eclipse.persistence.jpa</artifactId>
 	</dependency>
