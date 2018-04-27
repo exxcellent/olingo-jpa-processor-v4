@@ -1,8 +1,10 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
+import java.util.Collections;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 
@@ -16,12 +18,17 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 public class ResourceLocalPersistenceAdapter extends AbstractJPAPersistenceAdapter {
 
 	public ResourceLocalPersistenceAdapter(final String pUnit, final JPAODataDatabaseProcessor dbAccessor) {
-		this(pUnit, null, dbAccessor);
+		this(pUnit, Collections.emptyMap(), dbAccessor);
 	}
 
 	public ResourceLocalPersistenceAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
 			final JPAODataDatabaseProcessor dbAccessor) {
 		super(pUnit, mapEntityManagerProperties, dbAccessor);
+	}
+
+	public ResourceLocalPersistenceAdapter(final String pUnit, final EntityManagerFactory emf,
+			final JPAODataDatabaseProcessor dbAccessor) throws IllegalArgumentException {
+		super(pUnit, emf, dbAccessor);
 	}
 
 	@Override
