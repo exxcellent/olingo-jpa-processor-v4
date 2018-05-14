@@ -17,7 +17,6 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEntityHelper;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
@@ -29,6 +28,7 @@ import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCollection;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCount;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeEntity;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializer;
+import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataLibraryException;
@@ -154,7 +154,8 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 				final Entity odataEntityMerged = mergeEntities(odataEntityPatchData,
 						entityCollectionCompleteEntities.getEntities().get(0));
 
-				final JPAEntityHelper invoker = new JPAEntityHelper(em);
+				final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
+						odata.createUriHelper());
 				// load the entity as JPA instance from DB, using the ID from resource path
 				final Object persistenceEntity = invoker.loadJPAEntity(jpaEntityType, odataEntityMerged);
 				if(persistenceEntity == null) {
@@ -194,7 +195,8 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 		if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
 			response.setStatusCode(HttpStatusCode.NOT_FOUND.getStatusCode());
 		} else {
-			final JPAEntityHelper invoker = new JPAEntityHelper(em);
+			final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
+					getOData().createUriHelper());
 			final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
 			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 			try {

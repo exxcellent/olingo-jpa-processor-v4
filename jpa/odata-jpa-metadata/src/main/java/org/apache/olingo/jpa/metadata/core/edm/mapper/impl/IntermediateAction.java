@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -44,7 +45,11 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		@Override
 		public String getName() {
 			try {
-				return owner.getEdmItem().getParameters().get(parameterIndex).getName();
+				if (owner.isBound) {
+					return owner.getEdmItem().getParameters().get(parameterIndex + 1).getName();
+				} else {
+					return owner.getEdmItem().getParameters().get(parameterIndex).getName();
+				}
 			} catch (final ODataJPAModelException e) {
 				throw new IllegalStateException(e);
 			}
@@ -170,14 +175,9 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		this.schema = schema;
 
 		final int noOfParameters = javaMethod.getParameters().length;
-		int offset = 0;
-		if(isBound) {
-			// add entity as first parameter
-			offset++;
-		}
 		parameterList = new ArrayList<JPAOperationParameter>(noOfParameters);
 		for(int i=0;i<noOfParameters;i++) {
-			parameterList.add(new ActionParameter(this, offset+i));
+			parameterList.add(new ActionParameter(this, i));
 		}
 
 		resultParameter = new ActionResultParameter(this);
@@ -330,4 +330,16 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 
 	}
 
+	@Override
+	public Object invoke(final Object jpaEntity, final Object... args) throws ODataJPAModelException {
+		try {
+			final Object result = javaMethod.invoke(jpaEntity, args);
+			if (result == null || getEdmItem().getReturnType() == null) {
+				return null;
+			}
+			return result;
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new ODataJPAModelException(e);
+		}
+	}
 }

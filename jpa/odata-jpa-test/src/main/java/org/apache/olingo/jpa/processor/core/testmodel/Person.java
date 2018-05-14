@@ -90,4 +90,13 @@ public class Person extends BusinessPartner {
 	public String reflectBack(@EdmActionParameter(name="input") final String input) {
 		return input;
 	}
+
+	/**
+	 * Bound oData action.
+	 */
+	@EdmAction(name = "extractCountryCode")
+	public String methodWithEntityParameter(@EdmActionParameter(name = "dummy") final int dummy,
+			@EdmActionParameter(name = "country") final Country country) {
+		return country.getCode();
+	}
 }

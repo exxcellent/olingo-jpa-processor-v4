@@ -17,18 +17,19 @@ import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
+import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEntityHelper;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.JPAQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
+import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataLibraryException;
@@ -195,10 +196,10 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 
 	private Object callAction(final JPAAction jpaAction, final Map<String, Parameter> parameters, final JPAEntityType jpaType,
 			final Entity entity) throws ODataApplicationException {
-		final JPAEntityHelper invoker = new JPAEntityHelper(em);
+		final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(), getOData().createUriHelper());
 		try {
 			return invoker.invokeActionMethod(jpaType, entity, jpaAction, parameters);
-		} catch (final ODataJPAModelException e) {
+		} catch (final ODataException e) {
 			throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 	}
