@@ -77,6 +77,12 @@ public class JPAEntityHelper {
 			case PRIMITIVE:
 				args[i] = p.getValue();
 				break;
+			case COLLECTION_PRIMITIVE:
+				args[i] = p.asCollection();
+				break;
+			case COLLECTION_ENUM:
+				args[i] = p.asCollection();
+				break;
 			case ENTITY:
 				final Entity entity = p.asEntity();
 				final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
@@ -87,7 +93,8 @@ public class JPAEntityHelper {
 				args[i] = jpaEntity;
 				break;
 			default:
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED);
+				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
+						p.getValueType().toString(), p.getName());
 			}
 		}
 		return args;
