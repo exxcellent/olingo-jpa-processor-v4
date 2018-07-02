@@ -119,7 +119,6 @@ abstract class IntermediateModelElement implements IntermediateModelItemAccess {
 
 	}
 
-	@Deprecated
 	protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
 		return list == null || list.isEmpty() ? null : list;
 	}

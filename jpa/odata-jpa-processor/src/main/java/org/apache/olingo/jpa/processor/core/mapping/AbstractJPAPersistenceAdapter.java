@@ -1,6 +1,9 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -22,6 +25,7 @@ public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAda
 	private final String namespace;
 	private final JPAODataDatabaseProcessor dbAccessor;
 	private final EntityManagerFactory emf;
+	private final Set<Class<?>> dtos = new HashSet<>();
 
 	/**
 	 *
@@ -74,4 +78,21 @@ public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAda
 		return dbAccessor;
 	}
 
+	@Override
+	public Collection<Class<?>> getDTOs() {
+		return dtos;
+	}
+
+	/**
+	 *
+	 * @param dto
+	 *            The class must have the annotation
+	 *            {@link org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO}.
+	 */
+	public void registerDTO(final Class<?> dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("DTO class required");
+		}
+		dtos.add(dto);
+	}
 }

@@ -27,7 +27,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 		requestBody.append("}");
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf,
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Persons('99')/" + PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
 		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
 

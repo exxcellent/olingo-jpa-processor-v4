@@ -100,10 +100,6 @@ public class JPAEntityHelper {
 		return args;
 	}
 
-	// private Method determineJavaMethod(final JPAAction jpaAction) {
-	// return ((IntermediateAction)jpaAction).getJavaMethod();
-	// }
-
 	/**
 	 * Load/search a JPA entity based on the identifier taken from the given OData entity. The JPA entity will assigned to the
 	 * current {@link #getEntityManager() entity manager}.
@@ -126,7 +122,7 @@ public class JPAEntityHelper {
 		if(listPrimaryKeyValues.isEmpty()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_KEY);
 		}
-		return em.find((Class<O>)jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+		return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.OPTIMISTIC);
 	}
 
 }

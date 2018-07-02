@@ -128,6 +128,10 @@ public final class JPAEdmNameBuilder {
 		return fqName;
 	}
 
+	public String buildDTOTypeName(final Class<?> dtoEntityType) {
+		return dtoEntityType.getSimpleName();
+	}
+
 	/*
 	 * ************************************************************************
 	 * EDM Schema Name - RULES

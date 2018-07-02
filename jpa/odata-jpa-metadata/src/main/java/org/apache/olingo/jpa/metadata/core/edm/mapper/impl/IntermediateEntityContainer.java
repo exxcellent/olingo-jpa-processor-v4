@@ -83,9 +83,9 @@ class IntermediateEntityContainer extends IntermediateModelElement {
 	private List<CsdlEntitySet> buildEntitySets() throws ODataJPAModelException {
 		for (final AbstractJPASchema schema : serviceDocument.getJPASchemas()) {
 			// Build Entity Sets
-			for (final IntermediateEntityType et : schema.getEntityTypes()) {
+			for (final JPAEntityType et : schema.getEntityTypes()) {
 				if (!et.ignore()) {
-					final IntermediateEntitySet es = new IntermediateEntitySet(nameBuilder, et);
+					final IntermediateEntitySet es = new IntermediateEntitySet(schema.getNameBuilder(), et);
 					entitySetListInternalKey.put(es.internalName, es);
 				}
 			}

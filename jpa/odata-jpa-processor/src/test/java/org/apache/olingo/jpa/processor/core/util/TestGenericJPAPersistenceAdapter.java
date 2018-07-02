@@ -31,4 +31,5 @@ public class TestGenericJPAPersistenceAdapter extends ResourceLocalPersistenceAd
 	public EntityManagerFactory getEMF() {
 		return getEntityManagerFactory();
 	}
+
 }

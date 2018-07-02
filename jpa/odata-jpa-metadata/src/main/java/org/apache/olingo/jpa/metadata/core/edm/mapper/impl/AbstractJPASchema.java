@@ -8,6 +8,7 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -38,9 +39,9 @@ public abstract class AbstractJPASchema implements JPAElement {
 		return getExternalName();
 	}
 
-	abstract IntermediateEntityType getEntityType(final Class<?> targetClass);
+	abstract JPAEntityType getEntityType(final Class<?> targetClass);
 
-	abstract IntermediateEntityType getEntityType(final String externalName);
+	abstract JPAEntityType getEntityType(final String externalName);
 
 	abstract JPAFunction getFunction(final String externalName);
 
@@ -56,7 +57,7 @@ public abstract class AbstractJPASchema implements JPAElement {
 
 	abstract IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
 
-	abstract List<IntermediateEntityType> getEntityTypes();
+	abstract List<JPAEntityType> getEntityTypes();
 
 	abstract List<JPAFunction> getFunctions();
 

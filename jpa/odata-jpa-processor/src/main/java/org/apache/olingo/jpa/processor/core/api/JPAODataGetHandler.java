@@ -15,6 +15,7 @@ import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
 import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
@@ -89,6 +90,19 @@ public class JPAODataGetHandler {
 			operationConverter = new JPADefaultDatabaseProcessor();
 			jpaEdm = new JPAEdmProvider(mappingAdapter.getNamespace(), mappingAdapter.getMetamodel());
 			databaseProcessor = mappingAdapter.getDatabaseAccessor();
+			registerDTOs();
+		}
+
+		private void registerDTOs() throws ODataJPAModelException {
+			final Collection<Class<?>> dtos = mappingAdapter.getDTOs();
+			if (dtos == null || dtos.isEmpty()) {
+				return;
+			}
+
+			final ServiceDocument sd = jpaEdm.getServiceDocument();
+			for (final Class<?> dtoClass : dtos) {
+				sd.createDTOType(dtoClass);
+			}
 		}
 
 		@Override

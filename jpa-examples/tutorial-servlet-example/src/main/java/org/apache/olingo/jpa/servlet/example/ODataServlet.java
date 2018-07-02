@@ -27,10 +27,12 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
 import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.server.api.processor.Processor;
 
 /**
@@ -85,6 +87,7 @@ public class ODataServlet extends HttpServlet {
 		final JPAPersistenceAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,
 				elProperties,
 				new JPADefaultDatabaseProcessor());
+		((AbstractJPAPersistenceAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
 
 		final JPAODataGetHandler handler = new JPAODataGetHandler(mappingAdapter) {
 			/**

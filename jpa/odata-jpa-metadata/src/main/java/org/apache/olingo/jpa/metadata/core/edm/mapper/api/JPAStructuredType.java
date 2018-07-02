@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
 import java.util.List;
 
+import org.apache.olingo.commons.api.edm.provider.CsdlStructuralType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -11,13 +12,26 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 public interface JPAStructuredType extends JPAElement {
+
+	public boolean isAbstract();
+
 	/**
-	 * Searches in the navigation properties that are available for this type via the OData service. That is:
+	 *
+	 * @return TRUE if element should be ignored.
+	 */
+	public boolean ignore();
+
+	public CsdlStructuralType getEdmItem() throws ODataJPAModelException;
+
+	/**
+	 * Searches in the navigation properties that are available for this type via
+	 * the OData service. That is:
 	 * <ul>
-	 * <li> All not ignored navigation properties of this type.
-	 * <li> All not ignored navigation properties from supertypes are included
-	 * <li> All not ignored navigation properties from embedded types are included.
+	 * <li>All not ignored navigation properties of this type.
+	 * <li>All not ignored navigation properties from supertypes are included
+	 * <li>All not ignored navigation properties from embedded types are included.
 	 * </ul>
+	 *
 	 * @return null if no navigation property found.
 	 * @throws ODataJPAModelException
 	 */
@@ -32,6 +46,8 @@ public interface JPAStructuredType extends JPAElement {
 	public JPASimpleAttribute getAttribute(String internalName) throws ODataJPAModelException;
 
 	public List<JPASimpleAttribute> getAttributes() throws ODataJPAModelException;
+
+	public List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException;
 
 	public JPAAttributePath getPath(String externalName) throws ODataJPAModelException;
 
@@ -58,5 +74,15 @@ public interface JPAStructuredType extends JPAElement {
 	 * @throws ODataJPAModelException
 	 */
 	public JPAAssociationPath getDeclaredAssociation(JPAAssociationPath associationPath) throws ODataJPAModelException;
+
+	/**
+	 * Returns a resolved list of all attributes that are marked as Id, so the
+	 * attributes of an EmbeddedId are returned as separate entries.
+	 *
+	 * @return The list with attributes or empty list.
+	 *
+	 * @throws ODataJPAModelException
+	 */
+	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException;
 
 }

@@ -1,9 +1,13 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.util.Collection;
 import java.util.UUID;
 
 import javax.persistence.Embeddable;
@@ -32,7 +36,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 public final class JPATypeConvertor {
 
 	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> type) throws ODataJPAModelException {
-		return convertToEdmSimpleType(type, null);
+		return convertToEdmSimpleType(type, (AccessibleObject) null);
+	}
+
+	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Field field) throws ODataJPAModelException {
+		return convertToEdmSimpleType(field.getType(), field);
 	}
 
 	/**
@@ -50,12 +58,30 @@ public final class JPATypeConvertor {
 
 	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
 			final Attribute<?, ?> currentAttribute) throws ODataJPAModelException {
+		return convertToEdmSimpleType(jpaType,
+				(currentAttribute != null) ? (AccessibleObject) currentAttribute.getJavaMember() : null);
+	}
+
+	/**
+	 *
+	 * @param jpaType
+	 *            The class object to convert into a primitive kind.
+	 * @param javaMember
+	 *            The optional java member ({@link Field} or {@link Method}) using
+	 *            the given type as field type or return type of method.
+	 * @return The primitive OData type.
+	 * @throws ODataJPAModelException
+	 *             If given type cannot be converted into a primitive type.
+	 */
+	private static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
+			final AccessibleObject javaMember) throws ODataJPAModelException {
 		// use a converter if available
-		final EdmPrimitiveTypeKind simpleType = determineSimpleTypeFromConverter(currentAttribute);
+		final EdmPrimitiveTypeKind simpleType = determineSimpleTypeFromConverter(javaMember);
 		if (simpleType != null) {
 			return simpleType;
 		}
 
+		final String memberName = (javaMember instanceof Field) ? ((Field) javaMember).getName() : null;
 		if (jpaType.equals(String.class) || jpaType.equals(Character.class) || jpaType.equals(char.class) || jpaType.equals(
 				char[].class) || jpaType.equals(Character[].class)) {
 			return EdmPrimitiveTypeKind.String;
@@ -87,9 +113,9 @@ public final class JPATypeConvertor {
 			return EdmPrimitiveTypeKind.Date;
 		} else if (jpaType.equals(java.util.Calendar.class) || jpaType.equals(java.sql.Timestamp.class)
 				|| jpaType.equals(java.util.Date.class) /* || jpaType.equals(java.time.LocalDateTime.class) */) {
-			if ((currentAttribute != null) && (determineTemporalType(currentAttribute) == TemporalType.TIME)) {
+			if (determineTemporalType(javaMember) == TemporalType.TIME) {
 				return EdmPrimitiveTypeKind.TimeOfDay;
-			} else if ((currentAttribute != null) && (determineTemporalType(currentAttribute) == TemporalType.DATE)) {
+			} else if (determineTemporalType(javaMember) == TemporalType.DATE) {
 				return EdmPrimitiveTypeKind.Date;
 			} else {
 				return EdmPrimitiveTypeKind.DateTimeOffset;
@@ -98,33 +124,30 @@ public final class JPATypeConvertor {
 			return EdmPrimitiveTypeKind.Guid;
 		} else if (jpaType.equals(Byte[].class)) {
 			return EdmPrimitiveTypeKind.Binary;
-		} else if (jpaType.equals(Blob.class) && isBlob(currentAttribute)) {
+		} else if (jpaType.equals(Blob.class) && isBlob(javaMember)) {
 			return EdmPrimitiveTypeKind.Binary;
-		} else if (jpaType.equals(Clob.class) && isBlob(currentAttribute)) {
+		} else if (jpaType.equals(Clob.class) && isBlob(javaMember)) {
 			return EdmPrimitiveTypeKind.String;
-		} else if (isGeography(currentAttribute)) {
-			return convertGeography(jpaType, currentAttribute);
-		} else if (isGeometry(currentAttribute)) {
-			return convertGeometry(jpaType, currentAttribute);
+		} else if (isGeography(javaMember)) {
+			return convertGeography(jpaType, memberName);
+		} else if (isGeometry(javaMember)) {
+			return convertGeometry(jpaType, memberName);
 		}
 		// Be aware: enumerations are handled as primitive types, but must be converted
 		// as own (enum) type and so cannot be handled here
 
 		// Type (%1$s) of attribute (%2$s) is not supported. Mapping not possible
 		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-				jpaType.getName(), (currentAttribute != null ? currentAttribute.getName() : null));
+				jpaType.getName(), (javaMember != null ? memberName : null));
 	}
 
-	private static EdmPrimitiveTypeKind determineSimpleTypeFromConverter(final Attribute<?, ?> currentAttribute)
+	private static EdmPrimitiveTypeKind determineSimpleTypeFromConverter(final AnnotatedElement javaMember)
 			throws ODataJPAModelException {
-		if (currentAttribute == null) {
+		if (javaMember == null) {
 			return null;
 		}
-		final AnnotatedElement annotatedElement = (AnnotatedElement) currentAttribute.getJavaMember();
-		if (annotatedElement == null) {
-			return null;
-		}
-		final EdmAttributeConverter converterAnnotation = annotatedElement.getAnnotation(EdmAttributeConverter.class);
+		final EdmAttributeConverter converterAnnotation = javaMember
+				.getAnnotation(EdmAttributeConverter.class);
 		if (converterAnnotation == null) {
 			return null;
 		}
@@ -142,7 +165,7 @@ public final class JPATypeConvertor {
 
 	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPAAttribute attribute)
 			throws ODataJPAModelException {
-		return convertToEdmSimpleType(attribute.getType(), null);
+		return convertToEdmSimpleType(attribute.getType(), (AccessibleObject) null);
 	}
 
 	public static boolean isScalarType(final Class<?> type) {
@@ -170,7 +193,7 @@ public final class JPATypeConvertor {
 		return false;
 	}
 
-	private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final Attribute<?, ?> currentAttribute)
+	private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final String memberName)
 			throws ODataJPAModelException {
 		if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.Point.class)) {
 			return EdmPrimitiveTypeKind.GeographyPoint;
@@ -189,10 +212,10 @@ public final class JPATypeConvertor {
 		}
 		// Type (%1$s) of attribute (%2$s) is not supported. Mapping not possible
 		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-				jpaType.getName(), currentAttribute.getName());
+				jpaType.getName(), memberName);
 	}
 
-	private static EdmPrimitiveTypeKind convertGeometry(final Class<?> jpaType, final Attribute<?, ?> currentAttribute)
+	private static EdmPrimitiveTypeKind convertGeometry(final Class<?> jpaType, final String memberName)
 			throws ODataJPAModelException {
 		if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.Point.class)) {
 			return EdmPrimitiveTypeKind.GeometryPoint;
@@ -211,24 +234,22 @@ public final class JPATypeConvertor {
 		}
 		// Type (%1$s) of attribute (%2$s) is not supported. Mapping not possible
 		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-				jpaType.getName(), currentAttribute.getName());
+				jpaType.getName(), memberName);
 	}
 
-	private static TemporalType determineTemporalType(final Attribute<?, ?> currentAttribute) {
-		if (currentAttribute != null) {
-			final AnnotatedElement annotatedElement = (AnnotatedElement) currentAttribute.getJavaMember();
-			if (annotatedElement != null && annotatedElement.getAnnotation(Temporal.class) != null) {
-				return annotatedElement.getAnnotation(Temporal.class).value();
+	private static TemporalType determineTemporalType(final AnnotatedElement javaMember) {
+		if (javaMember != null) {
+			final Temporal temporal = javaMember.getAnnotation(Temporal.class);
+			if (temporal != null) {
+				return temporal.value();
 			}
 		}
 		return null;
-
 	}
 
-	private static Dimension getDimension(final Attribute<?, ?> currentAttribute) {
-		if (currentAttribute != null && currentAttribute.getJavaMember() instanceof AnnotatedElement) {
-			final AnnotatedElement annotatedElement = (AnnotatedElement) currentAttribute.getJavaMember();
-			final EdmGeospatial spatialDetails = annotatedElement.getAnnotation(EdmGeospatial.class);
+	private static Dimension getDimension(final AnnotatedElement javaMember) {
+		if (AnnotatedElement.class.isInstance(javaMember)) {
+			final EdmGeospatial spatialDetails = javaMember.getAnnotation(EdmGeospatial.class);
 			if (spatialDetails != null) {
 				return spatialDetails.dimension();
 			}
@@ -236,22 +257,29 @@ public final class JPATypeConvertor {
 		return null;
 	}
 
-	private static boolean isBlob(final Attribute<?, ?> currentAttribute) {
-		if (currentAttribute != null) {
-			final AnnotatedElement annotatedElement = (AnnotatedElement) currentAttribute.getJavaMember();
-			if (annotatedElement != null && annotatedElement.getAnnotation(Lob.class) != null) {
+	private static boolean isBlob(final AnnotatedElement javaMember) {
+		if (javaMember != null) {
+			if (javaMember.getAnnotation(Lob.class) != null) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private static boolean isGeography(final Attribute<?, ?> currentAttribute) {
-		return getDimension(currentAttribute) == Dimension.GEOGRAPHY ? true : false;
+	private static boolean isGeography(final AnnotatedElement javaMember) {
+		return getDimension(javaMember) == Dimension.GEOGRAPHY ? true : false;
 	}
 
-	private static boolean isGeometry(final Attribute<?, ?> currentAttribute) {
-		return getDimension(currentAttribute) == Dimension.GEOMETRY ? true : false;
+	private static boolean isGeometry(final AnnotatedElement javaMember) {
+		return getDimension(javaMember) == Dimension.GEOMETRY ? true : false;
+	}
+
+	private static boolean isCollectionTypeOfPrimitive(final Field field) throws ODataJPAModelException {
+		if (Collection.class.isAssignableFrom(field.getType())) {
+			final Class<?> type = extractElementTypeOfCollection(field);
+			return (convertToEdmSimpleType(type, field) != null);
+		}
+		return false;
 	}
 
 	/**
@@ -265,7 +293,7 @@ public final class JPATypeConvertor {
 			final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) currentAttribute;
 			try {
 				final EdmPrimitiveTypeKind kind = convertToEdmSimpleType(pa.getElementType().getJavaType(),
-						currentAttribute);
+						(AccessibleObject) currentAttribute.getJavaMember());
 				return (kind != null);
 			} catch (final ODataJPAModelException e) {
 				return false;
@@ -300,13 +328,44 @@ public final class JPATypeConvertor {
 		if (currentAttribute instanceof SingularAttribute) {
 			try {
 				final EdmPrimitiveTypeKind kind = convertToEdmSimpleType(currentAttribute.getJavaType(),
-						currentAttribute);
+						(AccessibleObject) currentAttribute.getJavaMember());
 				return (kind != null);
 			} catch (final ODataJPAModelException e) {
 				return false;
 			}
 		}
 		return false;
+	}
+
+	static boolean isPrimitiveType(final Field field) {
+		try {
+			if (isCollectionTypeOfPrimitive(field)) {
+				return true;
+			}
+			return (convertToEdmSimpleType(field) != null);
+		} catch (final ODataJPAModelException e) {
+			return false;
+		}
+	}
+
+	/**
+	 *
+	 * @param field
+	 *            The field assuming to be an collection type.
+	 * @return The extracted element type from wrapping collection type
+	 * @throws ODataJPAModelException
+	 *             If the given field is not of (supported) collection type.
+	 */
+	static Class<?> extractElementTypeOfCollection(final Field field) throws ODataJPAModelException {
+		if (ParameterizedType.class.isInstance(field.getGenericType())) {
+			final java.lang.reflect.Type[] types = ((ParameterizedType) field.getGenericType())
+					.getActualTypeArguments();
+			if (types.length == 1) {
+				return (Class<?>) types[0];
+			}
+		}
+		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
+				field.getGenericType().getTypeName(), field.getName());
 	}
 
 }

@@ -17,6 +17,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
@@ -98,7 +99,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	}
 
 	@Override
-	IntermediateEntityType getEntityType(final Class<?> targetClass) {
+	JPAEntityType getEntityType(final Class<?> targetClass) {
 		return entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeName(targetClass));
 	}
 
@@ -108,7 +109,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	}
 
 	@Override
-	IntermediateEntityType getEntityType(final String externalName) {
+	JPAEntityType getEntityType(final String externalName) {
 		for (final String internalName : entityTypeListInternalKey.keySet()) {
 			if (entityTypeListInternalKey.get(internalName).getExternalName().equals(externalName)) {
 				return entityTypeListInternalKey.get(internalName);
@@ -118,12 +119,10 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	}
 
 	@Override
-	List<IntermediateEntityType> getEntityTypes() {
-		final List<IntermediateEntityType> entityTypes = new ArrayList<IntermediateEntityType>(
+	List<JPAEntityType> getEntityTypes() {
+		final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(
 				entityTypeListInternalKey.size());
-		for (final String internalName : entityTypeListInternalKey.keySet()) {
-			entityTypes.add(entityTypeListInternalKey.get(internalName));
-		}
+		entityTypes.addAll(entityTypeListInternalKey.values());
 		return entityTypes;
 	}
 

@@ -1,6 +1,8 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +27,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -48,23 +51,37 @@ JPAAssociationAttribute {
 	private final Attribute<?, ?> jpaAttribute;
 	private CsdlNavigationProperty edmNaviProperty;
 	private CsdlOnDelete edmOnDelete;
-	private final IntermediateStructuredType sourceType;
+	private final JPAStructuredType sourceType;
 	private IntermediateStructuredType targetType;
 	private final ServiceDocument serviceDocument;
 	private final List<IntermediateJoinColumn> joinColumns = new LinkedList<IntermediateJoinColumn>();
+	private final JPAAttributeAccessor accessor;
 
-	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType parent,
+	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final JPAStructuredType parent,
 			final Attribute<?, ?> jpaAttribute, final ServiceDocument serviceDocument) {
 		super(nameBuilder, jpaAttribute.getName());
 		this.jpaAttribute = jpaAttribute;
 		this.serviceDocument = serviceDocument;
 		this.sourceType = parent;
 		buildNaviProperty();
-
+		accessor = new FieldAttributeAccessor((Field) jpaAttribute.getJavaMember());
 	}
 
 	@Override
 	public AttributeConverter<?, ?> getConverter() {
+		return null;
+	}
+
+	@Override
+	public JPAAttributeAccessor getAttributeAccessor() {
+		return accessor;
+	}
+
+	@Override
+	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+		if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
+			return ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(annotationClass);
+		}
 		return null;
 	}
 
@@ -75,7 +92,11 @@ JPAAssociationAttribute {
 
 	@Override
 	public JPAStructuredType getStructuredType() {
-		return null;
+		try {
+			return getTargetEntity();
+		} catch (final ODataJPAModelException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -198,8 +219,7 @@ JPAAssociationAttribute {
 					} else if (mappedBy != null && !mappedBy.isEmpty()) {
 						// find the join columns on opposite and fill up with informations on our
 						// (source) side
-						final List<IntermediateJoinColumn> oppositeJoinColumns = targetType.getJoinColumns(sourceType,
-								mappedBy);
+						final List<IntermediateJoinColumn> oppositeJoinColumns = targetType.getJoinColumns(mappedBy);
 						if (oppositeJoinColumns.isEmpty()) {
 							// no explicit mapping on other side, try with 'id'
 							final IntermediateJoinColumn intermediateColumn = buildDefaultIdBasedJoinColumn(isSourceOne);
@@ -251,7 +271,7 @@ JPAAssociationAttribute {
 					edmNaviProperty.setPartner(targetType.getAssociation(mappedBy).getExternalName());
 				} else {
 					// no @JoinColumn and no 'mappedBy'... try alternative ways
-					final IntermediateNavigationProperty partner = targetType.getCorrespondingAssiciation(sourceType,
+					final IntermediateNavigationProperty partner = targetType.getCorrespondingAssociation(sourceType,
 							getInternalName());
 					if (partner != null) {
 						if (partner.isMapped()) {
@@ -288,7 +308,9 @@ JPAAssociationAttribute {
 			final CsdlReferentialConstraint constraint = new CsdlReferentialConstraint();
 			IntermediateModelElement sP = null;
 			IntermediateModelElement tP = null;
-			sP = sourceType.getPropertyByDBField(intermediateColumn.getName());
+			// TODO: navigation properties are only allowed for JPA types, so we can cast...
+			// but has bad smell
+			sP = ((IntermediateStructuredType) sourceType).getPropertyByDBField(intermediateColumn.getName());
 			if (sP != null) {
 				// do not create referential constraints (visible in $metadata) for ignored
 				// attributes
@@ -313,7 +335,10 @@ JPAAssociationAttribute {
 				constraint.setReferencedProperty(tP.getExternalName());
 				constraints.add(constraint);
 			} else {
-				sP = sourceType.getPropertyByDBField(intermediateColumn.getReferencedColumnName());
+				// TODO: navigation properties are only allowed for JPA types, so we can cast...
+				// but has bad smell
+				sP = ((IntermediateStructuredType) sourceType)
+						.getPropertyByDBField(intermediateColumn.getReferencedColumnName());
 				if (sP == null) {
 					final ODataJPAModelException ex = new ODataJPAModelException(
 							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND,
@@ -421,7 +446,7 @@ JPAAssociationAttribute {
 		return intermediateColumn;
 	}
 
-	private List<JPASimpleAttribute> determineCheckedNumberOfKeyAttributes(final IntermediateStructuredType theType)
+	private List<JPASimpleAttribute> determineCheckedNumberOfKeyAttributes(final JPAStructuredType theType)
 			throws ODataJPAModelException {
 		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes();
 		if (attributes.isEmpty()) {

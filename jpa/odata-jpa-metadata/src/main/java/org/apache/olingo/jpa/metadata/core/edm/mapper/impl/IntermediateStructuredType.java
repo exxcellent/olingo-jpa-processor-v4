@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,7 +26,6 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.edm.provider.CsdlStructuralType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -118,14 +118,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		return result;
 	}
 
-	/**
-	 * Returns a resolved list of all attributes that are marked as Id, so the
-	 * attributes of an EmbeddedId are returned as separate entries.
-	 *
-	 * @return The list with attributes or empty list.
-	 *
-	 * @throws ODataJPAModelException
-	 */
+	@Override
 	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException {
 		final List<JPASimpleAttribute> keyList = new LinkedList<JPASimpleAttribute>();
 		for (final JPASimpleAttribute attribute : getAttributes()) {
@@ -149,7 +142,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 				return associationPathMap.get(externalName);
 			}
 		}
-		final IntermediateStructuredType baseType = getBaseType();
+		final JPAStructuredType baseType = getBaseType();
 		if (baseType != null) {
 			return baseType.getDeclaredAssociation(externalName);
 		}
@@ -164,7 +157,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		if (associationPathMap.containsKey(associationPath.getAlias())) {
 			return associationPathMap.get(associationPath.getAlias());
 		}
-		final IntermediateStructuredType baseType = getBaseType();
+		final JPAStructuredType baseType = getBaseType();
 		if (baseType != null) {
 			return baseType.getDeclaredAssociation(associationPath);
 		}
@@ -189,7 +182,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		lazyBuildCompletePathMap();
 		final List<JPASelector> pathList = new ArrayList<JPASelector>();
 		for (final Entry<String, JPAPathImpl> entry : simpleAttributePathMap.entrySet()) {
-				pathList.add(entry.getValue());
+			pathList.add(entry.getValue());
 		}
 		return pathList;
 	}
@@ -256,19 +249,21 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 
 	protected FullQualifiedName determineBaseType() throws ODataJPAModelException {
 
-		final IntermediateStructuredType baseEntity = getBaseType();
+		final JPAStructuredType baseEntity = getBaseType();
 		if (baseEntity != null && !baseEntity.isAbstract() && isAbstract()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INHERITANCE_NOT_ALLOWED,
-					this.internalName, baseEntity.internalName);
+					this.internalName, baseEntity.getInternalName());
 		}
 		return baseEntity != null ? nameBuilder.buildFQN(baseEntity.getExternalName()) : null;
 	}
 
-	protected boolean isAbstract() {
-		return false;
+	@Override
+	public boolean isAbstract() {
+		final int modifiers = jpaManagedType.getJavaType().getModifiers();
+		return Modifier.isAbstract(modifiers);
 	}
 
-	protected IntermediateStructuredType getBaseType() throws ODataJPAModelException {
+	protected JPAStructuredType getBaseType() throws ODataJPAModelException {
 		final Class<?> baseType = jpaManagedType.getJavaType().getSuperclass();
 		if (baseType == null) {
 			return null;
@@ -286,7 +281,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		return clazz.getAnnotation(MappedSuperclass.class) != null;
 	}
 
-	private List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException {
+	@Override
+	public List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException {
 		lazyBuildEdmItem();
 		final List<JPAAssociationAttribute> jpaAttributes = new LinkedList<JPAAssociationAttribute>();
 		for (final String internalName : declaredNaviPropertiesList.keySet()) {
@@ -295,7 +291,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 				jpaAttributes.add(property);
 			}
 		}
-		final IntermediateStructuredType baseType = getBaseType();
+		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
+		final IntermediateStructuredType baseType = (IntermediateStructuredType) getBaseType();
 		if (baseType != null) {
 			jpaAttributes.addAll(baseType.getAssociations());
 		}
@@ -328,7 +325,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 			}
 		}
 		if (getBaseType() != null) {
-			return getBaseType().getPropertyByDBField(dbFieldName);
+			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
+			return ((IntermediateStructuredType) getBaseType()).getPropertyByDBField(dbFieldName);
 		}
 		return null;
 	}
@@ -343,19 +341,20 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		lazyBuildEdmItem();
 		IntermediateProperty result = declaredPropertiesList.get(internalName);
 		if (result == null && getBaseType() != null) {
-			result = getBaseType().getProperty(internalName);
+			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
+			result = ((IntermediateStructuredType) getBaseType()).getProperty(internalName);
 		}
 		return result;
 	}
 
-	IntermediateNavigationProperty getCorrespondingAssiciation(final IntermediateStructuredType sourceType,
+	IntermediateNavigationProperty getCorrespondingAssociation(final JPAStructuredType sourceType,
 			final String sourceRelationshipName) {
 		final Attribute<?, ?> jpaAttribute = findCorrespondingAssociation(sourceType, sourceRelationshipName);
 		return jpaAttribute == null ? null : new IntermediateNavigationProperty(nameBuilder, sourceType, jpaAttribute,
 				serviceDocument);
 	}
 
-	private Attribute<?, ?> findCorrespondingAssociation(final IntermediateStructuredType sourceType,
+	private Attribute<?, ?> findCorrespondingAssociation(final JPAStructuredType sourceType,
 			final String sourceRelationshipName) {
 		Class<?> targetClass = null;
 
@@ -382,11 +381,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		return null;
 	}
 
-	@Override
-	abstract CsdlStructuralType getEdmItem() throws ODataJPAModelException;
-
-	List<IntermediateJoinColumn> getJoinColumns(final IntermediateStructuredType sourceType,
-			final String relationshipName) {
+	List<IntermediateJoinColumn> getJoinColumns(final String relationshipName) {
 
 		final Attribute<?, ?> jpaAttribute = jpaManagedType.getAttribute(relationshipName);
 		if (jpaAttribute == null) {
@@ -512,8 +507,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		lazyBuildEdmItem();
 		if (simpleAttributePathMap.size() == 0) {
 			String externalName;
-			for (final String internalName : declaredPropertiesList.keySet()) {
-				final IntermediateProperty property = declaredPropertiesList.get(internalName);
+			for (final IntermediateProperty property : declaredPropertiesList.values()) {
 				if (property.isComplex()) {
 					complexAttributePathMap.put(property.getExternalName(),
 							new JPAPathImpl(property.getExternalName(), null, property));
@@ -551,7 +545,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 				}
 			}
 		}
-		final IntermediateStructuredType baseType = getBaseType();
+		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
+		final IntermediateStructuredType baseType = (IntermediateStructuredType) getBaseType();
 		if (baseType != null) {
 			simpleAttributePathMap.putAll(baseType.getSimpleAttributePathMap());
 			complexAttributePathMap.putAll(baseType.getComplexAttributePathMap());
@@ -573,7 +568,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 			}
 		}
 		if (this.getBaseType() != null) {
-			final IntermediateProperty superResult = getBaseType().getStreamProperty();
+			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
+			final IntermediateProperty superResult = ((IntermediateStructuredType) getBaseType()).getStreamProperty();
 			if (superResult != null) {
 				count += 1;
 				result = superResult;

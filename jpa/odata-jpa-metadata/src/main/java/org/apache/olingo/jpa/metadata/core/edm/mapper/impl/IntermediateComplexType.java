@@ -60,7 +60,7 @@ class IntermediateComplexType extends IntermediateStructuredType {
 	}
 
 	@Override
-	CsdlComplexType getEdmItem() throws ODataJPAModelException {
+	public CsdlComplexType getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
 		return edmComplexType;
 	}

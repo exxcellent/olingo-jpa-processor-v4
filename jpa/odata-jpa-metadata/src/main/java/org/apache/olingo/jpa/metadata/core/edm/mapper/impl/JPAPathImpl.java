@@ -15,7 +15,7 @@ class JPAPathImpl implements JPAAttributePath {
 	final private String dbFieldName;
 	final private boolean ignore;
 
-	JPAPathImpl(final String alias, final String dbFieldName, final IntermediateProperty element) {
+	JPAPathImpl(final String alias, final String dbFieldName, final JPAAttribute element) {
 		final List<JPAAttribute> pathElementsBuffer = new ArrayList<JPAAttribute>();
 
 		this.alias = alias;
@@ -30,6 +30,7 @@ class JPAPathImpl implements JPAAttributePath {
 		this.alias = selection;
 		this.pathElements = Collections.unmodifiableList(attribute);
 		this.dbFieldName = dbFieldName;
+		// FIXME: why take element at position 1?
 		this.ignore = ((IntermediateModelElement) pathElements.get(1)).ignore();
 	}
 

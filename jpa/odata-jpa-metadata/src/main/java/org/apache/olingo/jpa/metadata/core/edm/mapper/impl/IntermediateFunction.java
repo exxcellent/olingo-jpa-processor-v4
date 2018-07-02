@@ -14,6 +14,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -131,11 +132,11 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		final CsdlReturnType edmResultType = new CsdlReturnType();
 		FullQualifiedName fqn;
 		if (returnType.type() == Object.class) {
-			final IntermediateStructuredType et = schema.getEntityType(jpaDefiningPOJO);
+			final JPAStructuredType et = schema.getEntityType(jpaDefiningPOJO);
 			fqn = nameBuilder.buildFQN(et.getEdmItem().getName());
 			this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
 		} else {
-			final IntermediateStructuredType et = schema.getEntityType(returnType.type());
+			final JPAStructuredType et = schema.getEntityType(returnType.type());
 			if (et != null) {
 				fqn = nameBuilder.buildFQN(et.getEdmItem().getName());
 				this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it

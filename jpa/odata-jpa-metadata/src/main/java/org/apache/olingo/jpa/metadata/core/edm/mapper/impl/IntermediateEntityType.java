@@ -1,7 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -19,10 +18,11 @@ import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -67,7 +67,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 				result.add(simpleAttributePathMap.get(attribute.getExternalName()));
 			}
 		}
-		final IntermediateStructuredType baseType = getBaseType();
+		final JPAStructuredType baseType = getBaseType();
 		if (baseType != null) {
 			result.addAll(((IntermediateEntityType) baseType).getKeyPath());
 		}
@@ -180,18 +180,13 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 					(List<CsdlNavigationProperty>) extractEdmProperties(
 							declaredNaviPropertiesList));
 			edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
-			edmEntityType.setAbstract(determineAbstract());
+			edmEntityType.setAbstract(isAbstract());
 			edmEntityType.setBaseType(determineBaseType());
 			edmEntityType.setHasStream(determineHasStream());
 			determineHasEtag();
 			// TODO determine OpenType
 
 		}
-	}
-
-	boolean determineAbstract() {
-		final int modifiers = jpaManagedType.getJavaType().getModifiers();
-		return Modifier.isAbstract(modifiers);
 	}
 
 	void determineHasEtag() {
@@ -238,7 +233,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 	}
 
 	@Override
-	CsdlEntityType getEdmItem() throws ODataJPAModelException {
+	public CsdlEntityType getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
 		return edmEntityType;
 	}

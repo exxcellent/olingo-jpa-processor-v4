@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -8,9 +9,11 @@ import java.util.stream.Collectors;
 
 import javax.persistence.metamodel.Attribute;
 
+import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
@@ -22,6 +25,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 class IntermediateCustomSchema extends AbstractJPASchema {
 	private CsdlSchema edmSchema = null;
 	final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
+	final private Map<String, IntermediateTypeDTO> dtoTypes = new HashMap<>();
 	final private ServiceDocument serviceDocument;
 
 	IntermediateCustomSchema(final ServiceDocument serviceDocument, final String namespace)
@@ -37,9 +41,8 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 	}
 
 	@Override
-	IntermediateEntityType getEntityType(final Class<?> targetClass) {
-		// currently not supported
-		return null;
+	JPAEntityType getEntityType(final Class<?> targetClass) {
+		return dtoTypes.get(JPANameBuilder.buildStructuredTypeName(targetClass));
 	}
 
 	@Override
@@ -52,6 +55,10 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		return enumTypes.get(targetClass.getSimpleName());
 	}
 
+	IntermediateTypeDTO getDTOType(final Class<?> targetClass) {
+		return dtoTypes.get(targetClass.getSimpleName());
+	}
+
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
 		if (edmSchema != null) {
 			return;
@@ -59,9 +66,18 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		edmSchema = new CsdlSchema();
 		edmSchema.setNamespace(getNameBuilder().buildNamespace());
 		edmSchema.setEnumTypes(buildEnumTypeList());
-		// MUST be the last thing that is done !!!!
-		// REMARK: the entity container is set outside (in
-		// ServiceDocument#getEdmSchemas()) for related schemas only
+		edmSchema.setEntityTypes(buildEntityTypeList());
+	}
+
+	private List<CsdlEntityType> buildEntityTypeList() throws RuntimeException {
+		// TODO: entities (=empty) + dto's (as entities)
+		return dtoTypes.entrySet().stream().map(x -> {
+			try {
+				return x.getValue().getEdmItem();
+			} catch (final ODataJPAModelException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toList());
 	}
 
 	private List<CsdlEnumType> buildEnumTypeList() throws RuntimeException {
@@ -88,6 +104,21 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		return enumType;
 	}
 
+	IntermediateTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+		final String namespace = clazz.getPackage().getName();
+		if (!namespace.equalsIgnoreCase(getInternalName())) {
+			throw new ODataJPAModelException(MessageKeys.GENERAL);
+		}
+
+		IntermediateTypeDTO dtoType = getDTOType(clazz);
+		if (dtoType == null) {
+			dtoType = new IntermediateTypeDTO(getNameBuilder(), clazz, serviceDocument);
+			dtoTypes.put(clazz.getSimpleName(), dtoType);
+		}
+		return dtoType;
+
+	}
+
 	@Override
 	public CsdlSchema getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
@@ -101,9 +132,8 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 	}
 
 	@Override
-	IntermediateEntityType getEntityType(final String externalName) {
-		// currently not supported
-		return null;
+	JPAEntityType getEntityType(final String externalName) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -119,8 +149,9 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 	}
 
 	@Override
-	List<IntermediateEntityType> getEntityTypes() {
-		// currently not supported
-		return Collections.emptyList();
+	List<JPAEntityType> getEntityTypes() {
+		final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(dtoTypes.size());
+		entityTypes.addAll(dtoTypes.values());
+		return entityTypes;
 	}
 }

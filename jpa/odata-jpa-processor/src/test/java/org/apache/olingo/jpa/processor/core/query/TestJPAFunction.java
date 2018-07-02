@@ -4,45 +4,38 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
-import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDB_DatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
-import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
-import org.apache.olingo.jpa.processor.core.util.TestHelper;
-import org.junit.Before;
+import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class TestJPAFunction {
-	protected static final String PUNIT_NAME = "org.apache.olingo.jpa";
-	protected static EntityManagerFactory emf;
-	protected static TestGenericJPAPersistenceAdapter persistenceAdapter;
-
-	protected TestHelper helper;
-	protected Map<String, List<String>> headers;
-	protected static JPAEdmNameBuilder nameBuilder;
-
-	@Before
-	public void setup() {
-		persistenceAdapter = new TestGenericJPAPersistenceAdapter(PUNIT_NAME, new JPA_HSQLDB_DatabaseProcessor(),
-				DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
-		emf = persistenceAdapter.getEMF();
-
-	}
+public class TestJPAFunction extends TestBase {
+	// protected static final String PUNIT_NAME = "org.apache.olingo.jpa";
+	// protected static EntityManagerFactory emf;
+	// protected static TestGenericJPAPersistenceAdapter persistenceAdapter;
+	//
+	// protected TestHelper helper;
+	// protected Map<String, List<String>> headers;
+	// protected static JPAEdmNameBuilder nameBuilder;
+	//
+	// @Before
+	// public void setup() {
+	// persistenceAdapter = new TestGenericJPAPersistenceAdapter(PUNIT_NAME, new
+	// JPA_HSQLDB_DatabaseProcessor(),
+	// DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
+	// emf = persistenceAdapter.getEMF();
+	//
+	// }
 
 	@Ignore // TODO check is path is in general allowed
 	@Test
 	public void testNavigationAfterFunctionNotAllowed() throws IOException, ODataException {
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, persistenceAdapter,
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')/Parent");
 		helper.assertStatus(501);
 	}
@@ -51,7 +44,7 @@ public class TestJPAFunction {
 	public void testFunctionGenerateQueryString() throws IOException, ODataException, SQLException {
 
 		createSiblingsFunction();
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, persistenceAdapter,
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')");
 		helper.assertStatus(200);
 		assertTrue(helper.getValues().size() > 0);

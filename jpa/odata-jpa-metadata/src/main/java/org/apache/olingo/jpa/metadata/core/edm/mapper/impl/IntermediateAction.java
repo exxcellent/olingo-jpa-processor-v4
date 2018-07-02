@@ -22,6 +22,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -223,7 +224,7 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		}
 		// now adapt to oData type to determine FQN
 		if(clazzType != null) {
-			final IntermediateStructuredType et = schema.getEntityType(clazzType);
+			final JPAStructuredType et = schema.getEntityType(clazzType);
 			if (et != null) {
 				if (et.ignore()) {
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);
@@ -241,7 +242,7 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 	private CsdlReturnType determineResultType() throws ODataJPAModelException {
 		FullQualifiedName fqn = null;
 		boolean isCollection = false;
-		final IntermediateStructuredType et = schema.getEntityType(javaMethod.getReturnType());
+		final JPAStructuredType et = schema.getEntityType(javaMethod.getReturnType());
 		if (et != null) {
 			if (et.ignore()) {
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);

@@ -16,6 +16,7 @@ import org.junit.BeforeClass;
 public abstract class TestBase {
 
 	protected static final String PUNIT_NAME = org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME;
+	@Deprecated
 	protected static EntityManagerFactory emf;
 	protected TestHelper helper;
 	protected Map<String, List<String>> headers;

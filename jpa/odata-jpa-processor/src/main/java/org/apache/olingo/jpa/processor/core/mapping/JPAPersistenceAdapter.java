@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
+import java.util.Collection;
+
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 
@@ -56,6 +58,15 @@ public interface JPAPersistenceAdapter {
 	public String getNamespace();
 
 	public Metamodel getMetamodel();
+
+	/**
+	 *
+	 * @return An empty, non empty or <code>null</code> collection of non persistent
+	 *         (non JPA) POJOs classes to handle as OData entities.
+	 * @see org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO
+	 *      annotation
+	 */
+	public Collection<Class<?>> getDTOs();
 
 	public JPAODataDatabaseProcessor getDatabaseAccessor();
 }

@@ -58,21 +58,34 @@ public class IntegrationTestHelper {
 	public final HttpServletResponseDouble resp;
 	private static final String uriPrefix = "http://localhost:8080/Test/Olingo.svc/";
 
+	@Deprecated
 	public IntegrationTestHelper(final EntityManagerFactory localEmf, final String urlPath) throws IOException,
 	ODataException {
-		this(localEmf, null, urlPath, null, null);
+		this(localEmf, null, urlPath, null, HttpMethod.GET);
 	}
 
-	public IntegrationTestHelper(final EntityManagerFactory localEmf, final JPAPersistenceAdapter persistenceAdapter,
-			final String urlPath) throws IOException,
-	ODataException {
-		this(localEmf, persistenceAdapter, urlPath, null, null);
+	/**
+	 * Does the same as <i>IntegrationTestHelper(persistenceAdapter.getEMF(),
+	 * persistenceAdapter, urlPath, null, HttpMethod.GET)</i>.
+	 *
+	 * @see #IntegrationTestHelper(TestGenericJPAPersistenceAdapter, String,
+	 *      StringBuffer, HttpMethod)
+	 */
+	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath)
+			throws IOException, ODataException {
+		this(persistenceAdapter.getEMF(), persistenceAdapter, urlPath, null, HttpMethod.GET);
 	}
 
+	@Deprecated
 	public IntegrationTestHelper(final EntityManagerFactory localEmf, final String urlPath,
 			final StringBuffer requestBody, final HttpMethod requestMethod)
 					throws IOException, ODataException {
 		this(localEmf, null, urlPath, requestBody, requestMethod);
+	}
+
+	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath,
+			final StringBuffer requestBody, final HttpMethod requestMethod) throws IOException, ODataException {
+		this(persistenceAdapter.getEMF(), persistenceAdapter, urlPath, requestBody, requestMethod);
 	}
 
 	private IntegrationTestHelper(final EntityManagerFactory localEmf, final JPAPersistenceAdapter persistenceAdapter,

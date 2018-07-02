@@ -1,9 +1,11 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Column;
@@ -23,6 +25,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -55,6 +58,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	private boolean isVersion = false;
 	private EdmMediaStream streamInfo;
 	private final boolean isComplex;
+	private final JPAAttributeAccessor accessor;
 
 	IntermediateProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
 			final ServiceDocument serviceDocument) throws ODataJPAModelException {
@@ -66,6 +70,20 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 		isComplex = (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED)
 				|| JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute);
 		buildProperty(nameBuilder);
+		accessor = new FieldAttributeAccessor((Field) jpaAttribute.getJavaMember());
+	}
+
+	@Override
+	public JPAAttributeAccessor getAttributeAccessor() {
+		return accessor;
+	}
+
+	@Override
+	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+		if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
+			return ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(annotationClass);
+		}
+		return null;
 	}
 
 	@Override
@@ -172,7 +190,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 						maxLength = Integer.valueOf(annotationColumn.length());
 					}
 					edmProperty.setNullable(annotationColumn.nullable());
-					edmProperty.setSrid(getSRID());
+					edmProperty.setSrid(getSRID(jpaAttribute.getJavaMember()));
 					edmProperty.setDefaultValue(determineDefaultValue());
 					if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName()) || edmProperty
 							.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
@@ -200,10 +218,10 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 		}
 	}
 
-	private SRID getSRID() {
+	static SRID getSRID(final Member member) {
 		SRID result = null;
-		if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
-			final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
+		if (member instanceof AnnotatedElement) {
+			final AnnotatedElement annotatedElement = (AnnotatedElement) member;
 			final EdmGeospatial spatialDetails = annotatedElement.getAnnotation(EdmGeospatial.class);
 			if (spatialDetails != null) {
 				final String srid = spatialDetails.srid();

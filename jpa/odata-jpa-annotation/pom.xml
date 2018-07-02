@@ -24,6 +24,12 @@
     	<groupId>org.apache.olingo</groupId>
     	<artifactId>odata-commons-api</artifactId>
     </dependency>
+	<dependency>
+		<!-- Required for DTO implementation -->
+		<groupId>org.apache.olingo</groupId>
+		<artifactId>odata-server-api</artifactId>
+	  	<scope>provided</scope>
+	</dependency>    
   </dependencies>
   
   <build>

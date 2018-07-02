@@ -45,14 +45,12 @@ class JPAAssociationPathImpl implements JPAAssociationPath {
 
 	JPAAssociationPathImpl(final IntermediateNavigationProperty association,
 			final IntermediateStructuredType source) throws ODataJPAModelException {
-		final List<JPAAttribute> pathElementsBuffer = new ArrayList<JPAAttribute>();
-		pathElementsBuffer.add(association);
 
 		alias = association.getExternalName();
 		this.sourceType = source;
 		this.targetType = (IntermediateStructuredType) association.getTargetEntity();
 		this.joinColumns = association.getJoinColumns();
-		this.pathElements = Collections.unmodifiableList(pathElementsBuffer);
+		this.pathElements = Collections.singletonList(association);
 		this.cardinality = association.getJoinCardinality();
 	}
 

@@ -207,8 +207,8 @@ public class ServiceDocument {
 		return null;
 	}
 
-	IntermediateEntityType getEntityType(final Class<?> targetClass) {
-		IntermediateEntityType entityType;
+	JPAEntityType getEntityType(final Class<?> targetClass) {
+		JPAEntityType entityType;
 		synchronized (lock) {
 			initializeDependendSchemas();
 			for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
@@ -221,6 +221,7 @@ public class ServiceDocument {
 		return null;
 	}
 
+	// TODO remove method from public API
 	public AbstractJPASchema createMetamodelSchema(final String namespace, final Metamodel jpaMetamodel)
 			throws ODataJPAModelException {
 		synchronized (lock) {
@@ -254,6 +255,23 @@ public class ServiceDocument {
 				schema = createCustomSchema(namespace);
 			}
 			return schema.createEnumType(clazz);
+		}
+	}
+
+	public IntermediateTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+		synchronized (lock) {
+			if (clazz == null) {
+				throw new ODataJPAModelException(MessageKeys.GENERAL);
+			}
+			final String namespace = clazz.getPackage().getName();
+			AbstractJPASchema schema = schemaListInternalKey.get(namespace);
+			if (schema == null) {
+				schema = createCustomSchema(namespace);
+			} else if (!IntermediateCustomSchema.class.isInstance(schema)) {
+				// DTO's can be defined only in custom schemas
+				throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
+			}
+			return ((IntermediateCustomSchema) schema).createDTOType(clazz);
 		}
 	}
 

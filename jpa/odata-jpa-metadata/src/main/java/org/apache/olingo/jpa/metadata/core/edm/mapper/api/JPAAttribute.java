@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
+import java.lang.annotation.Annotation;
+
 import javax.persistence.AttributeConverter;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
@@ -9,6 +11,10 @@ public interface JPAAttribute extends JPAElement {
 
 	public AttributeConverter<?, ?> getConverter();
 
+	/**
+	 *
+	 * @return The type of the attribute represented by the intermediate api.
+	 */
 	public JPAStructuredType getStructuredType();
 
 	/**
@@ -17,6 +23,12 @@ public interface JPAAttribute extends JPAElement {
 	 *         is a collection.
 	 */
 	public Class<?> getType();
+
+	/**
+	 *
+	 * @return The wrapper to encapsulate reading/writing property values.
+	 */
+	public JPAAttributeAccessor getAttributeAccessor();
 
 	/**
 	 *
@@ -32,6 +44,20 @@ public interface JPAAttribute extends JPAElement {
 	public boolean isSearchable();
 
 	public boolean isCollection();
+
+	public boolean ignore();
+
+	/**
+	 * Wrapper to get annotation from the underlying property representation (field
+	 * , method,...).
+	 *
+	 * @param annotationClass
+	 *            The requested annotation class
+	 * @return The annotation or <code>null</code>.
+	 * @see java.lang.reflect.Field#getAnnotation(Class)
+	 */
+	@Deprecated
+	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass);
 
 	/**
 	 *

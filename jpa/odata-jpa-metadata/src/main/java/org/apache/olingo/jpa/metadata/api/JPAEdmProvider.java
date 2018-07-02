@@ -24,7 +24,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAExceptio
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.AbstractJPASchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
 
-public class JPAEdmProvider extends CsdlAbstractEdmProvider {
+public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	final private ServiceDocument serviceDocument;
 	final private AbstractJPASchema defaultSchema;

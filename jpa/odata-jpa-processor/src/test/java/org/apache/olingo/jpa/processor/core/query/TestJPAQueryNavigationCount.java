@@ -11,22 +11,23 @@ import org.junit.Test;
 
 public class TestJPAQueryNavigationCount extends TestBase {
 
-  @Test
-  public void testEntitySetCount() throws IOException, ODataException {
+	@Test
+	public void testEntitySetCount() throws IOException, ODataException {
 
-    IntegrationTestHelper helper = new IntegrationTestHelper(emf, "Organizations/$count");
-    assertEquals(200, helper.getStatus());
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Organizations/$count");
+		assertEquals(200, helper.getStatus());
 
-    assertEquals("10", helper.getRawResult());
-  }
+		assertEquals("10", helper.getRawResult());
+	}
 
-  @Test
-  public void testEntityNavigateCount() throws IOException, ODataException {
+	@Test
+	public void testEntityNavigateCount() throws IOException, ODataException {
 
-    IntegrationTestHelper helper = new IntegrationTestHelper(emf, "Organizations('3')/Roles/$count");
-    assertEquals(200, helper.getStatus());
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations('3')/Roles/$count");
+		assertEquals(200, helper.getStatus());
 
-    assertEquals("3", helper.getRawResult());
-  }
+		assertEquals("3", helper.getRawResult());
+	}
 
 }
