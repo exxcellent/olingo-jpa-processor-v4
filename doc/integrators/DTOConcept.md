@@ -44,4 +44,5 @@ public class Address {
 1. Define a attribute of supported type, a id/key attribute can be defined via the common JPA annotation @Id.
 
 ## Use the DTO
-TBD
+At runtime the processor will detect calls to a DTO resource and delegates processing to the handler. Reading allows the creation of a entity collection (via GET), saving is currently supported for single resource (via PUT).
+A DTO instance is automatically transformed from/into a OData entity instance like a normal JPA entity. The DTO is accessible like other OData entities with a appropriate URI.
