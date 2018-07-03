@@ -275,6 +275,9 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<attach>true</attach>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
