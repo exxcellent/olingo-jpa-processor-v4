@@ -319,5 +319,17 @@
 			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jpa-processor-v4</url>
 		</snapshotRepository>
 	</distributionManagement>
-
+	
+	<!-- distributionManagement>
+		<repository>
+			<id>exxcellent_repository</id>
+			<name>eXXcellent internal repository</name>
+			<url>http://nexus.exxcellent.de/repository/maven-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>exxcellent_repository</id>
+			<name>eXXcellent internal repository for snapshots</name>
+			<url>http://nexus.exxcellent.de/repository/maven-snapshots/</url>
+		</snapshotRepository>		
+	</distributionManagement-->
 </project>
