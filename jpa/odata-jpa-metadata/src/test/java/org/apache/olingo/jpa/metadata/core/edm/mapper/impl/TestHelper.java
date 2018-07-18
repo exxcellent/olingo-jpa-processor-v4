@@ -17,7 +17,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-public class TestHelper {
+class TestHelper {
 	final private Metamodel jpaMetamodel;
 	final ServiceDocument serviceDocument;
 	final public AbstractJPASchema schema;

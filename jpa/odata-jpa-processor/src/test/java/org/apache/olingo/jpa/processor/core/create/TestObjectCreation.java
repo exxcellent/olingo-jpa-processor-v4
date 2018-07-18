@@ -24,7 +24,7 @@ public class TestObjectCreation extends TestBase {
 		requestBody.append("\"ABoolean\": true");
 		requestBody.append("}");
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "DatatypeConversionEntities",
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DatatypeConversionEntities",
 				requestBody, HttpMethod.POST);
 		helper.assertStatus(HttpStatusCode.CREATED.getStatusCode());
 

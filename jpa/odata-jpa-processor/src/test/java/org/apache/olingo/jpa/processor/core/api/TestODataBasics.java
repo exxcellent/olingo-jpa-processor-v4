@@ -15,7 +15,7 @@ public class TestODataBasics extends TestBase {
 	@Test
 	public void testMetadata() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "$metadata");
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$metadata");
 		helper.assertStatus(200);
 
 		final String metadata = helper.getRawResult();

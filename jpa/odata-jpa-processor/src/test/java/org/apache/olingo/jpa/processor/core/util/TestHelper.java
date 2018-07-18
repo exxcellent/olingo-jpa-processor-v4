@@ -25,6 +25,14 @@ public class TestHelper {
 	final public ServiceDocument sd;
 	final public JPAEdmProvider edmProvider;
 
+	public TestHelper(final Metamodel jpaMetamodel, final String namespace) throws ODataException {
+		this.jpaMetamodel = jpaMetamodel;
+		edmProvider = new JPAEdmProvider(namespace, jpaMetamodel);
+		sd = edmProvider.getServiceDocument();
+		sd.getEdmSchemas();
+	}
+
+	@Deprecated
 	public TestHelper(final EntityManagerFactory emf, final String namespace) throws ODataException {
 		this.jpaMetamodel = emf.getMetamodel();
 		edmProvider = new JPAEdmProvider(namespace, jpaMetamodel);
