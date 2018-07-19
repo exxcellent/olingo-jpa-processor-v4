@@ -53,7 +53,7 @@ public class TestJPAFunction extends TestBase {
 	private void createSiblingsFunction() {
 		final StringBuffer sqlString = new StringBuffer();
 
-		final EntityManager em = emf.createEntityManager();
+		final EntityManager em = persistenceAdapter.createEntityManager();
 		final EntityTransaction t = em.getTransaction();
 
 		sqlString.append("create function \"OLINGO\".\"org.apache.olingo.jpa::Siblings\""); // \"OLINGO\".

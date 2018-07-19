@@ -33,12 +33,13 @@ import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdap
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
+import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.processor.Processor;
 
 /**
  * Example call: http://localhost:8080/odata/$metadata
  *
- * @author rzozmann
+ * @author Ralf Zozmann
  *
  */
 @WebServlet(name = "odata-servlet", loadOnStartup = 1, urlPatterns = { "/odata/*" })
@@ -100,6 +101,13 @@ public class ODataServlet extends HttpServlet {
 				final Collection<Processor> processors = super.collectProcessors(request, response, em);
 				processors.add(new ExampleErrorProcessor());
 				return processors;
+			}
+
+			@Override
+			protected void prepareDependencyInjection(final DependencyInjector dpi) {
+				super.prepareDependencyInjection(dpi);
+				// example for custom dependency injection
+				dpi.registerDependencyMapping(String.class, getServletName());
 			}
 		};
 		return handler;

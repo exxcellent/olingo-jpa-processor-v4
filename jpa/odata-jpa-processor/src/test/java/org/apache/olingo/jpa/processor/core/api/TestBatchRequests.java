@@ -20,7 +20,8 @@ public class TestBatchRequests extends TestBase {
 	public void testOneGetRequestGetResponce() throws IOException, ODataException {
 		final StringBuffer requestBody = createBodyOneGet();
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "$batch", requestBody, HttpMethod.POST);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
+				HttpMethod.POST);
 		final List<String> act = helper.getRawBatchResult();
 		assertNotNull(act);
 	}
@@ -29,7 +30,8 @@ public class TestBatchRequests extends TestBase {
 	public void testOneGetRequestCheckStatus() throws IOException, ODataException {
 		final StringBuffer requestBody = createBodyOneGet();
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "$batch", requestBody, HttpMethod.POST);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
+				HttpMethod.POST);
 		assertEquals(200, helper.getBatchResultStatus(1));
 	}
 
@@ -37,7 +39,8 @@ public class TestBatchRequests extends TestBase {
 	public void testOneGetRequestCheckValue() throws IOException, ODataException {
 		final StringBuffer requestBody = createBodyOneGet();
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "$batch", requestBody, HttpMethod.POST);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
+				HttpMethod.POST);
 		final JsonNode value = helper.getBatchResult(1);
 		assertEquals("3", value.get("ID").asText());
 	}
@@ -46,7 +49,8 @@ public class TestBatchRequests extends TestBase {
 	public void testTwoGetRequestSecondFailCheckStatus() throws IOException, ODataException {
 		final StringBuffer requestBody = createBodyTwoGetOneFail();
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "$batch", requestBody, HttpMethod.POST);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
+				HttpMethod.POST);
 		assertEquals(404, helper.getBatchResultStatus(2));
 	}
 
@@ -54,7 +58,8 @@ public class TestBatchRequests extends TestBase {
 	public void testTwoGetRequestCheckValue() throws IOException, ODataException {
 		final StringBuffer requestBody = createBodyTwoGet();
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(emf, "$batch", requestBody, HttpMethod.POST);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
+				HttpMethod.POST);
 		final JsonNode value = helper.getBatchResult(2);
 		assertEquals("5", value.get("ID").asText());
 	}

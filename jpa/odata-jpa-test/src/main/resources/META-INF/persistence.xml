@@ -37,4 +37,12 @@
 			<property name="javax.persistence.validation.mode" value="NONE" />
 		</properties>
 	</persistence-unit>
+
+	<!-- 
+		persistence unit used for test only, must contain exact one class
+	-->
+	<persistence-unit name="DUMMY" transaction-type="RESOURCE_LOCAL"> 
+		<class>org.apache.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>
+	</persistence-unit>
+	
 </persistence>

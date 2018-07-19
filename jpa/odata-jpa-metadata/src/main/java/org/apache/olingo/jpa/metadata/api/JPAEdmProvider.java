@@ -27,6 +27,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
 public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	final private ServiceDocument serviceDocument;
+	@SuppressWarnings("unused")
 	final private AbstractJPASchema defaultSchema;
 
 	// TODO edmx: Reference -> Support by Olingo?

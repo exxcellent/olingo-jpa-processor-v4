@@ -137,7 +137,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 		final ServiceMetadata serviceMetadata = getServiceMetadata();
 
 		// DTO?
-		final DTOEntityHelper helper = new DTOEntityHelper(odata, context.getEdmProvider(), serviceMetadata, uriInfo);
+		final DTOEntityHelper helper = new DTOEntityHelper(context, serviceMetadata, uriInfo);
 		if (helper.isTargetingDTO(targetEdmEntitySet)) {
 			try {
 				final JPAEntityType jpaEntityType = context.getEdmProvider().getServiceDocument()
@@ -298,7 +298,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 		}
 
 		final ServiceMetadata serviceMetadata = getServiceMetadata();
-		final DTOEntityHelper helper = new DTOEntityHelper(odata, context.getEdmProvider(), serviceMetadata, uriInfo);
+		final DTOEntityHelper helper = new DTOEntityHelper(context, serviceMetadata, uriInfo);
 		if (helper.isTargetingDTO(targetEdmEntitySet)) {
 			return helper.loadEntities(targetEdmEntitySet);
 		} else {

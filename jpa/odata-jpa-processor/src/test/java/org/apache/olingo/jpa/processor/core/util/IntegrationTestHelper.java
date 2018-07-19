@@ -76,6 +76,10 @@ public class IntegrationTestHelper {
 		this(persistenceAdapter.getEMF(), persistenceAdapter, urlPath, null, HttpMethod.GET);
 	}
 
+	/**
+	 * @deprecated Use
+	 *             {@link #IntegrationTestHelper(TestGenericJPAPersistenceAdapter, String, StringBuffer, HttpMethod)}
+	 */
 	@Deprecated
 	public IntegrationTestHelper(final EntityManagerFactory localEmf, final String urlPath,
 			final StringBuffer requestBody, final HttpMethod requestMethod)
@@ -98,6 +102,9 @@ public class IntegrationTestHelper {
 		this.resp = new HttpServletResponseDouble();
 		JPAPersistenceAdapter mappingAdapter = persistenceAdapter;
 		if (mappingAdapter == null) {
+			if (localEmf == null) {
+				throw new IllegalArgumentException("EntityManager must not be null if persistence adapter is not given");
+			}
 			mappingAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
 					new JPADefaultDatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 		}

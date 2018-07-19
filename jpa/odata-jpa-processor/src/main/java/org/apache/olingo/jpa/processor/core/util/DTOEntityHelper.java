@@ -13,6 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.DTOConverter;
 import org.apache.olingo.server.api.OData;
@@ -26,13 +27,15 @@ public class DTOEntityHelper {
 
 	private final OData odata;
 	private final JPAEdmProvider provider;
+	private final JPAODataSessionContextAccess context;
 	private final ServiceMetadata serviceMetadata;
 	private final UriInfo uriInfo;
 
-	public DTOEntityHelper(final OData odata, final JPAEdmProvider provider, final ServiceMetadata serviceMetadata,
+	public DTOEntityHelper(final JPAODataSessionContextAccess context, final ServiceMetadata serviceMetadata,
 			final UriInfo uriInfo) {
-		this.odata = odata;
-		this.provider = provider;
+		this.context = context;
+		this.odata = context.getOdata();
+		this.provider = context.getEdmProvider();
 		this.serviceMetadata = serviceMetadata;
 		this.uriInfo = uriInfo;
 	}
@@ -119,9 +122,10 @@ public class DTOEntityHelper {
 	}
 
 	private ODataDTOHandler<?> buildHandlerInstance(final EdmEntitySet targetEdmEntitySet)
-			throws ODataJPAModelException, InstantiationException, IllegalAccessException {
+			throws ODataJPAModelException, InstantiationException, IllegalAccessException, ODataApplicationException {
 		final Class<? extends ODataDTOHandler<?>> classHandler = determineDTOHandlerClass(targetEdmEntitySet);
 		final ODataDTOHandler<?> handler = classHandler.newInstance();
+		context.getDependencyInjector().injectFields(handler);
 		return handler;
 	}
 }
