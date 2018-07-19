@@ -7,7 +7,7 @@
 
 ##2. Define servlet
 * For details look into `org.apache.olingo.jpa.servlet.example.ODataServlet`
-The template for an standalone servlet managing OData/REST requests is:
+The template for an standalone servlet managing OData/REST requests can be used as:
 
 ```java
 @WebServlet(name = "odata-servlet", loadOnStartup = 1, urlPatterns = { "/odata/*" })
@@ -20,8 +20,8 @@ public class ODataServlet extends HttpServlet {
 
 		try {
 
-			JPAODataGetHandler handler = createHandler();
-			handler.process(req, resp);
+			JPAODataGetHandler requestHandler = createHandler();
+			requestHandler.process(req, resp);
 		} catch (final RuntimeException | ODataException e) {
 			throw new ServletException(e);
 		}
@@ -37,3 +37,4 @@ public class ODataServlet extends HttpServlet {
 
 }
 ```
+The example uses container managed security. To realize a more detailed control over security you should read [Servlet security](ServletSecurity.md).

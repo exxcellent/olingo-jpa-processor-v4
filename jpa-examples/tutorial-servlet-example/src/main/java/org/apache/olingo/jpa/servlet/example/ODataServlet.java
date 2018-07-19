@@ -50,6 +50,8 @@ public class ODataServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String JNDI_DATASOURCE = "java:comp/env/jdbc/testDS";
 
+	private JPAODataGetHandler requestHandler = null;
+
 	@Override
 	public void init() throws ServletException {
 		super.init();
@@ -57,27 +59,23 @@ public class ODataServlet extends HttpServlet {
 		try {
 			final DataSource ds = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/testDS");
 			DataSourceHelper.initializeDatabase(ds);
+
+			requestHandler = createHandler();
+
+			logSchema(requestHandler.getJPAODataContext().getEdmProvider().getServiceDocument());
 		} catch (final NamingException ne) {
 			throw new ServletException("Initialization of DataSource failed", ne);
+		} catch (final ODataException e) {
+			throw new ServletException("Initialization of request handler failed", e);
 		}
+
 		log("oData endpoint prepared");
 	}
 
 	@Override
 	protected void service(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
-
-		try {
-
-			final JPAODataGetHandler handler = createHandler();
-
-			logSchema(handler.getJPAODataContext().getEdmProvider().getServiceDocument());
-
-			handler.process(req, resp);
-		} catch (final RuntimeException | ODataException e) {
-			throw new ServletException(e);
-		}
-
+		requestHandler.process(req, resp);
 	}
 
 	private JPAODataGetHandler createHandler() throws ODataException {
@@ -110,6 +108,9 @@ public class ODataServlet extends HttpServlet {
 				dpi.registerDependencyMapping(String.class, getServletName());
 			}
 		};
+
+		handler.setSecurityInceptor(new ExampleSecurityInceptor());
+
 		return handler;
 	}
 

@@ -21,6 +21,8 @@ import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
 import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
+import org.apache.olingo.jpa.processor.core.security.RequestSecurityHandler;
+import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataRequest;
@@ -36,6 +38,7 @@ public class JPAODataGetHandler {
 	private static final Logger LOG = Logger.getLogger(JPAODataGetHandler.class.getName());
 
 	private final JPAODataContextImpl context;
+	private SecurityInceptor securityInceptor = null;
 
 	public JPAODataGetHandler(final JPAPersistenceAdapter mappingAdapter) throws ODataException {
 		super();
@@ -47,7 +50,7 @@ public class JPAODataGetHandler {
 	}
 
 	public void process(final HttpServletRequest request, final HttpServletResponse response) {
-		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(context);
+		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(context, securityInceptor);
 		context.getEdmProvider().setRequestLocales(request.getLocales());
 		context.initDebugger(request.getParameter(DebugSupport.ODATA_DEBUG_QUERY_PARAMETER));
 		handler.register(context.getDebugSupport());
@@ -74,6 +77,14 @@ public class JPAODataGetHandler {
 	 */
 	protected void prepareDependencyInjection(final DependencyInjector dpi) {
 		// do nothing in default implementation
+	}
+
+	/**
+	 * Set or replace the security inceptor. A <code>null</code> parameter will
+	 * disable security constraints.
+	 */
+	public void setSecurityInceptor(final SecurityInceptor securityInceptor) {
+		this.securityInceptor = securityInceptor;
 	}
 
 	/**
@@ -255,12 +266,14 @@ public class JPAODataGetHandler {
 
 		private final EntityManager em;
 		private final JPAODataContextImpl context;
+		private final SecurityInceptor securityInceptor;
 
-		public JPAODataHttpHandlerImpl(final JPAODataContextImpl context) {
+		public JPAODataHttpHandlerImpl(final JPAODataContextImpl context, final SecurityInceptor securityInceptor) {
 			super(context.getOdata(),
 					context.getOdata().createServiceMetadata(context.getEdmProvider(), context.getReferences()));
 			this.context = context;
 			this.em = context.getMappingAdapter().createEntityManager();
+			this.securityInceptor = securityInceptor;
 		}
 
 		EntityManager getEntityManager() {
@@ -272,6 +285,10 @@ public class JPAODataGetHandler {
 			final JPAPersistenceAdapter mappingAdapter = context.getMappingAdapter();
 			context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
 			try {
+				RequestSecurityHandler rsh = null;
+				if (securityInceptor != null) {
+					rsh = securityInceptor.createRequestSecurityHandler(request);
+				}
 				mappingAdapter.beginTransaction(em);
 				final ODataResponse odataResponse = super.process(request);
 				// TODO at this point the response is already sent to the client, but we have to

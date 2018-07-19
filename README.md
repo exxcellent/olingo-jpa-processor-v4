@@ -11,7 +11,7 @@ Developers using this library have to write only a few lines of code to get a se
 
 # Documentation
 ## For integrators
-More informations how to integrate the library into your Java project read [doc/integrators](doc/integrators/Intro.md).
+More informations how to integrate the library into your Java project read [doc/integrators](doc/integrators/GetStarted.md). The entry to the more detailed documentation can be found in the complete [integrators documentation](doc/integrators/TOC.md).
 
 ## For developers
 More informations can be found under [doc/development](doc/development/Project-Structure.md).

@@ -1,7 +1,7 @@
 # Fast Build to package the artifacts
 * Unit and integration tests are disabled
 
-_<GIT>/_: `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
+_<GIT>/_ : `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
 
 # Debug (example) code in a running servlet container
 * Jetty is used for integration tests and local debugging of developers
@@ -24,5 +24,5 @@ mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false
 * We have to deploy multiple artifacts with a list of Maven commands
 * You must build/package **all** the artifacts **before** deploying
 
-_<GIT>/_: `clean verify deploy:deploy -DskipTests -Djetty.skip`
+_<GIT>/_ : `clean verify deploy:deploy -DskipTests -Djetty.skip`
 
