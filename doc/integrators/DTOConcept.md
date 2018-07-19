@@ -46,3 +46,34 @@ public class Address {
 ## Use the DTO
 At runtime the processor will detect calls to a DTO resource and delegates processing to the handler. Reading allows the creation of a entity collection (via GET), saving is currently supported for single resource (via PUT).
 A DTO instance is automatically transformed from/into a OData entity instance like a normal JPA entity. The DTO is accessible like other OData entities with a appropriate URI.
+
+## Dependency injection
+For DTO's a limited support for dependency injection is available (see [JSR-330](https://jcp.org/en/jsr/detail?id=330) for annotations). Currently only single objects without ambiguous type can be handled.
+Supported is the injection of some DTO call related context objects via field injection (using @Inject). Automatic available are:
+* HttpServletRequest and HttpServletResponse (if called via `JPAODataGetHandler` in a servlet)
+* JPAPersistenceAdapter and EntityManager (covering the current transaction)
+* JPAEdmProvider
+	
+The injection support can be extended by custom injections (see example servlet for details).
+
+```
+public static class MyAddressFactory implements ODataDTOHandler<Address> {
+
+	@Inject
+	private HttpServletRequest request;
+
+	@Override
+	public Collection<Address> read(final UriInfoResource requestedResource) throws RuntimeException {
+		...
+		String userName = request.getUserPrincipal().getName();
+		...
+	};
+
+	@Override
+	public void write(final UriInfoResource requestedResource, final Address dto) throws RuntimeException {
+		...
+	}
+
+}
+
+```

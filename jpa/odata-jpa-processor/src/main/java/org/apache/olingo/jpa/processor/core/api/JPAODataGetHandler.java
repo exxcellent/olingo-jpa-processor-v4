@@ -1,6 +1,5 @@
 package org.apache.olingo.jpa.processor.core.api;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +21,7 @@ import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
 import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
+import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
@@ -32,33 +32,48 @@ import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.core.ODataHttpHandlerImpl;
 
 public class JPAODataGetHandler {
-	private final JPAODataContext context;
-	private final OData odata;
-	private final Logger log = Logger.getLogger(JPAODataGetHandler.class.getName());
-	private final JPAPersistenceAdapter mappingAdapter;
+
+	private static final Logger LOG = Logger.getLogger(JPAODataGetHandler.class.getName());
+
+	private final JPAODataContextImpl context;
 
 	public JPAODataGetHandler(final JPAPersistenceAdapter mappingAdapter) throws ODataException {
 		super();
-		this.mappingAdapter = mappingAdapter;
-		this.context = new JPAODataContextImpl();
-		this.odata = OData.newInstance();
-
+		this.context = new JPAODataContextImpl(mappingAdapter);
 	}
 
-	public JPAODataContext getJPAODataContext() {
+	public JPAODataSessionContextAccess getJPAODataContext() {
 		return context;
 	}
 
 	public void process(final HttpServletRequest request, final HttpServletResponse response) {
-		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl();
+		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(context);
 		context.getEdmProvider().setRequestLocales(request.getLocales());
 		context.initDebugger(request.getParameter(DebugSupport.ODATA_DEBUG_QUERY_PARAMETER));
 		handler.register(context.getDebugSupport());
+
+		final DependencyInjector dpi = new DependencyInjector();
+		dpi.registerDependencyMapping(HttpServletRequest.class, request);
+		dpi.registerDependencyMapping(HttpServletResponse.class, response);
+		prepareDependencyInjection(dpi);
+		context.initDependencyInjection(dpi);
+
 		final Collection<Processor> processors = collectProcessors(request, response, handler.getEntityManager());
 		for(final Processor p: processors) {
 			handler.register(p);
 		}
 		handler.process(request, response);
+	}
+
+	/**
+	 * Client hook method to add custom resources as dependencies for dependency
+	 * injection support.
+	 *
+	 * @param dpi
+	 *            The injector used to handle injection of registered dependencies.
+	 */
+	protected void prepareDependencyInjection(final DependencyInjector dpi) {
+		// do nothing in default implementation
 	}
 
 	/**
@@ -76,16 +91,21 @@ public class JPAODataGetHandler {
 		return processors;
 	}
 
-	private class JPAODataContextImpl implements JPAODataContext {
-		private List<EdmxReference> references = new ArrayList<EdmxReference>();
-		private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
-		private JPAODataDatabaseOperations operationConverter;
+	private static class JPAODataContextImpl implements JPAODataContext {
 		private final JPAEdmProvider jpaEdm;
 		private JPAODataDatabaseProcessor databaseProcessor;
+		private final JPAPersistenceAdapter mappingAdapter;
+		private final OData odata;
+		private final List<EdmxReference> references = new LinkedList<EdmxReference>();
+		private JPAODataDatabaseOperations operationConverter;
 		private JPAServiceDebugger debugger;
+		private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
+		private DependencyInjector dpi = new DependencyInjector();
 
-		public JPAODataContextImpl() throws ODataException {
+		public JPAODataContextImpl(final JPAPersistenceAdapter mappingAdapter) throws ODataException {
 			super();
+			this.odata = OData.newInstance();
+			this.mappingAdapter = mappingAdapter;
 
 			operationConverter = new JPADefaultDatabaseProcessor();
 			jpaEdm = new JPAEdmProvider(mappingAdapter.getNamespace(), mappingAdapter.getMetamodel());
@@ -106,6 +126,11 @@ public class JPAODataGetHandler {
 		}
 
 		@Override
+		public OData getOdata() {
+			return odata;
+		}
+
+		@Override
 		public DebugSupport getDebugSupport() {
 			return debugSupport;
 		}
@@ -123,11 +148,6 @@ public class JPAODataGetHandler {
 		@Override
 		public void setOperationConverter(final JPAODataDatabaseOperations jpaOperationConverter) {
 			operationConverter = jpaOperationConverter;
-		}
-
-		@Override
-		public void setReferences(final List<EdmxReference> references) {
-			this.references = references;
 		}
 
 		@Override
@@ -179,9 +199,28 @@ public class JPAODataGetHandler {
 			}
 			debugSupport.setDebugger(debugger);
 		}
+
+		JPAPersistenceAdapter getMappingAdapter() {
+			return mappingAdapter;
+		}
+
+		void initDependencyInjection(final DependencyInjector newDpi) {
+			if (newDpi == null) {
+				throw new IllegalArgumentException("New instance required");
+			}
+			this.dpi = newDpi;
+			dpi.registerDependencyMapping(JPAPersistenceAdapter.class, mappingAdapter);
+			dpi.registerDependencyMapping(JPAEdmProvider.class, jpaEdm);
+
+		}
+
+		@Override
+		public DependencyInjector getDependencyInjector() {
+			return dpi;
+		}
 	}
 
-	private class JPADebugSupportWrapper implements DebugSupport {
+	private static class JPADebugSupportWrapper implements DebugSupport {
 
 		final private DebugSupport debugSupport;
 		private JPAServiceDebugger debugger;
@@ -212,13 +251,16 @@ public class JPAODataGetHandler {
 		}
 	}
 
-	private class JPAODataHttpHandlerImpl extends ODataHttpHandlerImpl {
+	private static class JPAODataHttpHandlerImpl extends ODataHttpHandlerImpl {
 
 		private final EntityManager em;
+		private final JPAODataContextImpl context;
 
-		public JPAODataHttpHandlerImpl() {
-			super(odata, odata.createServiceMetadata(context.getEdmProvider(), context.getReferences()));
-			this.em = mappingAdapter.createEntityManager();
+		public JPAODataHttpHandlerImpl(final JPAODataContextImpl context) {
+			super(context.getOdata(),
+					context.getOdata().createServiceMetadata(context.getEdmProvider(), context.getReferences()));
+			this.context = context;
+			this.em = context.getMappingAdapter().createEntityManager();
 		}
 
 		EntityManager getEntityManager() {
@@ -227,6 +269,8 @@ public class JPAODataGetHandler {
 
 		@Override
 		public ODataResponse process(final ODataRequest request) {
+			final JPAPersistenceAdapter mappingAdapter = context.getMappingAdapter();
+			context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
 			try {
 				mappingAdapter.beginTransaction(em);
 				final ODataResponse odataResponse = super.process(request);
@@ -235,7 +279,7 @@ public class JPAODataGetHandler {
 				if (odataResponse.getStatusCode() >= 200 && odataResponse.getStatusCode() < 300) {
 					mappingAdapter.commitTransaction(em);
 				} else {
-					log.log(Level.WARNING, "Do not commit request transaction, because response is not 2xx");
+					LOG.log(Level.WARNING, "Do not commit request transaction, because response is not 2xx");
 					mappingAdapter.cancelTransaction(em);
 				}
 				return odataResponse;

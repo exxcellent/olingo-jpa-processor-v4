@@ -9,12 +9,15 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
 import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
+import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.debug.DebugSupport;
 
 public class JPAODataContextAccessDouble implements JPAODataSessionContextAccess {
 	private final JPAEdmProvider edmProvider;
 	private final JPAPersistenceAdapter persistenceAdapter;
 	private final JPAODataDatabaseOperations operationsConverter;
+	private final DependencyInjector dpi = new DependencyInjector();
 
 	public JPAODataContextAccessDouble(final JPAEdmProvider edmProvider,
 			final JPAPersistenceAdapter persistenceAdapter) {
@@ -54,6 +57,16 @@ public class JPAODataContextAccessDouble implements JPAODataSessionContextAccess
 	@Override
 	public JPAServiceDebugger getDebugger() {
 		return new JPAEmptyDebugger();
+	}
+
+	@Override
+	public OData getOdata() {
+		return null;
+	}
+
+	@Override
+	public DependencyInjector getDependencyInjector() {
+		return dpi;
 	}
 
 }
