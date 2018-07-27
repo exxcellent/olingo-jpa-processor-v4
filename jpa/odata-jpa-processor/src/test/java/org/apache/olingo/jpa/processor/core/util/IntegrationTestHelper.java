@@ -117,7 +117,15 @@ public class IntegrationTestHelper {
 				return processors;
 			}
 		};
+		adaptHander(handler);
 		handler.process(req, resp);
+	}
+
+	/**
+	 * Hook method to modify handler before processing starts.
+	 */
+	protected void adaptHander(final JPAODataGetHandler handler) {
+		// do nothing as default
 	}
 
 	public HttpServletResponseDouble getResponce() {

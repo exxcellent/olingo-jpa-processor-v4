@@ -21,17 +21,21 @@ import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
 import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
-import org.apache.olingo.jpa.processor.core.security.RequestSecurityHandler;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.OData;
+import org.apache.olingo.server.api.ODataApplicationException;
+import org.apache.olingo.server.api.ODataLibraryException;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
+import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.debug.DebugInformation;
 import org.apache.olingo.server.api.debug.DebugSupport;
 import org.apache.olingo.server.api.debug.DefaultDebugSupport;
 import org.apache.olingo.server.api.processor.Processor;
+import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.core.ODataHttpHandlerImpl;
+import org.apache.olingo.server.core.uri.parser.Parser;
 
 public class JPAODataGetHandler {
 
@@ -107,6 +111,7 @@ public class JPAODataGetHandler {
 		private JPAODataDatabaseProcessor databaseProcessor;
 		private final JPAPersistenceAdapter mappingAdapter;
 		private final OData odata;
+		private final ServiceMetadata serviceMetaData;
 		private final List<EdmxReference> references = new LinkedList<EdmxReference>();
 		private JPAODataDatabaseOperations operationConverter;
 		private JPAServiceDebugger debugger;
@@ -121,6 +126,7 @@ public class JPAODataGetHandler {
 			operationConverter = new JPADefaultDatabaseProcessor();
 			jpaEdm = new JPAEdmProvider(mappingAdapter.getNamespace(), mappingAdapter.getMetamodel());
 			databaseProcessor = mappingAdapter.getDatabaseAccessor();
+			this.serviceMetaData = odata.createServiceMetadata(jpaEdm, references);
 			registerDTOs();
 		}
 
@@ -169,6 +175,10 @@ public class JPAODataGetHandler {
 		@Override
 		public JPAEdmProvider getEdmProvider() {
 			return jpaEdm;
+		}
+
+		public ServiceMetadata getServiceMetaData() {
+			return serviceMetaData;
 		}
 
 		@Override
@@ -269,8 +279,7 @@ public class JPAODataGetHandler {
 		private final SecurityInceptor securityInceptor;
 
 		public JPAODataHttpHandlerImpl(final JPAODataContextImpl context, final SecurityInceptor securityInceptor) {
-			super(context.getOdata(),
-					context.getOdata().createServiceMetadata(context.getEdmProvider(), context.getReferences()));
+			super(context.getOdata(), context.getServiceMetaData());
 			this.context = context;
 			this.em = context.getMappingAdapter().createEntityManager();
 			this.securityInceptor = securityInceptor;
@@ -284,11 +293,10 @@ public class JPAODataGetHandler {
 		public ODataResponse process(final ODataRequest request) {
 			final JPAPersistenceAdapter mappingAdapter = context.getMappingAdapter();
 			context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
+
+			checkSecurity(request);
+
 			try {
-				RequestSecurityHandler rsh = null;
-				if (securityInceptor != null) {
-					rsh = securityInceptor.createRequestSecurityHandler(request);
-				}
 				mappingAdapter.beginTransaction(em);
 				final ODataResponse odataResponse = super.process(request);
 				// TODO at this point the response is already sent to the client, but we have to
@@ -304,6 +312,21 @@ public class JPAODataGetHandler {
 				// do not commit on exceptions
 				mappingAdapter.cancelTransaction(em);
 				throw ex;
+			}
+		}
+
+		private void checkSecurity(final ODataRequest request) throws RuntimeException {
+			if (securityInceptor == null) {
+				return;
+			}
+			try {
+				context.getDependencyInjector().injectFields(securityInceptor);
+				final UriInfo uriInfo = new Parser(context.getServiceMetaData().getEdm(), context.getOdata())
+						.parseUri(request.getRawODataPath(),
+								request.getRawQueryPath(), null, request.getRawBaseUri());
+				securityInceptor.authorize(request, uriInfo);
+			} catch (final ODataLibraryException | ODataApplicationException e) {
+				throw new RuntimeException(e);
 			}
 		}
 	}

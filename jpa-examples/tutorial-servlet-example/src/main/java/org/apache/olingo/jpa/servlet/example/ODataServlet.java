@@ -30,6 +30,7 @@ import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.security.ServletSecurityAnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
@@ -109,7 +110,7 @@ public class ODataServlet extends HttpServlet {
 			}
 		};
 
-		handler.setSecurityInceptor(new ExampleSecurityInceptor());
+		handler.setSecurityInceptor(new ServletSecurityAnnotationBasedSecurityInceptor());
 
 		return handler;
 	}
