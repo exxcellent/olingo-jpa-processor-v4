@@ -19,92 +19,101 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 
 public class JPALiteralOperator implements JPAOperator {
-  private final Literal literal;
-  private final OData odata;
+	private final Literal literal;
+	private final OData odata;
 
-  public JPALiteralOperator(final OData odata, final Literal literal) {
-    this.literal = literal;
-    this.odata = odata;
-  }
+	public JPALiteralOperator(final OData odata, final Literal literal) {
+		this.literal = literal;
+		this.odata = odata;
+	}
 
-  @Override
-  public Object get() throws ODataApplicationException {
-    final EdmPrimitiveType edmType = ((EdmPrimitiveType) literal.getType());
-    try {
+	@Override
+	public Object get() throws ODataApplicationException {
+		final EdmPrimitiveType edmType = ((EdmPrimitiveType) literal.getType());
+		try {
 
-      final Class<?> defaultType = edmType.getDefaultType();
-      final Constructor<?> c = defaultType.getConstructor(String.class);
-      return c.newInstance(edmType.fromUriLiteral(literal.getText()));
-    } catch (InstantiationException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (IllegalAccessException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (IllegalArgumentException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (InvocationTargetException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (EdmPrimitiveTypeException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (NoSuchMethodException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (SecurityException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
+			final Class<?> defaultType = edmType.getDefaultType();
+			final Constructor<?> c = defaultType.getConstructor(String.class);
+			return c.newInstance(edmType.fromUriLiteral(literal.getText()));
+		} catch (final InstantiationException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final IllegalAccessException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final IllegalArgumentException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final InvocationTargetException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final EdmPrimitiveTypeException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final NoSuchMethodException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final SecurityException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-  /**
-   * Converts a literal value into system type of attribute
-   */
-  public Object get(final JPAAttribute attribute) throws ODataApplicationException {
+	/**
+	 * Converts a literal value into system type of attribute
+	 */
+	public Object get(final JPAAttribute attribute) throws ODataApplicationException {
 
-    try {
-      final CsdlProperty edmProperty = (CsdlProperty) attribute.getProperty();
-      final EdmPrimitiveTypeKind edmTypeKind = JPATypeConvertor.convertToEdmSimpleType(attribute);
-      // TODO literal does not convert decimals without scale properly
-      // EdmPrimitiveType edmType = ((EdmPrimitiveType) literal.getType());
-      String value = null;
-      final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
-      value = edmType.fromUriLiteral(literal.getText());
-      return edmType.valueOfString(value, edmProperty.isNullable(), edmProperty.getMaxLength(),
-          edmProperty.getPrecision(), edmProperty.getScale(), true, attribute.getType());
+		if (attribute.getType().isEnum()) {
+			return getEnumValue(attribute);
+		}
+		try {
+			// normal primitive type handling
+			final CsdlProperty edmProperty = (CsdlProperty) attribute.getProperty();
+			final EdmPrimitiveTypeKind edmTypeKind = JPATypeConvertor.convertToEdmSimpleType(attribute);
+			// TODO literal does not convert decimals without scale properly
+			// EdmPrimitiveType edmType = ((EdmPrimitiveType) literal.getType());
+			String value = null;
+			final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
+			value = edmType.fromUriLiteral(literal.getText());
+			return edmType.valueOfString(value, edmProperty.isNullable(), edmProperty.getMaxLength(),
+					edmProperty.getPrecision(), edmProperty.getScale(), true, attribute.getType());
 
-    } catch (EdmPrimitiveTypeException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (ODataJPAModelException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
+		} catch (final EdmPrimitiveTypeException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final ODataJPAModelException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-  public Object get(JPAOperationResultParameter returnType) throws ODataApplicationException {
-    final EdmPrimitiveTypeKind edmTypeKind = EdmPrimitiveTypeKind.valueOfFQN(returnType.getTypeFQN());
-    final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
-    String value;
-    try {
-      value = edmType.fromUriLiteral(literal.getText());
-      return edmType.valueOfString(value, true, returnType.getMaxLength(), returnType.getPrecision(), returnType
-          .getScale(), true, returnType.getType());
-    } catch (EdmPrimitiveTypeException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Object getEnumValue(final JPAAttribute attribute) {
+		return Enum.valueOf((Class<Enum>) attribute.getType(), literal.getText());
+	}
 
-  public Object get(JPAOperationParameter jpaParameter) throws ODataApplicationException {
-    try {
-      final EdmPrimitiveTypeKind edmTypeKind = EdmPrimitiveTypeKind.valueOfFQN(jpaParameter.getTypeFQN());
-      final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
-      String value;
+	public Object get(final JPAOperationResultParameter returnType) throws ODataApplicationException {
+		final EdmPrimitiveTypeKind edmTypeKind = EdmPrimitiveTypeKind.valueOfFQN(returnType.getTypeFQN());
+		final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
+		String value;
+		try {
+			value = edmType.fromUriLiteral(literal.getText());
+			return edmType.valueOfString(value, true, returnType.getMaxLength(), returnType.getPrecision(), returnType
+					.getScale(), true, returnType.getType());
+		} catch (final EdmPrimitiveTypeException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-      value = edmType.fromUriLiteral(literal.getText());
-      return edmType.valueOfString(value, true, jpaParameter.getMaxLength(), jpaParameter.getPrecision(), jpaParameter
-          .getScale(), true, jpaParameter.getType());
-    } catch (EdmPrimitiveTypeException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    } catch (ODataJPAModelException e) {
-      throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-    }
-  }
+	public Object get(final JPAOperationParameter jpaParameter) throws ODataApplicationException {
+		try {
+			final EdmPrimitiveTypeKind edmTypeKind = EdmPrimitiveTypeKind.valueOfFQN(jpaParameter.getTypeFQN());
+			final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
+			String value;
 
-  Literal getLiteral() {
-    return literal;
-  }
+			value = edmType.fromUriLiteral(literal.getText());
+			return edmType.valueOfString(value, true, jpaParameter.getMaxLength(), jpaParameter.getPrecision(), jpaParameter
+					.getScale(), true, jpaParameter.getType());
+		} catch (final EdmPrimitiveTypeException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		} catch (final ODataJPAModelException e) {
+			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	Literal getLiteral() {
+		return literal;
+	}
 }
