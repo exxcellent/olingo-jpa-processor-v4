@@ -188,7 +188,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 						entityCollectionCompleteEntities.getEntities().get(0));
 
 				final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-						odata.createUriHelper());
+						odata.createUriHelper(), context.getDependencyInjector());
 				// load the entity as JPA instance from DB, using the ID from resource path
 				final Object persistenceEntity = invoker.loadJPAEntity(jpaEntityType, odataEntityMerged);
 				if(persistenceEntity == null) {
@@ -229,7 +229,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 			response.setStatusCode(HttpStatusCode.NOT_FOUND.getStatusCode());
 		} else {
 			final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-					getOData().createUriHelper());
+					getOData().createUriHelper(), context.getDependencyInjector());
 			final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
 			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 			try {

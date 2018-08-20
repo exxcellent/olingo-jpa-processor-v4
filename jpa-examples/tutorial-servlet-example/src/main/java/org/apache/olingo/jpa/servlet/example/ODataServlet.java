@@ -24,11 +24,11 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
 import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAPersistenceAdapter;
-import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
+import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
@@ -80,15 +80,15 @@ public class ODataServlet extends HttpServlet {
 
 	}
 
-	private JPAODataGetHandler createHandler() throws ODataException {
+	private JPAODataGetHandler createHandler() throws ODataException, ServletException {
 
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
 
-		final JPAPersistenceAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,
+		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,
 				elProperties,
 				new JPADefaultDatabaseProcessor());
-		((AbstractJPAPersistenceAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
+		((AbstractJPAAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
 
 		final JPAODataGetHandler handler = new JPAODataGetHandler(mappingAdapter) {
 			/**
@@ -113,7 +113,7 @@ public class ODataServlet extends HttpServlet {
 		return handler;
 	}
 
-	private void logSchema(final ServiceDocument sd) throws ODataException {
+	private void logSchema(final IntermediateServiceDocument sd) throws ODataException {
 		for (final CsdlSchema schema : sd.getEdmSchemas()) {
 
 			log("Entities in schema " + schema.getNamespace() + ":");

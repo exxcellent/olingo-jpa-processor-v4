@@ -23,7 +23,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
  * @author Ralf Zozmann
  *
  */
-public interface JPAPersistenceAdapter {
+public interface JPAAdapter {
 
 	/**
 	 * After creating a new entity manager a call to
@@ -60,7 +60,6 @@ public interface JPAPersistenceAdapter {
 	public Metamodel getMetamodel();
 
 	/**
-	 *
 	 * @return An empty, non empty or <code>null</code> collection of non persistent
 	 *         (non JPA) POJOs classes to handle as OData entities.
 	 * @see org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO

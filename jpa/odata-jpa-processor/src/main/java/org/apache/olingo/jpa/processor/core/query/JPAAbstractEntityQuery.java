@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import javax.persistence.EntityManager;
@@ -192,7 +193,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 			final List<? extends JPAAttribute> jpaKeyList = jpaEntity.getKeyAttributes();
 
 			for (final String selectItem : selectList) {
-				final JPAAttributePath selectItemPath = jpaEntity.getPath(selectItem);
+				final JPASelector selectItemPath = jpaEntity.getPath(selectItem);
 				if (selectItemPath.getLeaf().isComplex()) {
 					// Complex Type
 					final List<JPAAttributePath> c = jpaEntity.searchChildPath(selectItemPath);
@@ -245,6 +246,15 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 		} else {
 			jpaPathList = buildEntityPathList(jpaEntityType);
 		}
+		// filter ignored columns here, because we may add later ignored columns to
+		// select columns required to $expand
+		for (int i = jpaPathList.size(); i > 0; i--) {
+			final JPASelector selector = jpaPathList.get(i - 1);
+			if (selector.getLeaf().ignore()) {
+				jpaPathList.remove(i - 1);
+			}
+		}
+
 		try {
 			if (jpaEntityType.hasStream()) {
 				final JPASelector mimeTypeAttribute = jpaEntityType.getContentTypeAttributePath();
@@ -257,15 +267,17 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 					HttpStatusCode.INTERNAL_SERVER_ERROR, e1);
 		}
 
-		// Add Fields that are required for Expand
-		final Map<JPAExpandItemWrapper, JPAAssociationPath> associationPathList = Util.determineAssoziations(sd, uriResource
-				.getUriResourceParts(), uriResource.getExpandOption());
+		// TODO select that fields only if $expand option is given
+		// TODO use JPAExpandItemInfoFactory
+		// Add also fields that are required for $expand (for the key building to merge
+		// results from sub queries)
+		final Map<JPAExpandItemWrapper, JPAAssociationPath> associationPathList = Util.determineAssoziations(sd,
+				uriResource.getUriResourceParts(), uriResource.getExpandOption());
 		if (!associationPathList.isEmpty()) {
 			Collections.sort(jpaPathList);
-			for (final UriInfoResource item : associationPathList.keySet()) {
-				final JPAAssociationPath associationPath = associationPathList.get(item);
+			for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> entry : associationPathList.entrySet()) {
 				try {
-					for (final JPAOnConditionItem joinItem : associationPath.getJoinConditions()) {
+					for (final JPAOnConditionItem joinItem : entry.getValue().getJoinConditions()) {
 						final int insertIndex = Collections.binarySearch(jpaPathList, joinItem.getLeftPath());
 						if (insertIndex < 0) {
 							jpaPathList.add(/* Math.abs(insertIndex), */ joinItem.getLeftPath());
@@ -417,11 +429,13 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 						"Query includes a association (navigation join via '"
 								+ asso.getSourceType().getExternalName() + "#"
 								+ jpaPath.getAlias()
-								+ "'), but without mapped JPA attributes usable for JOIN. That is not supported! An $expand will not work! Map the column as attribute to be usable for OData, do it like:\n"
-								+ asso.produceExampleJoinLeftColumnAttributeMapping());
+								+ "'), but without mapped JPA attributes usable for JOIN. That is not supported! An $expand will not work! Map the column as attribute to be usable for OData.");
 				continue;
 			}
 			final Path<?> p = convertToCriteriaPath(jpaPath);
+			if (p == null) {
+				continue;
+			}
 			p.alias(jpaPath.getAlias());
 			selections.add(p);
 		}

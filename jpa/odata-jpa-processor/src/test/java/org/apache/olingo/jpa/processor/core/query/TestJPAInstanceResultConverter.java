@@ -21,105 +21,105 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAInstanceResultConverter extends TestBase {
-  public static final int NO_POSTAL_ADDRESS_FIELDS = 8;
-  public static final int NO_ADMIN_INFO_FIELDS = 2;
-  private JPAInstanceResultConverter cut;
-  private List<Object> jpaQueryResult;
-  private UriHelperDouble uriHelper;
+	public static final int NO_POSTAL_ADDRESS_FIELDS = 8;
+	public static final int NO_ADMIN_INFO_FIELDS = 2;
+	private JPAInstanceResultConverter cut;
+	private List<Object> jpaQueryResult;
+	private UriHelperDouble uriHelper;
 
-  @Before
-  public void setup() throws ODataException {
-    helper = new TestHelper(emf, PUNIT_NAME);
-    jpaQueryResult = new ArrayList<Object>();
-    HashMap<String, String> keyStrings = new HashMap<String, String>();
-    keyStrings.put("BE21", "DivisionCode='BE21',CodeID='NUTS2',CodePublisher='Eurostat'");
-    keyStrings.put("BE22", "DivisionCode='BE22',CodeID='NUTS2',CodePublisher='Eurostat'");
+	@Before
+	public void setup() throws ODataException {
+		helper = new TestHelper(persistenceAdapter.getMetamodel(), PUNIT_NAME);
+		jpaQueryResult = new ArrayList<Object>();
+		final HashMap<String, String> keyStrings = new HashMap<String, String>();
+		keyStrings.put("BE21", "DivisionCode='BE21',CodeID='NUTS2',CodePublisher='Eurostat'");
+		keyStrings.put("BE22", "DivisionCode='BE22',CodeID='NUTS2',CodePublisher='Eurostat'");
 
-    uriHelper = new UriHelperDouble();
-    uriHelper.setKeyPredicates(keyStrings, "DivisionCode");
-    cut = new JPAInstanceResultConverter(uriHelper, helper.sd,
-        jpaQueryResult, new EdmEntitySetDouble(nameBuilder, "AdministrativeDivisions"),
-        AdministrativeDivision.class);
-  }
+		uriHelper = new UriHelperDouble();
+		uriHelper.setKeyPredicates(keyStrings, "DivisionCode");
+		cut = new JPAInstanceResultConverter(uriHelper, helper.sd,
+				jpaQueryResult, new EdmEntitySetDouble(nameBuilder, "AdministrativeDivisions"),
+				AdministrativeDivision.class);
+	}
 
-  @Test
-  public void checkConvertsEmptyResult() throws ODataApplicationException, SerializerException, URISyntaxException {
-    assertNotNull(cut.getResult());
-  }
+	@Test
+	public void checkConvertsEmptyResult() throws ODataApplicationException, SerializerException, URISyntaxException {
+		assertNotNull(cut.getResult());
+	}
 
-  @Test
-  public void checkConvertsOneResult() throws ODataApplicationException, SerializerException, URISyntaxException {
-    AdministrativeDivision division = firstResult();
+	@Test
+	public void checkConvertsOneResult() throws ODataApplicationException, SerializerException, URISyntaxException {
+		final AdministrativeDivision division = firstResult();
 
-    jpaQueryResult.add(division);
+		jpaQueryResult.add(division);
 
-    EntityCollection act = cut.getResult();
-    assertEquals(1, act.getEntities().size());
-  }
+		final EntityCollection act = cut.getResult();
+		assertEquals(1, act.getEntities().size());
+	}
 
-  @Test
-  public void checkConvertsTwoResult() throws ODataApplicationException, SerializerException, URISyntaxException {
+	@Test
+	public void checkConvertsTwoResult() throws ODataApplicationException, SerializerException, URISyntaxException {
 
-    jpaQueryResult.add(firstResult());
-    jpaQueryResult.add(secondResult());
-    EntityCollection act = cut.getResult();
-    assertEquals(2, act.getEntities().size());
-  }
+		jpaQueryResult.add(firstResult());
+		jpaQueryResult.add(secondResult());
+		final EntityCollection act = cut.getResult();
+		assertEquals(2, act.getEntities().size());
+	}
 
-  @Test
-  public void checkConvertsOneResultOneElement() throws ODataApplicationException, SerializerException,
-      URISyntaxException {
-    AdministrativeDivision division = firstResult();
+	@Test
+	public void checkConvertsOneResultOneElement() throws ODataApplicationException, SerializerException,
+	URISyntaxException {
+		final AdministrativeDivision division = firstResult();
 
-    jpaQueryResult.add(division);
+		jpaQueryResult.add(division);
 
-    EntityCollection act = cut.getResult();
-    assertEquals(1, act.getEntities().size());
-    assertEquals("BE21", act.getEntities().get(0).getProperty("DivisionCode").getValue().toString());
+		final EntityCollection act = cut.getResult();
+		assertEquals(1, act.getEntities().size());
+		assertEquals("BE21", act.getEntities().get(0).getProperty("DivisionCode").getValue().toString());
 
-  }
+	}
 
-  @Test
-  public void checkConvertsOneResultMultiElement() throws ODataApplicationException, SerializerException,
-      URISyntaxException {
-    AdministrativeDivision division = firstResult();
+	@Test
+	public void checkConvertsOneResultMultiElement() throws ODataApplicationException, SerializerException,
+	URISyntaxException {
+		final AdministrativeDivision division = firstResult();
 
-    jpaQueryResult.add(division);
+		jpaQueryResult.add(division);
 
-    EntityCollection act = cut.getResult();
-    assertEquals(1, act.getEntities().size());
-    assertEquals("BE21", act.getEntities().get(0).getProperty("DivisionCode").getValue().toString());
-    assertEquals("BE2", act.getEntities().get(0).getProperty("ParentDivisionCode").getValue().toString());
-    assertEquals("0", act.getEntities().get(0).getProperty("Population").getValue().toString());
-  }
+		final EntityCollection act = cut.getResult();
+		assertEquals(1, act.getEntities().size());
+		assertEquals("BE21", act.getEntities().get(0).getProperty("DivisionCode").getValue().toString());
+		assertEquals("BE2", act.getEntities().get(0).getProperty("ParentDivisionCode").getValue().toString());
+		assertEquals("0", act.getEntities().get(0).getProperty("Population").getValue().toString());
+	}
 
-  AdministrativeDivision firstResult() {
-    AdministrativeDivision division = new AdministrativeDivision();
+	AdministrativeDivision firstResult() {
+		final AdministrativeDivision division = new AdministrativeDivision();
 
-    division.setCodePublisher("Eurostat");
-    division.setCodeID("NUTS2");
-    division.setDivisionCode("BE21");
-    division.setCountryCode("BEL");
-    division.setParentCodeID("NUTS1");
-    division.setParentDivisionCode("BE2");
-    division.setAlternativeCode("");
-    division.setArea(0);
-    division.setPopulation(0);
-    return division;
-  }
+		division.setCodePublisher("Eurostat");
+		division.setCodeID("NUTS2");
+		division.setDivisionCode("BE21");
+		division.setCountryCode("BEL");
+		division.setParentCodeID("NUTS1");
+		division.setParentDivisionCode("BE2");
+		division.setAlternativeCode("");
+		division.setArea(0);
+		division.setPopulation(0);
+		return division;
+	}
 
-  private Object secondResult() {
-    AdministrativeDivision division = new AdministrativeDivision();
+	private Object secondResult() {
+		final AdministrativeDivision division = new AdministrativeDivision();
 
-    division.setCodePublisher("Eurostat");
-    division.setCodeID("NUTS2");
-    division.setDivisionCode("BE22");
-    division.setCountryCode("BEL");
-    division.setParentCodeID("NUTS1");
-    division.setParentDivisionCode("BE2");
-    division.setAlternativeCode("");
-    division.setArea(0);
-    division.setPopulation(0);
-    return division;
-  }
+		division.setCodePublisher("Eurostat");
+		division.setCodeID("NUTS2");
+		division.setDivisionCode("BE22");
+		division.setCountryCode("BEL");
+		division.setParentCodeID("NUTS1");
+		division.setParentDivisionCode("BE2");
+		division.setAlternativeCode("");
+		division.setArea(0);
+		division.setPopulation(0);
+		return division;
+	}
 }

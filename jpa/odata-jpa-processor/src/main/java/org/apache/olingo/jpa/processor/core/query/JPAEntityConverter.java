@@ -19,7 +19,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -33,12 +33,12 @@ import org.apache.olingo.server.api.uri.UriHelper;
 public class JPAEntityConverter extends AbstractObjectConverter {
 
 	public JPAEntityConverter(final EntityType<?> persistenceType, final UriHelper uriHelper,
-			final ServiceDocument sd, final ServiceMetadata serviceMetadata, final Metamodel metamodel)
+			final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata, final Metamodel metamodel)
 					throws ODataApplicationException, ODataJPAModelException {
 		super(determineJPAEntityType(sd, persistenceType), uriHelper, sd, serviceMetadata);
 	}
 
-	public final static JPAEntityType determineJPAEntityType(final ServiceDocument sd, final EntityType<?> persistenceType) throws ODataJPAModelException {
+	public final static JPAEntityType determineJPAEntityType(final IntermediateServiceDocument sd, final EntityType<?> persistenceType) throws ODataJPAModelException {
 		FullQualifiedName fqn;
 		JPAEntityType jpaType;
 		for(final CsdlSchema schema: sd.getEdmSchemas()) {

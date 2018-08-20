@@ -5,10 +5,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.persistence.metamodel.Attribute;
 
+import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
@@ -26,9 +28,10 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 	private CsdlSchema edmSchema = null;
 	final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
 	final private Map<String, IntermediateTypeDTO> dtoTypes = new HashMap<>();
-	final private ServiceDocument serviceDocument;
+	final private Map<String, IntermediateAction> actions = new HashMap<>();
+	final private IntermediateServiceDocument serviceDocument;
 
-	IntermediateCustomSchema(final ServiceDocument serviceDocument, final String namespace)
+	IntermediateCustomSchema(final IntermediateServiceDocument serviceDocument, final String namespace)
 			throws ODataJPAModelException {
 		super(namespace);
 		this.serviceDocument = serviceDocument;
@@ -67,6 +70,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		edmSchema.setNamespace(getNameBuilder().buildNamespace());
 		edmSchema.setEnumTypes(buildEnumTypeList());
 		edmSchema.setEntityTypes(buildEntityTypeList());
+		edmSchema.setActions(buildActionList());
 	}
 
 	private List<CsdlEntityType> buildEntityTypeList() throws RuntimeException {
@@ -82,6 +86,16 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
 	private List<CsdlEnumType> buildEnumTypeList() throws RuntimeException {
 		return enumTypes.entrySet().stream().map(x -> {
+			try {
+				return x.getValue().getEdmItem();
+			} catch (final ODataJPAModelException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toList());
+	}
+
+	private List<CsdlAction> buildActionList() throws ODataJPAModelException {
+		return actions.entrySet().stream().map(x -> {
 			try {
 				return x.getValue().getEdmItem();
 			} catch (final ODataJPAModelException e) {
@@ -114,6 +128,9 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		if (dtoType == null) {
 			dtoType = new IntermediateTypeDTO(getNameBuilder(), clazz, serviceDocument);
 			dtoTypes.put(clazz.getSimpleName(), dtoType);
+			// build actions for DTO
+			final IntermediateActionFactory factory = new IntermediateActionFactory();
+			actions.putAll(factory.create(getNameBuilder(), dtoType.getTypeClass(), serviceDocument));
 		}
 		return dtoType;
 
@@ -127,13 +144,25 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
 	@Override
 	JPAAction getAction(final String externalName) {
-		// currently not supported
+		for (final Entry<String, IntermediateAction> entry : actions.entrySet()) {
+			if (entry.getValue().getExternalName().equals(externalName)) {
+				if (!entry.getValue().ignore()) {
+					return entry.getValue();
+				}
+			}
+		}
 		return null;
 	}
 
 	@Override
+	List<JPAAction> getActions() {
+		return new ArrayList<JPAAction>(actions.values());
+	}
+
+	@Override
 	JPAEntityType getEntityType(final String externalName) {
-		throw new UnsupportedOperationException();
+		// currently not supported
+		return null;
 	}
 
 	@Override

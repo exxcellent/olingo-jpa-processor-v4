@@ -11,7 +11,9 @@ import java.lang.annotation.Target;
 /**
  * This annotation can be used as complete replacement (in context of
  * olingo-jpa-processor) for {@link javax.inject.Inject} with additional support
- * for method parameter injection.
+ * for method parameter injection.<br/>
+ * Injected fields or parameters are pure server side. So injected method
+ * parameters of an action are hidden to OData meta data.
  *
  * @author Ralf Zozmann
  *
@@ -20,4 +22,5 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Documented
 public @interface Inject {
+	// marker annotation
 }

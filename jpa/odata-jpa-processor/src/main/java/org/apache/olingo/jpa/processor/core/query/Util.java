@@ -14,10 +14,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAUtilException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResource;
+import org.apache.olingo.server.api.uri.UriResourceAction;
 import org.apache.olingo.server.api.uri.UriResourceComplexProperty;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
@@ -57,8 +58,25 @@ public class Util {
 				naviPropertyName = new StringBuffer();
 				break;
 			case function:
+				// bound functions have an entry of type 'entitySet' in resources-path, so we
+				// can ignore other settings
+				// unbound functions will have a function import targeting an optional entity
+				// set
 				final UriResourceFunction uriResourceFunction = (UriResourceFunction) resourceItem;
-				targetEdmEntitySet = uriResourceFunction.getFunctionImport().getReturnedEntitySet();
+				if (uriResourceFunction.getFunction() != null && !uriResourceFunction.getFunction().isBound()
+						&& uriResourceFunction.getFunctionImport() != null) {
+					targetEdmEntitySet = uriResourceFunction.getFunctionImport().getReturnedEntitySet();
+				}
+				break;
+			case action:
+				// bound actions have an entry of type 'entitySet' in resources-path, so we
+				// can ignore other settings
+				// unbound actions will have a action import targeting an optional entity set
+				final UriResourceAction uriResourceAction = (UriResourceAction) resourceItem;
+				if (uriResourceAction.getAction() != null && !uriResourceAction.getAction().isBound()
+						&& uriResourceAction.getActionImport() != null) {
+					targetEdmEntitySet = uriResourceAction.getActionImport().getReturnedEntitySet();
+				}
 				break;
 			default:
 				// do nothing
@@ -146,7 +164,7 @@ public class Util {
 		return pathName.toString();
 	}
 
-	public static JPAAssociationPath determineAssoziation(final ServiceDocument sd, final EdmType naviStart,
+	public static JPAAssociationPath determineAssoziation(final IntermediateServiceDocument sd, final EdmType naviStart,
 			final StringBuffer associationName) throws ODataApplicationException {
 		JPAEntityType naviStartType;
 
@@ -159,7 +177,7 @@ public class Util {
 		}
 	}
 
-	public static Map<JPAExpandItemWrapper, JPAAssociationPath> determineAssoziations(final ServiceDocument sd,
+	public static Map<JPAExpandItemWrapper, JPAAssociationPath> determineAssoziations(final IntermediateServiceDocument sd,
 			final List<UriResource> startResourceList, final ExpandOption expandOption) throws ODataApplicationException {
 
 		final Map<JPAExpandItemWrapper, JPAAssociationPath> pathList =
@@ -223,7 +241,7 @@ public class Util {
 		return pathList;
 	}
 
-	public static List<JPANavigationProptertyInfo> determineAssoziations(final ServiceDocument sd,
+	public static List<JPANavigationProptertyInfo> determineAssoziations(final IntermediateServiceDocument sd,
 			final List<UriResource> resourceParts) throws ODataApplicationException {
 
 		final List<JPANavigationProptertyInfo> pathList = new ArrayList<JPANavigationProptertyInfo>();
@@ -268,7 +286,7 @@ public class Util {
 		return false;
 	}
 
-	public static JPAAssociationPath determineAssoziationPath(final ServiceDocument sd,
+	public static JPAAssociationPath determineAssoziationPath(final IntermediateServiceDocument sd,
 			final UriResourcePartTyped naviStart, final StringBuffer associationName) throws ODataApplicationException {
 
 		JPAEntityType naviStartType;

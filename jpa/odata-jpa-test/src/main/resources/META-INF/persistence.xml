@@ -12,6 +12,7 @@
         <!-- Attribute converters -->
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.JPAUrlConverter</class>
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.JPAUuidConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.DateConverter</class>
 
         <!-- Persistent entities -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.Organization</class>
@@ -20,7 +21,6 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.Country</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription</class>
-		<class>org.apache.olingo.jpa.processor.core.testmodel.DateConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.PersonImage</class>

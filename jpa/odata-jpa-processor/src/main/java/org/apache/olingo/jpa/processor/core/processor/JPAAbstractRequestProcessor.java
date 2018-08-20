@@ -6,7 +6,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
@@ -20,7 +20,7 @@ abstract class JPAAbstractRequestProcessor implements JPARequestProcessor {
 
   // TODO eliminate transaction handling
   protected final EntityManager em;
-  protected final ServiceDocument sd;
+  protected final IntermediateServiceDocument sd;
   protected final JPAODataSessionContextAccess context;
   protected final CriteriaBuilder cb;
   protected final UriInfo uriInfo;

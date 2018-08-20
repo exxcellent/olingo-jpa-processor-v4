@@ -15,7 +15,7 @@ import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
@@ -36,10 +36,10 @@ public abstract class JPAAbstractQuery {
 	protected final EntityManager em;
 	protected final CriteriaBuilder cb;
 	protected final JPAEntityType jpaEntityType;
-	protected final ServiceDocument sd;
+	protected final IntermediateServiceDocument sd;
 	protected Locale locale;
 
-	public JPAAbstractQuery(final ServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em)
+	public JPAAbstractQuery(final IntermediateServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em)
 			throws ODataApplicationException {
 		super();
 		this.em = em;
@@ -48,7 +48,7 @@ public abstract class JPAAbstractQuery {
 		this.jpaEntityType = jpaEntityType;
 	}
 
-	public JPAAbstractQuery(final ServiceDocument sd, final EdmEntityType edmEntityType, final EntityManager em)
+	public JPAAbstractQuery(final IntermediateServiceDocument sd, final EdmEntityType edmEntityType, final EntityManager em)
 			throws ODataApplicationException {
 		super();
 		this.em = em;
@@ -61,7 +61,7 @@ public abstract class JPAAbstractQuery {
 		}
 	}
 
-	public JPAAbstractQuery(final ServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em,
+	public JPAAbstractQuery(final IntermediateServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em,
 			final JPAServiceDebugger debugger) {
 		super();
 		this.em = em;

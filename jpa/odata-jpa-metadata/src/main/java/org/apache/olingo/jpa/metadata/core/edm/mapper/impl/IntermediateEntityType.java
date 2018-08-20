@@ -37,7 +37,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 	private boolean hasEtag = false;
 
 	IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
-			final ServiceDocument serviceDocument)
+			final IntermediateServiceDocument serviceDocument)
 					throws ODataJPAModelException {
 		super(nameBuilder, et, serviceDocument);
 		this.setExternalName(nameBuilder.buildEntityTypeName(et));
@@ -97,7 +97,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 
 	@Override
 	public JPAAttributePath getStreamAttributePath() throws ODataJPAModelException {
-		return getPath(getStreamProperty().getExternalName());
+		return (JPAAttributePath) getPath(getStreamProperty().getExternalName());
 	}
 
 	@Override
@@ -136,7 +136,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 	};
 
 	@Override
-	public List<JPAAttributePath> searchChildPath(final JPAAttributePath selectItemPath) {
+	public List<JPAAttributePath> searchChildPath(final JPASelector selectItemPath) {
 		final List<JPAAttributePath> result = new ArrayList<JPAAttributePath>();
 		for (final String pathName : this.simpleAttributePathMap.keySet()) {
 			final JPAAttributePath p = simpleAttributePathMap.get(pathName);

@@ -90,11 +90,12 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		return jpaUserDefinedFunction.functionName();
 	}
 
-	boolean hasFunctionImport() {
-		return jpaUserDefinedFunction.hasFunctionImport();
+	boolean requiresFunctionImport() {
+		return !isBound() && jpaUserDefinedFunction.hasFunctionImport();
 	}
 
-	boolean isBound() {
+	@Override
+	public boolean isBound() {
 		return jpaUserDefinedFunction.isBound();
 	}
 
@@ -204,6 +205,12 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		@Override
 		public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
 			return JPATypeConvertor.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName();
+		}
+
+		@Override
+		public ParameterKind getParameterKind() {
+			// TODO support @Inject also for functions
+			return ParameterKind.OData;
 		}
 	}
 

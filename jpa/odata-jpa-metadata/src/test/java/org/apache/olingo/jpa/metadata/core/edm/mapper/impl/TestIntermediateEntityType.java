@@ -17,20 +17,20 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
-import org.apache.olingo.jpa.processor.core.testmodel.TestDataConstants;
+import org.apache.olingo.jpa.processor.core.test.TestDataConstants;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateEntityType extends TestMappingRoot {
 	private Set<EntityType<?>> etList;
-	private ServiceDocument serviceDocument;
+	private IntermediateServiceDocument serviceDocument;
 
 	@Before
 	public void setup() throws ODataJPAModelException {
 		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		etList = emf.getMetamodel().getEntities();
-		this.serviceDocument = new ServiceDocument(PUNIT_NAME);
+		this.serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
 		serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
 	}
 
@@ -94,6 +94,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertEquals("ID", et.getPath("ID").getLeaf().getExternalName());
 	}
 
+	@Ignore("Attributea re now not longer ignored by immediate/meta-model, but by querying from DB, so that this test is wrong")
 	@Test
 	public void checkGetPathByNameIgnore() throws ODataJPAModelException {
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
@@ -102,6 +103,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertNull(et.getPath("CustomString2"));
 	}
 
+	@Ignore("Attributea re now not longer ignored by immediate/meta-model, but by querying from DB, so that this test is wrong")
 	@Test
 	public void checkGetPathByNameIgnoreCompexType() throws ODataJPAModelException {
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(

@@ -29,7 +29,7 @@
 		<groupId>org.apache.olingo</groupId>
 		<artifactId>odata-server-api</artifactId>
 	  	<scope>provided</scope>
-	</dependency>    
+	</dependency>
   </dependencies>
   
   <build>

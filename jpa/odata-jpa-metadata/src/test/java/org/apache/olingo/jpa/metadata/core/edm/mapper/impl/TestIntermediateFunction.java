@@ -10,7 +10,7 @@ import java.util.List;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.testmodel.AssertList;
+import org.apache.olingo.jpa.processor.core.test.AssertList;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.junit.Before;
 import org.junit.Test;

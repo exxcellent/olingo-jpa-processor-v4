@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.testmodel.TestDataConstants;
+import org.apache.olingo.jpa.processor.core.test.TestDataConstants;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,7 +14,7 @@ public class TestIntermediateSchema extends TestMappingRoot {
 
 	@Before
 	public void setup() throws ODataJPAModelException {
-		final ServiceDocument serviceDocument = new ServiceDocument(PUNIT_NAME);
+		final IntermediateServiceDocument serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
 		schema = serviceDocument.createMetamodelSchema(PUNIT_NAME,
 				emf.getMetamodel());
 	}

@@ -31,7 +31,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 class IntermediateMetamodelSchema extends AbstractJPASchema {
-	final private ServiceDocument serviceDocument;
+	final private IntermediateServiceDocument serviceDocument;
 	final private Metamodel jpaMetamodel;
 	final private Map<String, IntermediateComplexType> complexTypeListInternalKey;
 	final private Map<String, IntermediateEntityType> entityTypeListInternalKey;
@@ -39,7 +39,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	final private Map<String, IntermediateAction> actionListInternalKey;
 	private CsdlSchema edmSchema = null;
 
-	IntermediateMetamodelSchema(final ServiceDocument serviceDocument, final String namespace,
+	IntermediateMetamodelSchema(final IntermediateServiceDocument serviceDocument, final String namespace,
 			final Metamodel jpaMetamodel) throws ODataJPAModelException {
 		super(namespace);
 		this.serviceDocument = serviceDocument;
@@ -73,7 +73,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 		//  edm:TypeDefinition
 		// MUST be the last thing that is done !!!!
 		// REMARK: the entity container is set outside (in
-		// ServiceDocument#getEdmSchemas()) for related schemas only
+		// IntermediateServiceDocument#getEdmSchemas()) for related schemas only
 	}
 
 	@Override
@@ -159,10 +159,10 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 		return null;
 	}
 
+	@Override
 	List<JPAAction> getActions() {
 		return new ArrayList<JPAAction>(actionListInternalKey.values());
 	}
-
 
 	private Map<String, IntermediateComplexType> buildComplexTypeList() throws ODataJPAModelException {
 		final HashMap<String, IntermediateComplexType> ctList = new HashMap<String, IntermediateComplexType>();
@@ -202,7 +202,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 		final IntermediateActionFactory factory = new IntermediateActionFactory();
 		for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
 
-			actionList.putAll(factory.create(getNameBuilder(), entity, this));
+			actionList.putAll(factory.create(getNameBuilder(), entity.getJavaType(), serviceDocument));
 		}
 		return actionList;
 	}

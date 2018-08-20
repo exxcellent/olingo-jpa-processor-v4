@@ -31,11 +31,11 @@ public class PostalAddressData {
 
 	@EdmIgnore
 	@Column(name = "\"Address.RegionCodePublisher\"", length = 10)
-	private final String regionCodePublisher = "ISO";
+	private String regionCodePublisher = "ISO";
 
 	@EdmIgnore
 	@Column(name = "\"Address.RegionCodeID\"", length = 10)
-	private final String regionCodeID = "3166-2";
+	private String regionCodeID = "3166-2";
 
 	@Column(name = "\"Address.Region\"")
 	private String region;

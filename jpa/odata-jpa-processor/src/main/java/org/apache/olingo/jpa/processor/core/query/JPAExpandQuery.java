@@ -66,14 +66,6 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		this.item = item;
 	}
 
-	public JPAQueryResult execute() throws ODataApplicationException {
-		if (uriResource.getTopOption() != null || uriResource.getSkipOption() != null) {
-			return executeExpandTopSkipQuery();
-		} else {
-			return executeStandradQuery();
-		}
-	}
-
 	/**
 	 * Process a expand query, which contains a $skip and/or a $top option.<p>
 	 * This is a tricky problem, as it can not be done easily with SQL. It could be that a database offers special
@@ -84,9 +76,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 	 * @return query result
 	 * @throws ODataApplicationException
 	 */
-	private JPAQueryResult executeExpandTopSkipQuery() throws ODataApplicationException {
-		// TODO make this replacable
-
+	public JPAQueryResult execute() throws ODataApplicationException {
 		long skip = 0;
 		long top = Long.MAX_VALUE;
 		final TypedQuery<Tuple> tupleQuery = createTupleQuery();
@@ -100,16 +90,6 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		}
 
 		final Map<String, List<Tuple>> result = convertResult(intermediateResult, assoziation, skip, top);
-		return new JPAQueryResult(result, count(), jpaEntityType);
-	}
-
-	private JPAQueryResult executeStandradQuery() throws ODataApplicationException {
-
-		final TypedQuery<Tuple> tupleQuery = createTupleQuery();
-
-		final List<Tuple> intermediateResult = tupleQuery.getResultList();
-		final Map<String, List<Tuple>> result = convertResult(intermediateResult, assoziation, 0, Long.MAX_VALUE);
-
 		return new JPAQueryResult(result, count(), jpaEntityType);
 	}
 

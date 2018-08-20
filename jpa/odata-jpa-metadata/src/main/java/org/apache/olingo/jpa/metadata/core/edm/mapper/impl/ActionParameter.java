@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
+import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -14,25 +15,70 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 class ActionParameter implements JPAOperationParameter {
 
 	private final IntermediateAction owner;
-	private final Parameter parameter;
+	private final Parameter javaParameter;
+	private final String name;
+	private CsdlParameter csdlParameter = null;
+	private final ParameterKind parameterKind;
 
-	public ActionParameter(final IntermediateAction owner, final Parameter parameter) {
+	public ActionParameter(final IntermediateAction owner, final Parameter parameter, final int parameterIndex)
+			throws ODataJPAModelException {
 		this.owner = owner;
-		this.parameter = parameter;
-	}
+		this.javaParameter = parameter;
 
-	private CsdlParameter buildParameter(final Parameter javaParameter) throws ODataJPAModelException {
-		final EdmActionParameter edmParameterAnnotation = javaParameter.getAnnotation(EdmActionParameter.class);
-		String name = javaParameter.getName();
-		if (edmParameterAnnotation == null || edmParameterAnnotation.name() == null
-				|| edmParameterAnnotation.name().isEmpty()) {
-			if (!javaParameter.isNamePresent()) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_MISSING);
+		if (javaParameter.isAnnotationPresent(Inject.class)
+				&& javaParameter.isAnnotationPresent(EdmActionParameter.class)) {
+			parameterKind = ParameterKind.Invalid;
+			name = null;
+		} else if (javaParameter.isAnnotationPresent(Inject.class)) {
+			parameterKind = ParameterKind.Inject;
+			name = "arg".concat(Integer.toString(parameterIndex));
+		} else if (javaParameter.isAnnotationPresent(EdmActionParameter.class)) {
+			parameterKind = ParameterKind.OData;
+			final EdmActionParameter edmParameterAnnotation = javaParameter.getAnnotation(EdmActionParameter.class);
+			if (edmParameterAnnotation.name() == null || edmParameterAnnotation.name().isEmpty()) {
+				if (!javaParameter.isNamePresent()) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_MISSING,
+							owner.getJavaMethod().getName());
+				}
+				name = javaParameter.getName();
+			} else {
+				name = edmParameterAnnotation.name();
 			}
 		} else {
-			name = edmParameterAnnotation.name();
+			parameterKind = ParameterKind.Invalid;
+			name = null;
 		}
-		final FullQualifiedName fqn = intermediateAction.extractGenericTypeQualifiedName(javaParameter.getParameterizedType());
+
+		if (parameterKind == ParameterKind.Invalid) {
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
+					owner.getJavaMethod().getName());
+		}
+	}
+
+	@Override
+	public ParameterKind getParameterKind() {
+		return parameterKind;
+	}
+
+	/**
+	 *
+	 * @return The CSDL parameter item or <code>null</code> if not an OData related
+	 *         parameter (like a injected runtime parameter on server side)
+	 * @throws ODataJPAModelException
+	 */
+	public CsdlParameter getEdmItem() throws ODataJPAModelException {
+		if (csdlParameter != null) {
+			return csdlParameter;
+		}
+		csdlParameter = buildParameter();
+		return csdlParameter;
+	}
+
+	private CsdlParameter buildParameter() throws ODataJPAModelException {
+		if (parameterKind == ParameterKind.Inject) {
+			return null;
+		}
+		final FullQualifiedName fqn = owner.extractGenericTypeQualifiedName(javaParameter.getParameterizedType());
 		final CsdlParameter parameter = new CsdlParameter();
 		parameter.setName(name);
 		parameter.setNullable(!javaParameter.isAnnotationPresent(NotNull.class));
@@ -43,26 +89,22 @@ class ActionParameter implements JPAOperationParameter {
 
 	@Override
 	public String getName() {
-		try {
-			if (owner.isBound) {
-				return owner.getEdmItem().getParameters().get(parameterIndex + 1).getName();
-			} else {
-				return owner.getEdmItem().getParameters().get(parameterIndex).getName();
-			}
-		} catch (final ODataJPAModelException e) {
-			throw new IllegalStateException(e);
-		}
+		return name;
 	}
 
 	@Override
 	public Class<?> getType() {
-		return owner.javaMethod.getParameters()[parameterIndex].getType();
+		return javaParameter.getType();
 	}
 
 	@Override
 	public Integer getMaxLength() {
 		try {
-			return owner.getEdmItem().getParameters().get(parameterIndex).getMaxLength();
+			if (getEdmItem() == null) {
+				throw new IllegalStateException(
+						"A call to this method is only supported for OData related action/function parameters");
+			}
+			return getEdmItem().getMaxLength();
 		} catch (final ODataJPAModelException e) {
 			throw new IllegalStateException(e);
 		}
@@ -71,7 +113,11 @@ class ActionParameter implements JPAOperationParameter {
 	@Override
 	public Integer getPrecision() {
 		try {
-			return owner.getEdmItem().getParameters().get(parameterIndex).getPrecision();
+			if (getEdmItem() == null) {
+				throw new IllegalStateException(
+						"A call to this method is only supported for OData related action/function parameters");
+			}
+			return getEdmItem().getPrecision();
 		} catch (final ODataJPAModelException e) {
 			throw new IllegalStateException(e);
 		}
@@ -80,7 +126,11 @@ class ActionParameter implements JPAOperationParameter {
 	@Override
 	public Integer getScale() {
 		try {
-			return owner.getEdmItem().getParameters().get(parameterIndex).getScale();
+			if (getEdmItem() == null) {
+				throw new IllegalStateException(
+						"A call to this method is only supported for OData related action/function parameters");
+			}
+			return getEdmItem().getScale();
 		} catch (final ODataJPAModelException e) {
 			throw new IllegalStateException(e);
 		}
@@ -89,7 +139,11 @@ class ActionParameter implements JPAOperationParameter {
 	@Override
 	public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
 		try {
-			return owner.getEdmItem().getParameters().get(parameterIndex).getTypeFQN();
+			if (getEdmItem() == null) {
+				throw new IllegalStateException(
+						"A call to this method is only supported for OData related action/function parameters");
+			}
+			return getEdmItem().getTypeFQN();
 		} catch (final ODataJPAModelException e) {
 			throw new IllegalStateException(e);
 		}

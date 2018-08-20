@@ -113,8 +113,7 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 			final UriResourceAction uriResourceAction = (UriResourceAction) resourceParts.get(resourceParts.size() - 1);
 			final EdmPrimitiveType type = (EdmPrimitiveType) uriResourceAction.getAction().getReturnType().getType();
 			final Property property = convert2Primitive(type, results);
-			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
-			final ContextURL contextUrl = ContextURL.with().entitySet(targetEdmEntitySet).build();
+			final ContextURL contextUrl = ContextURL.with().type(type).build();
 			final PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();
 			final ODataSerializer serializer = getOData().createSerializer(responseFormat);
 			final SerializerResult serializerResult = serializer.primitive(getServiceMetadata(), type, property, options);
@@ -134,37 +133,22 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 
 	private List<Object> processActionCall(final ODataRequest request, final UriInfo uriInfo, final ContentType requestFormat)
 			throws ODataApplicationException, DeserializerException {
-		final int handle = debugger.startRuntimeMeasurement("JPAODataActionProcessor", "processActionVoid");
+		final int handle = debugger.startRuntimeMeasurement("JPAODataActionProcessor", "processActionCall");
 
 		final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
-		final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 		final int noOfResourceParts = resourceParts.size();
+
 		// the action must (currently) be the last
 		final UriResourceAction uriResourceAction = (UriResourceAction) resourceParts.get(noOfResourceParts - 1);
-		final OData odata = getOData();
-		final ServiceMetadata serviceMetadata = getServiceMetadata();
-
-		// determine entity context
-		JPAQuery query = null;
-		try {
-			query = new JPAQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
-					getServiceMetadata());
-		} catch (final ODataJPAModelException e) {
-			debugger.stopRuntimeMeasurement(handle);
-			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
-		}
-
-		// we do not expand the entities
-		final EntityCollection entityCollection = query.execute(false);
-
-		// extract request parameters as arguments for action call
 		final JPAAction jpaAction = sd.getAction(uriResourceAction.getAction());
 		if (jpaAction == null) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
 					HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 
+		// extract request parameters as arguments for action call
+		final OData odata = getOData();
+		final ServiceMetadata serviceMetadata = getServiceMetadata();
 		Map<String, Parameter> parameters = Collections.emptyMap();
 		try {
 			if (!jpaAction.getParameters().isEmpty() && request.getBody().available() > 0) {
@@ -179,29 +163,50 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		}
 
 		final List<Object> results = new LinkedList<>();
-		final JPAEntityType jpaType = query.getJPAEntityType();
-		if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
-			for (final Entity entity : entityCollection.getEntities()) {
-				// call action in context of entity
-				final Object resultAction = callAction(jpaAction, parameters, jpaType, entity);
+		final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(), getOData().createUriHelper(),
+				context.getDependencyInjector());
+		if (jpaAction.isBound()) {
+			// determine entity context
+			JPAQuery query = null;
+			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
+			try {
+				query = new JPAQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
+						getServiceMetadata());
+			} catch (final ODataJPAModelException e) {
+				debugger.stopRuntimeMeasurement(handle);
+				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+						HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			}
+			// we do not expand the entities
+			final EntityCollection entityCollection = query.execute(false);
+
+			final JPAEntityType jpaType = query.getJPAEntityType();
+			if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
+				for (final Entity entity : entityCollection.getEntities()) {
+					// call action in context of entity
+					try {
+						final Object resultAction = invoker.invokeBoundActionMethod(jpaType, entity, jpaAction,
+								parameters);
+						if (resultAction != null) {
+							results.add(resultAction);
+						}
+					} catch (final ODataException e) {
+						throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+					}
+				}
+			}
+		} else {
+			try {
+				final Object resultAction = invoker.invokeUnboundActionMethod(jpaAction, parameters);
 				if (resultAction != null) {
 					results.add(resultAction);
 				}
+			} catch (final ODataException e) {
+				throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 			}
 		}
-
 		debugger.stopRuntimeMeasurement(handle);
 		return results;
-	}
-
-	private Object callAction(final JPAAction jpaAction, final Map<String, Parameter> parameters, final JPAEntityType jpaType,
-			final Entity entity) throws ODataApplicationException {
-		final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(), getOData().createUriHelper());
-		try {
-			return invoker.invokeActionMethod(jpaType, entity, jpaAction, parameters);
-		} catch (final ODataException e) {
-			throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-		}
 	}
 
 }

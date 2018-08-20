@@ -32,7 +32,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 
 	@Before
 	public void setup() throws ODataException {
-		helper = new TestHelper(emf, PUNIT_NAME);
+		helper = new TestHelper(persistenceAdapter.getMetamodel(), PUNIT_NAME);
 		jpaQueryResult = new ArrayList<Tuple>();
 		uriHelper = new UriHelperDouble();
 		keyPredicates = new HashMap<String, String>();

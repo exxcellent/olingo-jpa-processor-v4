@@ -35,7 +35,6 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
 			name = "PopulationDensity",
 			functionName = "\"OLINGO\".\"org.apache.olingo.jpa::PopulationDensity\"",
 			isBound = false,
-			hasFunctionImport = false,
 			returnType = @EdmFunction.ReturnType(isCollection = false, type = Double.class),
 			parameter = {
 					@EdmFunctionParameter(name = "Area", parameterName = "UnitArea", type = Integer.class),

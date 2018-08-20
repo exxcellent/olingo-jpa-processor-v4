@@ -2,8 +2,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
 import java.util.List;
 
-import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-
 /**
  *
  * @author Ralf Zozmann
@@ -18,24 +16,19 @@ public interface JPAAction extends JPAElement {
 
 	/**
 	 * This is the list of java method parameters, without the the 'entity'
-	 * parameter for bound actions.
-	 * 
+	 * parameter for bound actions, but with all OData and @Inject parameters.
+	 *
 	 * @return List of import parameter
 	 */
 	public List<JPAOperationParameter> getParameters();
 
 	/**
 	 *
-	 * @return The return or result parameter of the function
+	 * @return The return/result parameter of the action or <code>null</code> for
+	 *         'void'.
 	 */
 	public JPAOperationResultParameter getResultParameter();
 
-	/**
-	 * Execute the method represented by this action.
-	 *
-	 * @param parameters
-	 *            The parameters if the method has declared ones.
-	 * @return The result or <code>null</code>.
-	 */
-	public Object invoke(Object jpaEntity, Object... parameters) throws ODataJPAModelException;
+	public boolean isBound();
+
 }

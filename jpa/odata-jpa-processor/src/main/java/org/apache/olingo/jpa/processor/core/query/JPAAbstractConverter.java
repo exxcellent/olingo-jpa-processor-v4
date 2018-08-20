@@ -23,13 +23,12 @@ import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -39,14 +38,16 @@ import org.apache.olingo.server.api.uri.UriHelper;
 
 public abstract class JPAAbstractConverter {
 
+	protected final static Logger LOG = Logger.getLogger(JPAAbstractConverter.class.getName());
+
 	protected final JPAEntityType jpaConversionTargetEntity;
-	protected final ServiceDocument sd;
+	protected final IntermediateServiceDocument sd;
 	protected final ServiceMetadata serviceMetadata;
 	protected final Logger log = Logger.getLogger(JPAAbstractConverter.class.getName());
 	private final UriHelper uriHelper;
 
 	public JPAAbstractConverter(final JPAEntityType jpaConversionTargetEntity,
-			final UriHelper uriHelper, final ServiceDocument sd, final ServiceMetadata serviceMetadata)
+			final UriHelper uriHelper, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
 					throws ODataApplicationException {
 		super();
 
@@ -199,6 +200,7 @@ public abstract class JPAAbstractConverter {
 		return null;
 	}
 
+	@SuppressWarnings("null")
 	private boolean isSameComplexValue(final ComplexValue one, final ComplexValue second, final boolean recursive) {
 		final List<Property> propertiesOne = one.getValue();
 		final List<Property> propertiesSecond = second.getValue();
@@ -325,12 +327,15 @@ public abstract class JPAAbstractConverter {
 			final JPAStructuredType jpaStructuredType, final Map<String, Object> complexValueBuffer,
 			final List<Property> properties) throws ODataJPAModelException {
 
-		final JPAAttributePath path = jpaStructuredType.getPath(externalName);
+		final JPASelector path = jpaStructuredType.getPath(externalName);
 		if (path == null) {
 			return null;
 		}
 		// take only the first, we are working recursive through the path
 		final JPAAttribute attribute = path.getPathElements().get(0);
+		if (attribute != null && attribute.ignore()) {
+			return null;
+		}
 		if (attribute != null && !attribute.isKey() && attribute.isComplex()) {
 			String bufferKey;
 			if (prefix.isEmpty()) {

@@ -18,11 +18,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 
 public class TestHelper {
 	final private Metamodel jpaMetamodel;
-	final public ServiceDocument sd;
+	final public IntermediateServiceDocument sd;
 	final public JPAEdmProvider edmProvider;
 
 	public TestHelper(final Metamodel jpaMetamodel, final String namespace) throws ODataException {
