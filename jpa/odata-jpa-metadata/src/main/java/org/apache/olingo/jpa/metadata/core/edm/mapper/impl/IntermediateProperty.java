@@ -49,7 +49,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
 	// TODO Store a type @Convert
 	protected final Attribute<?, ?> jpaAttribute;
-	protected final ServiceDocument serviceDocument;
+	protected final IntermediateServiceDocument serviceDocument;
 	protected CsdlProperty edmProperty;
 	private JPAStructuredType type = null;
 	private AttributeConverter<?, ?> valueConverter;
@@ -61,7 +61,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	private final JPAAttributeAccessor accessor;
 
 	IntermediateProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
-			final ServiceDocument serviceDocument) throws ODataJPAModelException {
+			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
 		super(nameBuilder, jpaAttribute.getName());
 		this.jpaAttribute = jpaAttribute;

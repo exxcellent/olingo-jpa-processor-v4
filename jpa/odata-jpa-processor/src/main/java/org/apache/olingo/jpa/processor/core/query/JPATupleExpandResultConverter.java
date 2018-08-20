@@ -13,7 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -24,7 +24,7 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 	private final JPAAssociationPath assoziation;
 
 	public JPATupleExpandResultConverter(final JPAQueryResult jpaExpandResult, final Tuple parentRow,
-			final JPAAssociationPath assoziation, final UriHelper uriHelper, final ServiceDocument sd,
+			final JPAAssociationPath assoziation, final UriHelper uriHelper, final IntermediateServiceDocument sd,
 			final ServiceMetadata serviceMetadata) throws ODataApplicationException {
 
 		super(jpaExpandResult, uriHelper, sd, serviceMetadata);
@@ -40,8 +40,7 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 		final EntityCollection expandCollection = createEntityCollection();
 		if (assoziation.getLeaf().isCollection()) {
 			link.setInlineEntitySet(expandCollection);
-			// TODO $count@$expand
-			expandCollection.setCount(new Integer(5));
+			expandCollection.setCount(Integer.valueOf(expandCollection.getEntities().size()));
 			// TODO link.setHref(parentUri.toASCIIString());
 		} else {
 			if (expandCollection.getEntities() != null && !expandCollection.getEntities().isEmpty()) {
@@ -54,10 +53,18 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 	}
 
 	private final String buildConcatenatedKey(final Tuple row, final List<JPAOnConditionItem> joinColumns) {
-		final StringBuffer buffer = new StringBuffer();
+		final StringBuilder buffer = new StringBuilder();
+		JPASelector left;
 		for (final JPAOnConditionItem item : joinColumns) {
+			// ignored attributes are not part of the query selection result
+			left = item.getLeftPath();
 			buffer.append(JPASelector.PATH_SEPERATOR);
-			buffer.append(row.get(item.getLeftPath().getAlias()));
+			// if we got here an exception, then a required (key) join column was not
+			// selected in the query (see JPAQuery to fix!)
+			buffer.append(row.get(left.getAlias()));
+		}
+		if (buffer.length() < 1) {
+			return null;
 		}
 		buffer.deleteCharAt(0);
 		return buffer.toString();

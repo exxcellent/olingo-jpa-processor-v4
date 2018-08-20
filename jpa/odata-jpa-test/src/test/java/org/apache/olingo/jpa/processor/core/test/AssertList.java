@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.testmodel;
+package org.apache.olingo.jpa.processor.core.test;
 
 import static org.junit.Assert.assertTrue;
 

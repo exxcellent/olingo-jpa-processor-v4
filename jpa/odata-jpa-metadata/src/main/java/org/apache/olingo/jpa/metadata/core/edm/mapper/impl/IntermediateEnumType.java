@@ -21,7 +21,7 @@ class IntermediateEnumType extends IntermediateModelElement {
 	private CsdlEnumType edmEnumType = null;
 
 	IntermediateEnumType(final JPAEdmNameBuilder nameBuilder, final Class<? extends Enum<?>> enumType,
-			final ServiceDocument serviceDocument)
+			final IntermediateServiceDocument serviceDocument)
 					throws ODataJPAModelException {
 		super(nameBuilder, enumType.getName());
 		this.enumType = enumType;

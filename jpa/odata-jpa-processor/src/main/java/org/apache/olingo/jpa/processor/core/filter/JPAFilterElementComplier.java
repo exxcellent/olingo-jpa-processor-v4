@@ -6,7 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -25,12 +25,12 @@ public class JPAFilterElementComplier extends JPAAbstractFilter {
   final JPAOperationConverter converter;
   final EntityManager em;
   final OData odata;
-  final ServiceDocument sd;
+  final IntermediateServiceDocument sd;
   final List<UriResource> uriResourceParts;
   final JPAAbstractQuery parent;
   final VisitableExpression expression;
 
-  public JPAFilterElementComplier(final OData odata, final ServiceDocument sd, final EntityManager em,
+  public JPAFilterElementComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
       final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
       final List<UriResource> uriResourceParts, final JPAAbstractQuery parent, final VisitableExpression expression) {
 
@@ -80,7 +80,7 @@ public class JPAFilterElementComplier extends JPAAbstractFilter {
   }
 
   @Override
-  public ServiceDocument getSd() {
+  public IntermediateServiceDocument getSd() {
     return sd;
   }
 

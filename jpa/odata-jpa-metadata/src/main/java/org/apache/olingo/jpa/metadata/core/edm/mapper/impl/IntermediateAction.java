@@ -1,24 +1,21 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
-import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
@@ -32,165 +29,61 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediateAction extends IntermediateModelElement implements JPAAction {
-
-	private static class ActionParameter implements JPAOperationParameter {
-
-		private final IntermediateAction owner;
-		private final int parameterIndex;
-		public ActionParameter(final IntermediateAction owner, final int parameterIndex) {
-			this.owner = owner;
-			this.parameterIndex = parameterIndex;
-		}
-
-		@Override
-		public String getName() {
-			try {
-				if (owner.isBound) {
-					return owner.getEdmItem().getParameters().get(parameterIndex + 1).getName();
-				} else {
-					return owner.getEdmItem().getParameters().get(parameterIndex).getName();
-				}
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public Class<?> getType() {
-			return owner.javaMethod.getParameters()[parameterIndex].getType();
-		}
-
-		@Override
-		public Integer getMaxLength() {
-			try {
-				return owner.getEdmItem().getParameters().get(parameterIndex).getMaxLength();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public Integer getPrecision() {
-			try {
-				return owner.getEdmItem().getParameters().get(parameterIndex).getPrecision();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public Integer getScale() {
-			try {
-				return owner.getEdmItem().getParameters().get(parameterIndex).getScale();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
-			try {
-				return owner.getEdmItem().getParameters().get(parameterIndex).getTypeFQN();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-	}
-
-	private static class ActionResultParameter implements JPAOperationResultParameter {
-		private final IntermediateAction owner;
-
-		public ActionResultParameter(final IntermediateAction owner) {
-			this.owner = owner;
-		}
-
-		@Override
-		public Class<?> getType() {
-			return owner.javaMethod.getReturnType();
-		}
-
-		@Override
-		public FullQualifiedName getTypeFQN() {
-			try {
-				return owner.getEdmItem().getReturnType().getTypeFQN();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public Integer getPrecision() {
-			try {
-				return owner.getEdmItem().getReturnType().getPrecision();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public Integer getMaxLength() {
-			try {
-				return owner.getEdmItem().getReturnType().getMaxLength();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public Integer getScale() {
-			try {
-				return owner.getEdmItem().getReturnType().getScale();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public boolean isCollection() {
-			try {
-				return owner.getEdmItem().getReturnType().isCollection();
-			} catch (final ODataJPAModelException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-	}
+public class IntermediateAction extends IntermediateModelElement implements JPAAction {
 
 	private CsdlAction edmAction = null;
-	private final AbstractJPASchema schema;
-	private final Method javaMethod;
-	private final List<JPAOperationParameter> parameterList;
-	private final JPAOperationResultParameter resultParameter;
-	private final boolean isBound = true; // currently all actions are bound
+	private final IntermediateServiceDocument isd;
+	final Method javaMethod;
+	private final List<ActionParameter> parameterList;
+	private final ActionResultParameter resultParameter;
+	boolean isBound = true;
 
-	IntermediateAction(final JPAEdmNameBuilder nameBuilder, final Method actionMethod, final AbstractJPASchema schema)
-			throws ODataJPAModelException, IllegalArgumentException {
+	IntermediateAction(final JPAEdmNameBuilder nameBuilder, final Method actionMethod,
+			final IntermediateServiceDocument isd)
+					throws ODataJPAModelException, IllegalArgumentException {
 		super(nameBuilder, JPANameBuilder.buildActionName(actionMethod));
 		this.javaMethod = actionMethod;
+		if (Modifier.isStatic(actionMethod.getModifiers())) {
+			if (!Modifier.isPublic(actionMethod.getModifiers())) {
+				throw new IllegalArgumentException(
+						"Given JAVA method must be 'public static' to be handled as unbound edm:Action");
+			}
+			isBound = false;
+		}
 		final EdmAction jpaAction = actionMethod.getAnnotation(EdmAction.class);
 		if (jpaAction == null) {
 			throw new IllegalArgumentException("Given JAVA method must be annotated with @"
 					+ EdmAction.class.getSimpleName() + " to be handled as edm:Action");
 		}
-		this.setExternalName(jpaAction.name());
-		this.schema = schema;
+		String name = jpaAction.name();
+		if (name == null || name.isEmpty()) {
+			name = actionMethod.getName();
+		}
+		this.setExternalName(name);
+		this.isd = isd;
 
-		final int noOfParameters = javaMethod.getParameters().length;
-		parameterList = new ArrayList<JPAOperationParameter>(noOfParameters);
-		for(int i=0;i<noOfParameters;i++) {
-			parameterList.add(new ActionParameter(this, i));
+		parameterList = new ArrayList<ActionParameter>(javaMethod.getParameters().length);
+		int index = 0;
+		for (final Parameter p : javaMethod.getParameters()) {
+			final ActionParameter ap = new ActionParameter(this, p, index);
+			parameterList.add(ap);
+			index++;
 		}
 
-		resultParameter = new ActionResultParameter(this);
+		if (javaMethod.getReturnType() == void.class || javaMethod.getReturnType() == Void.class) {
+			resultParameter = null;
+		} else {
+			resultParameter = new ActionResultParameter(this);
+		}
 	}
 
-	Method getJavaMethod() {
+	public Method getJavaMethod() {
 		return javaMethod;
 	}
 
 	@Override
 	public List<JPAOperationParameter> getParameters() {
-		return parameterList;
+		return Collections.unmodifiableList(parameterList);
 	}
 
 	@Override
@@ -207,7 +100,7 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 	/**
 	 * Helper method to extract 'parameter type' from a parameterized (generic) type like a {@link Collection}.
 	 */
-	private FullQualifiedName extractGenericTypeQualifiedName(final Type type) throws ODataJPAModelException {
+	FullQualifiedName extractGenericTypeQualifiedName(final Type type) throws ODataJPAModelException {
 		Class<?> clazzType = null;
 		if(Class.class.isInstance(type)) {
 			// simply use the argument self without further inspection
@@ -224,12 +117,12 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		}
 		// now adapt to oData type to determine FQN
 		if(clazzType != null) {
-			final JPAStructuredType et = schema.getEntityType(clazzType);
+			final JPAStructuredType et = isd.getEntityType(clazzType);
 			if (et != null) {
 				if (et.ignore()) {
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);
 				}
-				return nameBuilder.buildFQN(et.getEdmItem().getName());
+				return et.getExternalFQN();
 			} else {
 				// may throw an ODataJPAModelException
 				final EdmPrimitiveTypeKind simpleType = JPATypeConvertor.convertToEdmSimpleType(clazzType);
@@ -239,43 +132,11 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, type.getTypeName());
 	}
 
-	private CsdlReturnType determineResultType() throws ODataJPAModelException {
-		FullQualifiedName fqn = null;
-		boolean isCollection = false;
-		final JPAStructuredType et = schema.getEntityType(javaMethod.getReturnType());
-		if (et != null) {
-			if (et.ignore()) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);
-			}
-			fqn = nameBuilder.buildFQN(et.getEdmItem().getName());
-		} else if (javaMethod.getReturnType() == void.class || javaMethod.getReturnType() == Void.class) {
-			return null;
-		} else if (Collection.class.isAssignableFrom(javaMethod.getReturnType())) {
-			isCollection = true;
-			fqn = extractGenericTypeQualifiedName(javaMethod.getGenericReturnType());
-		} else {
-			// may throw an ODataJPAModelException
-			final EdmPrimitiveTypeKind simpleType = JPATypeConvertor.convertToEdmSimpleType(javaMethod.getReturnType());
-			fqn = simpleType.getFullQualifiedName();
-		}
-
-		if (fqn == null) {
-			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_RETURN_TYPE_ENTITY_NOT_FOUND);
-		}
-
-		final CsdlReturnType edmResultType = new CsdlReturnType();
-		edmResultType.setType(fqn);
-		edmResultType.setCollection(isCollection);
-		edmResultType.setNullable(!javaMethod.isAnnotationPresent(NotNull.class));
-		// TODO length, precision, scale
-		return edmResultType;
-	}
-
 	/**
 	 *
 	 * @return The list of parameters or <code>null</code> if empty.
 	 */
-	private List<CsdlParameter> determineParameterTypes() throws ODataJPAModelException {
+	private List<CsdlParameter> buildParameterList() throws ODataJPAModelException {
 		final List<CsdlParameter> parameters = new LinkedList<>();
 		if (isBound) {
 			// if an action is 'bound' then the first parameter in list must be the entity
@@ -288,9 +149,12 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 			parameter.setType(fqn);
 			parameters.add(parameter);
 		}
-		// real method parameters...
-		for (final Parameter p : javaMethod.getParameters()) {
-			final CsdlParameter csdlParam = buildParameter(p);
+		// other relevant method parameters...
+		for (final ActionParameter ap : parameterList) {
+			final CsdlParameter csdlParam = ap.getEdmItem();
+			if (csdlParam == null) {
+				continue;
+			}
 			parameters.add(csdlParam);
 		}
 		if (parameters.isEmpty()) {
@@ -299,24 +163,6 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		return parameters;
 	}
 
-	private CsdlParameter buildParameter(final Parameter javaParameter) throws ODataJPAModelException {
-		final EdmActionParameter edmParameterAnnotation = javaParameter.getAnnotation(EdmActionParameter.class);
-		String name = javaParameter.getName();
-		if(edmParameterAnnotation == null || edmParameterAnnotation.name() == null || edmParameterAnnotation.name().isEmpty()) {
-			if(!javaParameter.isNamePresent()) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_MISSING);
-			}
-		} else {
-			name = edmParameterAnnotation.name();
-		}
-		final FullQualifiedName fqn = extractGenericTypeQualifiedName(javaParameter.getParameterizedType());
-		final CsdlParameter parameter = new CsdlParameter();
-		parameter.setName(name);
-		parameter.setNullable(!javaParameter.isAnnotationPresent(NotNull.class));
-		parameter.setCollection(Collection.class.isAssignableFrom(javaParameter.getType()));
-		parameter.setType(fqn);
-		return parameter;
-	}
 
 	@Override
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
@@ -325,22 +171,16 @@ class IntermediateAction extends IntermediateModelElement implements JPAAction {
 		}
 		edmAction = new CsdlAction();
 		edmAction.setName(getExternalName());
-		edmAction.setParameters(determineParameterTypes());
-		edmAction.setReturnType(determineResultType());
+		edmAction.setParameters(buildParameterList());
+		if (resultParameter != null) {
+			edmAction.setReturnType(resultParameter.getEdmItem());
+		}
 		edmAction.setBound(isBound);
-
 	}
 
 	@Override
-	public Object invoke(final Object jpaEntity, final Object... args) throws ODataJPAModelException {
-		try {
-			final Object result = javaMethod.invoke(jpaEntity, args);
-			if (result == null || getEdmItem().getReturnType() == null) {
-				return null;
-			}
-			return result;
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new ODataJPAModelException(e);
-		}
+	public boolean isBound() {
+		return isBound;
 	}
+
 }

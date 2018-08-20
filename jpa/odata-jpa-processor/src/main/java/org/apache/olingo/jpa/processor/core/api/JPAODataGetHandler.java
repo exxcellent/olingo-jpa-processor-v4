@@ -15,10 +15,10 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
-import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
@@ -37,7 +37,7 @@ public class JPAODataGetHandler {
 
 	private final JPAODataContextImpl context;
 
-	public JPAODataGetHandler(final JPAPersistenceAdapter mappingAdapter) throws ODataException {
+	public JPAODataGetHandler(final JPAAdapter mappingAdapter) throws ODataException {
 		super();
 		this.context = new JPAODataContextImpl(mappingAdapter);
 	}
@@ -81,7 +81,7 @@ public class JPAODataGetHandler {
 	 *
 	 * @return The collection of processors to use to handle the request.
 	 */
-	//TODO replace EntityManager by JPAPersistenceAdapter
+	//TODO replace EntityManager by JPAAdapter
 	protected Collection<Processor> collectProcessors(final HttpServletRequest request, final HttpServletResponse response, final EntityManager em) {
 		final Collection<Processor> processors = new LinkedList<>();
 		processors.add(new JPAEntityProcessor(context, em));
@@ -94,7 +94,7 @@ public class JPAODataGetHandler {
 	private static class JPAODataContextImpl implements JPAODataContext {
 		private final JPAEdmProvider jpaEdm;
 		private JPAODataDatabaseProcessor databaseProcessor;
-		private final JPAPersistenceAdapter mappingAdapter;
+		private final JPAAdapter mappingAdapter;
 		private final OData odata;
 		private final List<EdmxReference> references = new LinkedList<EdmxReference>();
 		private JPAODataDatabaseOperations operationConverter;
@@ -102,7 +102,7 @@ public class JPAODataGetHandler {
 		private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
 		private DependencyInjector dpi = new DependencyInjector();
 
-		public JPAODataContextImpl(final JPAPersistenceAdapter mappingAdapter) throws ODataException {
+		public JPAODataContextImpl(final JPAAdapter mappingAdapter) throws ODataException {
 			super();
 			this.odata = OData.newInstance();
 			this.mappingAdapter = mappingAdapter;
@@ -119,7 +119,7 @@ public class JPAODataGetHandler {
 				return;
 			}
 
-			final ServiceDocument sd = jpaEdm.getServiceDocument();
+			final IntermediateServiceDocument sd = jpaEdm.getServiceDocument();
 			for (final Class<?> dtoClass : dtos) {
 				sd.createDTOType(dtoClass);
 			}
@@ -152,7 +152,7 @@ public class JPAODataGetHandler {
 
 		@Override
 		public void setMetadataPostProcessor(final JPAEdmMetadataPostProcessor postProcessor) throws ODataException {
-			ServiceDocument.setPostProcessor(postProcessor);
+			IntermediateServiceDocument.setPostProcessor(postProcessor);
 		}
 
 		@Override
@@ -200,7 +200,7 @@ public class JPAODataGetHandler {
 			debugSupport.setDebugger(debugger);
 		}
 
-		JPAPersistenceAdapter getMappingAdapter() {
+		JPAAdapter getMappingAdapter() {
 			return mappingAdapter;
 		}
 
@@ -209,7 +209,7 @@ public class JPAODataGetHandler {
 				throw new IllegalArgumentException("New instance required");
 			}
 			this.dpi = newDpi;
-			dpi.registerDependencyMapping(JPAPersistenceAdapter.class, mappingAdapter);
+			dpi.registerDependencyMapping(JPAAdapter.class, mappingAdapter);
 			dpi.registerDependencyMapping(JPAEdmProvider.class, jpaEdm);
 
 		}
@@ -269,7 +269,7 @@ public class JPAODataGetHandler {
 
 		@Override
 		public ODataResponse process(final ODataRequest request) {
-			final JPAPersistenceAdapter mappingAdapter = context.getMappingAdapter();
+			final JPAAdapter mappingAdapter = context.getMappingAdapter();
 			context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
 			try {
 				mappingAdapter.beginTransaction(em);

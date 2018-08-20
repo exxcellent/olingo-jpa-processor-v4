@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.testmodel;
+package org.apache.olingo.jpa.processor.core.testmodel.converter;
 
 import java.sql.Date;
 import java.time.LocalDate;

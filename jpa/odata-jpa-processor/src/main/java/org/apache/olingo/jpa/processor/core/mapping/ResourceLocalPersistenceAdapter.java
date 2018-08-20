@@ -15,7 +15,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
  * @author Ralf Zozmann
  *
  */
-public class ResourceLocalPersistenceAdapter extends AbstractJPAPersistenceAdapter {
+public class ResourceLocalPersistenceAdapter extends AbstractJPAAdapter {
 
 	public ResourceLocalPersistenceAdapter(final String pUnit, final JPAODataDatabaseProcessor dbAccessor) {
 		this(pUnit, Collections.emptyMap(), dbAccessor);

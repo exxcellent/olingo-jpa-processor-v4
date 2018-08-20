@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +21,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
  * @author Ralf Zozmann
  *
  */
-public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAdapter {
+public abstract class AbstractJPAAdapter implements JPAAdapter {
 
 	private final String namespace;
 	private final JPAODataDatabaseProcessor dbAccessor;
@@ -36,7 +37,7 @@ public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAda
 	 *            Maybe <code>null</code>
 	 * @param dbAccessor
 	 */
-	public AbstractJPAPersistenceAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
+	public AbstractJPAAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
 			final JPAODataDatabaseProcessor dbAccessor) {
 		this(pUnit, Persistence.createEntityManagerFactory(pUnit, mapEntityManagerProperties), dbAccessor);
 	}
@@ -44,7 +45,7 @@ public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAda
 	/**
 	 * Only for internal use; protect against usage outside of our package.
 	 */
-	AbstractJPAPersistenceAdapter(final String pUnit, final EntityManagerFactory emf,
+	AbstractJPAAdapter(final String pUnit, final EntityManagerFactory emf,
 			final JPAODataDatabaseProcessor dbAccessor) throws IllegalArgumentException {
 		this.namespace = pUnit;
 		this.dbAccessor = dbAccessor;
@@ -80,7 +81,7 @@ public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAda
 
 	@Override
 	public Collection<Class<?>> getDTOs() {
-		return dtos;
+		return Collections.unmodifiableCollection(dtos);
 	}
 
 	/**
@@ -95,4 +96,5 @@ public abstract class AbstractJPAPersistenceAdapter implements JPAPersistenceAda
 		}
 		dtos.add(dto);
 	}
+
 }

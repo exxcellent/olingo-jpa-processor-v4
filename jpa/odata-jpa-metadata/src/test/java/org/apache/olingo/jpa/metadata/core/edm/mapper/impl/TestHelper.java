@@ -19,12 +19,12 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 class TestHelper {
 	final private Metamodel jpaMetamodel;
-	final ServiceDocument serviceDocument;
+	final public IntermediateServiceDocument serviceDocument;
 	final public AbstractJPASchema schema;
 
 	public TestHelper(final Metamodel metamodel, final String namespace) throws ODataJPAModelException {
 		this.jpaMetamodel = metamodel;
-		this.serviceDocument = new ServiceDocument(namespace);
+		this.serviceDocument = new IntermediateServiceDocument(namespace);
 		this.schema = serviceDocument.createMetamodelSchema(namespace, jpaMetamodel);
 	}
 

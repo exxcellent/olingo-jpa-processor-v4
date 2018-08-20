@@ -44,7 +44,6 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;;
 			name = "max",
 			functionName = "MAX",
 			isBound = false,
-			hasFunctionImport = false,
 			returnType = @EdmFunction.ReturnType(type = BigDecimal.class, isCollection = false),
 			parameter = { @EdmFunctionParameter(name = "Path", parameterName = "path", type = String.class),
 			}),
@@ -89,12 +88,6 @@ public abstract class BusinessPartner {
 	@Column(name = "\"Country\"", length = 4)
 	private String country;
 
-	//	@EdmDescriptionAssociation(languageAttribute = "key/language", descriptionAttribute = "name", valueAssignments = {
-	//			// @EdmDescriptionAssozation.valueAssignment(attribute = "key/codePublisher",
-	//			// value = "ISO"),
-	//			// @EdmDescriptionAssozation.valueAssignment(attribute = "key/codeID", value =
-	//			// "3166-1")
-	//	})
 	@OneToMany(fetch = FetchType.LAZY, orphanRemoval = false)
 	@JoinColumn(name = "\"DivisionCode\"", referencedColumnName = "\"Address.Region\"", nullable = false, insertable = false)
 	private Collection<AdministrativeDivisionDescription> locations;
@@ -103,15 +96,6 @@ public abstract class BusinessPartner {
 	protected CommunicationData communicationData = new CommunicationData();
 
 	@Embedded
-	//  @AssociationOverrides({
-	//      @AssociationOverride(name = "countryName",
-	//          joinColumns = @JoinColumn(referencedColumnName = "\"Address.Country\"", name = "\"ISOCode\"")),
-	//      @AssociationOverride(name = "regionName",
-	//          joinColumns = {
-	//              @JoinColumn(referencedColumnName = "\"Address.RegionCodePublisher\"", name = "\"CodePublisher\""),
-	//              @JoinColumn(referencedColumnName = "\"Address.RegionCodeID\"", name = "\"CodeID\""),
-	//              @JoinColumn(referencedColumnName = "\"Address.Region\"", name = "\"DivisionCode\"") })
-	//  })
 	private PostalAddressData address = new PostalAddressData();
 
 	@Embedded

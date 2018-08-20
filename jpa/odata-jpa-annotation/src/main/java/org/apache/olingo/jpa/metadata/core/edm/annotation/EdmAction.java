@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface EdmAction {
-  /**
-   * Defines the name of the action in the service document
-   */
-  String name();
+	/**
+	 * Defines the name of the action in the service document
+	 */
+	String name() default "";
 }

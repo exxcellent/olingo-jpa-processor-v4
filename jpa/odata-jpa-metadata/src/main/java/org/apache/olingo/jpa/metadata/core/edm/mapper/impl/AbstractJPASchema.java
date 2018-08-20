@@ -45,9 +45,13 @@ public abstract class AbstractJPASchema implements JPAElement {
 
 	abstract JPAFunction getFunction(final String externalName);
 
-	public abstract CsdlSchema getEdmItem() throws ODataJPAModelException;
+	abstract List<JPAFunction> getFunctions();
 
 	abstract JPAAction getAction(final String externalName);
+
+	abstract List<JPAAction> getActions();
+
+	public abstract CsdlSchema getEdmItem() throws ODataJPAModelException;
 
 	/**
 	 * {@link IntermediateStructuredType Structured types} including
@@ -58,8 +62,6 @@ public abstract class AbstractJPASchema implements JPAElement {
 	abstract IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
 
 	abstract List<JPAEntityType> getEntityTypes();
-
-	abstract List<JPAFunction> getFunctions();
 
 	abstract IntermediateComplexType getComplexType(final Class<?> targetClass);
 }

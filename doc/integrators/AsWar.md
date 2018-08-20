@@ -31,7 +31,7 @@ public class ODataServlet extends HttpServlet {
 	private JPAODataGetHandler createHandler() throws ODataException {
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
-		JPAPersistenceAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,	elProperties, new JPADefaultDatabaseProcessor());
+		JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,	elProperties, new JPADefaultDatabaseProcessor());
 		return new JPAODataGetHandler(mappingAdapter);
 	}
 

@@ -23,7 +23,7 @@ import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
 import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.server.api.ODataRequest;
@@ -92,7 +92,7 @@ public class IntegrationTestHelper {
 		this(persistenceAdapter.getEMF(), persistenceAdapter, urlPath, requestBody, requestMethod);
 	}
 
-	private IntegrationTestHelper(final EntityManagerFactory localEmf, final JPAPersistenceAdapter persistenceAdapter,
+	private IntegrationTestHelper(final EntityManagerFactory localEmf, final JPAAdapter persistenceAdapter,
 			final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
 					throws IOException,
 					ODataException {
@@ -100,7 +100,7 @@ public class IntegrationTestHelper {
 		this.req = new HttpServletRequestDouble(uriPrefix + urlPath, requestBody);
 		req.setMethod(requestMethod);
 		this.resp = new HttpServletResponseDouble();
-		JPAPersistenceAdapter mappingAdapter = persistenceAdapter;
+		JPAAdapter mappingAdapter = persistenceAdapter;
 		if (mappingAdapter == null) {
 			if (localEmf == null) {
 				throw new IllegalArgumentException("EntityManager must not be null if persistence adapter is not given");

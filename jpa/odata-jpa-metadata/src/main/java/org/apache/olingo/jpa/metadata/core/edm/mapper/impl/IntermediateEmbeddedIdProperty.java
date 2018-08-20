@@ -13,7 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 public class IntermediateEmbeddedIdProperty extends IntermediateProperty {
 
 	IntermediateEmbeddedIdProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
-			final ServiceDocument serviceDocument) throws ODataJPAModelException {
+			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 		super(nameBuilder, jpaAttribute, serviceDocument);
 	}
 

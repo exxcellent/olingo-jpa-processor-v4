@@ -19,13 +19,12 @@ import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -123,7 +122,7 @@ public abstract class AbstractObjectConverter extends JPAAbstractConverter {
 	}
 
 	public AbstractObjectConverter(final JPAEntityType jpaConversionTargetEntity, final UriHelper uriHelper,
-			final ServiceDocument sd, final ServiceMetadata serviceMetadata) throws ODataApplicationException {
+			final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata) throws ODataApplicationException {
 		super(jpaConversionTargetEntity, uriHelper, sd, serviceMetadata);
 	}
 
@@ -194,7 +193,7 @@ public abstract class AbstractObjectConverter extends JPAAbstractConverter {
 				return Collections.emptyList();
 			}
 			// create as navigation path to nested complex path property
-			final JPAAttributePath path = jpaType.getPath(alias);
+			final JPASelector path = jpaType.getPath(alias);
 			if (path == null) {
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
 			}
@@ -283,9 +282,9 @@ public abstract class AbstractObjectConverter extends JPAAbstractConverter {
 			final boolean isGenerated = jpaAttribute.getAnnotation(GeneratedValue.class) != null;
 			// do not allow to set ID attributes if that attributes must be generated
 			if (isGenerated && jpaAttribute.isKey()/*
-													 * SingularAttribute.class.isInstance(persistenceAttribute) &&
-													 * ((SingularAttribute<?,?>)persistenceAttribute).isId()
-													 */) {
+			 * SingularAttribute.class.isInstance(persistenceAttribute) &&
+			 * ((SingularAttribute<?,?>)persistenceAttribute).isId()
+			 */) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
 						HttpStatusCode.INTERNAL_SERVER_ERROR,
 						new IllegalArgumentException("The id attribute must not be set, because is generated"));

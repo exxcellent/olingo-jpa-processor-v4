@@ -27,7 +27,7 @@ public class TestIntermediateAction extends TestMappingRoot {
 	@Test(expected = IllegalArgumentException.class)
 	public void rejectNotAnnotatedMethod() throws ODataJPAModelException {
 		Method notAnnotatedMethod = null;
-		for (Method method : Person.class.getMethods()) {
+		for (final Method method : Person.class.getMethods()) {
 			final EdmAction action = method.getAnnotation(EdmAction.class);
 			// take the first not annotated method
 			if (action == null) {
@@ -35,43 +35,44 @@ public class TestIntermediateAction extends TestMappingRoot {
 				break;
 			}
 		}
-		if (notAnnotatedMethod == null)
+		if (notAnnotatedMethod == null) {
 			throw new IllegalStateException("Couldn't find a JAVA method without @" + EdmAction.class.getSimpleName()
 					+ " annotation for testing");
-		new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME), notAnnotatedMethod, helper.schema);
+		}
+		new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME), notAnnotatedMethod, helper.serviceDocument);
 		org.junit.Assert.fail("Action constructor has not thrown an exception");
 	}
 
 	@Test
 	public void checkReflectionResult1() throws ODataJPAModelException {
-		Method method = helper.getActionMethod(helper.getEntityType("Person"), "ClearPersonsCustomStrings");
+		final Method method = helper.getActionMethod(helper.getEntityType("Person"), "ClearPersonsCustomStrings");
 		assertNotNull(method);
-		IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-				method, helper.schema);
+		final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
+				method, helper.serviceDocument);
 		assertNotNull(action);
 		// a bound action must have different parameters in CSDL and on JPA side
 		assertEquals(0, action.getParameters().size());
 		assertEquals(1, action.getEdmItem().getParameters().size());
-		assertEquals(void.class, action.getResultParameter().getType());
+		assertNull(action.getResultParameter());// void
 		assertNull(action.getEdmItem().getReturnType());
 	}
 
 	@Test
 	public void checkReflectionResult2() throws ODataJPAModelException {
-		Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction1");
+		final Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction1");
 		assertNotNull(method);
-		IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-				method, helper.schema);
+		final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
+				method, helper.serviceDocument);
 		assertFalse(action.getEdmItem().getReturnType().isNullable());
 	}
-	
+
 	@Ignore("Unbound actions are currently not supported")
 	@Test
 	public void checkReflectionResult3() throws ODataJPAModelException {
-		Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction2");
+		final Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction2");
 		assertNotNull(method);
-		IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-				method, helper.schema);
+		final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
+				method, helper.serviceDocument);
 		assertNotNull(action);
 		// a unbound action must have same parameters in CSDL and on JPA side
 		assertEquals(1, action.getParameters().size());

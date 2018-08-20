@@ -7,6 +7,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 public interface JPAEntityType extends JPAStructuredType {
 
+	@Override
 	public CsdlEntityType getEdmItem() throws ODataJPAModelException;
 
 	/**
@@ -21,6 +22,7 @@ public interface JPAEntityType extends JPAStructuredType {
 	/**
 	 * @see org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType#getKeyAttributes()
 	 */
+	@Override
 	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException;
 
 	/**
@@ -55,5 +57,5 @@ public interface JPAEntityType extends JPAStructuredType {
 
 	public boolean hasStream() throws ODataJPAModelException;
 
-	public List<JPAAttributePath> searchChildPath(JPAAttributePath selectItemPath);
+	public List<JPAAttributePath> searchChildPath(JPASelector selectItemPath);
 }

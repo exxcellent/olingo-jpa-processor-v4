@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.testmodel;
+package org.apache.olingo.jpa.processor.core.test;
 
 public interface TestDataConstants {
 	public static final int NO_ATTRIBUTES_POSTAL_ADDRESS = 9;

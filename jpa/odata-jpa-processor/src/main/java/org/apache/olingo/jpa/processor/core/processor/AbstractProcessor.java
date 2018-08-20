@@ -11,7 +11,7 @@ import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
@@ -29,7 +29,7 @@ import org.apache.olingo.server.api.uri.UriHelper;
  */
 abstract class AbstractProcessor implements Processor {
 
-	protected final ServiceDocument sd;
+	protected final IntermediateServiceDocument sd;
 	protected final JPAODataSessionContextAccess context;
 	protected final EntityManager em;
 
@@ -77,7 +77,6 @@ abstract class AbstractProcessor implements Processor {
 			final Object theOnlyResult = results.get(0);
 			// the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
 			final EntityType<?> persistenceType = em.getMetamodel().entity(theOnlyResult.getClass());
-			em.getMetamodel().entity(theOnlyResult.getClass());
 			final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, uriHelper, sd,
 					serviceMetadata, em.getMetamodel());
 			return entityConverter.convertJPA2ODataEntity(theOnlyResult);

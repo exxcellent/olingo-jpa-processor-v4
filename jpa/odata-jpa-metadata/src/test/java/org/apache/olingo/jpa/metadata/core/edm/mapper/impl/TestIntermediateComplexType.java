@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.persistence.metamodel.EmbeddableType;
 
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
@@ -19,14 +20,14 @@ import org.junit.Test;
 
 public class TestIntermediateComplexType extends TestMappingRoot {
 	private Set<EmbeddableType<?>> etList;
-	private ServiceDocument serviceDocument;
+	private IntermediateServiceDocument serviceDocument;
 	private AbstractJPASchema schema;
 
 	@Before
 	public void setup() throws ODataJPAModelException {
 		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		etList = emf.getMetamodel().getEmbeddables();
-		serviceDocument = new ServiceDocument(PUNIT_NAME);
+		serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
 		schema = serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
 	}
 
@@ -179,7 +180,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
-		assertEquals("\"Address.PostOfficeBox\"", ct.getPath("POBox").getDBFieldName());
+		assertEquals("\"Address.PostOfficeBox\"", ((JPAAttributePath) ct.getPath("POBox")).getDBFieldName());
 	}
 
 	@Test
@@ -187,7 +188,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"AdministrativeInformation"),
 				serviceDocument);
-		assertEquals("\"by\"", ct.getPath("Created/By").getDBFieldName());
+		assertEquals("\"by\"", ((JPAAttributePath) ct.getPath("Created/By")).getDBFieldName());
 	}
 
 	@Test

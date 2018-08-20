@@ -9,7 +9,7 @@ import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -196,7 +196,7 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator> {
 		return jpaComplier.getConverter().cb;
 	}
 
-	ServiceDocument getSd() {
+	IntermediateServiceDocument getSd() {
 		return jpaComplier.getSd();
 	}
 

@@ -15,7 +15,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
-class JPAAssociationPathImpl implements JPAAssociationPath {
+public class JPAAssociationPathImpl implements JPAAssociationPath {
 	final private String alias;
 	final private List<JPAAttribute> pathElements;
 	final private IntermediateStructuredType sourceType;
@@ -23,9 +23,14 @@ class JPAAssociationPathImpl implements JPAAssociationPath {
 	private List<IntermediateJoinColumn> joinColumns;
 	private final PersistentAttributeType cardinality;
 
-	JPAAssociationPathImpl(final JPAEdmNameBuilder namebuilder, final JPAAssociationPath associationPath,
-			final IntermediateStructuredType source, final List<IntermediateJoinColumn> joinColumns,
-			final JPAAttribute attribute) {
+	/**
+	 * This constructor is used to create a 'composite' association path consisting
+	 * the an already existing path from a nested complex type and the owning
+	 * attribute in the top level structured type.
+	 */
+	JPAAssociationPathImpl(final JPAEdmNameBuilder namebuilder, final JPAAttribute attribute,
+			final JPAAssociationPath associationPath, final IntermediateStructuredType source,
+			final List<IntermediateJoinColumn> joinColumns) {
 
 		final List<JPAAttribute> pathElementsBuffer = new ArrayList<JPAAttribute>();
 		pathElementsBuffer.add(attribute);
@@ -35,6 +40,8 @@ class JPAAssociationPathImpl implements JPAAssociationPath {
 		this.sourceType = source;
 		this.targetType = (IntermediateStructuredType) associationPath.getTargetType();
 		if (joinColumns.isEmpty()) {
+			// if nor explicit join columns are given for the 'attribute' the we take the
+			// join columns as defined on the nested association path
 			this.joinColumns = ((JPAAssociationPathImpl) associationPath).getJoinColumns();
 		} else {
 			this.joinColumns = joinColumns;
@@ -43,15 +50,17 @@ class JPAAssociationPathImpl implements JPAAssociationPath {
 		this.cardinality = ((JPAAssociationPathImpl) associationPath).getCardinality();
 	}
 
-	JPAAssociationPathImpl(final IntermediateNavigationProperty association,
-			final IntermediateStructuredType source) throws ODataJPAModelException {
+	JPAAssociationPathImpl(final IntermediateNavigationProperty navProperty, final IntermediateStructuredType source)
+			throws ODataJPAModelException {
 
-		alias = association.getExternalName();
+		alias = navProperty.getExternalName();
+		// the given source may be a sub class of the class declared via
+		// navProperty::sourceType!
 		this.sourceType = source;
-		this.targetType = (IntermediateStructuredType) association.getTargetEntity();
-		this.joinColumns = association.getJoinColumns();
-		this.pathElements = Collections.singletonList(association);
-		this.cardinality = association.getJoinCardinality();
+		this.targetType = (IntermediateStructuredType) navProperty.getTargetEntity();
+		this.joinColumns = navProperty.getJoinColumns();
+		this.pathElements = Collections.singletonList(navProperty);
+		this.cardinality = navProperty.getJoinCardinality();
 	}
 
 	private List<IntermediateJoinColumn> getJoinColumns() {
@@ -80,12 +89,14 @@ class JPAAssociationPathImpl implements JPAAssociationPath {
 				case MANY_TO_MANY: /* TODO m:n really also ?! */
 				case ONE_TO_ONE:
 					selectorLeft = findJoinConditionPath(sourceType, column.getName());
-					selectorRight = findJoinConditionPath(targetType, column.getReferencedColumnName());
+					selectorRight = findJoinConditionPath(targetType,
+							column.getReferencedColumnName());
 					onCondition = new JPAOnConditionItemImpl(selectorLeft,
 							selectorRight);
 					break;
 				case ONE_TO_MANY:
-					selectorLeft = findJoinConditionPath(sourceType, column.getReferencedColumnName());
+					selectorLeft = findJoinConditionPath(sourceType,
+							column.getReferencedColumnName());
 					selectorRight = findJoinConditionPath(targetType, column.getName());
 					onCondition = new JPAOnConditionItemImpl(selectorLeft, selectorRight);
 					break;
@@ -125,30 +136,6 @@ class JPAAssociationPathImpl implements JPAAssociationPath {
 		throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM,
 				"Invalid relationship declaration: " + joinColumnName + " ->" + " between "
 						+ sourceType.getInternalName() + " and " + targetType.getInternalName());
-	}
-
-	@Override
-	public String produceExampleJoinLeftColumnAttributeMapping() {
-		final StringBuilder buffer = new StringBuilder();
-		buffer.append("  @EdmIgnore\n");
-		buffer.append("  @Column(name = \"");
-		try {
-			// accept every exception here
-			final String name = joinColumns.get(0).getName();
-			final String referenceColumnName = joinColumns.get(0).getReferencedColumnName();
-			if (findJoinConditionPath(sourceType, name) != null) {
-				buffer.append(name.replace("\"", "\\\""));
-			} else if (findJoinConditionPath(sourceType, referenceColumnName) != null) {
-				buffer.append(referenceColumnName.replace("\"", "\\\""));
-			} else {
-				buffer.append("<column name>");
-			}
-		} catch (final Exception e) {
-			buffer.append("<column name>");
-		}
-		buffer.append("\", insertable=false, updatable = false)\n");
-		buffer.append("  private String notMapped;");
-		return buffer.toString();
 	}
 
 	@Override

@@ -22,11 +22,11 @@ import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.AbstractJPASchema;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 
 public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
-	final private ServiceDocument serviceDocument;
+	final private IntermediateServiceDocument serviceDocument;
 	@SuppressWarnings("unused")
 	final private AbstractJPASchema defaultSchema;
 
@@ -34,7 +34,7 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 	// http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406397930
 	public JPAEdmProvider(final String namespace, final Metamodel jpaMetamodel) throws ODataException {
 		super();
-		serviceDocument = new ServiceDocument(namespace);
+		serviceDocument = new IntermediateServiceDocument(namespace);
 		// initial schema for persistence model of JPA
 		defaultSchema = serviceDocument.createMetamodelSchema(namespace, jpaMetamodel);
 	}
@@ -138,7 +138,7 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 		return serviceDocument.getEdmSchemas();
 	}
 
-	public final ServiceDocument getServiceDocument() {
+	public final IntermediateServiceDocument getServiceDocument() {
 		return serviceDocument;
 	}
 

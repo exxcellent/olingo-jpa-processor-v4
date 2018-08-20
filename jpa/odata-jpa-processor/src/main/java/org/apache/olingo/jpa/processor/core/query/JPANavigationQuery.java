@@ -18,7 +18,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -38,7 +38,7 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 	private final Subquery<?> subQuery;
 	private final JPAAbstractQuery parentQuery;
 
-	public <T extends Object> JPANavigationQuery(final ServiceDocument sd, final UriResource uriResourceItem,
+	public <T extends Object> JPANavigationQuery(final IntermediateServiceDocument sd, final UriResource uriResourceItem,
 			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
 					throws ODataApplicationException {
 
