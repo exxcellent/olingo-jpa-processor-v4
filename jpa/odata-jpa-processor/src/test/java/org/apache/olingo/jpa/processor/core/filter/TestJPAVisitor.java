@@ -11,7 +11,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 
 import org.apache.olingo.commons.api.edm.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -61,7 +61,7 @@ public class TestJPAVisitor {
     when(member.getResourcePath()).thenReturn(info);
     when(info.getUriResourceParts()).thenReturn(resources);
 //  final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource).getFunction());
-    final ServiceDocument sd = mock(ServiceDocument.class);
+    final IntermediateServiceDocument sd = mock(IntermediateServiceDocument.class);
     final JPAFunction jpaFunction = mock(JPAFunction.class);
     final EdmFunction edmFunction = mock(EdmFunction.class);
 

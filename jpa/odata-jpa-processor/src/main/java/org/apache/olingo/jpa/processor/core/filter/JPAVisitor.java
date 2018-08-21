@@ -9,7 +9,7 @@ import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -26,6 +26,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
+import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
 
 class JPAVisitor implements ExpressionVisitor<JPAOperator> {
 
@@ -77,8 +78,16 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator> {
 	@Override
 	public JPAOperator visitEnum(final EdmEnumType type, final List<String> enumValues) throws ExpressionVisitException,
 	ODataApplicationException {
-		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
-				HttpStatusCode.NOT_IMPLEMENTED, "Enumerations");
+		if (enumValues.isEmpty()) {
+			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
+					HttpStatusCode.NOT_IMPLEMENTED, "Empty Enumeration value");
+		}
+		if (enumValues.size() > 1) {
+			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
+					HttpStatusCode.NOT_IMPLEMENTED, "Multiple Enumeration values");
+		}
+		final Literal literal = new LiteralImpl(enumValues.get(0), type);
+		return new JPALiteralOperator(this.jpaComplier.getOdata(), literal);
 	}
 
 	@Override
@@ -187,7 +196,7 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator> {
 		return jpaComplier.getConverter().cb;
 	}
 
-	ServiceDocument getSd() {
+	IntermediateServiceDocument getSd() {
 		return jpaComplier.getSd();
 	}
 

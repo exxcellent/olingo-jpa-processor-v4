@@ -22,7 +22,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
  * @author Ralf Zozmann
  *
  */
-public class UserTransctionPersistenceAdapter extends AbstractJPAPersistenceAdapter {
+public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 
 	private final static String DEFAULT_USERTRANSACTION_NAME = "java:comp/UserTransaction";
 

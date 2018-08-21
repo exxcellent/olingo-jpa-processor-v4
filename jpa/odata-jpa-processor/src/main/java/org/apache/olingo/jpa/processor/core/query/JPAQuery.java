@@ -10,6 +10,7 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Path;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -85,7 +86,7 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		return em.createQuery(cq).getSingleResult();
 	}
 
-	public EntityCollection execute(final boolean includeExpand) throws ODataApplicationException {
+	public EntityCollection execute(final boolean processExpandOption) throws ODataApplicationException {
 		// Pre-process URI parameter, so they can be used at different places
 		// TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
@@ -115,7 +116,7 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 
 		final JPAQueryResult queryResult = new JPAQueryResult(resultTuples,
 				Long.valueOf(intermediateResult.size()), jpaEntityType);
-		if (includeExpand) {
+		if (processExpandOption) {
 			queryResult.putChildren(readExpandEntities(null, uriResource));
 		}
 		return convertToEntityCollection(queryResult);
@@ -135,7 +136,7 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		// Count results if requested
 		final CountOption countOption = uriResource.getCountOption();
 		if (countOption != null && countOption.getValue()) {
-			entityCollection.setCount(countResults().intValue());
+			entityCollection.setCount(Integer.valueOf(countResults().intValue()));
 		}
 
 		return entityCollection;
@@ -196,7 +197,11 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 				new ArrayList<javax.persistence.criteria.Expression<?>>();
 
 		for (final JPASelector jpaPath : selectionPathList) {
-			groupBy.add(convertToCriteriaPath(jpaPath));
+			final Path<?> path = convertToCriteriaPath(jpaPath);
+			if (path == null) {
+				continue;
+			}
+			groupBy.add(path);
 		}
 
 		return groupBy;

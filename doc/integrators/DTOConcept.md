@@ -51,7 +51,7 @@ A DTO instance is automatically transformed from/into a OData entity instance li
 For DTO's a limited support for dependency injection is available (see [JSR-330](https://jcp.org/en/jsr/detail?id=330) for annotations). Currently only single objects without ambiguous type can be handled.
 Supported is the injection of some DTO call related context objects via field injection (using @Inject). Automatic available are:
 * HttpServletRequest and HttpServletResponse (if called via `JPAODataGetHandler` in a servlet)
-* JPAPersistenceAdapter and EntityManager (covering the current transaction)
+* JPAAdapter and EntityManager (covering the current transaction)
 * JPAEdmProvider
 	
 The injection support can be extended by custom injections (see example servlet for details).

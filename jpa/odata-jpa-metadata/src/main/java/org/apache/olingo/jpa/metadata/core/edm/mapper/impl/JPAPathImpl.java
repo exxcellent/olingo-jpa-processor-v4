@@ -30,8 +30,7 @@ class JPAPathImpl implements JPAAttributePath {
 		this.alias = selection;
 		this.pathElements = Collections.unmodifiableList(attribute);
 		this.dbFieldName = dbFieldName;
-		// FIXME: why take element at position 1?
-		this.ignore = ((IntermediateModelElement) pathElements.get(1)).ignore();
+		this.ignore = ((IntermediateModelElement) pathElements.get(pathElements.size() - 1)).ignore();
 	}
 
 	@Override

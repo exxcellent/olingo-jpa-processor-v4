@@ -6,7 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -39,11 +39,11 @@ public class JPAFilterCrossComplier extends JPAAbstractFilter {
   // see also https://issues.apache.org/jira/browse/OLINGO-414
   final EntityManager em;
   final OData odata;
-  final ServiceDocument sd;
+  final IntermediateServiceDocument sd;
   final List<UriResource> uriResourceParts;
   final JPAAbstractQuery parent;
 
-  public JPAFilterCrossComplier(final OData odata, final ServiceDocument sd, final EntityManager em,
+  public JPAFilterCrossComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
       final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
       final UriInfoResource uriResource, final JPAAbstractQuery parent) {
 
@@ -95,7 +95,7 @@ public class JPAFilterCrossComplier extends JPAAbstractFilter {
   }
 
   @Override
-  public ServiceDocument getSd() {
+  public IntermediateServiceDocument getSd() {
     return sd;
   }
 

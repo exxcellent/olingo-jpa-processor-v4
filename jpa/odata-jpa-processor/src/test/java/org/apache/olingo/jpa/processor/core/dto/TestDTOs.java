@@ -59,6 +59,13 @@ public class TestDTOs extends TestBase {
 	}
 
 	@Test
+	public void testGetSpecificDTO() throws IOException, ODataException, SQLException {
+		// our example DTO handler will not support loading of a DTO with a specific ID
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "EnvironmentInfos(1)");
+		assertTrue(helper.getStatus() > 400); // normally a 500
+	}
+
+	@Test
 	public void testWriteDTO() throws IOException, ODataException, SQLException {
 		final String id = Integer.toString((int) System.currentTimeMillis());
 		final StringBuffer requestBody = new StringBuffer("{");

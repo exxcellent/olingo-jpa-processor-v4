@@ -20,7 +20,8 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.mapping.JPAPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
+import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -44,7 +45,7 @@ public class TestDependencyInjection extends TestBase {
 		private HttpServletResponse response;
 
 		@Inject
-		private JPAPersistenceAdapter persistenceAdapter;
+		private JPAAdapter persistenceAdapter;
 
 		@Inject
 		private JPAEdmProvider edmProvider;
@@ -81,7 +82,7 @@ public class TestDependencyInjection extends TestBase {
 				throw new IllegalStateException("HttpServletResponse not injected");
 			}
 			if (persistenceAdapter == null) {
-				throw new IllegalStateException("JPAPersistenceAdapter not injected");
+				throw new IllegalStateException("JPAAdapter not injected");
 			}
 			if (edmProvider == null) {
 				throw new IllegalStateException("JPAEdmProvider not injected");
@@ -118,4 +119,9 @@ public class TestDependencyInjection extends TestBase {
 		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testInvalidType() {
+		final DependencyInjector injector = new DependencyInjector();
+		injector.registerDependencyMapping(Integer.class, Integer.valueOf(2));
+	}
 }

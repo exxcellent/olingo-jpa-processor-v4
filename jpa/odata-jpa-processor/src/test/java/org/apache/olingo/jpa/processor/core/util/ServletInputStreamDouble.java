@@ -28,11 +28,17 @@ public class ServletInputStreamDouble extends ServletInputStream {
 
 	@Override
 	public int read() throws IOException {
+		if (stream == null) {
+			throw new IOException("Not available");
+		}
 		return stream.read();
 	}
 
 	@Override
 	public int available() throws IOException {
+		if (stream == null) {
+			return 0;
+		}
 		return stream.available();
 	}
 

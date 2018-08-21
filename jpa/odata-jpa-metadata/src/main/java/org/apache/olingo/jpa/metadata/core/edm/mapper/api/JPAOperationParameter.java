@@ -5,15 +5,34 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 public interface JPAOperationParameter {
 
-  public Class<?> getType();
+	public enum ParameterKind {
+		/**
+		 * Parameter must be set by server side (inject)
+		 */
+		Inject,
 
-  public String getName();
+		/**
+		 * Parameter is visible on OData api and must be set by clients
+		 */
+		OData,
 
-  public Integer getMaxLength();
+		/**
+		 * Parameter is of unknown kind.
+		 */
+		Invalid;
+	}
 
-  public Integer getPrecision();
+	public Class<?> getType();
 
-  public Integer getScale();
+	public String getName();
 
-  public FullQualifiedName getTypeFQN() throws ODataJPAModelException;
+	public Integer getMaxLength();
+
+	public Integer getPrecision();
+
+	public Integer getScale();
+
+	public FullQualifiedName getTypeFQN() throws ODataJPAModelException;
+
+	public ParameterKind getParameterKind();
 }

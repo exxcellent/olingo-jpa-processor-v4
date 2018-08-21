@@ -28,7 +28,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	private CsdlProperty edmProperty = null;
 
 	public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
-			final ServiceDocument serviceDocument) {
+			final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, field.getName());
 		this.field = field;
 		this.setExternalName(nameBuilder.buildPropertyName(field.getName()));

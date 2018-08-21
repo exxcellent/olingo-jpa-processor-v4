@@ -5,8 +5,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 //TODO remove extension
 public interface JPAAssociationAttribute extends JPAAttribute {
 
-	//  List<JPAOnConditionItem> getJoinColumns() throws ODataJPAModelException;
-
+	/**
+	 * The same as {@link #getStructuredType()}
+	 *
+	 * @see #getStructuredType()
+	 */
 	public JPAStructuredType getTargetEntity() throws ODataJPAModelException;
 
 }

@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.AssociationOverride;
 import javax.persistence.AssociationOverrides;
@@ -36,17 +38,18 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 abstract class IntermediateStructuredType extends IntermediateModelElement implements JPAStructuredType {
-	//
+	protected final static Logger LOG = Logger.getLogger(IntermediateStructuredType.class.getName());
+
 	protected final Map<String, IntermediateProperty> declaredPropertiesList;
 	protected final Map<String, IntermediateNavigationProperty> declaredNaviPropertiesList;
 	protected final Map<String, JPAPathImpl> simpleAttributePathMap;
 	protected final Map<String, JPAPathImpl> complexAttributePathMap;
 	protected final Map<String, JPAAssociationPathImpl> associationPathMap;
 	protected final ManagedType<?> jpaManagedType;
-	protected final ServiceDocument serviceDocument;
+	protected final IntermediateServiceDocument serviceDocument;
 
 	IntermediateStructuredType(final JPAEdmNameBuilder nameBuilder, final ManagedType<?> jpaManagedType,
-			final ServiceDocument serviceDocument) throws ODataJPAModelException {
+			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
 		super(nameBuilder, JPANameBuilder.buildStructuredTypeName(jpaManagedType.getJavaType()));
 		this.declaredPropertiesList = new HashMap<String, IntermediateProperty>();
@@ -165,16 +168,17 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 	}
 
 	@Override
-	public JPAAttributePath getPath(final String externalName) throws ODataJPAModelException {
+	public JPASelector getPath(final String externalName) throws ODataJPAModelException {
 		lazyBuildCompletePathMap();
-		JPAAttributePath targetPath = simpleAttributePathMap.get(externalName);
-		if (targetPath == null) {
-			targetPath = complexAttributePathMap.get(externalName);
+		JPASelector targetPath = simpleAttributePathMap.get(externalName);
+		if (targetPath != null) {
+			return targetPath;
 		}
-		if (targetPath == null || targetPath.ignore()) {
-			return null;
+		targetPath = complexAttributePathMap.get(externalName);
+		if (targetPath != null) {
+			return targetPath;
 		}
-		return targetPath;
+		return targetPath = associationPathMap.get(externalName);
 	}
 
 	@Override
@@ -207,6 +211,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		IntermediateProperty property;
 		IntermediateNavigationProperty navProp;
 		for (final Attribute<?, ?> jpaAttribute : determineJPAAttributes()) {
+			// also attributes marked with @EdmIgnore are collected, to be present for some
+			// association related functionality
 			final PersistentAttributeType attributeType = jpaAttribute.getPersistentAttributeType();
 			switch (attributeType) {
 			case BASIC:
@@ -300,20 +306,32 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 	}
 
 	/**
-	 * This does not resolve associations!
+	 * This does not resolve associations! It's only for simple attributes.
 	 *
-	 * @param dbFieldName
-	 * @return
+	 * @param dbFieldName The path to find based on db field name.
+	 * @return The path or <code>null</code>
 	 * @throws ODataJPAModelException
+	 * @Deprecated Multiple attribute may use the same DB field, so the DB column
+	 *             name is not always unique. Use {@link #getPath(String)} if you a
+	 *             attribute in context.
 	 */
-	JPAAttributePath getPathByDBField(final String dbFieldName) throws ODataJPAModelException {
+	@Deprecated
+	JPAAttributePath getPathByDBField(final String dbFieldName)
+			throws ODataJPAModelException {
 		lazyBuildCompletePathMap();
+
+		// find any db field names
+		JPAPathImpl found = null;
 		for (final JPAPathImpl path : simpleAttributePathMap.values()) {
 			if (path.getDBFieldName().equals(dbFieldName)) {
-				return path;
+				if (found != null) {
+					LOG.log(Level.WARNING, "Ambiguous DB column name '" + dbFieldName + "' used to find attribute");
+					return null;
+				}
+				found = path;
 			}
 		}
-		return null;
+		return found;
 	}
 
 	IntermediateProperty getPropertyByDBField(final String dbFieldName) throws ODataJPAModelException {
@@ -479,8 +497,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		lazyBuildCompletePathMap();
 		// TODO check if ignore has to be handled
 		if (associationPathMap.size() == 0) {
-			for (final JPAAssociationAttribute association : getAssociations()) {
-				associationPath = new JPAAssociationPathImpl((IntermediateNavigationProperty) association, this);
+			for (final JPAAssociationAttribute navProperty : getAssociations()) {
+				associationPath = new JPAAssociationPathImpl((IntermediateNavigationProperty) navProperty, this);
 				associationPathMap.put(associationPath.getAlias(), associationPath);
 			}
 
@@ -489,11 +507,15 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 				if (attributePath.getPathElements().size() == 1) {
 					// Only direct attributes
 					final IntermediateProperty property = (IntermediateProperty) attributePath.getLeaf();
-					final IntermediateStructuredType is = (IntermediateStructuredType) property.getStructuredType();
-
-					for (final JPAAssociationPath association : is.getAssociationPathList()) {
-						associationPath = new JPAAssociationPathImpl(nameBuilder, association,
-								this, determineJoinColumns(property, association), property);
+					final IntermediateStructuredType nestedComplexType = (IntermediateStructuredType) property
+							.getStructuredType();
+					// the 'nested complex type' is in the DB handled by same table (of me), so we
+					// have to build association paths
+					// for queries as if all of the 'nested complex type' properties are defined by
+					// this structured type
+					for (final JPAAssociationPath association : nestedComplexType.getAssociationPathList()) {
+						associationPath = new JPAAssociationPathImpl(nameBuilder, property, association, this,
+								determineJoinColumns(property, association));
 						associationPathMap.put(associationPath.getAlias(), associationPath);
 					}
 				}

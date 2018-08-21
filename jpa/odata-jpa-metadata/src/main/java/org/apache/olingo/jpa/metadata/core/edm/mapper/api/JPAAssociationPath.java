@@ -12,12 +12,4 @@ public interface JPAAssociationPath extends JPASelector {
 
 	JPAStructuredType getSourceType();
 
-	/**
-	 *
-	 * @return A string
-	 * @deprecated For internal (workaround message) use only.
-	 */
-	@Deprecated
-	public String produceExampleJoinLeftColumnAttributeMapping();
-
 }

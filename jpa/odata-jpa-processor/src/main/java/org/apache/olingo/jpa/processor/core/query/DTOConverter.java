@@ -14,7 +14,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.ServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -23,7 +23,7 @@ import org.apache.olingo.server.api.uri.UriHelper;
 public class DTOConverter extends AbstractObjectConverter {
 
 	public DTOConverter(final JPAEntityType jpaConversionTargetEntity, final UriHelper uriHelper,
-			final ServiceDocument sd, final ServiceMetadata serviceMetadata) throws ODataApplicationException {
+			final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata) throws ODataApplicationException {
 		super(jpaConversionTargetEntity, uriHelper, sd, serviceMetadata);
 	}
 

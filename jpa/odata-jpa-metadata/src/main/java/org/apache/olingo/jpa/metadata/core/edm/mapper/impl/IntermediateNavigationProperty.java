@@ -53,12 +53,12 @@ JPAAssociationAttribute {
 	private CsdlOnDelete edmOnDelete;
 	private final JPAStructuredType sourceType;
 	private IntermediateStructuredType targetType;
-	private final ServiceDocument serviceDocument;
+	private final IntermediateServiceDocument serviceDocument;
 	private final List<IntermediateJoinColumn> joinColumns = new LinkedList<IntermediateJoinColumn>();
 	private final JPAAttributeAccessor accessor;
 
 	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final JPAStructuredType parent,
-			final Attribute<?, ?> jpaAttribute, final ServiceDocument serviceDocument) {
+			final Attribute<?, ?> jpaAttribute, final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, jpaAttribute.getName());
 		this.jpaAttribute = jpaAttribute;
 		this.serviceDocument = serviceDocument;
@@ -505,47 +505,6 @@ JPAAssociationAttribute {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
 		}
 
-		// if (isSourceOne && (refColumnName == null || refColumnName.isEmpty())) {
-		// final List<JPASimpleAttribute> targetKeyAttributes =
-		// targetType.getKeyAttributes();
-		// if (targetKeyAttributes.isEmpty()) {
-		// throw new
-		// ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
-		// }
-		// if (targetKeyAttributes.size() > 1) {
-		// throw new
-		// ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
-		// this.getExternalName(), targetType.getExternalName());
-		// }
-		// intermediateColumn.setReferencedColumnName(targetKeyAttributes.get(0).getDBFieldName());
-		// } else if (isSourceOne && (name == null || name.isEmpty())) {
-		// final List<JPASimpleAttribute> sourceKeyAttributes =
-		// sourceType.getKeyAttributes();
-		// if (sourceKeyAttributes.isEmpty()) {
-		// throw new
-		// ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
-		// }
-		// if (sourceKeyAttributes.size() > 1) {
-		// throw new
-		// ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
-		// this.getExternalName(), sourceType.getExternalName());
-		// }
-		// intermediateColumn.setName(sourceKeyAttributes.get(0).getDBFieldName());
-		// } else if (!isSourceOne && (refColumnName == null ||
-		// refColumnName.isEmpty())) {
-		// final List<JPASimpleAttribute> targetKeyAttributes =
-		// targetType.getKeyAttributes();
-		// intermediateColumn.setReferencedColumnName(targetKeyAttributes.get(0).getDBFieldName());
-		// } else if (!isSourceOne && (name == null || name.isEmpty())) {
-		// final List<JPASimpleAttribute> sourceKeyAttributes =
-		// sourceType.getKeyAttributes();
-		// // n:m association
-		// if (sourceKeyAttributes.isEmpty()) {
-		// throw new
-		// ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
-		// }
-		// intermediateColumn.setReferencedColumnName(sourceKeyAttributes.get(0).getDBFieldName());
-		// }
 	}
 
 	private CsdlOnDelete setJPAOnDelete(final CascadeType[] cascades) {

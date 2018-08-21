@@ -9,19 +9,19 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.testmodel.TestDataConstants;
+import org.apache.olingo.jpa.processor.core.test.TestDataConstants;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateContainer extends TestMappingRoot {
-	private ServiceDocument serviceDocument;
+	private IntermediateServiceDocument serviceDocument;
 	private AbstractJPASchema schema;
 
 	@Before
 	public void setup() throws ODataJPAModelException {
 		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
-		serviceDocument = new ServiceDocument(PUNIT_NAME);
+		serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
 		schema = serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
 	}
 

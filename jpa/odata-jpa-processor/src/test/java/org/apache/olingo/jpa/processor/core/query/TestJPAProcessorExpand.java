@@ -219,6 +219,8 @@ public class TestJPAProcessorExpand extends TestBase {
 
 	@Test
 	public void testNestedExpandNestedExpand2LevelsMixed() throws IOException, ODataException {
+		// see example:
+		// https://services.odata.org/V4/Northwind/Northwind.svc/Customers('ALFKI')/Orders?$select=ShipCity&$expand=Order_Details
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Address?$select=Country&$expand=AdministrativeDivision($expand=Parent)");
 		helper.assertStatus(200);
@@ -459,6 +461,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
 		helper.assertStatus(200);
 		final ObjectNode pi = helper.getValue();
+		helper.getRawResult();
 		assertNotNull(pi.get("PersonReferenceWithoutMappedAttribute"));
 		assertNotEquals(NullNode.getInstance(), pi.get("PersonReferenceWithoutMappedAttribute"));
 	}

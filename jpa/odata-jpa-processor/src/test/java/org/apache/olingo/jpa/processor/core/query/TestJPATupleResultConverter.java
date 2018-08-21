@@ -34,7 +34,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
 	@Before
 	public void setup() throws ODataException {
-		helper = new TestHelper(emf, PUNIT_NAME);
+		helper = new TestHelper(persistenceAdapter.getMetamodel(), PUNIT_NAME);
 		jpaQueryResult = new ArrayList<Tuple>();
 		final HashMap<String, List<Tuple>> result = new HashMap<String, List<Tuple>>(1);
 		result.put("root", jpaQueryResult);
@@ -215,7 +215,7 @@ public class TestJPATupleResultConverter extends TestBase {
 		result.put("root", jpaQueryResult);
 		final JPATupleResultConverter converter = new JPATupleResultConverter(
 				helper.sd,
-				new JPAQueryResult(result, Long.parseLong("0"),
+				new JPAQueryResult(result, Long.valueOf(1),
 						helper.getJPAEntityType("OrganizationImages")),
 				uriHelper,
 				new ServiceMetadataDouble(nameBuilder, "OrganizationImages"));

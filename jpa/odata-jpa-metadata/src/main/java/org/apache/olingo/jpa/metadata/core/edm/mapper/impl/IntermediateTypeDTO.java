@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
+import javax.persistence.Transient;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
+import org.apache.olingo.jpa.cdi.Inject;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
@@ -36,14 +39,14 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityType {
 	private final Class<?> dtoType;
-	private final ServiceDocument serviceDocument;
+	private final IntermediateServiceDocument serviceDocument;
 	private CsdlEntityType edmEntityType = null;
 	private final Map<String, IntermediatePropertyDTOField> declaredPropertiesList;
 	private final Map<String, JPAPathImpl> simpleAttributePathMap;
 	private final Map<String, JPAPathImpl> complexAttributePathMap;
 
 	public IntermediateTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<?> dtoType,
-			final ServiceDocument serviceDocument) throws ODataJPAModelException {
+			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 		super(nameBuilder, dtoType.getName());
 
 		// DTO must have marker annotation
@@ -73,6 +76,15 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 
 		IntermediatePropertyDTOField property;
 		for (final Field field : dtoType.getDeclaredFields()) {
+			if (field.isAnnotationPresent(EdmIgnore.class)) {
+				continue;
+			}
+			if (field.isAnnotationPresent(Transient.class)) {
+				continue;
+			}
+			if (field.isAnnotationPresent(Inject.class)) {
+				continue;
+			}
 			// currently only primitive types are supported
 			if (!JPATypeConvertor.isPrimitiveType(field)) {
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
@@ -344,7 +356,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 	}
 
 	@Override
-	public List<JPAAttributePath> searchChildPath(final JPAAttributePath selectItemPath) {
+	public List<JPAAttributePath> searchChildPath(final JPASelector selectItemPath) {
 		throw new UnsupportedOperationException();
 	}
 

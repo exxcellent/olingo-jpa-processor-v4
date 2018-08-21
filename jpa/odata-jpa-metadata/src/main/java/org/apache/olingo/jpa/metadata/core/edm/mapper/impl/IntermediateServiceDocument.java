@@ -15,9 +15,7 @@ import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
-import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
-import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
@@ -34,7 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @see http://services.odata.org/V4/Northwind/Northwind.svc/$metadata
  * @see org.apache.olingo.client.api.data.ServiceDocument
  */
-public class ServiceDocument {
+public class IntermediateServiceDocument {
 	private final Object lock = new Object();
 	private final Map<String, AbstractJPASchema> schemaListInternalKey = new HashMap<>();
 	private boolean dependendSchemaCreationRequired = false;
@@ -46,7 +44,7 @@ public class ServiceDocument {
 	 *            The name space used by the entity container. The name space should
 	 *            identify the persistence unit containing all the entity sets.
 	 */
-	public ServiceDocument(final String namespaceDefault) throws ODataJPAModelException {
+	public IntermediateServiceDocument(final String namespaceDefault) throws ODataJPAModelException {
 		super();
 		this.container = new IntermediateEntityContainer(new JPAEdmNameBuilder(namespaceDefault), this);
 	}
@@ -164,16 +162,6 @@ public class ServiceDocument {
 			final AbstractJPASchema schema = schemaListInternalKey.get(function.getNamespace());
 			if (schema != null) {
 				return schema.getFunction(function.getName());
-			}
-		}
-		return null;
-	}
-
-	public CsdlFunctionImport getFunctionImport(final FullQualifiedName entityContainerFQN,
-			final String functionImportName) throws ODataException {
-		for (final CsdlSchema csdlSchema : getEdmSchemas()) {
-			if (entityContainerFQN.getNamespace().equals(csdlSchema.getNamespace())) {
-				return csdlSchema.getEntityContainer().getFunctionImport(functionImportName);
 			}
 		}
 		return null;

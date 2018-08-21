@@ -40,6 +40,8 @@ public class PersonImage {
 	@JoinColumn(name = "\"NOT_MAPPED_PID\"", insertable = false, updatable = false, nullable = true)
 	private Person personReferenceWithoutMappedAttribute;
 
+	// Workaround to have a selection column for $expand queries without JOINing the
+	// complete JPA entity (Person)
 	@EdmIgnore
 	@Column(name = "\"NOT_MAPPED_PID\"")
 	private String notMappedPid;

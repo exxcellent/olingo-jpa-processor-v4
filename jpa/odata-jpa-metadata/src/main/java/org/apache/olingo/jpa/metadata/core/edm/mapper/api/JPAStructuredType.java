@@ -49,7 +49,10 @@ public interface JPAStructuredType extends JPAElement {
 
 	public List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException;
 
-	public JPAAttributePath getPath(String externalName) throws ODataJPAModelException;
+	/**
+	 * Resolve simple, complex and association attribute DB paths.
+	 */
+	public JPASelector getPath(String externalName) throws ODataJPAModelException;
 
 	/**
 	 * List of all attributes that are available for this type via the OData service. That is:
@@ -66,13 +69,17 @@ public interface JPAStructuredType extends JPAElement {
 	public Class<?> getTypeClass();
 
 	/**
-	 * In case the type is within the given association path, the sub-path is returned.
-	 * E.g. structured type is AdministrativeInformation and associationPath = AdministrativeInformation/Created/User
-	 * Created/User is returned.
+	 * In case the type is within the given association path, the sub-path is
+	 * returned. E.g. structured type is AdministrativeInformation and
+	 * associationPath = AdministrativeInformation/Created/User Created/User is
+	 * returned.
+	 *
 	 * @param associationPath
 	 * @return
 	 * @throws ODataJPAModelException
+	 * @Deprecated Useless method?
 	 */
+	@Deprecated
 	public JPAAssociationPath getDeclaredAssociation(JPAAssociationPath associationPath) throws ODataJPAModelException;
 
 	/**

@@ -1,8 +1,11 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,15 +16,32 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.DateConverter;
 
 @Entity(name = "Person")
 @DiscriminatorValue(value = "1")
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BusinessPartner\"")
 public class Person extends BusinessPartner {
+
+	/**
+	 * This logger is declared as field in the entity to check handling of
+	 * unsupported field types (ignored by O/R-Mapper).
+	 */
+	@Transient
+	private final Logger log = Logger.getLogger(Person.class.getName());
+
+	/**
+	 * Must be ignored by O/R mapper and Olingo-processor
+	 */
+	@Transient
+	private final Serializable ignoredSerializableField = new Serializable() {
+		private static final long serialVersionUID = 1L;
+	};
 
 	@Column(name = "\"NameLine1\"")
 	private String firstName;
@@ -80,6 +100,7 @@ public class Person extends BusinessPartner {
 	 */
 	@EdmAction(name="DoNothingAction2")
 	public Collection<Person> doNothing2(@EdmActionParameter(name="paramAny") final String paramAny) {
+		log.log(Level.INFO, "doNothing2() was called");
 		return Collections.emptyList();
 	}
 
@@ -99,4 +120,5 @@ public class Person extends BusinessPartner {
 			@EdmActionParameter(name = "country") final Country country) {
 		return country.getCode();
 	}
+
 }
