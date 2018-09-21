@@ -125,8 +125,8 @@ public class ODataEndpointTestDefinition {
 	}
 
 	public ODataRetrieveResponse<Edm> retrieveMetadata() {
-		LOG.info("Call metadata uri {}...", newUri().appendMetadataSegment().build().toString());
 		final EdmMetadataRequest req = client.getRetrieveRequestFactory().getMetadataRequest(getTargetUri());
+		LOG.info("Call metadata uri {}...", req.getURI());
 		req.addCustomHeader("Authorization", determineAuthorization());
 		return req.execute();
 	}
