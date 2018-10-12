@@ -9,6 +9,7 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
 import org.apache.olingo.jpa.processor.core.test.AbstractTest;
@@ -23,8 +24,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestAssociations extends AbstractTest {
-	// private static final String ENTITY_MANAGER_DATA_SOURCE =
-	// "javax.persistence.nonJtaDataSource";
 	private static EntityManagerFactory emf;
 	private EntityManager em;
 	private CriteriaBuilder cb;
@@ -32,18 +31,33 @@ public class TestAssociations extends AbstractTest {
 	@BeforeClass
 	public static void setupClass() {
 		emf = createEntityManagerFactory(TestDatabaseType.HSQLDB);
-		// final Map<String, Object> properties = new HashMap<String, Object>();
-		// properties.put(ENTITY_MANAGER_DATA_SOURCE, DataSourceHelper.createDataSource(
-		// DataSourceHelper.DB_DERBY));
-		// emf =
-		// Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
-		// properties);
 	}
 
 	@Before
 	public void setup() {
 		em = emf.createEntityManager();
 		cb = em.getCriteriaBuilder();
+	}
+
+	@Ignore("Problems with quoting of Address.Region in navigation of BusinessPartner#locations")
+	@Test
+	public void getAdministrativeDivisionDescriptions() {
+		final CriteriaQuery<AdministrativeDivisionDescription> cq = cb
+				.createQuery(AdministrativeDivisionDescription.class);
+		final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
+
+		final ParameterExpression<String> p = cb.parameter(String.class);
+		cq.multiselect(root.get("locations").alias("locations")).where(cb.equal(root.get("ID"), p));
+
+		final TypedQuery<AdministrativeDivisionDescription> tq = em.createQuery(cq);
+		tq.setParameter(p, "3");// BusinessPartner with that Id
+		final List<AdministrativeDivisionDescription> result = tq.getResultList();
+		// 'US-CA' must bring 2 results
+		assertEquals(2, result.size());
+		final AdministrativeDivisionDescription add = result.get(1);
+		assertNotNull(add);
+		assertNotNull(add.getKey());
+		assertEquals("US-CA", add.getKey().getDivisonCode());
 	}
 
 	@Test

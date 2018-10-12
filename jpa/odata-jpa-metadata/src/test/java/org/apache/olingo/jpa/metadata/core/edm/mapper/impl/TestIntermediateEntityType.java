@@ -28,7 +28,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 
 	@Before
 	public void setup() throws ODataJPAModelException {
-		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
+		//		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		etList = emf.getMetamodel().getEntities();
 		this.serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
 		serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
@@ -275,35 +275,35 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 	public void checkEmbeddedIdResovedProperties() throws ODataJPAModelException {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
-		assertEquals(5, et.getEdmItem().getProperties().size());
+		assertEquals(6, et.getEdmItem().getProperties().size());
 	}
 
 	@Test
 	public void checkEmbeddedIdResovedKey() throws ODataJPAModelException {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
-		assertEquals(4, et.getEdmItem().getKey().size());
+		assertEquals(1, et.getEdmItem().getKey().size());
 	}
 
 	@Test
 	public void checkEmbeddedIdResovedKeyInternal() throws ODataJPAModelException {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
-		assertEquals(4, et.getKeyAttributes().size());
+		assertEquals(1, et.getKeyAttributes().size());
 	}
 
 	@Test
 	public void checkEmbeddedIdResovedPath() throws ODataJPAModelException {
 		final JPAStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
-		assertEquals(5, et.getPathList().size());
+		assertEquals(6, et.getPathList().size());
 	}
 
 	@Test
-	public void checkEmbeddedIdResovedPathCodeId() throws ODataJPAModelException {
+	public void checkEmbeddedIdResovedPathId() throws ODataJPAModelException {
 		final JPAStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
-		assertEquals(2, et.getPath("CodeID").getPathElements().size());
+		assertEquals(2, et.getPath("Id").getPathElements().size());
 	}
 
 	@Test

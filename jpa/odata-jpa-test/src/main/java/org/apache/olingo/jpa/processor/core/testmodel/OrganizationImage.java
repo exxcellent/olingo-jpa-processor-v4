@@ -19,7 +19,7 @@ public class OrganizationImage {
 	@Column(name = "\"ID\"")
 	private String ID;
 
-	@Column(name = "\"Image\"")
+	@Column(name = "\"Image\"", columnDefinition = "blob")
 	@EdmMediaStream(contentTypeAttribute = "mimeType")
 	private byte[] image;
 

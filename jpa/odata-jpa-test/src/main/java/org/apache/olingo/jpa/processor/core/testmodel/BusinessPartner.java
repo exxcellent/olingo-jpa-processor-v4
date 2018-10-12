@@ -19,6 +19,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
@@ -66,7 +67,7 @@ public abstract class BusinessPartner {
 	@Column(name = "\"ETag\"", nullable = false)
 	protected long eTag;
 
-	@Column(name = "\"Type\"", length = 1, nullable = false)
+	@Column(name = "\"Type\"", length = 1, nullable = false, insertable = false, updatable = false)
 	protected String type;
 
 	@Column(name = "\"CreatedAt\"", precision = 3)
@@ -75,21 +76,32 @@ public abstract class BusinessPartner {
 	@EdmIgnore
 	@Column(name = "\"CustomString1\"")
 	protected String customString1;
+
 	@EdmIgnore
 	@Column(name = "\"CustomString2\"")
 	protected String customString2;
+
 	@EdmIgnore
-	@Column(name = "\"CustomNum1\"", precision = 16, scale = 5)
+	@Column(name = "\"CustomNum1\"", columnDefinition = "decimal", precision = 16, scale = 5)
 	protected BigDecimal customNum1;
+
+	/**
+	 * Declare with precision higher than possible in DB
+	 */
 	@EdmIgnore
-	@Column(name = "\"CustomNum2\"", precision = 34)
+	@Column(name = "\"CustomNum2\"", columnDefinition = "decimal", precision = 34)
 	protected BigDecimal customNum2;
 
 	@Column(name = "\"Country\"", length = 4)
 	private String country;
 
-	@OneToMany(fetch = FetchType.LAZY, orphanRemoval = false)
-	@JoinColumn(name = "\"DivisionCode\"", referencedColumnName = "\"Address.Region\"", nullable = false, insertable = false)
+	// Hibernate has problems to support a scenario to join only one column from a
+	// table with more columns as part the id so we "invent" a join table (realized
+	// as view)
+	//	@JoinColumn(name = "\"DivisionCode\"", referencedColumnName = "\"Address.Region\"", nullable = false, insertable = false)
+	@OneToMany(fetch = FetchType.EAGER, orphanRemoval = false)
+	@JoinTable(name = "\"org.apache.olingo.jpa::BusinessPartnerAdministrativeDivisionDescriptionJoinView\"", joinColumns = {
+			@JoinColumn(referencedColumnName = "\"ID\"", name = "\"BusinessPartnerID\"") })
 	private Collection<AdministrativeDivisionDescription> locations;
 
 	@Embedded
@@ -101,7 +113,7 @@ public abstract class BusinessPartner {
 	@Embedded
 	@AttributeOverrides({
 		@AttributeOverride(name = "created.by", column = @Column(name = "\"CreatedBy\"", nullable=false) ),
-		@AttributeOverride(name = "created.at", column = @Column(name = "\"CreatedAt\"", insertable=false) ),
+		@AttributeOverride(name = "created.at", column = @Column(name = "\"CreatedAt\"", insertable = false, updatable = false)),
 		@AttributeOverride(name = "updated.by", column = @Column(name = "\"UpdatedBy\"") ),
 		@AttributeOverride(name = "updated.at", column = @Column(name = "\"UpdatedAt\"") )
 	})
@@ -158,10 +170,6 @@ public abstract class BusinessPartner {
 
 	public void setCountry(final String country) {
 		this.country = country;
-	}
-
-	public void setLocationNames(final Collection<AdministrativeDivisionDescription> locationName) {
-		this.locations = locationName;
 	}
 
 	public void setCommunicationData(final CommunicationData communicationData) {

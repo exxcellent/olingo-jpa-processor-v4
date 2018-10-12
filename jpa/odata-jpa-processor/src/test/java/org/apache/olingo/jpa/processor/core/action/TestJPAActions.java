@@ -15,6 +15,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
+import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
@@ -72,7 +73,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/" + PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
+				"Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
 		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();

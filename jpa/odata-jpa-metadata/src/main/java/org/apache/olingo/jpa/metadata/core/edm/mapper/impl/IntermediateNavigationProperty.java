@@ -3,6 +3,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -64,7 +65,16 @@ JPAAssociationAttribute {
 		this.serviceDocument = serviceDocument;
 		this.sourceType = parent;
 		buildNaviProperty();
-		accessor = new FieldAttributeAccessor((Field) jpaAttribute.getJavaMember());
+		final java.lang.reflect.Member attribute = jpaAttribute.getJavaMember();
+		if (Field.class.isInstance(attribute)) {
+			accessor = new FieldAttributeAccessor((Field) attribute);
+		} else if (Method.class.isInstance(attribute)) {
+			throw new UnsupportedOperationException(
+					"The attribute access to " + parent.getInternalName() + "#" + jpaAttribute.getName()
+							+ " is covered by an method; this happens for example in a scenarion with EclipseLink weaving... Sorry that is not supported, you have to disable weaving!");
+		} else {
+			throw new UnsupportedOperationException("Unsupported property type: "+attribute);
+		}
 	}
 
 	@Override

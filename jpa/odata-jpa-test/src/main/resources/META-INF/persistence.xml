@@ -27,13 +27,19 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity</class>
 		<properties>
+			<!--  EclipselInk properties -->
 			<property name="eclipselink.logging.level.sql" value="FINEST" />
 			<!-- <property name="eclipselink.logging.level" value="FINER"/> -->
 			<property name="eclipselink.logging.parameters" value="true" />
 			<property name="eclipselink.logging.timestamp" value="true" />
-			<property name="eclipselink.weaving" value="static" />
-			<property name="eclipselink.persistence-context.flush-mode"
-				value="commit" />
+			<property name="eclipselink.weaving" value="false" />
+			<property name="eclipselink.persistence-context.flush-mode"	value="commit" />
+			<!-- Hibernate properties -->
+			<property name="hibernate.show_sql" value="true" />
+			<property name="hibernate.format_sql" value="true" />
+			<!-- property name="hibernate.hbm2ddl.auto" value="validate" /-->			
+			
+			<!-- share dproprties -->
 			<property name="javax.persistence.validation.mode" value="NONE" />
 		</properties>
 	</persistence-unit>

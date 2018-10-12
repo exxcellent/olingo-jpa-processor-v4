@@ -12,7 +12,7 @@ import javax.persistence.Tuple;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescriptionKey;
+import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.util.ServiceMetadataDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestHelper;
@@ -32,7 +32,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 
 	@Before
 	public void setup() throws ODataException {
-		helper = new TestHelper(persistenceAdapter.getMetamodel(), PUNIT_NAME);
+		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
 		jpaQueryResult = new ArrayList<Tuple>();
 		uriHelper = new UriHelperDouble();
 		keyPredicates = new HashMap<String, String>();
@@ -85,9 +85,6 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 								"AdministrativeDivisionDescriptions")),
 				uriHelper,
 				new ServiceMetadataDouble());
-
-		final AdministrativeDivisionDescriptionKey country = new AdministrativeDivisionDescriptionKey();
-		country.setLanguage("en");
 
 		HashMap<String, Object> result;
 

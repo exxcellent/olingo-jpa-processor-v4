@@ -15,6 +15,7 @@ import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.util.ServiceMetadataDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestHelper;
@@ -34,7 +35,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
 	@Before
 	public void setup() throws ODataException {
-		helper = new TestHelper(persistenceAdapter.getMetamodel(), PUNIT_NAME);
+		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
 		jpaQueryResult = new ArrayList<Tuple>();
 		final HashMap<String, List<Tuple>> result = new HashMap<String, List<Tuple>>(1);
 		result.put("root", jpaQueryResult);

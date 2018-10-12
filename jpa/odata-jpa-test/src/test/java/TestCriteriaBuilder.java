@@ -17,7 +17,6 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription;
-import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescriptionKey;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
@@ -56,9 +55,9 @@ public class TestCriteriaBuilder {
 		//    cb.substring((Expression<String>) (jpaFunction.getParameter(0).get()), start, length);
 		final Path<?> p = adminRoot1.get("name");
 
-		final Expression<Integer> sum = cb.sum(cb.literal(1), cb.literal(4));
+		final Expression<Integer> sum = cb.sum(cb.literal(Integer.valueOf(1)), cb.literal(Integer.valueOf(4)));
 
-		adminQ.where(cb.equal(cb.substring((Expression<String>) (p), cb.literal(1), sum), "North"));
+		adminQ.where(cb.equal(cb.substring((Expression<String>) (p), cb.literal(Integer.valueOf(1)), sum), "North"));
 		adminQ.multiselect(adminRoot1.get("name"));
 		final TypedQuery<Tuple> tq = em.createQuery(adminQ);
 		tq.getResultList();
@@ -78,13 +77,13 @@ public class TestCriteriaBuilder {
 		final Root<Organization> org1 = org.from(Organization.class);
 
 		org.where(cb.and(cb.equal(org1.get("ID"), "3")), createParentOrg(org1, adminRoot3));
-		org.select(cb.literal(1L));
+		org.select(cb.literal(Long.valueOf(1)));
 
 		adminQ3.where(cb.and(createParentAdmin(adminRoot3, adminRoot2), cb.exists(org)));
-		adminQ3.select(cb.literal(1L));
+		adminQ3.select(cb.literal(Long.valueOf(1)));
 
 		adminQ2.where(cb.and(createParentAdmin(adminRoot2, adminRoot1), cb.exists(adminQ3)));
-		adminQ2.select(cb.literal(1L));
+		adminQ2.select(cb.literal(Long.valueOf(1)));
 
 		adminQ1.where(cb.exists(adminQ2));
 		adminQ1.multiselect(adminRoot1.get("divisionCode"));
@@ -102,6 +101,7 @@ public class TestCriteriaBuilder {
 		count.groupBy(roles.get("businessPartnerID"));
 		count.orderBy(cb.desc(cb.count(roles)));
 		final TypedQuery<Tuple> tq = em.createQuery(count);
+		@SuppressWarnings("unused")
 		final List<Tuple> act = tq.getResultList();
 		tq.getFirstResult();
 	}
@@ -118,28 +118,9 @@ public class TestCriteriaBuilder {
 		restrictions[2] = cb.equal(adminDiv.get("codePublisher"), "Eurostat");
 		count.where(cb.and(restrictions));
 		final TypedQuery<Tuple> tq = em.createQuery(count);
+		@SuppressWarnings("unused")
 		final List<Tuple> act = tq.getResultList();
 		tq.getFirstResult();
-	}
-
-	@Ignore
-	@Test
-	public void TestSearchEmbeddedId() {
-		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-		final Root<AdministrativeDivisionDescription> adminDiv = cq.from(AdministrativeDivisionDescription.class);
-		cq.multiselect(adminDiv);
-
-		final Subquery<AdministrativeDivisionDescriptionKey> sq = cq.subquery(AdministrativeDivisionDescriptionKey.class);
-		final Root<AdministrativeDivisionDescription> text = sq.from(AdministrativeDivisionDescription.class);
-		sq.where(cb.function("CONTAINS", Boolean.class, text.get("name"), cb.literal("luettich")));
-		final Expression<AdministrativeDivisionDescriptionKey> exp = text.get("key");
-		sq.select(exp);
-
-		//    cq.where(cb.and(cb.equal(adminDiv.get("key").get("codeID"), "NUTS2"),
-		//        cb.in(adminDiv).value(sq)));
-		final TypedQuery<Tuple> tq = em.createQuery(cq);
-		final List<Tuple> act = tq.getResultList();
-		System.out.println(act.size());
 	}
 
 	@Ignore

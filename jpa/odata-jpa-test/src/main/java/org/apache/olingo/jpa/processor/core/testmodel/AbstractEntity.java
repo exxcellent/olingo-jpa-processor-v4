@@ -13,7 +13,7 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class AbstractEntity {
 	@Id
-	@Column(name = "\"ID\"", updatable = false, nullable = false, unique = true)
+	@Column(name = "\"ID\"", updatable = false, nullable = false, unique = true, columnDefinition = "bigint")
 	private Integer ID;
 
 }
