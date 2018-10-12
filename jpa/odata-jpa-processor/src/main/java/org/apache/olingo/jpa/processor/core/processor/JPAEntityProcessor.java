@@ -320,7 +320,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 	public void readEntityCollection(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
 			final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		final EntityCollection entityCollection = retrieveEntityData(request, uriInfo);
-		if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
+		if (entityCollection.getEntities() == null) {
 			// 404 Not Found indicates that the resource specified by the request URL does
 			// not exist. The response body MAY
 			// provide additional information.
