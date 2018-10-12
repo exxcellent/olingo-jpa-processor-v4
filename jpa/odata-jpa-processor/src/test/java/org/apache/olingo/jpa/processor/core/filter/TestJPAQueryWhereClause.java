@@ -568,7 +568,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations?$filter=AdministrativeInformation/Created/By eq 'NonExistingUserId'");
-		helper.assertStatus(204);
+		helper.assertStatus(200);
+        final ArrayNode values = helper.getValues();
+
+        assertEquals(0, values.size());
 	};
 
 	@Ignore("RegionName currently not available in PostalAdress")

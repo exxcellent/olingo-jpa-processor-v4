@@ -57,7 +57,10 @@ public class TestJPACustomScalarFunctions {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(emf,
 				"AdministrativeDivisions?$filter=org.apache.olingo.jpa.PopulationDensity(Area=$it/Area,Population=$it/Population) gt 1");
-		helper.assertStatus(204);
+		helper.assertStatus(200);
+		final ArrayNode values = helper.getValues();
+
+		assertEquals(0, values.size());
 	}
 
 	@Test
