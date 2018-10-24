@@ -7,46 +7,31 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 class JPAUnaryBooleanOperatorImp implements JPAUnaryBooleanOperator {
 
-  private final JPAOperationConverter converter;
-  private final UnaryOperatorKind operator;
-  private final JPAExpressionOperator left;
+	private final JPAOperationConverter converter;
+	private final UnaryOperatorKind operator;
+	private final JPAOperator<Expression<Boolean>> operand;
 
-  public JPAUnaryBooleanOperatorImp(final JPAOperationConverter converter, final UnaryOperatorKind operator,
-      final JPAExpressionOperator left) {
-    super();
-    this.converter = converter;
-    this.operator = operator;
-    this.left = left;
-  }
+	public JPAUnaryBooleanOperatorImp(final JPAOperationConverter converter, final UnaryOperatorKind operator,
+			final JPAOperator<Expression<Boolean>> operand) {
+		super();
+		this.converter = converter;
+		this.operator = operator;
+		this.operand = operand;
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperator#get()
-   */
-  @Override
-  public Expression<Boolean> get() throws ODataApplicationException {
-    return converter.convert(this);
-  }
+	@Override
+	public Expression<Boolean> get() throws ODataApplicationException {
+		return converter.convert(this);
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperator#getLeft()
-   */
-  @Override
-  public Expression<Boolean> getLeft() throws ODataApplicationException {
-    return left.get();
-  }
+	@Override
+	public Expression<Boolean> getOperand() throws ODataApplicationException {
+		return operand.get();
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperator#getOperator()
-   */
-  @Override
-  public UnaryOperatorKind getOperator() {
-    return operator;
-  }
+	@Override
+	public UnaryOperatorKind getOperator() {
+		return operator;
+	}
 
 }

@@ -7,99 +7,70 @@ import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKin
 
 //
 class JPAComparisonOperatorImp<T extends Comparable<T>> implements JPAComparisonOperator<T> {
-  private final JPAOperationConverter converter;
-  private final BinaryOperatorKind operator;
-  private final JPAOperator left;
-  private final JPAOperator right;
+	private final JPAOperationConverter converter;
+	private final BinaryOperatorKind operator;
+	private final JPAOperator<?> left;
+	private final JPAOperator<?> right;
 
-  public JPAComparisonOperatorImp(final JPAOperationConverter converter, final BinaryOperatorKind operator,
-      final JPAOperator left,
-      final JPAOperator right) {
-    super();
-    this.converter = converter;
-    this.operator = operator;
-    this.left = left;
-    this.right = right;
-  }
+	public JPAComparisonOperatorImp(final JPAOperationConverter converter, final BinaryOperatorKind operator,
+			final JPAOperator<?> left, final JPAOperator<?> right) {
+		super();
+		this.converter = converter;
+		this.operator = operator;
+		this.left = left;
+		this.right = right;
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAComparisonOperator#get()
-   */
-  @Override
-  public Expression<Boolean> get() throws ODataApplicationException {
-    return converter.convert(this);
-  }
+	@Override
+	public Expression<Boolean> get() throws ODataApplicationException {
+		return converter.convert(this);
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAComparisonOperator#getOperator()
-   */
-  @Override
-  public BinaryOperatorKind getOperator() {
-    return operator;
-  }
+	@Override
+	public BinaryOperatorKind getOperator() {
+		return operator;
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAComparisonOperator#getLeft()
-   */
-  @Override
-  @SuppressWarnings("unchecked")
-  public Expression<T> getLeft() throws ODataApplicationException {
-    if (left instanceof JPALiteralOperator)
-      return (Expression<T>) right.get();
-    return (Expression<T>) left.get();
-  }
+	@Override
+	@SuppressWarnings("unchecked")
+	public Expression<T> getLeft() throws ODataApplicationException {
+		if (left instanceof JPALiteralOperator) {
+			return (Expression<T>) right.get();
+		}
+		return (Expression<T>) left.get();
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAComparisonOperator#getRight()
-   */
-  @Override
-  public Object getRight() {
-    if (left instanceof JPALiteralOperator)
-      return left;
-    return right;
-  }
+	@Override
+	public Object getRight() {
+		if (left instanceof JPALiteralOperator) {
+			return left;
+		}
+		return right;
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAComparisonOperator#getRightAsComparable()
-   */
-  @Override
-  @SuppressWarnings("unchecked")
-  public Comparable<T> getRightAsComparable() throws ODataApplicationException {
-    if (left instanceof JPALiteralOperator) {
-      if (right instanceof JPAMemberOperator)
-        return (Comparable<T>) ((JPALiteralOperator) left).get(((JPAMemberOperator) right).determineAttribute());
-      else
-        return (Comparable<T>) left.get();
-    }
-    if (right instanceof JPALiteralOperator) {
-      if (left instanceof JPAMemberOperator)
-        return (Comparable<T>) ((JPALiteralOperator) right).get(((JPAMemberOperator) left).determineAttribute());
+	@Override
+	@SuppressWarnings("unchecked")
+	public Comparable<T> getRightAsComparable() throws ODataApplicationException {
+		if (left instanceof JPALiteralOperator) {
+			if (right instanceof JPAMemberOperator) {
+				return (Comparable<T>) ((JPALiteralOperator) left).get(((JPAMemberOperator) right).determineAttribute());
+			} else {
+				return (Comparable<T>) left.get();
+			}
+		}
+		if (right instanceof JPALiteralOperator) {
+			if (left instanceof JPAMemberOperator) {
+				return (Comparable<T>) ((JPALiteralOperator) right).get(((JPAMemberOperator) left).determineAttribute());
+			} else {
+				return (Comparable<T>) right.get();
+			}
+		}
+		return (Comparable<T>) right.get();
+	}
 
-      else {
-        return (Comparable<T>) right.get();
-      }
-    }
-    return (Comparable<T>) right.get();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAComparisonOperator#getRightAsExpression()
-   */
-  @Override
-  @SuppressWarnings("unchecked")
-  public Expression<T> getRightAsExpression() throws ODataApplicationException {
-    return (Expression<T>) right.get();
-  }
+	@Override
+	@SuppressWarnings("unchecked")
+	public Expression<T> getRightAsExpression() throws ODataApplicationException {
+		return (Expression<T>) right.get();
+	}
 }

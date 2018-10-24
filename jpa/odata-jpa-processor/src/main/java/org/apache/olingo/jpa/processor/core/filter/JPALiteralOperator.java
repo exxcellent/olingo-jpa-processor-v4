@@ -18,7 +18,7 @@ import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 
-public class JPALiteralOperator implements JPAOperator {
+public class JPALiteralOperator implements JPAOperator<Object> {
 	private final Literal literal;
 	private final OData odata;
 

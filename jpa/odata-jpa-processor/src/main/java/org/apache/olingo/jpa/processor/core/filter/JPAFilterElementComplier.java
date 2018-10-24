@@ -22,80 +22,75 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
  */
 //TODO handle $it ...
 public class JPAFilterElementComplier extends JPAAbstractFilter {
-  final JPAOperationConverter converter;
-  final EntityManager em;
-  final OData odata;
-  final IntermediateServiceDocument sd;
-  final List<UriResource> uriResourceParts;
-  final JPAAbstractQuery parent;
-  final VisitableExpression expression;
+	final JPAOperationConverter converter;
+	final EntityManager em;
+	final OData odata;
+	final IntermediateServiceDocument sd;
+	final List<UriResource> uriResourceParts;
+	final JPAAbstractQuery parent;
+	final VisitableExpression expression;
 
-  public JPAFilterElementComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-      final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
-      final List<UriResource> uriResourceParts, final JPAAbstractQuery parent, final VisitableExpression expression) {
+	public JPAFilterElementComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
+			final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
+			final List<UriResource> uriResourceParts, final JPAAbstractQuery parent, final VisitableExpression expression) {
 
-    super(jpaEntityType, expression);
-    this.converter = converter;
-    this.em = em;
-    this.odata = odata;
-    this.sd = sd;
-    this.uriResourceParts = uriResourceParts;
-    this.parent = parent;
-    this.expression = expression;
-  }
+		super(jpaEntityType, expression);
+		this.converter = converter;
+		this.em = em;
+		this.odata = odata;
+		this.sd = sd;
+		this.uriResourceParts = uriResourceParts;
+		this.parent = parent;
+		this.expression = expression;
+	}
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.processor.core.filter.JPAFilterComplier#compile()
-   */
-  @Override
-  @SuppressWarnings("unchecked")
-  public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
+	@Override
+	@SuppressWarnings("unchecked")
+	public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
 
-    final ExpressionVisitor<JPAOperator> visitor = new JPAVisitor(this);
-    final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
+		final ExpressionVisitor<JPAOperator<?>> visitor = new JPAVisitor(this);
+		final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
 
-    return finalExpression;
-  }
+		return finalExpression;
+	}
 
-  @Override
-  public JPAOperationConverter getConverter() {
-    return converter;
-  }
+	@Override
+	public JPAOperationConverter getConverter() {
+		return converter;
+	}
 
-  @Override
-  public JPAEntityType getJpaEntityType() {
-    return jpaEntityType;
-  }
+	@Override
+	public JPAEntityType getJpaEntityType() {
+		return jpaEntityType;
+	}
 
-  @Override
-  public EntityManager getEntityManager() {
-    return em;
-  }
+	@Override
+	public EntityManager getEntityManager() {
+		return em;
+	}
 
-  @Override
-  public OData getOdata() {
-    return odata;
-  }
+	@Override
+	public OData getOdata() {
+		return odata;
+	}
 
-  @Override
-  public IntermediateServiceDocument getSd() {
-    return sd;
-  }
+	@Override
+	public IntermediateServiceDocument getSd() {
+		return sd;
+	}
 
-  @Override
-  public List<UriResource> getUriResourceParts() {
-    return uriResourceParts;
-  }
+	@Override
+	public List<UriResource> getUriResourceParts() {
+		return uriResourceParts;
+	}
 
-  @Override
-  public JPAAbstractQuery getParent() {
-    return parent;
-  }
+	@Override
+	public JPAAbstractQuery getParent() {
+		return parent;
+	}
 
-  public VisitableExpression getExpressionMember() {
-    return expression;
-  }
+	public VisitableExpression getExpressionMember() {
+		return expression;
+	}
 
 }

@@ -1,11 +1,9 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import org.apache.olingo.server.api.ODataApplicationException;
+import javax.persistence.criteria.Expression;
 
-public interface JPAAggregationOperation extends JPAOperator {
-  @Override
-  public Object get() throws ODataApplicationException;
+public interface JPAAggregationOperation extends JPAOperator<Expression<Long>> {
 
-  JPAFilterAggregationType getAggregation();
+	JPAFilterAggregationType getAggregation();
 
 }

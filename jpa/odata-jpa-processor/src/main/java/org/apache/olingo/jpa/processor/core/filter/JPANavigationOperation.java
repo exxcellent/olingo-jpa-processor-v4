@@ -40,7 +40,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
  * @author Oliver Grande
  *
  */
-class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperator {
+class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperator<Enum<?>> {
 
 	final BinaryOperatorKind operator;
 	final JPAMemberOperator jpaMember;
@@ -48,7 +48,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 	private final UriResourceKind aggregationType;
 
 	JPANavigationOperation(final JPAFilterComplierAccess jpaComplier, final BinaryOperatorKind operator,
-			final JPAOperator left, final JPAOperator right) {
+			final JPAOperator<?> left, final JPAOperator<?> right) {
 
 		super(jpaComplier);
 		this.aggregationType = null;
