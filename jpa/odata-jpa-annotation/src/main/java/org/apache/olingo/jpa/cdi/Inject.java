@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation can be used as complete replacement (in context of
- * olingo-jpa-processor) for {@link javax.inject.Inject} with additional support
+ * olingo-jpa-processor) for <i>javax.inject.Inject</i> with additional support
  * for method parameter injection.<br/>
  * Injected fields or parameters are pure server side. So injected method
  * parameters of an action are hidden to OData meta data.

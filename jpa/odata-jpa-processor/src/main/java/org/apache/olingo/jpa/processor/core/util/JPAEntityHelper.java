@@ -42,7 +42,7 @@ public class JPAEntityHelper {
 	private final DependencyInjector dependencyInjector;
 
 	public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata,
-	        final UriHelper uriHelper, final DependencyInjector dependencyInjector) {
+			final UriHelper uriHelper, final DependencyInjector dependencyInjector) {
 		this.em = em;
 		this.sd = sd;
 		this.serviceMetadata = serviceMetadata;
@@ -76,7 +76,7 @@ public class JPAEntityHelper {
 	 */
 	@SuppressWarnings("unchecked")
 	public final <R> R invokeBoundActionMethod(final JPAEntityType jpaType, final Entity oDataEntity, final JPAAction jpaAction,
-	        final Map<String, Parameter> parameters) throws ODataException {
+			final Map<String, Parameter> parameters) throws ODataException {
 		final Object jpaEntity = loadJPAEntity(jpaType, oDataEntity);
 		if (jpaEntity == null) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.GENERAL);
@@ -106,7 +106,7 @@ public class JPAEntityHelper {
 				final Object value = dependencyInjector.getDependencyValue(jpaParameter.getType());
 				if (value == null) {
 					log.warning(
-					        "Cannot inject value for method parameter " + jpaParameter.getName() + " of type " + jpaParameter.getType());
+							"Cannot inject value for method parameter " + jpaParameter.getName() + " of type " + jpaParameter.getType());
 				}
 				args[i] = value;
 				continue;
@@ -131,13 +131,13 @@ public class JPAEntityHelper {
 				final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
 
 				final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, uriHelper, sd, serviceMetadata,
-				        em.getMetamodel());
+						em.getMetamodel());
 				final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity);
 				args[i] = jpaEntity;
 				break;
 			default:
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, p.getValueType().toString(),
-				        p.getName());
+						p.getName());
 			}
 		}
 		return args;

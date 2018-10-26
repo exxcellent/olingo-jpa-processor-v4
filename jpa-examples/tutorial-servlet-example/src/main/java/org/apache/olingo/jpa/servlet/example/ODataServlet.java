@@ -67,15 +67,20 @@ public class ODataServlet extends HttpServlet {
 	protected void service(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
 
+		JPAODataGetHandler handler = null;
 		try {
 
-			final JPAODataGetHandler handler = createHandler();
+			handler = createHandler();
 
-			logSchema(handler.getJPAODataContext().getEdmProvider().getServiceDocument());
+			//			logSchema(handler.getJPAODataContext().getEdmProvider().getServiceDocument());
 
 			handler.process(req, resp);
 		} catch (final RuntimeException | ODataException e) {
 			throw new ServletException(e);
+		} finally {
+			if (handler != null) {
+				handler.dispose();
+			}
 		}
 
 	}
@@ -113,6 +118,7 @@ public class ODataServlet extends HttpServlet {
 		return handler;
 	}
 
+	@SuppressWarnings("unused")
 	private void logSchema(final IntermediateServiceDocument sd) throws ODataException {
 		for (final CsdlSchema schema : sd.getEdmSchemas()) {
 
