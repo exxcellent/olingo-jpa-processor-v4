@@ -10,9 +10,9 @@
 	<persistence-unit name="org.apache.olingo.jpa" transaction-type="RESOURCE_LOCAL"> 
 
         <!-- Attribute converters -->
-        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.JPAUrlConverter</class>
-        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.JPAUuidConverter</class>
-		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.DateConverter</class>
+        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter</class>
+        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter</class>
 
         <!-- Persistent entities -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.Organization</class>

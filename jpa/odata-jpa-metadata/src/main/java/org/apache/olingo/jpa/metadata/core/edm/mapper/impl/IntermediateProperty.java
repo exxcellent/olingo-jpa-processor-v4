@@ -7,9 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 
-import javax.persistence.AttributeConverter;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Version;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
@@ -36,7 +34,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  * type is a qualified name of either a primitive type, a complex type or a enumeration type. Primitive types are mapped
  * by {@link JPATypeConvertor}.
  *
- * <p>For details about Property metadata see:
+ * <p>
+ * For details about Property metadata see:
  * <a href=
  * "https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406397954"
  * >OData Version 4.0 Part 3 - 6 Structural Property </a>
@@ -46,13 +45,13 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  *
  */
 class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPASimpleAttribute {
+
 	private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
 	// TODO Store a type @Convert
 	protected final Attribute<?, ?> jpaAttribute;
 	protected final IntermediateServiceDocument serviceDocument;
 	protected CsdlProperty edmProperty;
 	private JPAStructuredType type = null;
-	private AttributeConverter<?, ?> valueConverter;
 	private String dbFieldName;
 	private boolean searchable;
 	private boolean isVersion = false;
@@ -61,14 +60,14 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	private final JPAAttributeAccessor accessor;
 
 	IntermediateProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
-			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
+	        final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
 		super(nameBuilder, jpaAttribute.getName());
 		this.jpaAttribute = jpaAttribute;
 		this.serviceDocument = serviceDocument;
 
 		isComplex = (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED)
-				|| JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute);
+		        || JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute);
 		buildProperty(nameBuilder);
 		accessor = new FieldAttributeAccessor((Field) jpaAttribute.getJavaMember());
 	}
@@ -84,11 +83,6 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			return ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(annotationClass);
 		}
 		return null;
-	}
-
-	@Override
-	public AttributeConverter<?, ?> getConverter() {
-		return valueConverter;
 	}
 
 	@Override
@@ -145,26 +139,23 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			if (jpaAttribute.getJavaType().isEnum()) {
 				// register enum type
 				final IntermediateEnumType jpaEnumType = serviceDocument
-						.createEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
+				        .createEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
 				return jpaEnumType.getExternalFQN();
 			} else {
-				return JPATypeConvertor.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute)
-						.getFullQualifiedName();
+				return JPATypeConvertor.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
 			}
 		case EMBEDDED:
 			return nameBuilder.buildFQN(type.getExternalName());
 		case ELEMENT_COLLECTION:
 			final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) jpaAttribute;
 			if (JPATypeConvertor.isCollectionTypeOfPrimitive(jpaAttribute)) {
-				return JPATypeConvertor.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa)
-						.getFullQualifiedName();
+				return JPATypeConvertor.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
 			} else if (JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute)) {
 				return serviceDocument.getStructuredType(jpaAttribute).getExternalFQN();
 			}
 		default:
 			// trigger exception if not possible
-			return JPATypeConvertor.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute)
-					.getFullQualifiedName();
+			return JPATypeConvertor.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
 		}
 	}
 
@@ -192,12 +183,12 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 					edmProperty.setNullable(annotationColumn.nullable());
 					edmProperty.setSrid(getSRID(jpaAttribute.getJavaMember()));
 					edmProperty.setDefaultValue(determineDefaultValue());
-					if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName()) || edmProperty
-							.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
+					if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
+					        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
 						edmProperty.setMaxLength(maxLength);
-					} else if (edmProperty.getType().equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName().toString()) ||
-							edmProperty.getType().equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName().toString()) ||
-							edmProperty.getType().equals(EdmPrimitiveTypeKind.TimeOfDay.getFullQualifiedName().toString())) {
+					} else if (edmProperty.getType().equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName().toString())
+					        || edmProperty.getType().equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName().toString())
+					        || edmProperty.getType().equals(EdmPrimitiveTypeKind.TimeOfDay.getFullQualifiedName().toString())) {
 						// For a decimal property the value of this attribute specifies the maximum number of digits allowed in the
 						// properties value; it MUST be a positive integer. If no value is specified, the decimal property has
 						// unspecified precision.
@@ -209,7 +200,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 							edmProperty.setPrecision(annotationColumn.precision());
 						}
 						if (edmProperty.getType().equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName().toString())
-								&& annotationColumn.scale() > 0) {
+						        && annotationColumn.scale() > 0) {
 							edmProperty.setScale(annotationColumn.scale());
 						}
 					}
@@ -238,8 +229,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
 	private String determineDefaultValue() throws ODataJPAModelException {
 		String valueString = null;
-		if (jpaAttribute.getJavaMember() instanceof Field
-				&& jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.BASIC) {
+		if (jpaAttribute.getJavaMember() instanceof Field && jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.BASIC) {
 			// It is not possible to get the default value directly from the Field,
 			// only from an instance field.get(Object obj).toString();
 			try {
@@ -254,10 +244,8 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			} catch (final InstantiationException | NoSuchMethodException e) {
 				// Class could not be instantiated e.g. abstract class like Business Partner=> default could not be determined
 				// and will be ignored
-			} catch (final IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.PROPERTY_DEFAULT_ERROR, e, jpaAttribute
-						.getName());
+			} catch (final IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.PROPERTY_DEFAULT_ERROR, e, jpaAttribute.getName());
 			}
 		}
 		return valueString;
@@ -276,24 +264,11 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 		type = serviceDocument.getStructuredType(jpaAttribute);
 
 		if (this.jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
-			final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(
-					EdmIgnore.class);
+			final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(EdmIgnore.class);
 			if (jpaIgnore != null) {
 				this.setIgnore(true);
 			}
-			final Convert jpaConverter = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(
-					Convert.class);
-			if (jpaConverter != null) {
-				try {
-					valueConverter = (AttributeConverter<?, ?>) jpaConverter.converter().newInstance();
-				} catch (final InstantiationException e) {
-					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_MAPPER_COULD_NOT_INSANTIATE, e);
-				} catch (final IllegalAccessException e) {
-					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_MAPPER_COULD_NOT_INSANTIATE, e);
-				}
-			}
-			final Column jpaColumnDetails = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(
-					Column.class);
+			final Column jpaColumnDetails = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(Column.class);
 			if (jpaColumnDetails != null) {
 				dbFieldName = jpaColumnDetails.name();
 				if (dbFieldName.isEmpty()) {
@@ -305,8 +280,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 				dbFieldName = internalName;
 			}
 			// TODO @Transient -> e.g. Calculated fields like formated name
-			final EdmSearchable jpaSearchable = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(
-					EdmSearchable.class);
+			final EdmSearchable jpaSearchable = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(EdmSearchable.class);
 			if (jpaSearchable != null) {
 				searchable = true;
 			}
@@ -314,19 +288,16 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			streamInfo = ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(EdmMediaStream.class);
 			if (streamInfo != null) {
 				if ((streamInfo.contentType() == null || streamInfo.contentType().isEmpty())
-						&& (streamInfo.contentTypeAttribute() == null || streamInfo.contentTypeAttribute().isEmpty())) {
-					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.ANNOTATION_STREAM_INCOMPLETE,
-							internalName);
+				        && (streamInfo.contentTypeAttribute() == null || streamInfo.contentTypeAttribute().isEmpty())) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.ANNOTATION_STREAM_INCOMPLETE, internalName);
 				}
 			}
-			final Version jpaVersion = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(
-					Version.class);
+			final Version jpaVersion = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(Version.class);
 			if (jpaVersion != null) {
 				isVersion = true;
 			}
 		}
-		postProcessor.processProperty(this, jpaAttribute.getDeclaringType().getJavaType()
-				.getCanonicalName());
+		postProcessor.processProperty(this, jpaAttribute.getDeclaringType().getJavaType().getCanonicalName());
 	}
 
 	@Override
@@ -364,10 +335,9 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
 	@Override
 	public String toString() {
-		return "IntermediateProperty [jpaAttribute=" + jpaAttribute + ", serviceDocument=" + serviceDocument
-				+ ", edmProperty="
-				+ edmProperty + ", type=" + type + ", dbFieldName=" + dbFieldName + ", searchable=" + searchable
-				+ ", isVersion=" + isVersion + ", streamInfo=" + streamInfo + ", internalName=" + internalName + "]";
+		return "IntermediateProperty [jpaAttribute=" + jpaAttribute + ", serviceDocument=" + serviceDocument + ", edmProperty="
+		        + edmProperty + ", type=" + type + ", dbFieldName=" + dbFieldName + ", searchable=" + searchable + ", isVersion="
+		        + isVersion + ", streamInfo=" + streamInfo + ", internalName=" + internalName + "]";
 	}
 
 }

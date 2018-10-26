@@ -21,7 +21,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.DateConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter;
 
 @Entity(name = "Person")
 @DiscriminatorValue(value = "1")
@@ -49,7 +49,7 @@ public class Person extends BusinessPartner {
 	@Column(name = "\"NameLine2\"")
 	private String lastName;
 
-	@Convert(converter = DateConverter.class)
+	@Convert(converter = JPADateConverter.class)
 	@Column(name = "\"BirthDay\"")
 	private LocalDate birthDay;
 

@@ -2,7 +2,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import javax.persistence.metamodel.Attribute;
@@ -18,6 +17,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateProperty extends TestMappingRoot {
+
 	private TestHelper helper;
 
 	@Before
@@ -36,7 +36,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyName() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals("Wrong name", "Type", property.getEdmItem().getName());
 	}
 
@@ -44,7 +44,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyDBFieldName() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals("Wrong name", "\"Type\"", property.getDBFieldName());
 	}
 
@@ -52,16 +52,16 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyType() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals("Wrong type", EdmPrimitiveTypeKind.String.getFullQualifiedName().getFullQualifiedNameAsString(),
-				property.getEdmItem().getType());
+		        property.getEdmItem().getType());
 	}
 
 	@Test
 	public void checkGetProptertyComplexType() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "communicationData");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals("Wrong type", PUNIT_NAME + ".CommunicationData", property.getEdmItem().getType());
 	}
 
@@ -69,7 +69,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyIgnoreFalse() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
 		final IntermediatePropertyAccess property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertFalse(property.ignore());
 	}
 
@@ -77,7 +77,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyIgnoreTrue() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "customString1");
 		final IntermediatePropertyAccess property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertTrue(property.ignore());
 	}
 
@@ -85,7 +85,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyFacetsNullableTrue() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "customString1");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertTrue(property.getEdmItem().isNullable());
 	}
 
@@ -93,7 +93,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyFacetsNullableTrueComplex() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEmbeddedableType("PostalAddressData"), "POBox");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertTrue(property.getEdmItem().isNullable());
 	}
 
@@ -101,7 +101,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyFacetsNullableFalse() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "eTag");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertFalse(property.getEdmItem().isNullable());
 	}
 
@@ -109,7 +109,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyIsETagTrue() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "eTag");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertTrue(property.isEtag());
 	}
 
@@ -117,7 +117,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyIsETagFalse() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertFalse(property.isEtag());
 	}
 
@@ -125,7 +125,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyMaxLength() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals(new Integer(1), property.getEdmItem().getMaxLength());
 	}
 
@@ -133,7 +133,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyPrecisionDecimal() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "customNum1");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals(new Integer(16), property.getEdmItem().getPrecision());
 	}
 
@@ -141,7 +141,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyScaleDecimal() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "customNum1");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals(new Integer(5), property.getEdmItem().getScale());
 	}
 
@@ -149,7 +149,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	public void checkGetProptertyPrecisionTime() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "creationDateTime");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals(new Integer(3), property.getEdmItem().getPrecision());
 	}
 
@@ -159,7 +159,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 		IntermediateModelElement.setPostProcessor(spy);
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "creationDateTime");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 
 		property.getEdmItem();
 		assertTrue(spy.called);
@@ -172,7 +172,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "customString1");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 
 		assertEquals("Wrong name", "ContactPersonName", property.getEdmItem().getName());
 	}
@@ -184,38 +184,24 @@ public class TestIntermediateProperty extends TestMappingRoot {
 
 		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "customString1");
 		final IntermediatePropertyAccess property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 
 		assertEquals("Wrong name", "ContactPersonName", property.getExternalName());
 	}
 
 	@Test
-	public void checkConverterGet() throws ODataJPAModelException {
-		final PostProcessorSetName pPDouble = new PostProcessorSetName();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
-		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("Person"), "birthDay");
-		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
-
-		assertNotNull(property.getConverter());
-	}
-
-	@Test
 	public void checkGetProptertyDefaultValue() throws ODataJPAModelException {
-		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEmbeddedableType("PostalAddressData"),
-				"regionCodePublisher");
+		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEmbeddedableType("PostalAddressData"), "regionCodePublisher");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertEquals("ISO", property.getEdmItem().getDefaultValue());
 	}
 
 	@Test
 	public void checkGetPropertyIsStream() throws ODataJPAModelException {
-		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("PersonImage"),
-				"image");
+		final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("PersonImage"), "image");
 		final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
-				helper.serviceDocument);
+		        helper.serviceDocument);
 		assertTrue(property.isStream());
 	}
 
@@ -226,6 +212,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 	}
 
 	private class PostProcessorSpy extends JPAEdmMetadataPostProcessor {
+
 		boolean called = false;
 
 		@Override
@@ -234,16 +221,15 @@ public class TestIntermediateProperty extends TestMappingRoot {
 		}
 
 		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {}
+		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property, final String jpaManagedTypeClassName) {
+		}
 	}
 
 	private class PostProcessorSetName extends JPAEdmMetadataPostProcessor {
 
 		@Override
 		public void processProperty(final IntermediatePropertyAccess property, final String jpaManagedTypeClassName) {
-			if (jpaManagedTypeClassName.equals(
-					"org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner")) {
+			if (jpaManagedTypeClassName.equals("org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner")) {
 				if (property.getInternalName().equals("customString1")) {
 					property.setExternalName("ContactPersonName");
 				}
@@ -251,7 +237,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
 		}
 
 		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {}
+		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property, final String jpaManagedTypeClassName) {
+		}
 	}
 }
