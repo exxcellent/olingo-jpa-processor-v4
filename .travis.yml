@@ -2,6 +2,7 @@ branches:
   only:
   - master
   - eXXcellent_adaptions
+  - LockingProblem
 language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
 sudo: required
