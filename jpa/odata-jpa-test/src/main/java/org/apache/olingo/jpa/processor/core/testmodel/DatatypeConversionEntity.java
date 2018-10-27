@@ -84,25 +84,37 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
 	@EdmAction()
 	public static boolean unboundActionCheckAllValueSettings(
-	        @EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
-		if (jpaEnity.aDate1 == null)
+			@EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
+		if (jpaEnity == null) {
+			throw new IllegalStateException("Entity not given");
+		}
+		if (jpaEnity.aDate1 == null) {
 			throw new IllegalStateException("aDate1 not set");
-		if (jpaEnity.aDate11 == null)
+		}
+		if (jpaEnity.aDate11 == null) {
 			throw new IllegalStateException("aDate11 not set");
-		if (jpaEnity.aUrl == null)
+		}
+		if (jpaEnity.aUrl == null) {
 			throw new IllegalStateException("aUrl not set");
-		if (jpaEnity.aDecimal == null)
+		}
+		if (jpaEnity.aDecimal == null) {
 			throw new IllegalStateException("aDecimal not set");
-		if (jpaEnity.aStringMappedEnum == null)
+		}
+		if (jpaEnity.aStringMappedEnum == null) {
 			throw new IllegalStateException("aStringMappedEnum not set");
-		if (jpaEnity.aOrdinalMappedEnum == null)
+		}
+		if (jpaEnity.aOrdinalMappedEnum == null) {
 			throw new IllegalStateException("aOrdinalMappedEnum not set");
-		if (jpaEnity.aEnumFromOtherPackage == null)
+		}
+		if (jpaEnity.aEnumFromOtherPackage == null) {
 			throw new IllegalStateException("aEnumFromOtherPackage not set");
-		if (jpaEnity.uuid == null)
+		}
+		if (jpaEnity.uuid == null) {
 			throw new IllegalStateException("uuid not set");
-		if (!jpaEnity.aBoolean)
+		}
+		if (!jpaEnity.aBoolean) {
 			throw new IllegalStateException("aBoolean not set");
+		}
 		return true;
 	}
 }

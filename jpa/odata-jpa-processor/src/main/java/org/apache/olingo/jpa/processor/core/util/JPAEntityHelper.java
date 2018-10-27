@@ -61,7 +61,7 @@ public class JPAEntityHelper {
 				return null;
 			}
 			return (R) result;
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (final Exception e) {
 			throw new ODataJPAModelException(e);
 		}
 	}
