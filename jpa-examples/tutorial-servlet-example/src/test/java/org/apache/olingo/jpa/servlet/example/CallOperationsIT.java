@@ -81,7 +81,7 @@ public class CallOperationsIT {
 	}
 
 	@Test
-	public void test04ActionBound3() throws Exception {
+	public void test01ActionBound3() throws Exception {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99")
 				.appendOperationCallSegment(Constant.PUNIT_NAME + ".SendBackTheInput");
 		final Map<String, ClientValue> functionParameters = new HashMap<>();
@@ -109,7 +109,7 @@ public class CallOperationsIT {
 	}
 
 	@Test
-	public void test01DataConversionUnboundActionUnbound() throws Exception {
+	public void test04DataConversionUnboundActionUnbound() throws Exception {
 		final URIBuilder uriBuilder = endpoint.newUri().appendOperationCallSegment("unboundActionCheckAllValueSettings");
 		final Map<String, ClientValue> actionParameters = new HashMap<String, ClientValue>();
 		final ClientComplexValue modifiedFristObject = new ClientComplexValueImpl(Constant.PUNIT_NAME + ".DatatypeConversionEntity");
