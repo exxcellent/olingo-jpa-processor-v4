@@ -68,4 +68,11 @@ public interface JPAAdapter {
 	public Collection<Class<?>> getDTOs();
 
 	public JPAODataDatabaseProcessor getDatabaseAccessor();
+
+	/**
+	 * Called at end of lifecycle of adapter to release any allocated resources
+	 * (close {@link javax.persistence.EntityManagerFactory#close()
+	 * EntityManagerFactory} etc.).
+	 */
+	public void dispose();
 }

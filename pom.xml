@@ -12,6 +12,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
 
 		<java.source.version>1.8</java.source.version>
 		<java.target.version>1.8</java.target.version>
@@ -287,9 +288,13 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
+				<version>3.0.1</version>
 				<configuration>
 					<additionalparam>-Xdoclint:none</additionalparam>
+					<show>protected</show>
+					<serialwarn>false</serialwarn>
+					<quiet>true</quiet>
+					<failOnError>false</failOnError>
 				</configuration>
 				<executions>
 					<execution>

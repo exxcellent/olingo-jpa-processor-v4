@@ -73,8 +73,7 @@ public class ReadEntitiesIT {
 	@Test
 	public void test4WithExpand() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99")
-				.addQueryOption(QueryOption.EXPAND, "Roles")
-				/* .addQueryOption(QueryOption.EXPAND, "Image") */.addQueryOption(QueryOption.EXPAND, "Locations");
+				.addQueryOption(QueryOption.EXPAND, "Roles").addQueryOption(QueryOption.EXPAND, "Locations");
 		final ODataRetrieveResponse<ClientEntity> response = endpoint.retrieveEntity(uriBuilder,
 				"Load person with ID 99 and expanded navigation");
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
