@@ -294,6 +294,7 @@
 					<show>protected</show>
 					<serialwarn>false</serialwarn>
 					<quiet>true</quiet>
+					<failOnError>false</failOnError>
 				</configuration>
 				<executions>
 					<execution>
