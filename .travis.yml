@@ -27,6 +27,6 @@ deploy:
   skip_cleanup: false
   on:
 #    all_branches: true
-    branch: master
+    branch: eXXcellent_adaptions
     condition: os = linux
 
