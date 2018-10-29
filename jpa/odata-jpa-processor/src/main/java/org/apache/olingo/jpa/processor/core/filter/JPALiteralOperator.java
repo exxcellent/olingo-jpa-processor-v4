@@ -69,8 +69,8 @@ public class JPALiteralOperator implements JPAOperator<Object> {
 			String value = null;
 			final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
 			value = edmType.fromUriLiteral(literal.getText());
-			return edmType.valueOfString(value, edmProperty.isNullable(), edmProperty.getMaxLength(),
-					edmProperty.getPrecision(), edmProperty.getScale(), true, attribute.getType());
+			return edmType.valueOfString(value, Boolean.valueOf(edmProperty.isNullable()), edmProperty.getMaxLength(),
+					edmProperty.getPrecision(), edmProperty.getScale(), Boolean.TRUE, attribute.getType());
 
 		} catch (final EdmPrimitiveTypeException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -90,8 +90,8 @@ public class JPALiteralOperator implements JPAOperator<Object> {
 		String value;
 		try {
 			value = edmType.fromUriLiteral(literal.getText());
-			return edmType.valueOfString(value, true, returnType.getMaxLength(), returnType.getPrecision(), returnType
-					.getScale(), true, returnType.getType());
+			return edmType.valueOfString(value, Boolean.TRUE, returnType.getMaxLength(), returnType.getPrecision(),
+					returnType.getScale(), Boolean.TRUE, returnType.getType());
 		} catch (final EdmPrimitiveTypeException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
@@ -104,8 +104,8 @@ public class JPALiteralOperator implements JPAOperator<Object> {
 			String value;
 
 			value = edmType.fromUriLiteral(literal.getText());
-			return edmType.valueOfString(value, true, jpaParameter.getMaxLength(), jpaParameter.getPrecision(), jpaParameter
-					.getScale(), true, jpaParameter.getType());
+			return edmType.valueOfString(value, Boolean.TRUE, jpaParameter.getMaxLength(), jpaParameter.getPrecision(),
+					jpaParameter.getScale(), Boolean.TRUE, jpaParameter.getType());
 		} catch (final EdmPrimitiveTypeException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		} catch (final ODataJPAModelException e) {
