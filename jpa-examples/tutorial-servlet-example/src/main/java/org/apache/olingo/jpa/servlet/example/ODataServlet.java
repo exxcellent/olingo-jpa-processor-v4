@@ -1,10 +1,12 @@
 package org.apache.olingo.jpa.servlet.example;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 import javax.naming.InitialContext;
@@ -35,6 +37,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.processor.Processor;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * Example call: http://localhost:8080/odata/$metadata
@@ -60,6 +63,16 @@ public class ODataServlet extends HttpServlet {
 		} catch (final NamingException ne) {
 			throw new ServletException("Initialization of DataSource failed", ne);
 		}
+
+		// redirect logging to slf4j
+		try {
+			final InputStream is = getClass().getResourceAsStream("/java.util.logging.properties");
+			LogManager.getLogManager().readConfiguration(is);
+		} catch (SecurityException | IOException e) {
+			throw new ServletException("Initialization of Logging failed", e);
+		}
+		SLF4JBridgeHandler.install();
+
 		log("oData endpoint prepared");
 	}
 
@@ -89,6 +102,9 @@ public class ODataServlet extends HttpServlet {
 
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
+		// force logging over slf4j for EclipseLink
+		//		elProperties.put("eclipselink.logging.logger", "org.eclipse.persistence.logging.slf4j.SLF4JLogger");
+		elProperties.put("eclipselink.logging.logger", "JavaLogger");
 
 		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,
 				elProperties,
