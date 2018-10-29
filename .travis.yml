@@ -6,9 +6,9 @@ language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
 os:
   - linux
-  - osx
+#  - osx
 sudo: required
-dist: trusty
+dist: xenial
 jdk:
 #  - oraclejdk8
 #  - oraclejdk9
