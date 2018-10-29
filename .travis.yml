@@ -6,7 +6,7 @@ language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
 os:
   - linux
-  - windows
+  - osx
 sudo: required
 dist: trusty
 jdk:
@@ -29,3 +29,5 @@ deploy:
   on:
 #    all_branches: true
     branch: master
+    condition: os = linux
+
