@@ -1,14 +1,10 @@
 package org.apache.olingo.jpa.processor.core.processor;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -54,8 +50,6 @@ import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceAction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -65,7 +59,6 @@ import org.slf4j.LoggerFactory;
 public class JPAODataActionProcessor extends AbstractProcessor
 implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor {
 
-	private static Logger LOG = LoggerFactory.getLogger(JPAODataActionProcessor.class);
 	private final JPAServiceDebugger debugger;
 
 	public JPAODataActionProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
@@ -160,21 +153,9 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		try {
 			if (!jpaAction.getParameters().isEmpty() && request.getBody().available() > 0) {
 				final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
-
-				// TODO test only
-				final BufferedInputStream bis = new BufferedInputStream(request.getBody());
-				bis.mark(8000);
-				final String result = new BufferedReader(new InputStreamReader(bis)).lines().parallel()
-						.collect(Collectors.joining("\n"));
-				LOG.warn("-------- Body action call (parameters): " + result);
-				bis.reset();
-
-				final DeserializerResult deserializerResult = deserializer.actionParameters(bis,
+				final DeserializerResult deserializerResult = deserializer.actionParameters(request.getBody(),
 						uriResourceAction.getAction());
 				parameters = deserializerResult.getActionParameters();
-			} else {
-				// TODO test only
-				LOG.warn("-------- Parameters for action call empty ---------");
 			}
 		} catch (final IOException ex) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
