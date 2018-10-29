@@ -177,6 +177,8 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 						uriResourceAction.getAction());
 				parameters = deserializerResult.getActionParameters();
 				log.log(Level.FINER, "Request parameters for action call: " + parameters);
+			} else {
+				log.log(Level.FINER, "Request parameters for action call: <none>");
 			}
 		} catch (final IOException ex) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,

@@ -59,6 +59,11 @@
 				<version>${logback.version}</version>
 			</dependency>
 			<dependency>
+		    	<groupId>org.codehaus.janino</groupId>
+		    	<artifactId>janino</artifactId>
+		    	<version>3.0.10</version>
+		    </dependency>		
+			<dependency>
 				<groupId>org.apache.olingo</groupId>
 				<artifactId>odata-commons-core</artifactId>
 				<version>${olingo.version}</version>
