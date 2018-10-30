@@ -1,24 +1,15 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
-import java.lang.annotation.Annotation;
-
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-public interface JPAAttribute extends JPAElement {
+public interface JPAAttribute extends JPAElement, JPATypedElement {
 
 	/**
 	 *
 	 * @return The type of the attribute represented by the intermediate api.
 	 */
 	public JPAStructuredType getStructuredType();
-
-	/**
-	 *
-	 * @return The direct type of simple attributes or the element type if attribute
-	 *         is a collection.
-	 */
-	public Class<?> getType();
 
 	/**
 	 *
@@ -42,18 +33,6 @@ public interface JPAAttribute extends JPAElement {
 	public boolean isCollection();
 
 	public boolean ignore();
-
-	/**
-	 * Wrapper to get annotation from the underlying property representation (field
-	 * , method,...).
-	 *
-	 * @param annotationClass
-	 *            The requested annotation class
-	 * @return The annotation or <code>null</code>.
-	 * @see java.lang.reflect.Field#getAnnotation(Class)
-	 */
-	@Deprecated
-	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass);
 
 	/**
 	 *

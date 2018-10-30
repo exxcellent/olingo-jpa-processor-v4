@@ -39,6 +39,8 @@ public abstract class AbstractJPASchema implements JPAElement {
 		return getExternalName();
 	}
 
+	abstract IntermediateEnumType getEnumType(final Class<?> targetClass);
+
 	abstract JPAEntityType getEntityType(final Class<?> targetClass);
 
 	abstract JPAEntityType getEntityType(final String externalName);

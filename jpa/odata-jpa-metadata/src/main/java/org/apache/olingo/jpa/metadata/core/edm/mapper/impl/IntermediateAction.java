@@ -123,6 +123,11 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);
 				}
 				return et.getExternalFQN();
+			} else if (clazzType.isEnum()) {
+				final IntermediateEnumType enT = isd.getEnumType(clazzType);
+				if (enT != null) {
+					return enT.getExternalFQN();
+				}
 			} else {
 				// may throw an ODataJPAModelException
 				final EdmPrimitiveTypeKind simpleType = JPATypeConvertor.convertToEdmSimpleType(clazzType);

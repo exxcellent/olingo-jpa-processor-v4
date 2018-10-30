@@ -19,6 +19,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfoHandler;
+import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
@@ -107,6 +108,22 @@ public class TestJPAActions extends TestBase {
 		assertNotNull(object);
 		assertEquals(testId, object.get("ID").asText());
 
+	}
+
+	@Test
+	public void testBoundPrimitiveActionWithEnumParameter() throws IOException, ODataException {
+		final StringBuffer requestBody = new StringBuffer("{");
+		final String testValue = TestEnum.Three.name();
+		requestBody.append("\"value\": \"" + testValue + "\"");
+		requestBody.append("}");
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Persons('99')/" + PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
+		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+
+		final ObjectNode object = helper.getValue();
+		assertNotNull(object);
+		assertEquals(testValue, object.get("value").asText());
 	}
 
 }

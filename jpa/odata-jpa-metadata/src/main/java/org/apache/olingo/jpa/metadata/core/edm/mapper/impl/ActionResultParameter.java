@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
@@ -17,6 +18,12 @@ class ActionResultParameter implements JPAOperationResultParameter {
 	private CsdlReturnType returnType = null;
 	public ActionResultParameter(final IntermediateAction owner) {
 		this.owner = owner;
+	}
+
+	@Override
+	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+		// currently not supported
+		return null;
 	}
 
 	@Override

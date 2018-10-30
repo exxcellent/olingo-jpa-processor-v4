@@ -2,6 +2,8 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -9,10 +11,12 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.Tuple;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.Entity;
+import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.data.Parameter;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
@@ -23,7 +27,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter.
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.query.AbstractObjectConverter;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
 
@@ -101,6 +107,7 @@ public class JPAEntityHelper {
 		final Object[] args = new Object[actionParameters.size()];
 		for (int i = 0; i < actionParameters.size(); i++) {
 			args[i] = null;
+			// fill Backend (inject) parameters
 			final JPAOperationParameter jpaParameter = actionParameters.get(i);
 			if (jpaParameter.getParameterKind() == ParameterKind.Inject) {
 				final Object value = dependencyInjector.getDependencyValue(jpaParameter.getType());
@@ -119,6 +126,17 @@ public class JPAEntityHelper {
 			switch (p.getValueType()) {
 			case PRIMITIVE:
 				args[i] = p.getValue();
+				break;
+			case ENUM:
+				final AbstractObjectConverter converter = new AbstractObjectConverter(null, uriHelper, sd,
+						serviceMetadata) {
+					@Override
+					protected Collection<? extends Link> createExpand(final Tuple row, final URI uri)
+							throws ODataApplicationException {
+						return null;
+					}
+				};
+				args[i] = converter.convertOData2JPAPropertyValue(jpaParameter, p);
 				break;
 			case COLLECTION_PRIMITIVE:
 				args[i] = p.asCollection();
