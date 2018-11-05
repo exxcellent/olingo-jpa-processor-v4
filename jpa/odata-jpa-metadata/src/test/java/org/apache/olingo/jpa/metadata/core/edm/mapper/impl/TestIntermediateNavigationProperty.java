@@ -131,7 +131,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "roles");
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
-		assertEquals(1, property.getJoinColumns().size());
+		assertEquals(1, property.getSourceJoinColumns().size());
 	}
 
 	@Test
@@ -182,7 +182,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
 
-		final IntermediateJoinColumn act = property.getJoinColumns().get(0);
+		final IntermediateJoinColumn act = property.getSourceJoinColumns().get(0);
 		assertEquals("\"BusinessPartnerID\"", act.getName());
 		assertEquals("\"ID\"", act.getReferencedColumnName());
 	}
@@ -195,7 +195,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
 
-		final IntermediateJoinColumn act = property.getJoinColumns().get(0);
+		final IntermediateJoinColumn act = property.getSourceJoinColumns().get(0);
 		assertEquals("\"BusinessPartnerID\"", act.getName());
 		assertEquals("\"ID\"", act.getReferencedColumnName());
 	}
@@ -207,7 +207,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "businessPartner");
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
-		assertEquals(1, property.getJoinColumns().size());
+		assertEquals(1, property.getSourceJoinColumns().size());
 	}
 
 	@Ignore("attribute commented out")
@@ -218,7 +218,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		assertNotNull(jpaAttribute);
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getComplexType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
-		final List<IntermediateJoinColumn> columns = property.getJoinColumns();
+		final List<IntermediateJoinColumn> columns = property.getSourceJoinColumns();
 		assertEquals(3, columns.size());
 	}
 

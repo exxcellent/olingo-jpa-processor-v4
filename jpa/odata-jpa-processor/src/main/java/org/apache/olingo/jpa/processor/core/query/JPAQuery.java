@@ -175,6 +175,8 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		final List<JPAExpandItemInfo> itemInfoList = new JPAExpandItemInfoFactory().buildExpandItemInfo(sd,
 				uriResourceInfo.getUriResourceParts(), uriResourceInfo.getExpandOption(), parentHops);
 
+		// an expand query is a query selecting the target entity using a id-join for
+		// the owning entity
 		for (final JPAExpandItemInfo item : itemInfoList) {
 			final JPAExpandQuery expandQuery = new JPAExpandQuery(getOData(), context, em, item, getRequestHeaders());
 			final JPAQueryResult expandResult = expandQuery.execute();

@@ -40,7 +40,7 @@ public abstract class JPATupleAbstractConverter extends JPAAbstractConverter {
 	}
 
 	@Override
-	protected Collection<? extends Link> createExpand(final Tuple row, final URI uri)
+	protected Collection<? extends Link> createExpand(final Tuple owningEntityRow, final URI uri)
 			throws ODataApplicationException {
 		final Map<JPAAssociationPath, JPAQueryResult> children = jpaQueryResult.getExpandChildren();
 		if (children == null) {
@@ -52,7 +52,7 @@ public abstract class JPATupleAbstractConverter extends JPAAbstractConverter {
 				if (jpaConversionTargetEntity.getDeclaredAssociation(entry.getKey()) == null) {
 					continue;
 				}
-				final Link expand = new JPATupleExpandResultConverter(entry.getValue(), row, entry.getKey(),
+				final Link expand = new JPATupleExpandResultConverter(entry.getValue(), owningEntityRow, entry.getKey(),
 						getUriHelper(), sd, serviceMetadata).getResult();
 				// TODO Check how to convert Organizations('3')/AdministrativeInformation?$expand=Created/User
 				entityExpandLinks.add(expand);

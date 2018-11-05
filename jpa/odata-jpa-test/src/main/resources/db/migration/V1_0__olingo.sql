@@ -432,12 +432,21 @@ insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( '
 insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( 'Eurostat','NUTS3','BE352','en','Arrondissement of Namur');
 insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( 'Eurostat','NUTS3','BE353','en','Arrondissement of Philippeville');
 
--- helper view to simulate a join table for m:n relationship between BusinessPartner and AdministrativeDivisionDescription
-CREATE VIEW "org.apache.olingo.jpa::BusinessPartnerAdministrativeDivisionDescriptionJoinView" AS (
-	SELECT BP."ID" AS "BusinessPartnerID", AD."CodePublisher", AD."CodeID", AD."DivisionCode",AD."LanguageISO"
+-- helpertable+ view to simulate a join table for m:n relationship between BusinessPartner and AdministrativeDivisionDescription
+CREATE TABLE "org.apache.olingo.jpa::BPADDJoinTable"(
+	"BusinessPartnerID" VARCHAR(32) NOT NULL ,
+	"CodePublisher" VARCHAR(10) NOT NULL,
+	"CodeID" VARCHAR(10) NOT NULL,
+	"DivisionCode" VARCHAR(10) NOT NULL,
+	"LanguageISO" VARCHAR(4) NOT NULL)
+;
+
+INSERT INTO "org.apache.olingo.jpa::BPADDJoinTable" 
+	SELECT BP."ID" AS "BusinessPartnerID", AD."CodePublisher", AD."CodeID", AD."DivisionCode", AD."LanguageISO"
 	FROM "org.apache.olingo.jpa::AdministrativeDivisionDescription" AS AD
 	JOIN "org.apache.olingo.jpa::BusinessPartner" AS BP ON BP."Address.Region" = AD."DivisionCode"
-); 
+; 
+
 
 CREATE TABLE "org.apache.olingo.jpa::AdministrativeDivision"(
 	"CodePublisher" VARCHAR(10) NOT NULL,

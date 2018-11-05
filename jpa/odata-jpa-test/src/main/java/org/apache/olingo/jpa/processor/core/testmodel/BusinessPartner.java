@@ -96,12 +96,16 @@ public abstract class BusinessPartner {
 	private String country;
 
 	// Hibernate has problems to support a scenario to join only one column from a
-	// table with more columns as part the id so we "invent" a join table (realized
-	// as view)
+	// table with more columns as part of the id so we "invent" a dynamic filled
+	// join table
 	//	@JoinColumn(name = "\"DivisionCode\"", referencedColumnName = "\"Address.Region\"", nullable = false, insertable = false)
 	@OneToMany(fetch = FetchType.EAGER, orphanRemoval = false)
-	@JoinTable(name = "\"org.apache.olingo.jpa::BusinessPartnerAdministrativeDivisionDescriptionJoinView\"", joinColumns = {
-			@JoinColumn(referencedColumnName = "\"ID\"", name = "\"BusinessPartnerID\"") })
+	@JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BPADDJoinTable\"", joinColumns = {
+			@JoinColumn(referencedColumnName = "\"ID\"", name = "\"BusinessPartnerID\"") }, inverseJoinColumns = {
+					@JoinColumn(referencedColumnName = "\"CodePublisher\"", name = "\"CodePublisher\""),
+					@JoinColumn(referencedColumnName = "\"CodeID\"", name = "\"CodeID\""),
+					@JoinColumn(referencedColumnName = "\"DivisionCode\"", name = "\"DivisionCode\""),
+					@JoinColumn(referencedColumnName = "\"LanguageISO\"", name = "\"LanguageISO\"") })
 	private Collection<AdministrativeDivisionDescription> locations;
 
 	@Embedded

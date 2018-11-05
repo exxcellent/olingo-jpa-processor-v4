@@ -4,7 +4,6 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,7 +17,6 @@ import javax.persistence.AssociationOverrides;
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.metamodel.Attribute;
@@ -67,7 +65,16 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 	}
 
 	@Override
-	public JPAAssociationAttribute getAssociation(final String internalName) throws ODataJPAModelException {
+	public JPAAssociationAttribute getAssociationByPath(final JPAAssociationPath path) throws ODataJPAModelException {
+		for (final JPAAttribute attribute : this.getAssociations()) {
+			if (attribute.getExternalName().equals(path.getAlias())) {
+				return (JPAAssociationAttribute) attribute;
+			}
+		}
+		return null;
+	}
+
+	JPAAssociationAttribute getAssociation(final String internalName) throws ODataJPAModelException {
 		for (final JPAAttribute attribute : this.getAssociations()) {
 			if (attribute.getInternalName().equals(internalName)) {
 				return (JPAAssociationAttribute) attribute;
@@ -397,29 +404,6 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		}
 
 		return null;
-	}
-
-	List<IntermediateJoinColumn> getJoinColumns(final String relationshipName) {
-
-		final Attribute<?, ?> jpaAttribute = jpaManagedType.getAttribute(relationshipName);
-		if (jpaAttribute == null) {
-			return Collections.emptyList();
-		}
-
-		final List<IntermediateJoinColumn> result = new ArrayList<IntermediateJoinColumn>();
-		final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
-		final JoinColumns columns = annotatedElement.getAnnotation(JoinColumns.class);
-		if (columns != null) {
-			for (final JoinColumn column : columns.value()) {
-				result.add(new IntermediateJoinColumn(column));
-			}
-		} else {
-			final JoinColumn column = annotatedElement.getAnnotation(JoinColumn.class);
-			if (column != null) {
-				result.add(new IntermediateJoinColumn(column));
-			}
-		}
-		return result;
 	}
 
 	Map<String, JPAPathImpl> getSimpleAttributePathMap() throws ODataJPAModelException {
