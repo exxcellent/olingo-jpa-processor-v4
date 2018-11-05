@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.processor;
 
+import java.io.ByteArrayInputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
@@ -226,6 +227,9 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 		final EntityCollection entityCollection = retrieveEntityData(request, uriInfo);
 
 		if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
+			// a 'dummy' message content will prevent the OData client reponse parser from
+			// exceptions because empty body
+			response.setContent(new ByteArrayInputStream("{}".getBytes()));
 			response.setStatusCode(HttpStatusCode.NOT_FOUND.getStatusCode());
 		} else {
 			final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),

@@ -20,7 +20,8 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.DateConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 
 @Entity(name = "Person")
 @DiscriminatorValue(value = "1")
@@ -48,7 +49,7 @@ public class Person extends BusinessPartner {
 	@Column(name = "\"NameLine2\"")
 	private String lastName;
 
-	@Convert(converter = DateConverter.class)
+	@Convert(converter = JPADateConverter.class)
 	@Column(name = "\"BirthDay\"", columnDefinition = "date")
 	private LocalDate birthDay;
 
@@ -118,6 +119,14 @@ public class Person extends BusinessPartner {
 	public String methodWithEntityParameter(@EdmActionParameter(name = "dummy") final int dummy,
 			@EdmActionParameter(name = "country") final Country country) {
 		return country.getCode();
+	}
+
+	/**
+	 * Bound oData action.
+	 */
+	@EdmAction(name = "sendBackEnumParameter")
+	public String methodWithEnumParameter(@EdmActionParameter(name = "value") final TestEnum param) {
+		return param.name();
 	}
 
 }

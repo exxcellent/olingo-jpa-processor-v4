@@ -2,12 +2,7 @@ package org.apache.olingo.jpa.processor.core.filter;
 
 import javax.persistence.criteria.Expression;
 
-import org.apache.olingo.server.api.ODataApplicationException;
-
-public interface JPAExpressionOperator extends JPAOperator {
-  @Override
-  public Expression<Boolean> get() throws ODataApplicationException;
-
-  public Enum<?> getOperator();
+public interface JPAExpressionOperator<E extends Enum<?>> extends JPAOperator<Expression<Boolean>> {
+	public E getOperator();
 
 }

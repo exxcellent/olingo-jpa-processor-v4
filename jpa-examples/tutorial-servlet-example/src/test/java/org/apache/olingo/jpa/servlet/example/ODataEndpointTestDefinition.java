@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * Helper class to define a connection to an servlet container hosting the example servlet as oData endpoint.
  *
  */
-public class ODataEndpointTestDefinition {
+class ODataEndpointTestDefinition {
 
 	private static Logger LOG = LoggerFactory.getLogger(ODataEndpointTestDefinition.class);
 
@@ -96,8 +96,7 @@ public class ODataEndpointTestDefinition {
 		if (portString == null) {
 			return;
 		}
-		targetUri = protocolString + "://" + SERVER_HOST + ":" + this.portString + "/"
-				+ WEB_XML_WEBAPP_BASEPATH;
+		targetUri = protocolString + "://" + SERVER_HOST + ":" + this.portString + "/" + WEB_XML_WEBAPP_BASEPATH;
 	}
 
 	/**
@@ -109,8 +108,8 @@ public class ODataEndpointTestDefinition {
 
 	private String determineAuthorization() throws RuntimeException {
 		try {
-			return "Basic " + new String(
-					Base64.encodeBase64(new String(TEST_USER_NAME + ":" + TEST_USER_PASSWORD).getBytes("UTF-8")), "US-ASCII");
+			return "Basic "
+			        + new String(Base64.encodeBase64(new String(TEST_USER_NAME + ":" + TEST_USER_PASSWORD).getBytes("UTF-8")), "US-ASCII");
 		} catch (final UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
@@ -133,14 +132,13 @@ public class ODataEndpointTestDefinition {
 
 	public ODataRetrieveResponse<ClientEntity> retrieveEntity(final URIBuilder uriBuilder, final String description) {
 		final URI uri = uriBuilder.build();
-		LOG.info((description != null ? description: "") + "\n{}...", uri);
+		LOG.info((description != null ? description : "") + "\n{}...", uri);
 		final ODataEntityRequest<ClientEntity> req = client.getRetrieveRequestFactory().getEntityRequest(uri);
 		req.addCustomHeader("Authorization", determineAuthorization());
 		return req.execute();
 	}
 
-	public ODataRetrieveResponse<ClientEntitySet> retrieveEntityCollection(final URIBuilder uriBuilder,
-			final String description) {
+	public ODataRetrieveResponse<ClientEntitySet> retrieveEntityCollection(final URIBuilder uriBuilder, final String description) {
 		final URI uri = uriBuilder.build();
 		LOG.info((description != null ? description : "") + "\n{}...", uri);
 		final ODataEntitySetRequest<ClientEntitySet> req = client.getRetrieveRequestFactory().getEntitySetRequest(uri);
@@ -164,10 +162,9 @@ public class ODataEndpointTestDefinition {
 		return req.execute();
 	}
 
-
 	public ODataRetrieveResponse<ClientPrimitiveValue> retrieveValue(final URIBuilder uriBuilder, final String description) {
 		final URI uri = uriBuilder.build();
-		LOG.info((description != null ? description: "") + "\n{}...", uri);
+		LOG.info((description != null ? description : "") + "\n{}...", uri);
 		final ODataValueRequest req = client.getRetrieveRequestFactory().getValueRequest(uri);
 		req.addCustomHeader("Authorization", determineAuthorization());
 		return req.execute();
@@ -175,55 +172,57 @@ public class ODataEndpointTestDefinition {
 
 	public ODataDeleteResponse deleteEntity(final URIBuilder uriBuilder, final String description) {
 		final URI uri = uriBuilder.build();
-		LOG.info((description != null ? description: "") + "\n{}...", uri);
+		LOG.info((description != null ? description : "") + "\n{}...", uri);
 		final ODataDeleteRequest req = client.getCUDRequestFactory().getDeleteRequest(uri);
 		req.addCustomHeader("Authorization", determineAuthorization());
 		return req.execute();
 	}
 
-	public <T extends ClientInvokeResult> ODataInvokeResponse<T> callFunction(final URIBuilder uriBuilder, final Class<T> resultType, final Map<String, ClientValue> functionParameters) {
+	public <T extends ClientInvokeResult> ODataInvokeResponse<T> callFunction(final URIBuilder uriBuilder, final Class<T> resultType,
+	        final Map<String, ClientValue> functionParameters) {
 		final URI uri = uriBuilder.build();
 		final StringBuilder paramBuffer = new StringBuilder();
-		if(functionParameters == null || functionParameters.isEmpty()) {
+		if (functionParameters == null || functionParameters.isEmpty()) {
 			paramBuffer.append("-");
 		} else {
 			int index = 0;
-			for(final Map.Entry<String, ClientValue> entry: functionParameters.entrySet()) {
-				if(index > 0) {
+			for (final Map.Entry<String, ClientValue> entry : functionParameters.entrySet()) {
+				if (index > 0) {
 					paramBuffer.append(", ");
 				}
 				paramBuffer.append(entry.getKey()).append("=").append(entry.getValue().toString());
 				index++;
 			}
 		}
-		LOG.info("Call function with parameters: {}" + "\n{}...", paramBuffer,uri);
-		final ODataInvokeRequest<T> req = client.getInvokeRequestFactory().getFunctionInvokeRequest(uri, resultType,functionParameters);
+		LOG.info("Call function with parameters: {}" + "\n{}...", paramBuffer, uri);
+		final ODataInvokeRequest<T> req = client.getInvokeRequestFactory().getFunctionInvokeRequest(uri, resultType, functionParameters);
 		req.addCustomHeader("Authorization", determineAuthorization());
 		return req.execute();
 	}
 
-	public <T extends ClientInvokeResult> ODataInvokeResponse<T> callAction(final URIBuilder uriBuilder, final Class<T> resultType, final Map<String, ClientValue> actionParameters) {
+	public <T extends ClientInvokeResult> ODataInvokeResponse<T> callAction(final URIBuilder uriBuilder, final Class<T> resultType,
+	        final Map<String, ClientValue> actionParameters) {
 		URI uri = uriBuilder.build();
 		// the uri builder is buggy, because OLingo does not accept tailing '()' for operations without parameters
-		if(uri.toString().endsWith("()")) {
+		if (uri.toString().endsWith("()")) {
 			final String uriString = uri.toString();
-			uri = URI.create(uriString.substring(0, uriString.length()-2));
+			uri = URI.create(uriString.substring(0, uriString.length() - 2));
 		}
 		final StringBuilder paramBuffer = new StringBuilder();
-		if(actionParameters == null || actionParameters.isEmpty()) {
+		if (actionParameters == null || actionParameters.isEmpty()) {
 			paramBuffer.append("-");
 		} else {
 			int index = 0;
-			for(final Map.Entry<String, ClientValue> entry: actionParameters.entrySet()) {
-				if(index > 0) {
+			for (final Map.Entry<String, ClientValue> entry : actionParameters.entrySet()) {
+				if (index > 0) {
 					paramBuffer.append(", ");
 				}
 				paramBuffer.append(entry.getKey()).append("=").append(entry.getValue().toString());
 				index++;
 			}
 		}
-		LOG.info("Call action with parameters: {}" + "\n{}...", paramBuffer,uri);
-		final ODataInvokeRequest<T> req = client.getInvokeRequestFactory().getActionInvokeRequest(uri, resultType,actionParameters);
+		LOG.info("Call action with parameters: {}" + "\n{}...", paramBuffer, uri);
+		final ODataInvokeRequest<T> req = client.getInvokeRequestFactory().getActionInvokeRequest(uri, resultType, actionParameters);
 		req.addCustomHeader("Authorization", determineAuthorization());
 		return req.execute();
 	}

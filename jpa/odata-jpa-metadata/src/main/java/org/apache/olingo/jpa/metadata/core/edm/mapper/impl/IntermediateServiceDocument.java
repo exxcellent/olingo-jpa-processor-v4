@@ -209,6 +209,20 @@ public class IntermediateServiceDocument {
 		return null;
 	}
 
+	IntermediateEnumType getEnumType(final Class<?> targetClass) {
+		IntermediateEnumType enumType;
+		synchronized (lock) {
+			initializeDependendSchemas();
+			for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
+				enumType = schema.getEnumType(targetClass);
+				if (enumType != null) {
+					return enumType;
+				}
+			}
+		}
+		return null;
+	}
+
 	// TODO remove method from public API
 	public AbstractJPASchema createMetamodelSchema(final String namespace, final Metamodel jpaMetamodel)
 			throws ODataJPAModelException {

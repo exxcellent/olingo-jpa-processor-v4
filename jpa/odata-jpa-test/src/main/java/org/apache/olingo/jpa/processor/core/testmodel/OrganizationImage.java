@@ -10,7 +10,7 @@ import javax.persistence.Table;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConverter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.EdmUrlConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 
 @Entity(name = "OrganizationImage")
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::OrganizationImage\"")
@@ -19,7 +19,7 @@ public class OrganizationImage {
 	@Column(name = "\"ID\"")
 	private String ID;
 
-	@Column(name = "\"Image\"", columnDefinition = "blob")
+	@Column(name = "\"Image\"")
 	@EdmMediaStream(contentTypeAttribute = "mimeType")
 	private byte[] image;
 

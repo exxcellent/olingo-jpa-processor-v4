@@ -23,4 +23,17 @@ public class TestJPASelect extends TestBase {
 		assertEquals(99, p.get("ID").asLong());
 	}
 
+	/**
+	 * Test working datatype conversion between JPA and OData entity.
+	 */
+	@Test
+	public void testDatatypeConversionEntities() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DatatypeConversionEntities(1)");
+		helper.assertStatus(200);
+
+		final ObjectNode p = helper.getValue();
+		assertEquals(1, p.get("ID").asLong());
+	}
+
 }

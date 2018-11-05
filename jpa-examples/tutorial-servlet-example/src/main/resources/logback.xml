@@ -2,13 +2,28 @@
 
 <configuration>
   <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener> 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+      <evaluator name="suppress-metadata">
+        <expression>logger.contains("org.eclipse.persistence.session") &amp;&amp; (logger.contains(".metadata") || logger.contains(".connection") || logger.contains(".transaction") || logger.contains(".cache") || logger.contains(".weaver") || logger.contains(".metamodel"))</expression>
+      </evaluator>
+      <OnMismatch>NEUTRAL</OnMismatch>
+      <OnMatch>DENY</OnMatch>
+    </filter>    
 	<layout class="ch.qos.logback.classic.PatternLayout">
-      <pattern>%m%n</pattern>
+      <pattern>SERVER %-5level - %logger{15}: %m%n</pattern>
 	</layout>
   </appender>
 
-  <root level="info">
+  <logger name="org.apache.olingo" level="DEBUG"/>
+  <logger name="org.eclipse.persistence.session" level="DEBUG"/>
+
+  <root level="INFO">
+  	<!-- this definition will work only for true slf4j loggers, JUL will log directly to the appender -->
     <appender-ref ref="STDOUT" />
   </root>
+
 </configuration>

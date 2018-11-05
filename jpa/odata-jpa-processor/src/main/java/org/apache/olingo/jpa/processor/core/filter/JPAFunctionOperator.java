@@ -21,92 +21,92 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 /**
  * Handle OData Functions that are implemented e.g. as user defined functions data base functions. This will be mapped
  * to JPA criteria builder function().
- * 
+ *
  * @author Oliver Grande
  *
  */
-public class JPAFunctionOperator implements JPAOperator {
-  private final JPAFunction jpaFunction;
-  private final JPAVisitor visitor;
-  private final List<UriParameter> uriParams;
+public class JPAFunctionOperator implements JPAOperator<Expression<?>> {
+	private final JPAFunction jpaFunction;
+	private final JPAVisitor visitor;
+	private final List<UriParameter> uriParams;
 
-  public JPAFunctionOperator(JPAVisitor jpaVisitor, List<UriParameter> uriParams, JPAFunction jpaFunction) {
+	public JPAFunctionOperator(final JPAVisitor jpaVisitor, final List<UriParameter> uriParams, final JPAFunction jpaFunction) {
 
-    super();
-    this.uriParams = uriParams;
-    this.visitor = jpaVisitor;
-    this.jpaFunction = jpaFunction;
-  }
+		super();
+		this.uriParams = uriParams;
+		this.visitor = jpaVisitor;
+		this.jpaFunction = jpaFunction;
+	}
 
-  @Override
-  public Expression<?> get() throws ODataApplicationException {
-    final CriteriaBuilder cb = visitor.getCriteriaBuilder();
-    final List<JPAOperationParameter> parameters = jpaFunction.getParameter();
-    final Expression<?>[] jpaParameter = new Expression<?>[parameters.size()];
+	@Override
+	public Expression<?> get() throws ODataApplicationException {
+		final CriteriaBuilder cb = visitor.getCriteriaBuilder();
+		final List<JPAOperationParameter> parameters = jpaFunction.getParameter();
+		final Expression<?>[] jpaParameter = new Expression<?>[parameters.size()];
 
-    if (jpaFunction.getResultParameter().isCollection()) {
-      throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_COLLECTION,
-          HttpStatusCode.NOT_IMPLEMENTED);
-    }
+		if (jpaFunction.getResultParameter().isCollection()) {
+			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_COLLECTION,
+					HttpStatusCode.NOT_IMPLEMENTED);
+		}
 
-    if (!JPATypeConvertor.isScalarType(
-        jpaFunction.getResultParameter().getType())) {
-      throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_NOT_SCALAR,
-          HttpStatusCode.NOT_IMPLEMENTED);
-    }
-    for (int i = 0; i < parameters.size(); i++) {
-      // a. $it/Area b. Area c. 10000
-      UriParameter p = findUriParameter(parameters.get(i));
+		if (!JPATypeConvertor.isScalarType(
+				jpaFunction.getResultParameter().getType())) {
+			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_NOT_SCALAR,
+					HttpStatusCode.NOT_IMPLEMENTED);
+		}
+		for (int i = 0; i < parameters.size(); i++) {
+			// a. $it/Area b. Area c. 10000
+			final UriParameter p = findUriParameter(parameters.get(i));
 
-      if (p.getText() != null) {
-        JPALiteralOperator operator = new JPALiteralOperator(visitor.getOdata(), new ParameterLiteral(p.getText()));
-        jpaParameter[i] = cb.literal(operator.get(parameters.get(i)));
-      } else {
-        try {
-          jpaParameter[i] = (Expression<?>) p.getExpression().accept(visitor).get();
-        } catch (ExpressionVisitException e) {
-          throw new ODataJPAFilterException(e, HttpStatusCode.NOT_IMPLEMENTED);
-        }
-      }
-    }
-    return cb.function(jpaFunction.getDBName(), jpaFunction.getResultParameter().getType(), jpaParameter);
-  }
+			if (p.getText() != null) {
+				final JPALiteralOperator operator = new JPALiteralOperator(visitor.getOdata(), new ParameterLiteral(p.getText()));
+				jpaParameter[i] = cb.literal(operator.get(parameters.get(i)));
+			} else {
+				try {
+					jpaParameter[i] = (Expression<?>) p.getExpression().accept(visitor).get();
+				} catch (final ExpressionVisitException e) {
+					throw new ODataJPAFilterException(e, HttpStatusCode.NOT_IMPLEMENTED);
+				}
+			}
+		}
+		return cb.function(jpaFunction.getDBName(), jpaFunction.getResultParameter().getType(), jpaParameter);
+	}
 
-  private UriParameter findUriParameter(JPAOperationParameter jpaFunctionParam) {
-    for (UriParameter uriParam : uriParams) {
-      if (uriParam.getName().equals(jpaFunctionParam.getName())) {
-        return uriParam;
-      }
-    }
-    return null;
-  }
+	private UriParameter findUriParameter(final JPAOperationParameter jpaFunctionParam) {
+		for (final UriParameter uriParam : uriParams) {
+			if (uriParam.getName().equals(jpaFunctionParam.getName())) {
+				return uriParam;
+			}
+		}
+		return null;
+	}
 
-  public JPAOperationResultParameter getReturnType() {
-    return jpaFunction.getResultParameter();
-  }
+	public JPAOperationResultParameter getReturnType() {
+		return jpaFunction.getResultParameter();
+	}
 
-  private class ParameterLiteral implements Literal {
+	private class ParameterLiteral implements Literal {
 
-    public ParameterLiteral(String text) {
-      super();
-      this.text = text;
-    }
+		public ParameterLiteral(final String text) {
+			super();
+			this.text = text;
+		}
 
-    private final String text;
+		private final String text;
 
-    @Override
-    public <T> T accept(ExpressionVisitor<T> visitor) throws ExpressionVisitException, ODataApplicationException {
-      return null;
-    }
+		@Override
+		public <T> T accept(final ExpressionVisitor<T> visitor) throws ExpressionVisitException, ODataApplicationException {
+			return null;
+		}
 
-    @Override
-    public String getText() {
-      return text;
-    }
+		@Override
+		public String getText() {
+			return text;
+		}
 
-    @Override
-    public EdmType getType() {
-      return null;
-    }
-  }
+		@Override
+		public EdmType getType() {
+			return null;
+		}
+	}
 }

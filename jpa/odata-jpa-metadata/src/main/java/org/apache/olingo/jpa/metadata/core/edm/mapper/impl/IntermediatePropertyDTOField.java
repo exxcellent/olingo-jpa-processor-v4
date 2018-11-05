@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
-import javax.persistence.AttributeConverter;
 import javax.validation.constraints.Size;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
@@ -23,12 +22,13 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 class IntermediatePropertyDTOField extends IntermediateModelElement implements JPASimpleAttribute {
+
 	private final Field field;
 	private final JPAAttributeAccessor accessor;
 	private CsdlProperty edmProperty = null;
 
 	public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
-			final IntermediateServiceDocument serviceDocument) {
+	        final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, field.getName());
 		this.field = field;
 		this.setExternalName(nameBuilder.buildPropertyName(field.getName()));
@@ -55,8 +55,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 			return JPATypeConvertor.convertToEdmSimpleType(elementType).getFullQualifiedName();
 		} else {
 			// trigger exception if not possible
-			return JPATypeConvertor.convertToEdmSimpleType(field)
-					.getFullQualifiedName();
+			return JPATypeConvertor.convertToEdmSimpleType(field).getFullQualifiedName();
 		}
 	}
 
@@ -81,8 +80,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 		edmProperty.setSrid(IntermediateProperty.getSRID(field));
 		// edmProperty.setDefaultValue(determineDefaultValue());
 		if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-				|| edmProperty.getTypeAsFQNObject()
-				.equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
+		        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
 			edmProperty.setMaxLength(maxLength);
 		}
 	}
@@ -91,11 +89,6 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	CsdlProperty getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
 		return edmProperty;
-	}
-
-	@Override
-	public AttributeConverter<?, ?> getConverter() {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

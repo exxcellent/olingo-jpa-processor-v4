@@ -76,6 +76,10 @@ public class JPAODataGetHandler {
 		// do nothing in default implementation
 	}
 
+	public void dispose() {
+		context.mappingAdapter.dispose();
+	}
+
 	/**
 	 * Client expendable list of processors.
 	 *
@@ -290,4 +294,5 @@ public class JPAODataGetHandler {
 			}
 		}
 	}
+
 }

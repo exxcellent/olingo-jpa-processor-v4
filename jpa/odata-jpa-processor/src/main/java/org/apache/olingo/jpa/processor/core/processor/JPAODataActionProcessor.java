@@ -1,10 +1,17 @@
 package org.apache.olingo.jpa.processor.core.processor;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -59,6 +66,7 @@ import org.apache.olingo.server.api.uri.UriResourceAction;
 public class JPAODataActionProcessor extends AbstractProcessor
 implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor {
 
+	private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
 	private final JPAServiceDebugger debugger;
 
 	public JPAODataActionProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
@@ -152,10 +160,25 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		Map<String, Parameter> parameters = Collections.emptyMap();
 		try {
 			if (!jpaAction.getParameters().isEmpty() && request.getBody().available() > 0) {
+
+				InputStream is = request.getBody();
+				if (log.isLoggable(Level.FINER)) {
+					// wrap input stream for debugging
+					final int bufferSize = 1048576;// 1MB
+					is = new BufferedInputStream(is, bufferSize);
+					is.mark(bufferSize - 1);
+					final String bodyContent = new BufferedReader(new InputStreamReader(is)).lines().parallel()
+							.collect(Collectors.joining("\n"));
+					log.log(Level.FINER, "Request body for action call: " + bodyContent);
+					is.reset();
+				}
 				final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
-				final DeserializerResult deserializerResult = deserializer.actionParameters(request.getBody(),
+				final DeserializerResult deserializerResult = deserializer.actionParameters(is,
 						uriResourceAction.getAction());
 				parameters = deserializerResult.getActionParameters();
+				log.log(Level.FINER, "Request parameters for action call: " + parameters);
+			} else {
+				log.log(Level.FINER, "Request parameters for action call: <none>");
 			}
 		} catch (final IOException ex) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,

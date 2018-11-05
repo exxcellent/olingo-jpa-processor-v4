@@ -4,23 +4,28 @@ branches:
   - eXXcellent_adaptions
 language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
+os:
+  - linux
 sudo: required
 dist: trusty
 jdk:
-    - oraclejdk8
-#    - oraclejdk9
+#  - oraclejdk8
+#  - oraclejdk9
+  - openjdk8
 cache:
   directories:
     - $HOME/.m2/repository
 # 'true' will skip install step
 install: true
 script:
-    - cp .travis.settings.xml $HOME/.m2/settings.xml
-    - mvn clean verify -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
+  - cp .travis.settings.xml $HOME/.m2/settings.xml
+  - mvn clean verify -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
 deploy:
   provider: script
   # deploy script must be single line command
   script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
   skip_cleanup: false
   on:
-    all_branches: true
+#    all_branches: true
+    branch: eXXcellent_adaptions
+

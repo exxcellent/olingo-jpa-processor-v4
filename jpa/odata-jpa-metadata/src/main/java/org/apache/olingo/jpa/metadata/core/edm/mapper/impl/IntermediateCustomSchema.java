@@ -54,6 +54,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		return null;
 	}
 
+	@Override
 	IntermediateEnumType getEnumType(final Class<?> targetClass) {
 		return enumTypes.get(targetClass.getSimpleName());
 	}
