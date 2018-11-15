@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -63,6 +64,14 @@ public class JPAODataGetHandler {
 			handler.register(p);
 		}
 		handler.process(request, response);
+	}
+
+	protected void modifyResponse(final ODataResponse response) {
+		// set all response as not cachable as default
+		if (!response.getAllHeaders().containsKey(HttpHeader.CACHE_CONTROL)) {
+			response.setHeader(HttpHeader.CACHE_CONTROL, "max-age=0, no-cache, no-store, must-revalidate");
+		}
+
 	}
 
 	/**
@@ -255,15 +264,13 @@ public class JPAODataGetHandler {
 		}
 	}
 
-	private static class JPAODataHttpHandlerImpl extends ODataHttpHandlerImpl {
+	private class JPAODataHttpHandlerImpl extends ODataHttpHandlerImpl {
 
 		private final EntityManager em;
-		private final JPAODataContextImpl context;
 
 		public JPAODataHttpHandlerImpl(final JPAODataContextImpl context) {
 			super(context.getOdata(),
 					context.getOdata().createServiceMetadata(context.getEdmProvider(), context.getReferences()));
-			this.context = context;
 			this.em = context.getMappingAdapter().createEntityManager();
 		}
 
@@ -286,6 +293,8 @@ public class JPAODataGetHandler {
 					LOG.log(Level.WARNING, "Do not commit request transaction, because response is not 2xx");
 					mappingAdapter.cancelTransaction(em);
 				}
+				// give implementors the chance to modify the response (set cache control etc.)
+				modifyResponse(odataResponse);
 				return odataResponse;
 			} catch (final RuntimeException ex) {
 				// do not commit on exceptions

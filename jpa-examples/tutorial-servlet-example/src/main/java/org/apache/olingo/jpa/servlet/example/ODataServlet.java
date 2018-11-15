@@ -32,10 +32,10 @@ import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
-import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
+import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -106,7 +106,8 @@ public class ODataServlet extends HttpServlet {
 		//		elProperties.put("eclipselink.logging.logger", "org.eclipse.persistence.logging.slf4j.SLF4JLogger");
 		elProperties.put("eclipselink.logging.logger", "JavaLogger");
 
-		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,
+		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(
+				org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
 				elProperties,
 				new JPADefaultDatabaseProcessor());
 		((AbstractJPAAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
@@ -129,6 +130,13 @@ public class ODataServlet extends HttpServlet {
 				super.prepareDependencyInjection(dpi);
 				// example for custom dependency injection
 				dpi.registerDependencyMapping(String.class, getServletName());
+			}
+
+			@Override
+			protected void modifyResponse(final ODataResponse response) {
+				super.modifyResponse(response);
+				// example header
+				response.setHeader("dummy-header", "example to modify reponse header before sending back to client");
 			}
 		};
 		return handler;
