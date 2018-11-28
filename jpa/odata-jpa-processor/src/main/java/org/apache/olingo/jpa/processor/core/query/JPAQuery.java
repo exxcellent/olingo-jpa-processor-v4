@@ -11,6 +11,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -52,10 +53,14 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 	}
 
 	/**
-	 * Counts the number of results to be expected by a query. The method shall fulfill the requirements of the $count
-	 * query option. This is defined as follows:<p>
-	 * <i>The $count system query option ignores any $top, $skip, or $expand query options, and returns the total count
-	 * of results across all pages including only those results matching any specified $filter and $search.</i><p>
+	 * Counts the number of results to be expected by a query. The method shall
+	 * fulfill the requirements of the $count query option. This is defined as
+	 * follows:
+	 * <p>
+	 * <i>The $count system query option ignores any $top, $skip, or $expand query
+	 * options, and returns the total count of results across all pages including
+	 * only those results matching any specified $filter and $search.</i>
+	 * <p>
 	 * For details see: <a href=
 	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398308"
 	 * >OData Version 4.0 Part 1 - 11.2.5.5 System Query Option $count</a>
@@ -63,7 +68,10 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 	 * @return Number of results
 	 * @throws ODataApplicationException
 	 * @throws ExpressionVisitException
+	 * @deprecated Replace this method by an more specialized CountQuery using the
+	 *             same logic as JPAQuery
 	 */
+	@Deprecated
 	public Long countResults() throws ODataApplicationException {
 		/*
 		 * URL example:
@@ -74,15 +82,15 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
 
 		final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-		// root = cq.from(jpaEntity.getTypeClass());
+		final Root<?> queryRoot = cq.from(jpaEntityType.getTypeClass());
 
-		joinTables.put(jpaEntityType.getTypeClass().getCanonicalName(), root);
+		joinTables.put(jpaEntityType.getTypeClass().getCanonicalName(), queryRoot);
 
 		final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
 		if (whereClause != null) {
 			cq.where(whereClause);
 		}
-		cq.select(cb.count(root));
+		cq.select(cb.count(queryRoot));
 		return em.createQuery(cq).getSingleResult();
 	}
 
@@ -136,7 +144,7 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		// Count results if requested
 		final CountOption countOption = uriResource.getCountOption();
 		if (countOption != null && countOption.getValue()) {
-			entityCollection.setCount(Integer.valueOf(countResults().intValue()));
+			entityCollection.setCount(Integer.valueOf(entityCollection.getEntities().size()));
 		}
 
 		return entityCollection;

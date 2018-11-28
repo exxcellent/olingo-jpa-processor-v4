@@ -2,10 +2,10 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.Column;
 import javax.persistence.Version;
@@ -46,6 +46,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  */
 class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPASimpleAttribute {
 
+	private final static Logger LOG = Logger.getLogger(IntermediateProperty.class.getName());
 	private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
 	// TODO Store a type @Convert
 	protected final Attribute<?, ?> jpaAttribute;
@@ -58,6 +59,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	private EdmMediaStream streamInfo;
 	private final boolean isComplex;
 	private final JPAAttributeAccessor accessor;
+	private final Member javaMember;
 
 	IntermediateProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
 			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
@@ -68,8 +70,9 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
 		isComplex = (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED)
 				|| JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute);
+		javaMember = determineJavaMemberOfAttribute(jpaAttribute);
+		accessor = new FieldAttributeAccessor((Field) javaMember);
 		buildProperty(nameBuilder);
-		accessor = new FieldAttributeAccessor((Field) jpaAttribute.getJavaMember());
 	}
 
 	@Override
@@ -168,20 +171,21 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			edmProperty.setType(createTypeName());// trigger exception for unsupported attribute types
 			edmProperty.setCollection(jpaAttribute.isCollection());
 
-			if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
+			if (javaMember instanceof AnnotatedElement) {
+				final AnnotatedElement annotatedMember = (AnnotatedElement) javaMember;
 				Integer maxLength = null;
-				final Size annotationSize = ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(Size.class);
+				final Size annotationSize = annotatedMember.getAnnotation(Size.class);
 				if (annotationSize != null) {
 					maxLength = Integer.valueOf(annotationSize.max());
 				}
 
-				final Column annotationColumn = ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(Column.class);
+				final Column annotationColumn = annotatedMember.getAnnotation(Column.class);
 				if (annotationColumn != null) {
 					if (maxLength == null && annotationColumn.length() > 0) {
 						maxLength = Integer.valueOf(annotationColumn.length());
 					}
 					edmProperty.setNullable(annotationColumn.nullable());
-					edmProperty.setSrid(getSRID(jpaAttribute.getJavaMember()));
+					edmProperty.setSrid(getSRID(javaMember));
 					edmProperty.setDefaultValue(determineDefaultValue());
 					if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
 							|| edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
@@ -228,27 +232,13 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	}
 
 	private String determineDefaultValue() throws ODataJPAModelException {
-		String valueString = null;
-		if (jpaAttribute.getJavaMember() instanceof Field && jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.BASIC) {
-			// It is not possible to get the default value directly from the Field,
-			// only from an instance field.get(Object obj).toString();
-			try {
-				final Field field = (Field) jpaAttribute.getJavaMember();
-				final Constructor<?> constructor = jpaAttribute.getDeclaringType().getJavaType().getConstructor();
-				final Object pojo = constructor.newInstance();
-				field.setAccessible(true);
-				final Object value = field.get(pojo);
-				if (value != null) {
-					valueString = value.toString();
-				}
-			} catch (final InstantiationException | NoSuchMethodException e) {
-				// Class could not be instantiated e.g. abstract class like Business Partner=> default could not be determined
-				// and will be ignored
-			} catch (final IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.PROPERTY_DEFAULT_ERROR, e, jpaAttribute.getName());
+		if (javaMember instanceof Field && jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.BASIC) {
+			final Object value = accessor.getDefaultPropertyValue();
+			if (value != null) {
+				return value.toString();
 			}
 		}
-		return valueString;
+		return null;
 	}
 
 	@Override
@@ -257,18 +247,54 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 		return edmProperty;
 	}
 
+	/**
+	 * This is a workaround for the buggy Hibernate meta model: if a entity is using
+	 * an @IdClass then only the field/method in that IdClass is given by Hibernate
+	 * instead of the field/method in the entity class.
+	 *
+	 * @return The field or method used to describe the attribute, taken from JPA
+	 *         provider or <code>null</code>
+	 */
+	private static Member determineJavaMemberOfAttribute(final Attribute<?, ?> jpaAttribute) {
+		final Member member = jpaAttribute.getJavaMember();
+		if (member.getDeclaringClass() == jpaAttribute.getDeclaringType().getJavaType()) {
+			return member;
+		}
+		// workaround needed...
+		if (jpaAttribute.getClass().getName().startsWith("org.hibernate") && LOG.isLoggable(Level.INFO)) {
+			LOG.log(Level.INFO,
+					"invalid metamodel of Hibernate found for "
+					+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName()
+					+ "... use workaround");
+		}
+		if (Field.class.isInstance(member)) {
+			for(final Field field: jpaAttribute.getDeclaringType().getJavaType().getDeclaredFields()) {
+				if (field.getName().equals(jpaAttribute.getName())) {
+					return field;
+				}
+			}
+			// fallback
+			LOG.log(Level.FINE, "Couldnt find matching (correct) field found for "
+					+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName());
+			return member;
+		} else {
+			throw new UnsupportedOperationException();
+		}
+	}
+
 	private void buildProperty(final JPAEdmNameBuilder nameBuilder) throws ODataJPAModelException {
 		// Set element specific attributes of super type
 		this.setExternalName(nameBuilder.buildPropertyName(internalName));
 
 		type = serviceDocument.getStructuredType(jpaAttribute);
 
-		if (this.jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
-			final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(EdmIgnore.class);
+		if (javaMember instanceof AnnotatedElement) {
+			final AnnotatedElement annotatedMember = (AnnotatedElement) javaMember;
+			final EdmIgnore jpaIgnore = annotatedMember.getAnnotation(EdmIgnore.class);
 			if (jpaIgnore != null) {
 				this.setIgnore(true);
 			}
-			final Column jpaColumnDetails = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(Column.class);
+			final Column jpaColumnDetails = annotatedMember.getAnnotation(Column.class);
 			if (jpaColumnDetails != null) {
 				dbFieldName = jpaColumnDetails.name();
 				if (dbFieldName.isEmpty()) {
@@ -280,19 +306,19 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 				dbFieldName = internalName;
 			}
 			// TODO @Transient -> e.g. Calculated fields like formated name
-			final EdmSearchable jpaSearchable = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(EdmSearchable.class);
+			final EdmSearchable jpaSearchable = annotatedMember.getAnnotation(EdmSearchable.class);
 			if (jpaSearchable != null) {
 				searchable = true;
 			}
 
-			streamInfo = ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(EdmMediaStream.class);
+			streamInfo = annotatedMember.getAnnotation(EdmMediaStream.class);
 			if (streamInfo != null) {
 				if ((streamInfo.contentType() == null || streamInfo.contentType().isEmpty())
 						&& (streamInfo.contentTypeAttribute() == null || streamInfo.contentTypeAttribute().isEmpty())) {
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.ANNOTATION_STREAM_INCOMPLETE, internalName);
 				}
 			}
-			final Version jpaVersion = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(Version.class);
+			final Version jpaVersion = annotatedMember.getAnnotation(Version.class);
 			if (jpaVersion != null) {
 				isVersion = true;
 			}

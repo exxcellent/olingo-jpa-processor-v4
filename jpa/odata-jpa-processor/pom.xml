@@ -94,18 +94,6 @@
 			<artifactId>hsqldb</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<!-- Using EclipseLink as JPA provider -->
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<!-- Using Hibernate as JPA provider -->
-		    <groupId>org.hibernate</groupId>
-		    <artifactId>hibernate-core</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 	
 	<build>

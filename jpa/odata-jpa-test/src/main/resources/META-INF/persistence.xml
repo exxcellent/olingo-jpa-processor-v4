@@ -26,6 +26,7 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.PersonImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity</class>
+		
 		<properties>
 			<!--  EclipselInk properties -->
 			<property name="eclipselink.logging.level.sql" value="FINEST" />
@@ -36,16 +37,58 @@
 			<property name="eclipselink.persistence-context.flush-mode"	value="commit" />
 			<!-- Hibernate properties -->
 			<property name="hibernate.show_sql" value="true" />
-			<property name="hibernate.format_sql" value="true" />
+			<property name="hibernate.format_sql" value="false" />
 			<!-- property name="hibernate.hbm2ddl.auto" value="validate" /-->			
 			
-			<!-- share dproprties -->
+			<!-- shared properties -->
+			<property name="javax.persistence.validation.mode" value="NONE" />
+		</properties>
+	</persistence-unit>
+
+	<!-- special variant of persistence unit adapted for openJPA -->
+	<persistence-unit name="openjpa" transaction-type="RESOURCE_LOCAL"> 
+
+        <!-- Attribute converters -->
+        <!--
+        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter</class>
+        <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter</class>
+		-->
+
+        <!-- Persistent entities -->
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AbstractEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Organization</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Person</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Country</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.PersonImage</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity</class>
+		
+		<!-- Embeddables, only required by openJPA -->
+		<class>org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeInformation</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.ChangeInformation</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.CommunicationData</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescriptionKey</class>
+		
+		<properties>
+			<!-- openJPA properties -->
+			<property name="openjpa.DynamicEnhancementAgent" value="true"/>
+			<property name="openjpa.RuntimeUnenhancedClasses" value="supported"/>
+			<property name="openjpa.Log" value="DefaultLevel=WARN, Runtime=INFO, Tool=INFO, SQL=TRACE"/>
+			
+			<!-- shared properties -->
 			<property name="javax.persistence.validation.mode" value="NONE" />
 		</properties>
 	</persistence-unit>
 
 	<!-- 
-		persistence unit used for test only, must contain exact one class
+		persistence unit used for test only, meta model at runtime must contain exact one class
 	-->
 	<persistence-unit name="DUMMY" transaction-type="RESOURCE_LOCAL"> 
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>

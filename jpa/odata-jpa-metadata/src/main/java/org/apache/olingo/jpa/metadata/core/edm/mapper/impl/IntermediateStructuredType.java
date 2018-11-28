@@ -323,7 +323,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 	 *             attribute in context.
 	 */
 	@Deprecated
-	JPAAttributePath getPathByDBField(final String dbFieldName)
+	// TODO male package protected again
+	public JPAAttributePath getPathByDBField(final String dbFieldName)
 			throws ODataJPAModelException {
 		lazyBuildCompletePathMap();
 

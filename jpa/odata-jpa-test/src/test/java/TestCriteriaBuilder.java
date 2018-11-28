@@ -93,11 +93,11 @@ public class TestCriteriaBuilder {
 	}
 
 	@Test
-	public void TestExpandCount() {
+	public void TestExpandSimilarCount() {
 		final CriteriaQuery<Tuple> count = cb.createTupleQuery();
 		final Root<?> roles = count.from(BusinessPartnerRole.class);
 
-		count.multiselect(roles.get("businessPartnerID"), cb.count(roles).alias("$count"));
+		count.multiselect(roles.get("businessPartnerID"), cb.count(roles).alias("c"));
 		count.groupBy(roles.get("businessPartnerID"));
 		count.orderBy(cb.desc(cb.count(roles)));
 		final TypedQuery<Tuple> tq = em.createQuery(count);

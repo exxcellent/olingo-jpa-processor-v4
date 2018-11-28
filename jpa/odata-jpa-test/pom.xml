@@ -13,7 +13,9 @@
 
 	<name>odata-jpa-test</name>
 	<url>http://maven.apache.org</url>
+	
 	<properties>
+		<disable.enhancer>false</disable.enhancer>
 	</properties>
 	
 	<dependencies>
@@ -68,65 +70,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
-	<profiles>
-		<profile>
-			<id>use-eclipselink</id>
-			<activation>
-				<!-- in all cases without hibernate (default) -->
-				<property><name>!use-hibernate</name></property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<!-- Using EclipseLink as JPA provider -->
-					<groupId>org.eclipse.persistence</groupId>
-					<artifactId>org.eclipse.persistence.jpa</artifactId>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-			<!-- build>
-				<plugins>
-					<plugin>
-					    <groupId>de.empulse.eclipselink</groupId>
-					    <artifactId>staticweave-maven-plugin</artifactId>
-					    <version>1.0.0</version>
-					    <executions>
-					        <execution>
-					            <phase>process-classes</phase>
-					            <goals>
-					                <goal>weave</goal>
-					            </goals>
-					            <configuration>
-					                <logLevel>INFO</logLevel>
-					            </configuration>
-					        </execution>
-					    </executions>
-					    <dependencies>
-					        <dependency>
-					            <groupId>org.eclipse.persistence</groupId>
-					            <artifactId>org.eclipse.persistence.jpa</artifactId>
-								<version>${eclipselink.version}</version>
-					        </dependency>
-					    </dependencies>
-					</plugin>
-				</plugins>
-			</build-->
-		</profile>
-		<profile>
-			<id>use-hibernate</id>
-			<activation>
-				<property><name>use-hibernate</name></property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<!-- Using Hibernate as JPA provider -->
-				    <groupId>org.hibernate</groupId>
-				    <artifactId>hibernate-core</artifactId>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
 	
 	<build>
         <plugins>

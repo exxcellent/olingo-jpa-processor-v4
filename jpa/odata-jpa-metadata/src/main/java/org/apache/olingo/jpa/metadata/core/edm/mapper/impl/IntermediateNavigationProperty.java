@@ -3,6 +3,10 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -40,12 +44,12 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavi
  * <a href=
  * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406397962"
  * >OData Version 4.0 Part 3 - 7 Navigation Property</a>
- * 
+ *
  * @author Oliver Grande
  *
  */
 class IntermediateNavigationProperty extends IntermediateModelElement
-        implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
+implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 
 	private final static Logger LOG = Logger.getLogger(IntermediateNavigationProperty.class.getName());
 
@@ -61,7 +65,7 @@ class IntermediateNavigationProperty extends IntermediateModelElement
 	private final JPAAttributeAccessor accessor;
 
 	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final JPAStructuredType parent, final Attribute<?, ?> jpaAttribute,
-	        final IntermediateServiceDocument serviceDocument) {
+			final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, jpaAttribute.getName());
 		this.jpaAttribute = jpaAttribute;
 		this.serviceDocument = serviceDocument;
@@ -281,7 +285,7 @@ class IntermediateNavigationProperty extends IntermediateModelElement
 
 			if (sourceJoinColumns.isEmpty()) {
 				LOG.log(Level.SEVERE, "Navigation property (" + sourceType.getInternalName() + "#" + getInternalName()
-				        + ") without columns to join found, navigation to target entity is not possible!");
+				+ ") without columns to join found, navigation to target entity is not possible!");
 				setIgnore(true);
 			}
 
@@ -380,8 +384,8 @@ class IntermediateNavigationProperty extends IntermediateModelElement
 				tP = targetType.getPropertyByDBField(intermediateColumn.getReferencedColumnName());
 				if (tP == null) {
 					final ODataJPAModelException ex = new ODataJPAModelException(
-					        ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
-					        intermediateColumn.getReferencedColumnName(), targetType.getExternalName());
+							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
+							intermediateColumn.getReferencedColumnName(), targetType.getExternalName());
 					LOG.log(Level.FINER, ex.getMessage());
 					// skip constraint
 					continue;
@@ -399,8 +403,8 @@ class IntermediateNavigationProperty extends IntermediateModelElement
 				sP = ((IntermediateStructuredType) sourceType).getPropertyByDBField(intermediateColumn.getReferencedColumnName());
 				if (sP == null) {
 					final ODataJPAModelException ex = new ODataJPAModelException(
-					        ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
-					        intermediateColumn.getReferencedColumnName(), sourceType.getExternalName());
+							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
+							intermediateColumn.getReferencedColumnName(), sourceType.getExternalName());
 					LOG.log(Level.FINER, ex.getMessage());
 					// skip constraint
 					continue;
@@ -414,8 +418,8 @@ class IntermediateNavigationProperty extends IntermediateModelElement
 				tP = targetType.getPropertyByDBField(intermediateColumn.getName());
 				if (tP == null) {
 					final ODataJPAModelException ex = new ODataJPAModelException(
-					        ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
-					        intermediateColumn.getName(), targetType.getExternalName());
+							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
+							intermediateColumn.getName(), targetType.getExternalName());
 					LOG.log(Level.FINE, ex.getMessage());
 					// skip constraint
 					continue;
@@ -526,7 +530,7 @@ class IntermediateNavigationProperty extends IntermediateModelElement
 		}
 		if (attributes.size() > 1) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE, this.getExternalName(),
-			        theType.getExternalName());
+					theType.getExternalName());
 		}
 		return attributes;
 	}

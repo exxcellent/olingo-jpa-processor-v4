@@ -87,7 +87,16 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 						createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot));
 			}
 			if (childQuery != null) {
-				whereCondition = cb.and(whereCondition, cb.exists(childQuery));
+				if (whereCondition != null) {
+					whereCondition = cb.and(whereCondition, cb.exists(childQuery));
+				} else {
+					whereCondition = cb.exists(childQuery);
+				}
+			}
+			if (whereCondition == null) {
+				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
+						HttpStatusCode.INTERNAL_SERVER_ERROR,
+						new IllegalStateException("Couldn't determine WHERE condition"), association.getAlias());
 			}
 			subQuery.where(whereCondition);
 			handleAggregation(subQuery, queryRoot);
@@ -123,73 +132,44 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 	protected Expression<Boolean> createSubqueryWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException {
 		Expression<Boolean> whereCondition = null;
-		//		final List<JPAOnConditionItem> conditionItems = getAssociation().getJoinConditions();// FIXME
-		//		for (final JPAOnConditionItem onItem : conditionItems) {
-		//			// the right side path maybe NULL in case of a @JoinTable (of a 1:n or m:n
-		//			// relationship)
-		//			final boolean joinTableInBetween = association.hasJoinTableBetweenSourceAndTarget();
-		//			if (onItem.getRightPath() == null && !joinTableInBetween) {
-		//				throw new IllegalStateException(
-		//						"Missing right join condition is only allowed for a relationship with @JoinTable between: "
-		//								+ association.getSourceType().getExternalName() + "#" + association.getAlias());
-		//			}
-		//			// 'parentFrom' represents the target of navigation (association), means: the
-		//			// right side
-		//			Path<?> parentPath = parentFrom;
-		//			// do not create a ON condition for a real navigation
-		//			if (!JPAAssociationPath.class.isInstance(onItem.getLeftPath())) {
-		//				for (final JPAElement jpaPathElement : onItem.getRightPath().getPathElements()) {
-		//					parentPath = parentPath.get(jpaPathElement.getInternalName());
-		//				}
-		//			}
-		//			// 'subRoot' is the source of navigation; the left side
-		//			Path<?> subPath = subRoot;
-		//			if (!JPAAssociationPath.class.isInstance(onItem.getRightPath())) {
-		//				if (onItem.getRightPath() == null) {
-		//					// trigger complete JOIN expression by JPA for our subselect
-		//					subPath = subRoot
-		//							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
-		//				} else {
-		//					for (final JPAElement jpaPathElement : onItem.getLeftPath().getPathElements()) {
-		//						subPath = subPath.get(jpaPathElement.getInternalName());
-		//					}
-		//				}
-		//			}
-		//			final Expression<Boolean> equalCondition = cb.equal(parentPath, subPath);
-		//			if (whereCondition == null) {
-		//				whereCondition = equalCondition;
-		//			} else {
-		//				whereCondition = cb.and(whereCondition, equalCondition);
-		//			}
-		//		}
 
-		final List<JPASelector> leftSelectors = getAssociation().getLeftPaths();
-		final List<JPASelector> rightSelectors = getAssociation().getRightPaths();
-		for (final JPASelector right : rightSelectors) {
-			// 'parentFrom' represents the target of navigation (association), means: the
-			// right side
-			Path<?> parentPath = parentFrom;
-			// do not create a ON condition for a real navigation
-			if (!JPAAssociationPath.class.isInstance(right)) {
-				for (final JPAElement jpaPathElement : right.getPathElements()) {
-					parentPath = parentPath.get(jpaPathElement.getInternalName());
-				}
-			}
-		}
 		final boolean joinTableInBetween = association.hasJoinTableBetweenSourceAndTarget();
+
 		if (joinTableInBetween) {
-			Path<?> subPath = subRoot;
 			// trigger complete JOIN expression by JPA for our subselect
-			subPath = subRoot.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+			final Path<?> subPath = subRoot
+					.join(association.getSourceType().getAssociationByPath(association).getInternalName());
 			whereCondition = cb.equal(parentFrom, subPath);
 		} else {
-			for (final JPASelector left : leftSelectors) {
+			final List<JPASelector> leftSelectors = getAssociation().getLeftPaths();
+			final List<JPASelector> rightSelectors = getAssociation().getRightPaths();
+			assert leftSelectors.size() == rightSelectors.size();
+			for (int index = 0; index < leftSelectors.size(); index++) {
 				// 'subRoot' is the source of navigation; the left side
 				Path<?> subPath = subRoot;
+				// 'parentFrom' represents the target of navigation (association), means: the
+				// right side
+				Path<?> parentPath = parentFrom;
+
+				final JPASelector left = leftSelectors.get(index);
+				final JPASelector right = rightSelectors.get(index);
+
+				// the JPA framework will do the correct things
+				if (JPAAssociationPath.class.isInstance(left)) {
+					subPath = subRoot
+							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+					return cb.equal(parentFrom, subPath);
+				}
 				for (final JPAElement jpaPathElement : left.getPathElements()) {
 					subPath = subPath.get(jpaPathElement.getInternalName());
 				}
-				final Expression<Boolean> equalCondition = cb.equal(parentFrom, subPath);
+				if (JPAAssociationPath.class.isInstance(right)) {
+					throw new UnsupportedOperationException();
+				}
+				for (final JPAElement jpaPathElement : right.getPathElements()) {
+					parentPath = parentPath.get(jpaPathElement.getInternalName());
+				}
+				final Expression<Boolean> equalCondition = cb.equal(parentPath, subPath);
 				if (whereCondition == null) {
 					whereCondition = equalCondition;
 				} else {
@@ -197,6 +177,7 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 				}
 			}
 		}
+
 
 		return whereCondition;
 	}

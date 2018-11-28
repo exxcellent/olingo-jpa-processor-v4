@@ -18,6 +18,12 @@ public class MethodAttributeAccessor implements JPAAttributeAccessor {
 	}
 
 	@Override
+	public Object getDefaultPropertyValue() throws ODataJPAModelException {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public Object getPropertyValue(final Object jpaEntity) throws ODataJPAModelException {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException();

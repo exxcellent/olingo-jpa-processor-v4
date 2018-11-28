@@ -574,8 +574,10 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 		// 2. Create the queries and roots
 		for (final JPANavigationProptertyInfo naviInfo : naviPathList) {
-			queryList.add(new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em, naviInfo.getAssociationPath()));
-			parent = queryList.get(queryList.size() - 1);
+			final JPANavigationQuery navQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em,
+					naviInfo.getAssociationPath());
+			queryList.add(navQuery);
+			parent = navQuery;
 		}
 		// 3. Create select statements
 		Subquery<?> childQuery = null;

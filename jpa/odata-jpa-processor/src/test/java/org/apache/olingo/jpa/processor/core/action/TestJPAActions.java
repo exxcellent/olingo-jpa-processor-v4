@@ -119,7 +119,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/" + PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
+				"Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
 		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();

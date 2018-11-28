@@ -2,19 +2,12 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-
 public class BusinessPartnerRoleKey implements Serializable {
 
 	private static final long serialVersionUID = -2350388598203342905L;
 
-	@Id
-	@Column(name = "\"BusinessPartnerID\"")
 	private String businessPartnerID;
 
-	@Id
-	@Column(name = "\"BusinessPartnerRole\"")
 	private String roleCategory;
 
 	@Override
