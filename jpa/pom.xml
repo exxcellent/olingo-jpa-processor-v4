@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.exxcellent.olingo-generic-processor</groupId>
 		<artifactId>olingo-generic-processor-root-pom</artifactId>
-		<version>0.9.1-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -41,6 +41,7 @@
 		<profile>
 			<id>use-eclipselink</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property><name>use-eclipselink</name></property>
 			</activation>
 			<dependencies>
@@ -82,7 +83,6 @@
 		<profile>
 			<id>use-hibernate</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
 				<property><name>use-hibernate</name></property>
 			</activation>
 			<dependencies>
