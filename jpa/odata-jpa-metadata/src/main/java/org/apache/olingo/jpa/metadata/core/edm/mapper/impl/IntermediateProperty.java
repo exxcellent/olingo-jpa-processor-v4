@@ -257,15 +257,16 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	 */
 	private static Member determineJavaMemberOfAttribute(final Attribute<?, ?> jpaAttribute) {
 		final Member member = jpaAttribute.getJavaMember();
-		if (member.getDeclaringClass() == jpaAttribute.getDeclaringType().getJavaType()) {
+		if (member.getDeclaringClass() == jpaAttribute.getDeclaringType().getJavaType()
+				|| member.getDeclaringClass().isAssignableFrom(jpaAttribute.getDeclaringType().getJavaType())) {
 			return member;
 		}
 		// workaround needed...
 		if (jpaAttribute.getClass().getName().startsWith("org.hibernate") && LOG.isLoggable(Level.INFO)) {
 			LOG.log(Level.INFO,
 					"invalid metamodel of Hibernate found for "
-					+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName()
-					+ "... use workaround");
+							+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName()
+							+ "... use workaround");
 		}
 		if (Field.class.isInstance(member)) {
 			for(final Field field: jpaAttribute.getDeclaringType().getJavaType().getDeclaredFields()) {
@@ -274,7 +275,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 				}
 			}
 			// fallback
-			LOG.log(Level.FINE, "Couldnt find matching (correct) field found for "
+			LOG.log(Level.FINE, "Couldn't find matching (correct) field found for "
 					+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName());
 			return member;
 		} else {

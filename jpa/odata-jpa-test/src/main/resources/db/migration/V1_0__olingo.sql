@@ -65,7 +65,7 @@ insert into "org.apache.olingo.jpa::Phone" values ('97','+42/1234/987654321');
 CREATE TABLE "org.apache.olingo.jpa::PersonImage" (
 	"PID" VARCHAR(32) NOT NULL , -- standard behaviour to navigate to a Person
 	"NOT_MAPPED_PID" VARCHAR(32) NOT NULL , -- used to join in JPA, but without explicit attribute in model
-	PersonWithDefaultIdMapping_ID VARCHAR(32) NOT NULL , -- special JPA/Hibernate case to auto build a join column name for navigation without further mapping informations; do NOT Wrap the column name with ""!!!
+	PersonWithDefaultIdMapping_ID VARCHAR(32) NOT NULL , -- special JPA case to auto build a join column name for navigation without further mapping informations; do NOT Wrap the column name with ""!!!
 	"Image" BLOB,
 	"CreatedBy" VARCHAR(32) NOT NULL ,
 	"CreatedAt" TIMESTAMP,   

@@ -38,7 +38,8 @@
 			<!-- Hibernate properties -->
 			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.format_sql" value="false" />
-			<!-- property name="hibernate.hbm2ddl.auto" value="validate" /-->			
+			<!-- property name="hibernate.globally_quoted_identifiers" value="false" /-->			
+			<!-- property name="hibernate.hbm2ddl.auto" value="validate" /-->
 			
 			<!-- shared properties -->
 			<property name="javax.persistence.validation.mode" value="NONE" />

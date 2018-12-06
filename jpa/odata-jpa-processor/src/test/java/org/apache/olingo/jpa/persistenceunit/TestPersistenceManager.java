@@ -66,5 +66,4 @@ public class TestPersistenceManager extends TestBase {
 		assertEquals("openjpa", Constant.PUNIT_NAME);
 		assertEquals(Constant.PUNIT_NAME, persistenceAdapter.getNamespace());
 	}
-
 }

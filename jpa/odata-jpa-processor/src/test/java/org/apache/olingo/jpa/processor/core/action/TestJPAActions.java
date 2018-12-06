@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -64,6 +65,9 @@ public class TestJPAActions extends TestBase {
 
 	@Test
 	public void testBoundPrimitiveActionWithEntityParameter() throws IOException, ODataException {
+		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
+				getJPAProvider() != JPAProvider.Hibernate);
+
 		final StringBuffer requestBody = new StringBuffer("{");
 		requestBody.append("\"dummy\": " + Integer.toString(3)).append(", ");
 		requestBody.append("\"country\": {");
@@ -113,6 +117,9 @@ public class TestJPAActions extends TestBase {
 
 	@Test
 	public void testBoundPrimitiveActionWithEnumParameter() throws IOException, ODataException {
+		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
+				getJPAProvider() != JPAProvider.Hibernate);
+
 		final StringBuffer requestBody = new StringBuffer("{");
 		final String testValue = TestEnum.Three.name();
 		requestBody.append("\"value\": \"" + testValue + "\"");

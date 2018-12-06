@@ -7,7 +7,7 @@
 	<version>0.9.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>olingo-generic-processor Root POM</name>
+	<name>OData-JPA bridge Root POM</name>
 	<url>https://gitlab.exxcellent.de/akad/olingo-generic-processor</url>
 
 	<properties>
