@@ -65,7 +65,7 @@ insert into "org.apache.olingo.jpa::Phone" values ('97','+42/1234/987654321');
 CREATE TABLE "org.apache.olingo.jpa::PersonImage" (
 	"PID" VARCHAR(32) NOT NULL , -- standard behaviour to navigate to a Person
 	"NOT_MAPPED_PID" VARCHAR(32) NOT NULL , -- used to join in JPA, but without explicit attribute in model
-	PersonWithDefaultIdMapping_ID VARCHAR(32) NOT NULL , -- special JPA/Hibernate case to auto build a join column name for navigation without further mapping informations; do NOT Wrap the column name with ""!!!
+	PersonWithDefaultIdMapping_ID VARCHAR(32) NOT NULL , -- special JPA case to auto build a join column name for navigation without further mapping informations; do NOT Wrap the column name with ""!!!
 	"Image" BLOB,
 	"CreatedBy" VARCHAR(32) NOT NULL ,
 	"CreatedAt" TIMESTAMP,   
@@ -431,6 +431,22 @@ insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( '
 insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( 'Eurostat','NUTS3','BE351','en','Arrondissement of Dinant');
 insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( 'Eurostat','NUTS3','BE352','en','Arrondissement of Namur');
 insert into "org.apache.olingo.jpa::AdministrativeDivisionDescription" values( 'Eurostat','NUTS3','BE353','en','Arrondissement of Philippeville');
+
+-- helpertable+ view to simulate a join table for m:n relationship between BusinessPartner and AdministrativeDivisionDescription
+CREATE TABLE "org.apache.olingo.jpa::BPADDJoinTable"(
+	"BusinessPartnerID" VARCHAR(32) NOT NULL ,
+	"CodePublisher" VARCHAR(10) NOT NULL,
+	"CodeID" VARCHAR(10) NOT NULL,
+	"DivisionCode" VARCHAR(10) NOT NULL,
+	"LanguageISO" VARCHAR(4) NOT NULL)
+;
+
+INSERT INTO "org.apache.olingo.jpa::BPADDJoinTable" 
+	SELECT BP."ID" AS "BusinessPartnerID", AD."CodePublisher", AD."CodeID", AD."DivisionCode", AD."LanguageISO"
+	FROM "org.apache.olingo.jpa::AdministrativeDivisionDescription" AS AD
+	JOIN "org.apache.olingo.jpa::BusinessPartner" AS BP ON BP."Address.Region" = AD."DivisionCode"
+; 
+
 
 CREATE TABLE "org.apache.olingo.jpa::AdministrativeDivision"(
 	"CodePublisher" VARCHAR(10) NOT NULL,

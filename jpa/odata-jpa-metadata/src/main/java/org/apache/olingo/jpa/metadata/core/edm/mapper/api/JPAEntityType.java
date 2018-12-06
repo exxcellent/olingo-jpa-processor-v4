@@ -27,20 +27,18 @@ public interface JPAEntityType extends JPAStructuredType {
 
 	/**
 	 * Returns a list of path of all attributes annotated as Id. EmbeddedId are <b>not</b> resolved
-	 * @return
 	 * @throws ODataJPAModelException
 	 */
 	public List<JPAAttributePath> getKeyPath() throws ODataJPAModelException;
 
 	/**
-	 * Returns the class of the Key. This could by either a primitive tape, the IdClass or the Embeddable of an EmbeddedId
-	 * @return
+	 * Returns the class of the Key. This could by either a primitive tape, the
+	 * IdClass or the EmbeddedId of an Embeddable
 	 */
 	public Class<?> getKeyType();
 
 	/**
 	 *
-	 * @return
 	 * @throws ODataJPAModelException
 	 */
 	public List<JPASelector> getSearchablePath() throws ODataJPAModelException;

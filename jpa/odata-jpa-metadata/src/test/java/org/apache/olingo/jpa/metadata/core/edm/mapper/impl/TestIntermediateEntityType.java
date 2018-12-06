@@ -6,12 +6,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -28,7 +29,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 
 	@Before
 	public void setup() throws ODataJPAModelException {
-		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
+		//		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		etList = emf.getMetamodel().getEntities();
 		this.serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
 		serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
@@ -153,24 +154,30 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertEquals("Address/AdministrativeDivision", et.getAssociationPath("Address/AdministrativeDivision").getAlias());
 	}
 
-	@Ignore("Address/AdministrativeDivision commented out")
 	@Test
 	public void checkGetAssoziationOfComplexTypeByNameJoinColumns() throws ODataJPAModelException {
 		int actCount = 0;
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"BusinessPartner"),
 				serviceDocument);
-		for (final JPAOnConditionItem item : et.getAssociationPath("Address/AdministrativeDivision").getJoinConditions()) {
-			if (item.getLeftPath().getAlias().equals("Address/Region")) {
-				assertTrue(item.getRightPath().getAlias().equals("DivisionCode"));
+		final JPAAssociationPath assoPath = et.getAssociationPath("Address/AdministrativeDivision");
+		final List<JPASelector> leftSelectors = assoPath.getLeftPaths();
+		final List<JPASelector> rightSelectors = assoPath.getRightPaths();
+		assertEquals("The join is based on same column numbers on both sides", leftSelectors.size(),
+				rightSelectors.size());
+		for (int i = 0; i < leftSelectors.size(); i++) {
+			final JPASelector left = leftSelectors.get(i);
+			final JPASelector right = rightSelectors.get(i);
+			if (left.getAlias().equals("Address/Region")) {
+				assertTrue(right.getAlias().equals("DivisionCode"));
 				actCount++;
 			}
-			if (item.getLeftPath().getAlias().equals("Address/RegionCodeID")) {
-				assertTrue(item.getRightPath().getAlias().equals("CodeID"));
+			if (left.getAlias().equals("Address/RegionCodeID")) {
+				assertTrue(right.getAlias().equals("CodeID"));
 				actCount++;
 			}
-			if (item.getLeftPath().getAlias().equals("Address/RegionCodePublisher")) {
-				assertTrue(item.getRightPath().getAlias().equals("CodePublisher"));
+			if (left.getAlias().equals("Address/RegionCodePublisher")) {
+				assertTrue(right.getAlias().equals("CodePublisher"));
 				actCount++;
 			}
 		}
@@ -293,14 +300,14 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 	}
 
 	@Test
-	public void checkEmbeddedIdResovedPath() throws ODataJPAModelException {
+	public void checkEmbeddedIdResolvedPath() throws ODataJPAModelException {
 		final JPAStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
 		assertEquals(5, et.getPathList().size());
 	}
 
 	@Test
-	public void checkEmbeddedIdResovedPathCodeId() throws ODataJPAModelException {
+	public void checkEmbeddedIdResolvedPathCodeId() throws ODataJPAModelException {
 		final JPAStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
 		assertEquals(2, et.getPath("CodeID").getPathElements().size());

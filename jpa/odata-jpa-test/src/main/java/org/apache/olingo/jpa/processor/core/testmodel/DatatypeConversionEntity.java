@@ -52,12 +52,12 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	// @Column(name = "\"ATimestamp2\"")
 	// private java.time.LocalDateTime aTimestamp2;
 
-	@Column(name = "\"AUrlString\"")
+	@Column(name = "\"AUrlString\"", columnDefinition = "clob")
 	@Convert(converter = JPAUrlConverter.class)
 	@EdmAttributeConverter(EdmUrlConverter.class)
 	private URL aUrl;
 
-	@Column(name = "\"ADecimal\"", precision = 16, scale = 5)
+	@Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5)
 	private BigDecimal aDecimal;
 
 	// @Column(name = "\"AYear\"")
@@ -79,7 +79,7 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Column(name = "\"UUID\"")
 	private UUID uuid;
 
-	@Column(name = "\"ABoolean\"")
+	@Column(name = "\"ABoolean\"", columnDefinition = "smallint")
 	private boolean aBoolean;
 
 	@EdmAction()

@@ -187,7 +187,13 @@ public class JPAEntityHelper {
 		if (listPrimaryKeyValues.isEmpty()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_KEY);
 		}
-		return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.NONE);
+		if (listPrimaryKeyValues.size() == 1) {
+			return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues.get(0), LockModeType.NONE);
+		} else {
+			log.warning(jpaType.getInternalName()
+					+ " has multiple id properties, this supported only by a few JPA providers and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
+			return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.NONE);
+		}
 	}
 
 }

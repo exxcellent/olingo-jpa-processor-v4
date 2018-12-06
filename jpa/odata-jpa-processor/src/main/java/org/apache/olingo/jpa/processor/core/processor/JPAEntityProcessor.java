@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
@@ -50,6 +52,8 @@ import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.queryoption.CountOptionImpl;
 
 public class JPAEntityProcessor extends AbstractProcessor implements EntityProcessor, CountEntityCollectionProcessor {
+
+	private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
 
 	public JPAEntityProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
 		super(context, em);
@@ -350,11 +354,14 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 		// enforce $count option as given, because OLingo parser doesn't respect the
 		// last resource path as system query option (a bug in Olingo?!)
 		if (uriInfo.getCountOption() == null) {
+			log.log(Level.FINER, "Add count option to UriInfo, because Olingo has not set it");
 			final CountOptionImpl countOption = new CountOptionImpl();
 			countOption.setValue(true);
 			((UriInfoImpl) uriInfo).setSystemQueryOption(countOption);
 		}
 
+		// TODO replace by simple COUNT() call without entity loading (and any outer
+		// join)
 		final EntityCollection entityCollection = retrieveEntityData(request, uriInfo);
 		final JPASerializer serializer = new JPASerializeCount(getOData());
 		// serialize all entries

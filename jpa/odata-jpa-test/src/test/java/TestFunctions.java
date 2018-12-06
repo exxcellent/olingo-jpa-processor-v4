@@ -82,7 +82,7 @@ public class TestFunctions {
 			//          reserved for future use
 			//          reserved for future use
 			final String remarks = metaR.getString(7);
-			final Short procedureTYpe = metaR.getShort(8);
+			final short procedureTYpe = metaR.getShort(8);
 			//      String specificName = metaR.getString(9);
 
 			System.out.println("procedureCatalog=" + procedureCatalog);
@@ -143,7 +143,7 @@ public class TestFunctions {
 		final Root<?> adminDiv = count.from(AdministrativeDivision.class);
 		count.multiselect(adminDiv);
 		count.where(cb.equal(
-				cb.function("IS_PRIME", boolean.class, cb.literal(5)),
+				cb.function("IS_PRIME", boolean.class, cb.literal(Integer.valueOf(5))),
 				new Boolean(true)));
 		// cb.literal
 		final TypedQuery<Tuple> tq = em.createQuery(count);

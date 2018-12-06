@@ -3,6 +3,7 @@ package org.apache.olingo.jpa.processor.core.filter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -246,6 +247,8 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testFilterDivGreater() throws IOException, ODataException {
+
+		assumeTrue("Hibernate cannot compare a Short (from 6000) as Number", getJPAProvider() != JPAProvider.Hibernate);
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions?$filter=Area gt 0 and Area div Population ge 6000");

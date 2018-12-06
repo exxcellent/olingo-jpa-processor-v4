@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -15,6 +16,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
+import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
@@ -63,6 +65,9 @@ public class TestJPAActions extends TestBase {
 
 	@Test
 	public void testBoundPrimitiveActionWithEntityParameter() throws IOException, ODataException {
+		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
+				getJPAProvider() != JPAProvider.Hibernate);
+
 		final StringBuffer requestBody = new StringBuffer("{");
 		requestBody.append("\"dummy\": " + Integer.toString(3)).append(", ");
 		requestBody.append("\"country\": {");
@@ -73,7 +78,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/" + PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
+				"Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
 		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();
@@ -112,13 +117,16 @@ public class TestJPAActions extends TestBase {
 
 	@Test
 	public void testBoundPrimitiveActionWithEnumParameter() throws IOException, ODataException {
+		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
+				getJPAProvider() != JPAProvider.Hibernate);
+
 		final StringBuffer requestBody = new StringBuffer("{");
 		final String testValue = TestEnum.Three.name();
 		requestBody.append("\"value\": \"" + testValue + "\"");
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/" + PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
+				"Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
 		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();

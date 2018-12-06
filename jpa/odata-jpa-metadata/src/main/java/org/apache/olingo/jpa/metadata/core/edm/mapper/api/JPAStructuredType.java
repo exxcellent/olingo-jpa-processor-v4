@@ -37,7 +37,7 @@ public interface JPAStructuredType extends JPAElement {
 	 */
 	public List<JPAAssociationPath> getAssociationPathList() throws ODataJPAModelException;
 
-	public JPAAssociationAttribute getAssociation(String internalName) throws ODataJPAModelException;
+	public JPAAssociationAttribute getAssociationByPath(final JPAAssociationPath path) throws ODataJPAModelException;
 
 	public JPAAssociationPath getAssociationPath(String externalName) throws ODataJPAModelException;
 

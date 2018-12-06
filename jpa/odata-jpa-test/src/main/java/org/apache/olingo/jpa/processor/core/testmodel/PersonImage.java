@@ -22,7 +22,7 @@ public class PersonImage {
 	@Column(name = "\"PID\"")
 	private String pID;
 
-	@Column(name = "\"Image\"")
+	@Column(name = "\"Image\"", columnDefinition = "blob")
 	@EdmMediaStream(contentType = "image/png")
 	private byte[] image;
 

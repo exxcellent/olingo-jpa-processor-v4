@@ -32,7 +32,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -277,10 +276,10 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 			Collections.sort(jpaPathList);
 			for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> entry : associationPathList.entrySet()) {
 				try {
-					for (final JPAOnConditionItem joinItem : entry.getValue().getJoinConditions()) {
-						final int insertIndex = Collections.binarySearch(jpaPathList, joinItem.getLeftPath());
+					for (final JPASelector leftSelector : entry.getValue().getLeftPaths()) {
+						final int insertIndex = Collections.binarySearch(jpaPathList, leftSelector);
 						if (insertIndex < 0) {
-							jpaPathList.add(/* Math.abs(insertIndex), */ joinItem.getLeftPath());
+							jpaPathList.add(/* Math.abs(insertIndex), */ leftSelector);
 						}
 					}
 				} catch (final ODataJPAModelException e) {
@@ -575,8 +574,10 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 		// 2. Create the queries and roots
 		for (final JPANavigationProptertyInfo naviInfo : naviPathList) {
-			queryList.add(new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em, naviInfo.getAssociationPath()));
-			parent = queryList.get(queryList.size() - 1);
+			final JPANavigationQuery navQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em,
+					naviInfo.getAssociationPath());
+			queryList.add(navQuery);
+			parent = navQuery;
 		}
 		// 3. Create select statements
 		Subquery<?> childQuery = null;

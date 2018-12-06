@@ -10,7 +10,6 @@ import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -20,7 +19,7 @@ import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
 
 class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
-	private final Tuple parentRow;
+	private final Tuple owningEnityRow;
 	private final JPAAssociationPath assoziation;
 
 	public JPATupleExpandResultConverter(final JPAQueryResult jpaExpandResult, final Tuple parentRow,
@@ -28,7 +27,7 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 			final ServiceMetadata serviceMetadata) throws ODataApplicationException {
 
 		super(jpaExpandResult, uriHelper, sd, serviceMetadata);
-		this.parentRow = parentRow;
+		this.owningEnityRow = parentRow;
 		this.assoziation = assoziation;
 	}
 
@@ -52,12 +51,12 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 		return link;
 	}
 
-	private final String buildConcatenatedKey(final Tuple row, final List<JPAOnConditionItem> joinColumns) {
+	private final String buildOwningEntityKey(final Tuple row, final List<JPASelector> joinColumns) {
 		final StringBuilder buffer = new StringBuilder();
-		JPASelector left;
-		for (final JPAOnConditionItem item : joinColumns) {
+		// we use all columns used in JOIN from left side (the owning entity) to build a
+		// identifying key accessing all nested relationship results
+		for (final JPASelector left : joinColumns) {
 			// ignored attributes are not part of the query selection result
-			left = item.getLeftPath();
 			buffer.append(JPASelector.PATH_SEPERATOR);
 			// if we got here an exception, then a required (key) join column was not
 			// selected in the query (see JPAQuery to fix!)
@@ -74,7 +73,7 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 
 		List<Tuple> subResult = null;
 		try {
-			final String key = buildConcatenatedKey(parentRow, assoziation.getJoinConditions());
+			final String key = buildOwningEntityKey(owningEnityRow, assoziation.getLeftPaths());
 			subResult = getJpaQueryResult().getDirectMappingsResult(key);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_CONV_ERROR,

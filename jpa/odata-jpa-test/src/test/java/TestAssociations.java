@@ -1,6 +1,8 @@
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -9,13 +11,18 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
+import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.processor.core.test.AbstractTest;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
+import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRoleKey;
 import org.apache.olingo.jpa.processor.core.testmodel.Country;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -23,8 +30,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestAssociations extends AbstractTest {
-	// private static final String ENTITY_MANAGER_DATA_SOURCE =
-	// "javax.persistence.nonJtaDataSource";
 	private static EntityManagerFactory emf;
 	private EntityManager em;
 	private CriteriaBuilder cb;
@@ -32,18 +37,55 @@ public class TestAssociations extends AbstractTest {
 	@BeforeClass
 	public static void setupClass() {
 		emf = createEntityManagerFactory(TestDatabaseType.HSQLDB);
-		// final Map<String, Object> properties = new HashMap<String, Object>();
-		// properties.put(ENTITY_MANAGER_DATA_SOURCE, DataSourceHelper.createDataSource(
-		// DataSourceHelper.DB_DERBY));
-		// emf =
-		// Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
-		// properties);
 	}
 
 	@Before
 	public void setup() {
 		em = emf.createEntityManager();
 		cb = em.getCriteriaBuilder();
+	}
+
+	@Test
+	public void testIdClassHandling() throws IOException, ODataException {
+		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+		final Root<?> root = cq.from(BusinessPartner.class);
+		cq.multiselect(root.get("ID").alias("ID"), root.get("country"));
+
+		final Subquery<?> subQuery = cq.subquery(BusinessPartnerRoleKey.class);
+		final Root<BusinessPartnerRole> subQueryRoot = subQuery.from(BusinessPartnerRole.class);
+		subQuery.select(subQueryRoot.get("businessPartnerID"));
+		final Predicate equalIds = cb.equal(root.get("ID"), subQueryRoot.get("businessPartnerID"));
+		final Predicate equalRole = cb.equal(subQueryRoot.get("roleCategory"), cb.literal("A"));
+		final Predicate equalID = cb.equal(subQueryRoot.get("businessPartnerID"), cb.literal("2"));
+		Predicate and = cb.and(equalIds, equalRole);
+		and = cb.and(and, equalID);
+		subQuery.where(and);
+		cq.where(cb.exists(subQuery));
+		final TypedQuery<Tuple> tq = em.createQuery(cq);
+		final List<Tuple> result = tq.getResultList();
+		assertTrue(result.size() == 1);
+		assertTrue(result.get(0).get("ID").equals("2"));
+	}
+
+	@Ignore("Problems with quoting of Address.Region in navigation of BusinessPartner#locations")
+	@Test
+	public void getAdministrativeDivisionDescriptions() {
+		final CriteriaQuery<AdministrativeDivisionDescription> cq = cb
+				.createQuery(AdministrativeDivisionDescription.class);
+		final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
+
+		final ParameterExpression<String> p = cb.parameter(String.class);
+		cq.multiselect(root.get("locations").alias("locations")).where(cb.equal(root.get("ID"), p));
+
+		final TypedQuery<AdministrativeDivisionDescription> tq = em.createQuery(cq);
+		tq.setParameter(p, "3");// BusinessPartner with that Id
+		final List<AdministrativeDivisionDescription> result = tq.getResultList();
+		// 'US-CA' must bring 2 results
+		assertEquals(2, result.size());
+		final AdministrativeDivisionDescription add = result.get(1);
+		assertNotNull(add);
+		assertNotNull(add.getKey());
+		assertEquals("US-CA", add.getKey().getDivisonCode());
 	}
 
 	@Test
@@ -58,7 +100,6 @@ public class TestAssociations extends AbstractTest {
 		assertNotNull(role);
 	}
 
-	@Ignore("'locations' is temporary removed from datamodel to fix the O/R mapping")
 	@Test
 	public void getBuPaLocation() {
 		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
@@ -71,6 +112,7 @@ public class TestAssociations extends AbstractTest {
 		assertNotNull(act);
 	}
 
+	@Ignore("This is simply a JPA provider test, but not an test for us... and it will not work in Hibernate")
 	@Test
 	public void getRoleBuPa() {
 		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();

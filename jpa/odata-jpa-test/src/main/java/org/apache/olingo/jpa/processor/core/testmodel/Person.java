@@ -15,7 +15,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
@@ -26,7 +25,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 
 @Entity(name = "Person")
 @DiscriminatorValue(value = "1")
-@Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BusinessPartner\"")
+//@Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BusinessPartner\"")
 public class Person extends BusinessPartner {
 
 	/**
@@ -51,7 +50,7 @@ public class Person extends BusinessPartner {
 	private String lastName;
 
 	@Convert(converter = JPADateConverter.class)
-	@Column(name = "\"BirthDay\"")
+	@Column(name = "\"BirthDay\"", columnDefinition = "date")
 	private LocalDate birthDay;
 
 	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)

@@ -11,18 +11,23 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::AdministrativeDivisionDescription\"")
 public class AdministrativeDivisionDescription {
 
-  @EmbeddedId
-  private AdministrativeDivisionDescriptionKey key;
-  
-  @EdmSearchable
-  @Column(name = "\"Name\"", length = 100, updatable = false)
-  private String name;
+	@EmbeddedId
+	private AdministrativeDivisionDescriptionKey key;
 
-  public String getName() {
-    return name;
-  }
+	@EdmSearchable
+	@Column(name = "\"Name\"", length = 100, updatable = false)
+	private String name;
 
-  public void setName(String name) {
-    this.name = name;
-  }
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
+	}
+
+	public AdministrativeDivisionDescriptionKey getKey() {
+		return key;
+	}
+
 }

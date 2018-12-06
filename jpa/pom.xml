@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.exxcellent.olingo-generic-processor</groupId>
 		<artifactId>olingo-generic-processor-root-pom</artifactId>
-		<version>0.9.1-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -16,40 +16,6 @@
 	<name>odata-jpa</name>
 	<url>http://maven.apache.org</url>
 
-	<properties>
-		<!-- test and metadata module are using java.time.LocalDate from JRE 1.8 -->
-        <java.source.version>1.8</java.source.version>
-		<java.target.version>1.8</java.target.version>
-		<odata.version>${olingo.version}</odata.version>
-	</properties>
-
-	<profiles>
-		<profile>
-			<id>build.fast</id>
-			<properties>
-				<pmd.skip>true</pmd.skip>
-				<rat.skip>true</rat.skip>
-				<checkstyle.skip>true</checkstyle.skip>
-				<exclude.regex>.*(proxy|client).*</exclude.regex>
-			</properties>
-		</profile>
-		<profile>
-			<id>build.quality</id>
-			<properties>
-				<cobertura.skip>false</cobertura.skip>
-				<!-- nothing excluded -->
-				<exclude.regex></exclude.regex>
-			</properties>
-		</profile>
-	</profiles>
-
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 	<modules>
 		<module>odata-jpa-annotation</module>
 		<module>odata-jpa-test</module>
@@ -57,7 +23,138 @@
 		<module>odata-jpa-metadata</module>
 		<module>odata-jpa-processor</module>
 	</modules>
+
+	<properties>
+		<!-- disable in all module, but test model -->
+		<disable.enhancer>true</disable.enhancer>
+	</properties>
 	
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<profiles>
+		<profile>
+			<id>use-eclipselink</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property><name>use-eclipselink</name></property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<!-- Using EclipseLink as JPA provider -->
+					<groupId>org.eclipse.persistence</groupId>
+					<artifactId>org.eclipse.persistence.jpa</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<!-- build>
+				<plugins>
+					<plugin>
+					    <groupId>de.empulse.eclipselink</groupId>
+					    <artifactId>staticweave-maven-plugin</artifactId>
+					    <version>1.0.0</version>
+					    <executions>
+					        <execution>
+					            <phase>process-classes</phase>
+					            <goals>
+					                <goal>weave</goal>
+					            </goals>
+					            <configuration>
+					                <logLevel>INFO</logLevel>
+					            </configuration>
+					        </execution>
+					    </executions>
+					    <dependencies>
+					        <dependency>
+					            <groupId>org.eclipse.persistence</groupId>
+					            <artifactId>org.eclipse.persistence.jpa</artifactId>
+								<version>${eclipselink.version}</version>
+					        </dependency>
+					    </dependencies>
+					</plugin>
+				</plugins>
+			</build-->
+		</profile>
+		<profile>
+			<id>use-hibernate</id>
+			<activation>
+				<property><name>use-hibernate</name></property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<!-- Using Hibernate as JPA provider -->
+				    <groupId>org.hibernate</groupId>
+				    <artifactId>hibernate-core</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>use-openJPA</id>
+			<activation>
+				<property><name>use-openjpa</name></property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<!-- Using openJPA as JPA provider -->
+				    <groupId>org.apache.openjpa</groupId>
+				    <artifactId>openjpa</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<useSystemClassLoader>false</useSystemClassLoader>
+							<systemProperties>
+								<!-- switch to another persistence unit for open JPA -->
+								<property>
+									<name>persistence-unit</name>
+									<value>openjpa</value>
+								</property>
+							</systemProperties>
+						</configuration>
+					</plugin>
+				    <plugin>
+				        <groupId>org.apache.openjpa</groupId>
+				        <artifactId>openjpa-maven-plugin</artifactId>
+				        <version>${openjpa.version}</version>
+				        <configuration>
+				        <skip>${disable.enhancer}</skip>
+				            <includes>**/testmodel/**/*.class</includes>
+				            <addDefaultConstructor>true</addDefaultConstructor>               
+				            <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
+				        </configuration>
+				        <executions>
+				            <execution>
+				                <id>enhancer</id>
+				                <phase>process-classes</phase>
+				                <goals>
+				                    <goal>enhance</goal>
+				                </goals>
+				            </execution>
+				        </executions>
+				        <dependencies>
+				            <dependency>
+				                <groupId>org.apache.openjpa</groupId>
+				                <artifactId>openjpa</artifactId>
+						        <version>${openjpa.version}</version>
+				            </dependency>
+				        </dependencies>
+				    </plugin>				
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+		
 	<build>
 		<pluginManagement>
 			<plugins>

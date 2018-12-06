@@ -122,7 +122,7 @@ public class AdministrativeDivision {
 		return parent;
 	}
 
-	public int getArea() {
+	public Integer getArea() {
 		return area;
 	}
 
@@ -155,7 +155,7 @@ public class AdministrativeDivision {
 	}
 
 	public void setArea(final int area) {
-		this.area = area;
+		this.area = Integer.valueOf(area);
 	}
 
 	public void setPopulation(final long population) {
