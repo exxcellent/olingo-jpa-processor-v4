@@ -61,7 +61,12 @@ public class TestHelper {
 
 	public JPAAttribute getJPAAssociation(final String entitySetName, final String attributeIntName) throws ODataJPAModelException {
 		final JPAEntityType jpaEntity = sd.getEntitySetType(entitySetName);
-		return jpaEntity.getAssociation(attributeIntName);
+		for (final JPAAttribute attribute : jpaEntity.getAssociations()) {
+			if (attribute.getInternalName().equals(attributeIntName)) {
+				return attribute;
+			}
+		}
+		return null;
 	}
 
 	public JPAAttribute getJPAAttribute(final String entitySetName, final String attributeIntName) throws ODataJPAModelException {

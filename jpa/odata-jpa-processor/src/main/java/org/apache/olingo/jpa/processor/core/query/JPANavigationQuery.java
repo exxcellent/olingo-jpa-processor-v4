@@ -16,7 +16,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
@@ -51,6 +51,10 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 		this.locale = parent.getLocale();
 	}
 
+	protected JPAAssociationPath getAssociation() {
+		return association;
+	}
+
 	/**
 	 * @return
 	 */
@@ -72,25 +76,30 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 		final Subquery<T> subQuery = (Subquery<T>) this.subQuery;
 
 		try {
-			final List<JPAOnConditionItem> conditionItems = association.getJoinConditions();
-			if (conditionItems.isEmpty()) {
-				return subQuery;
-			}
-			createSelectClause(subQuery, conditionItems);
+			createSelectClause(subQuery);
 
 			Expression<Boolean> whereCondition = null;
 			if (this.keyPredicates == null || this.keyPredicates.isEmpty()) {
-				whereCondition = createWhereByAssociation(parentQuery.getRoot(), queryRoot, conditionItems);
+				whereCondition = createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot);
 			} else {
 				whereCondition = cb.and(
 						createWhereByKey(queryRoot, null, this.keyPredicates),
-						createWhereByAssociation(parentQuery.getRoot(), queryRoot, conditionItems));
+						createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot));
 			}
 			if (childQuery != null) {
-				whereCondition = cb.and(whereCondition, cb.exists(childQuery));
+				if (whereCondition != null) {
+					whereCondition = cb.and(whereCondition, cb.exists(childQuery));
+				} else {
+					whereCondition = cb.exists(childQuery);
+				}
+			}
+			if (whereCondition == null) {
+				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
+						HttpStatusCode.INTERNAL_SERVER_ERROR,
+						new IllegalStateException("Couldn't determine WHERE condition"), association.getAlias());
 			}
 			subQuery.where(whereCondition);
-			handleAggregation(subQuery, queryRoot, conditionItems);
+			handleAggregation(subQuery, queryRoot);
 			return subQuery;
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
@@ -101,48 +110,75 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 	/**
 	 * Maybe implemented by sub classes.
 	 */
-	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot,
-			final List<JPAOnConditionItem> conditionItems) throws ODataApplicationException {}
+	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
+			throws ODataApplicationException, ODataJPAModelException {
+	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> void createSelectClause(final Subquery<T> subQuery, final List<JPAOnConditionItem> conditionItems) {
-		Path<?> p = queryRoot;
+	protected <T> void createSelectClause(final Subquery<T> subQuery) throws ODataJPAModelException {
+		final List<JPASelector> conditionItems = getAssociation().getLeftPaths();
 		if (conditionItems.isEmpty()) {
 			throw new IllegalStateException("join conditions required");
 		}
-		for (final JPAAttribute jpaPathElement : conditionItems.get(0).getLeftPath().getPathElements()) {
-			p = p.get(jpaPathElement.getInternalName());
+		for (final JPASelector leftSelector : conditionItems) {
+			Path<?> p = queryRoot;
+			for (final JPAAttribute jpaPathElement : leftSelector.getPathElements()) {
+				p = p.get(jpaPathElement.getInternalName());
+			}
+			subQuery.select((Expression<T>) p);
 		}
-		subQuery.select((Expression<T>) p);
 	}
 
-	protected Expression<Boolean> createWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot,
-			final List<JPAOnConditionItem> conditionItems) throws ODataApplicationException {
+	protected Expression<Boolean> createSubqueryWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot)
+			throws ODataApplicationException, ODataJPAModelException {
 		Expression<Boolean> whereCondition = null;
-		for (final JPAOnConditionItem onItem : conditionItems) {
-			// 'parentFrom' represents the target of navigation (association), means: the
-			// right side
-			Path<?> parentPath = parentFrom;
-			// do not create a ON condition for a real navigation
-			if (!JPAAssociationPath.class.isInstance(onItem.getLeftPath())) {
-				for (final JPAElement jpaPathElement : onItem.getRightPath().getPathElements()) {
-					parentPath = parentPath.get(jpaPathElement.getInternalName());
+
+		final boolean joinTableInBetween = association.hasJoinTableBetweenSourceAndTarget();
+
+		if (joinTableInBetween) {
+			// trigger complete JOIN expression by JPA for our subselect
+			final Path<?> subPath = subRoot
+					.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+			whereCondition = cb.equal(parentFrom, subPath);
+		} else {
+			final List<JPASelector> leftSelectors = getAssociation().getLeftPaths();
+			final List<JPASelector> rightSelectors = getAssociation().getRightPaths();
+			assert leftSelectors.size() == rightSelectors.size();
+			for (int index = 0; index < leftSelectors.size(); index++) {
+				// 'subRoot' is the source of navigation; the left side
+				Path<?> subPath = subRoot;
+				// 'parentFrom' represents the target of navigation (association), means: the
+				// right side
+				Path<?> parentPath = parentFrom;
+
+				final JPASelector left = leftSelectors.get(index);
+				final JPASelector right = rightSelectors.get(index);
+
+				// the JPA framework will do the correct things
+				if (JPAAssociationPath.class.isInstance(left)) {
+					subPath = subRoot
+							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+					return cb.equal(parentFrom, subPath);
 				}
-			}
-			// 'subRoot' is the source of navigation; the left side
-			Path<?> subPath = subRoot;
-			if (!JPAAssociationPath.class.isInstance(onItem.getRightPath())) {
-				for (final JPAElement jpaPathElement : onItem.getLeftPath().getPathElements()) {
+				for (final JPAElement jpaPathElement : left.getPathElements()) {
 					subPath = subPath.get(jpaPathElement.getInternalName());
 				}
-			}
-			final Expression<Boolean> equalCondition = cb.equal(parentPath, subPath);
-			if (whereCondition == null) {
-				whereCondition = equalCondition;
-			} else {
-				whereCondition = cb.and(whereCondition, equalCondition);
+				if (JPAAssociationPath.class.isInstance(right)) {
+					throw new UnsupportedOperationException();
+				}
+				for (final JPAElement jpaPathElement : right.getPathElements()) {
+					parentPath = parentPath.get(jpaPathElement.getInternalName());
+				}
+				final Expression<Boolean> equalCondition = cb.equal(parentPath, subPath);
+				if (whereCondition == null) {
+					whereCondition = equalCondition;
+				} else {
+					whereCondition = cb.and(whereCondition, equalCondition);
+				}
 			}
 		}
+
+
 		return whereCondition;
 	}
 

@@ -8,6 +8,7 @@ import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.client.api.uri.QueryOption;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.edm.Edm;
+import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
@@ -32,7 +33,7 @@ public class ReadEntitiesIT {
 	}
 
 	@Test
-	public void test1() {
+	public void testNonExistingResource() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("NoExistingResource").appendKeySegment("-3");
 		try {
 			endpoint.retrieveEntity(uriBuilder, "Try to load non existing resource");
@@ -42,14 +43,17 @@ public class ReadEntitiesIT {
 	}
 
 	@Test
-	public void test2() {
+	public void testMetadataAndCacheControl() {
 		final ODataRetrieveResponse<Edm> response = endpoint.retrieveMetadata();
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+		response.getHeader(HttpHeader.CACHE_CONTROL);
+		// disabled cache control is set as default, so header must be present
+		Assert.assertNotNull(response.getHeader(HttpHeader.CACHE_CONTROL));
 		response.close();
 	}
 
 	@Test
-	public void test3() throws Exception {
+	public void testPersonCount() throws Exception {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").count();
 		final ODataRetrieveResponse<ClientPrimitiveValue> response = endpoint.retrieveValue(uriBuilder, "Count persons in database");
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
@@ -59,7 +63,7 @@ public class ReadEntitiesIT {
 	}
 
 	@Test
-	public void test4() {
+	public void testLoadPerson() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99");
 		final ODataRetrieveResponse<ClientEntity> response = endpoint.retrieveEntity(uriBuilder, "Load person with ID 99");
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
@@ -71,10 +75,9 @@ public class ReadEntitiesIT {
 	}
 
 	@Test
-	public void test4WithExpand() {
+	public void testPersonWithExpand() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99")
-				.addQueryOption(QueryOption.EXPAND, "Roles")
-				/* .addQueryOption(QueryOption.EXPAND, "Image") */.addQueryOption(QueryOption.EXPAND, "Locations");
+				.addQueryOption(QueryOption.EXPAND, "Roles").addQueryOption(QueryOption.EXPAND, "Locations");
 		final ODataRetrieveResponse<ClientEntity> response = endpoint.retrieveEntity(uriBuilder,
 				"Load person with ID 99 and expanded navigation");
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
@@ -84,7 +87,7 @@ public class ReadEntitiesIT {
 	}
 
 	@Test
-	public void test5() {
+	public void testDataConversions() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("DatatypeConversionEntities");
 		final ODataRetrieveResponse<ClientEntitySet> response = endpoint.retrieveEntityCollection(uriBuilder,
 				"Load all data conversion entities");

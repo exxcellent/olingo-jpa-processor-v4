@@ -17,7 +17,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor
 
 /**
  * Cross compiles Olingo generated AST of an OData filter into JPA criteria builder where condition.
- * 
+ *
  * Details can be found:
  * <a href=
  * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301"
@@ -33,80 +33,80 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor
  */
 //TODO handle $it ...
 public class JPAFilterCrossComplier extends JPAAbstractFilter {
-  final JPAOperationConverter converter;
-  // TODO Check if it is allowed to select via navigation
-  // ...Organizations?$select=Roles/RoleCategory eq 'C'
-  // see also https://issues.apache.org/jira/browse/OLINGO-414
-  final EntityManager em;
-  final OData odata;
-  final IntermediateServiceDocument sd;
-  final List<UriResource> uriResourceParts;
-  final JPAAbstractQuery parent;
+	final JPAOperationConverter converter;
+	// TODO Check if it is allowed to select via navigation
+	// ...Organizations?$select=Roles/RoleCategory eq 'C'
+	// see also https://issues.apache.org/jira/browse/OLINGO-414
+	final EntityManager em;
+	final OData odata;
+	final IntermediateServiceDocument sd;
+	final List<UriResource> uriResourceParts;
+	final JPAAbstractQuery parent;
 
-  public JPAFilterCrossComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-      final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
-      final UriInfoResource uriResource, final JPAAbstractQuery parent) {
+	public JPAFilterCrossComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
+			final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
+			final UriInfoResource uriResource, final JPAAbstractQuery parent) {
 
-    super(jpaEntityType, uriResource);
+		super(jpaEntityType, uriResource);
 
-    if (uriResource != null) {
-      this.uriResourceParts = uriResource.getUriResourceParts();
-    } else {
-      this.uriResourceParts = null;
-    }
-    this.converter = converter;
-    this.em = em;
-    this.odata = odata;
-    this.sd = sd;
-    this.parent = parent;
-  }
+		if (uriResource != null) {
+			this.uriResourceParts = uriResource.getUriResourceParts();
+		} else {
+			this.uriResourceParts = null;
+		}
+		this.converter = converter;
+		this.em = em;
+		this.odata = odata;
+		this.sd = sd;
+		this.parent = parent;
+	}
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
+	@Override
+	@SuppressWarnings("unchecked")
+	public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
 
-    if (expression == null) {
-      return null;
-    }
-    final ExpressionVisitor<JPAOperator> visitor = new JPAVisitor(this);
-    final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
+		if (expression == null) {
+			return null;
+		}
+		final ExpressionVisitor<JPAOperator<?>> visitor = new JPAVisitor(this);
+		final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
 
-    return finalExpression;
-  }
+		return finalExpression;
+	}
 
-  @Override
-  public JPAOperationConverter getConverter() {
-    return converter;
-  }
+	@Override
+	public JPAOperationConverter getConverter() {
+		return converter;
+	}
 
-  @Override
-  public JPAEntityType getJpaEntityType() {
-    return jpaEntityType;
-  }
+	@Override
+	public JPAEntityType getJpaEntityType() {
+		return jpaEntityType;
+	}
 
-  @Override
-  public EntityManager getEntityManager() {
-    return em;
-  }
+	@Override
+	public EntityManager getEntityManager() {
+		return em;
+	}
 
-  @Override
-  public OData getOdata() {
-    return odata;
-  }
+	@Override
+	public OData getOdata() {
+		return odata;
+	}
 
-  @Override
-  public IntermediateServiceDocument getSd() {
-    return sd;
-  }
+	@Override
+	public IntermediateServiceDocument getSd() {
+		return sd;
+	}
 
-  @Override
-  public List<UriResource> getUriResourceParts() {
-    return uriResourceParts;
-  }
+	@Override
+	public List<UriResource> getUriResourceParts() {
+		return uriResourceParts;
+	}
 
-  @Override
-  public JPAAbstractQuery getParent() {
-    return parent;
-  }
+	@Override
+	public JPAAbstractQuery getParent() {
+		return parent;
+	}
 
 }

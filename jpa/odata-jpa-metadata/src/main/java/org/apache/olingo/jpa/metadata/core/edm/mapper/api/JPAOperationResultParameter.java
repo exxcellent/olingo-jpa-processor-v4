@@ -2,18 +2,16 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 
-public interface JPAOperationResultParameter {
+public interface JPAOperationResultParameter extends JPATypedElement {
 
-  public Integer getMaxLength();
+	public Integer getMaxLength();
 
-  public Integer getPrecision();
+	public Integer getPrecision();
 
-  public Integer getScale();
+	public Integer getScale();
 
-  public Class<?> getType();
+	public FullQualifiedName getTypeFQN();
 
-  public FullQualifiedName getTypeFQN();
-
-  public boolean isCollection();
+	public boolean isCollection();
 
 }

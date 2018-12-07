@@ -7,10 +7,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.IdentifiableType;
+import javax.persistence.metamodel.Type;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
@@ -77,10 +80,25 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 	@Override
 	public Class<?> getKeyType() {
 		if (jpaManagedType instanceof IdentifiableType<?>) {
-			return ((IdentifiableType<?>) jpaManagedType).getIdType().getJavaType();
-		} else {
-			return null;
+			final Type<?> idType = ((IdentifiableType<?>) jpaManagedType).getIdType();
+			// Hibernate doesn't really support @IdClass declarations with multiple key
+			// attributes
+			if (idType == null) {
+				final IdClass idClassAnnotation = jpaManagedType.getJavaType().getAnnotation(IdClass.class);
+				if (idClassAnnotation != null)
+				{
+					if (jpaManagedType.getClass().getName().startsWith("org.hibernate")) {
+						LOG.log(Level.WARNING, "invalid metamodel of Hibernate found for " + getInternalName()
+						+ ", no idType or invalid... use workaround");
+					}
+					return idClassAnnotation.value();
+				}
+				// TODO @EmbeddedId also?
+				throw new IllegalStateException("no key/pk/id class defined");
+			}
+			return idType.getJavaType();
 		}
+		throw new IllegalStateException("no key/pk/id class defined");
 	}
 
 	@Override

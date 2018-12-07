@@ -156,7 +156,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 	}
 
 	@Override
-	public JPAAssociationAttribute getAssociation(final String internalName) throws ODataJPAModelException {
+	public JPAAssociationAttribute getAssociationByPath(final JPAAssociationPath path) throws ODataJPAModelException {
 		throw new UnsupportedOperationException();
 	}
 

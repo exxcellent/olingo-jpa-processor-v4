@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,13 +111,13 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 			edmInputParameter.setNullable(false);
 			edmInputParameter.setCollection(jpaParameter.isCollection());
 			if (jpaParameter.maxLength() >= 0) {
-				edmInputParameter.setMaxLength(jpaParameter.maxLength());
+				edmInputParameter.setMaxLength(Integer.valueOf(jpaParameter.maxLength()));
 			}
 			if (jpaParameter.precision() >= 0) {
-				edmInputParameter.setPrecision(jpaParameter.precision());
+				edmInputParameter.setPrecision(Integer.valueOf(jpaParameter.precision()));
 			}
 			if (jpaParameter.scale() >= 0) {
-				edmInputParameter.setScale(jpaParameter.scale());
+				edmInputParameter.setScale(Integer.valueOf(jpaParameter.scale()));
 			}
 			if (jpaParameter.srid() != null && !jpaParameter.srid().srid().isEmpty()) {
 				final SRID srid = SRID.valueOf(jpaParameter.srid().srid());
@@ -149,13 +150,13 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		edmResultType.setCollection(returnType.isCollection());
 		edmResultType.setNullable(returnType.isNullable());
 		if (returnType.maxLength() >= 0) {
-			edmResultType.setMaxLength(returnType.maxLength());
+			edmResultType.setMaxLength(Integer.valueOf(returnType.maxLength()));
 		}
 		if (returnType.precision() >= 0) {
-			edmResultType.setPrecision(returnType.precision());
+			edmResultType.setPrecision(Integer.valueOf(returnType.precision()));
 		}
 		if (returnType.scale() >= 0) {
-			edmResultType.setScale(returnType.scale());
+			edmResultType.setScale(Integer.valueOf(returnType.scale()));
 		}
 		if (returnType.srid() != null && !returnType.srid().srid().isEmpty()) {
 			final SRID srid = SRID.valueOf(returnType.srid().srid());
@@ -170,6 +171,12 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 
 		IntermediatFunctionParameter(final EdmFunctionParameter jpaParameter) {
 			this.jpaParameter = jpaParameter;
+		}
+
+		@Override
+		public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+			// currently not supported
+			return null;
 		}
 
 		@SuppressWarnings("unused")
@@ -189,17 +196,17 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 
 		@Override
 		public Integer getMaxLength() {
-			return jpaParameter.maxLength();
+			return Integer.valueOf(jpaParameter.maxLength());
 		}
 
 		@Override
 		public Integer getPrecision() {
-			return jpaParameter.precision();
+			return Integer.valueOf(jpaParameter.precision());
 		}
 
 		@Override
 		public Integer getScale() {
-			return jpaParameter.scale();
+			return Integer.valueOf(jpaParameter.scale());
 		}
 
 		@Override
@@ -222,23 +229,29 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		}
 
 		@Override
+		public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+			// currently not supported
+			return null;
+		}
+
+		@Override
 		public Class<?> getType() {
 			return jpaReturnType.type();
 		}
 
 		@Override
 		public Integer getMaxLength() {
-			return jpaReturnType.maxLength();
+			return Integer.valueOf(jpaReturnType.maxLength());
 		}
 
 		@Override
 		public Integer getPrecision() {
-			return jpaReturnType.precision();
+			return Integer.valueOf(jpaReturnType.precision());
 		}
 
 		@Override
 		public Integer getScale() {
-			return jpaReturnType.scale();
+			return Integer.valueOf(jpaReturnType.scale());
 		}
 
 		@Override

@@ -20,7 +20,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribut
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
@@ -129,7 +128,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		for (final Tuple row : intermediateResult) {
 			String actuallKey;
 			try {
-				actuallKey = buildConcatenatedKey(row, a.getJoinConditions());
+				actuallKey = buildResultKey(row, a.getRightPaths());
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 			} catch (final IllegalArgumentException e) {
@@ -155,11 +154,11 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		return convertedResult;
 	}
 
-	private String buildConcatenatedKey(final Tuple row, final List<JPAOnConditionItem> joinColumns) {
+	private String buildResultKey(final Tuple row, final List<JPASelector> joinColumns) {
 		final StringBuffer buffer = new StringBuffer();
-		for (final JPAOnConditionItem item : joinColumns) {
+		for (final JPASelector item : joinColumns) {
 			buffer.append(JPASelector.PATH_SEPERATOR);
-			buffer.append(row.get(item.getRightPath().getAlias()));
+			buffer.append(row.get(item.getAlias()));
 		}
 		buffer.deleteCharAt(0);
 		return buffer.toString();
@@ -170,17 +169,23 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 
 		try {
 			Path<?> path;
-			for (final JPAOnConditionItem j : a.getJoinConditions()) {
+			for (final JPASelector j : a.getRightPaths()) {
+				//				if (j.getRightPath() == null) {
+				//					continue;
+				//				}
 				path = null;
-				for (final JPAAttribute attr : j.getRightPath().getPathElements()) {
+				for (final JPAAttribute attr : j.getPathElements()) {
 					if (path == null) {
 						path = root.get(attr.getInternalName());
 					} else {
 						path = path.get(attr.getInternalName());
 					}
 				}
+				if (path == null) {
+					throw new IllegalStateException("Invalid model; cannot build join for "
+							+ a.getSourceType().getExternalName() + "#" + a.getAlias());
+				}
 				orders.add(cb.asc(path));
-				// orders.add(cb.asc(root.get(j.getRightPath().getLeaf().getInternalName())));
 			}
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
@@ -222,8 +227,10 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
 
 		for (final JPANavigationProptertyInfo naviInfo : expandPathList) {
-			queryList.add(new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em, naviInfo.getAssociationPath()));
-			parent = queryList.get(queryList.size() - 1);
+			final JPANavigationQuery newQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em,
+					naviInfo.getAssociationPath());
+			queryList.add(newQuery);
+			parent = newQuery;
 		}
 		// 3. Create select statements
 		for (int i = queryList.size() - 1; i >= 0; i--) {

@@ -12,8 +12,11 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAFilterElementComplier;
@@ -31,111 +34,125 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
 
 public class JPANavigationFilterQuery extends JPANavigationQuery {
 
-  private final JPAFilterElementComplier filterComplier;
+	private final JPAFilterElementComplier filterComplier;
 
-  public JPANavigationFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-      final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
-      throws ODataApplicationException {
-    super(sd, uriResourceItem, parent, em, association);
-    this.filterComplier = null;
-  }
-
-  public JPANavigationFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-      final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association,
-      final VisitableExpression expression) throws ODataApplicationException {
-    super(sd, uriResourceItem, parent, em, association);
-    this.filterComplier = new JPAFilterElementComplier(odata, sd, em, jpaEntityType, new JPAOperationConverter(cb,
-        getContext().getOperationConverter()), null, this, expression);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected <T> void createSelectClause(final Subquery<T> subQuery, final List<JPAOnConditionItem> conditionItems) {
-    Path<?> p = getRoot();
-    for (final JPAElement jpaPathElement : conditionItems.get(0).getRightPath().getPathElements()) {
-		p = p.get(jpaPathElement.getInternalName());
+	public JPANavigationFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
+			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
+					throws ODataApplicationException {
+		super(sd, uriResourceItem, parent, em, association);
+		this.filterComplier = null;
 	}
-    subQuery.select((Expression<T>) p);
-  }
 
-  @Override
-  protected Expression<Boolean> createWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot,
-      final List<JPAOnConditionItem> conditionItems) throws ODataApplicationException {
+	public JPANavigationFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
+			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association,
+			final VisitableExpression expression) throws ODataApplicationException {
+		super(sd, uriResourceItem, parent, em, association);
+		this.filterComplier = new JPAFilterElementComplier(odata, sd, em, jpaEntityType, new JPAOperationConverter(cb,
+				getContext().getOperationConverter()), null, this, expression);
+	}
 
-    Expression<Boolean> whereCondition = null;
-    for (final JPAOnConditionItem onItem : conditionItems) {
-      Path<?> paretPath = parentFrom;
-      Path<?> subPath = subRoot;
-      for (final JPAElement jpaPathElement : onItem.getRightPath().getPathElements()) {
-		subPath = subPath.get(jpaPathElement.getInternalName());
-	}
-      for (final JPAElement jpaPathElement : onItem.getLeftPath().getPathElements()) {
-		paretPath = paretPath.get(jpaPathElement.getInternalName());
-	}
-      final Expression<Boolean> equalCondition = cb.equal(paretPath, subPath);
-//          parentFrom.get(onItem.getRightPath().getInternalName()),
-//          subRoot.get(onItem.getLeftPath().getInternalName()));
-      if (whereCondition == null) {
-		whereCondition = equalCondition;
-	} else {
-		whereCondition = cb.and(whereCondition, equalCondition);
-	}
-    }
-    if (filterComplier != null && getAggregationType(this.filterComplier.getExpressionMember()) == null) {
-		try {
-		  if (filterComplier.getExpressionMember() != null) {
-			whereCondition = cb.and(whereCondition, filterComplier.compile());
+	@Override
+	@SuppressWarnings("unchecked")
+	protected <T> void createSelectClause(final Subquery<T> subQuery) throws ODataJPAModelException {
+		// TODO in the super class the LEFT selector are used, why here the RIGHT part?
+		//    Path<?> p = getRoot();
+		//    for (final JPAElement jpaPathElement : conditionItems.get(0).getRightPath().getPathElements()) {
+		//		p = p.get(jpaPathElement.getInternalName());
+		//	}
+		//    subQuery.select((Expression<T>) p);
+
+		final List<JPASelector> conditionItems = getAssociation().getRightPaths();
+		for (final JPASelector rightSelector : conditionItems) {
+			Path<?> p = getRoot();
+			for (final JPAAttribute jpaPathElement : rightSelector.getPathElements()) {
+				p = p.get(jpaPathElement.getInternalName());
+			}
+			subQuery.select((Expression<T>) p);
 		}
-		  } catch (final ExpressionVisitException e) {
-		  throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-		  }
+
 	}
-    return whereCondition;
-  }
 
-  @Override
-  protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot,
-      final List<JPAOnConditionItem> conditionItems) throws ODataApplicationException {
+	@Override
+	protected Expression<Boolean> createSubqueryWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot)
+			throws ODataApplicationException, ODataJPAModelException {
 
-    final List<Expression<?>> groupByLIst = new ArrayList<Expression<?>>();
-    if (filterComplier != null && getAggregationType(this.filterComplier.getExpressionMember()) != null) {
-      for (final JPAOnConditionItem onItem : conditionItems) {
-        Path<?> subPath = subRoot;
-        for (final JPAElement jpaPathElement : onItem.getRightPath().getPathElements()) {
-			subPath = subPath.get(jpaPathElement.getInternalName());
+		Expression<Boolean> whereCondition = null;
+		final List<JPAOnConditionItem> conditionItems = getAssociation().getJoinConditions();// FIXME
+
+		for (final JPAOnConditionItem onItem : conditionItems) {
+			Path<?> paretPath = parentFrom;
+			Path<?> subPath = subRoot;
+			for (final JPAElement jpaPathElement : onItem.getRightPath().getPathElements()) {
+				subPath = subPath.get(jpaPathElement.getInternalName());
+			}
+			for (final JPAElement jpaPathElement : onItem.getLeftPath().getPathElements()) {
+				paretPath = paretPath.get(jpaPathElement.getInternalName());
+			}
+			final Expression<Boolean> equalCondition = cb.equal(paretPath, subPath);
+			//          parentFrom.get(onItem.getRightPath().getInternalName()),
+			//          subRoot.get(onItem.getLeftPath().getInternalName()));
+			if (whereCondition == null) {
+				whereCondition = equalCondition;
+			} else {
+				whereCondition = cb.and(whereCondition, equalCondition);
+			}
 		}
-        groupByLIst.add(subPath);
-      }
-      subQuery.groupBy(groupByLIst);
-
-      // subQuery.having(cb.greaterThan(cb.count(this.getRoot().get("roleCategory")), new Long(2)));
-      try {
-        subQuery.having(this.filterComplier.compile());
-      } catch (final ExpressionVisitException e) {
-        throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-      }
-    }
-  }
-
-  private UriResourceKind getAggregationType(final VisitableExpression expression) {
-    UriInfoResource member = null;
-    if (expression != null && expression instanceof Binary) {
-      if (((Binary) expression).getLeftOperand() instanceof JPAMemberOperator) {
-		member = ((JPAMemberOperator) ((Binary) expression).getLeftOperand()).getMember().getResourcePath();
-	} else if (((Binary) expression).getRightOperand() instanceof JPAMemberOperator) {
-		member = ((JPAMemberOperator) ((Binary) expression).getRightOperand()).getMember().getResourcePath();
-	}
-    } else if (expression != null && expression instanceof JPAFilterExpression) {
-		member = ((JPAFilterExpression) expression).getMember();
-	}
-
-    if (member != null) {
-      for (final UriResource r : member.getUriResourceParts()) {
-        if (r.getKind() == UriResourceKind.count) {
-			return r.getKind();
+		if (filterComplier != null && getAggregationType(this.filterComplier.getExpressionMember()) == null) {
+			try {
+				if (filterComplier.getExpressionMember() != null) {
+					whereCondition = cb.and(whereCondition, filterComplier.compile());
+				}
+			} catch (final ExpressionVisitException e) {
+				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+			}
 		}
-      }
-    }
-    return null;
-  }
+		return whereCondition;
+	}
+
+	@Override
+	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
+			throws ODataApplicationException, ODataJPAModelException {
+
+		final List<JPAOnConditionItem> conditionItems = getAssociation().getJoinConditions();// FIXME
+		final List<Expression<?>> groupByLIst = new ArrayList<Expression<?>>();
+		if (filterComplier != null && getAggregationType(this.filterComplier.getExpressionMember()) != null) {
+			for (final JPAOnConditionItem onItem : conditionItems) {
+				Path<?> subPath = subRoot;
+				for (final JPAElement jpaPathElement : onItem.getRightPath().getPathElements()) {
+					subPath = subPath.get(jpaPathElement.getInternalName());
+				}
+				groupByLIst.add(subPath);
+			}
+			subQuery.groupBy(groupByLIst);
+
+			// subQuery.having(cb.greaterThan(cb.count(this.getRoot().get("roleCategory")), new Long(2)));
+			try {
+				subQuery.having(this.filterComplier.compile());
+			} catch (final ExpressionVisitException e) {
+				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+			}
+		}
+	}
+
+	private UriResourceKind getAggregationType(final VisitableExpression expression) {
+		UriInfoResource member = null;
+		if (expression != null && expression instanceof Binary) {
+			if (((Binary) expression).getLeftOperand() instanceof JPAMemberOperator) {
+				member = ((JPAMemberOperator) ((Binary) expression).getLeftOperand()).getMember().getResourcePath();
+			} else if (((Binary) expression).getRightOperand() instanceof JPAMemberOperator) {
+				member = ((JPAMemberOperator) ((Binary) expression).getRightOperand()).getMember().getResourcePath();
+			}
+		} else if (expression != null && expression instanceof JPAFilterExpression) {
+			member = ((JPAFilterExpression) expression).getMember();
+		}
+
+		if (member != null) {
+			for (final UriResource r : member.getUriResourceParts()) {
+				if (r.getKind() == UriResourceKind.count) {
+					return r.getKind();
+				}
+			}
+		}
+		return null;
+	}
 }

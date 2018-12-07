@@ -2,6 +2,8 @@ package org.apache.olingo.jpa.processor.core.filter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -246,6 +248,8 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Test
 	public void testFilterDivGreater() throws IOException, ODataException {
 
+		assumeTrue("Hibernate cannot compare a Short (from 6000) as Number", getJPAProvider() != JPAProvider.Hibernate);
+
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions?$filter=Area gt 0 and Area div Population ge 6000");
 		helper.assertStatus(200);
@@ -454,6 +458,28 @@ public class TestJPAQueryWhereClause extends TestBase {
 	}
 
 	@Test
+	public void testFilterBoolean1() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Countries?$filter=contains(Code,'H') and startswith(Name, 'S') and not endswith(Name, 'xyz')");
+		helper.assertStatus(200);
+
+		final ArrayNode orgs = helper.getValues();
+		assertTrue(orgs.size() > 0);
+	}
+
+	@Test
+	public void testFilterBoolean2() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Countries?$filter=length(Code) gt 1 and startswith( substring(Name,0,3), 'S')&$top=3");
+		helper.assertStatus(200);
+
+		final ArrayNode orgs = helper.getValues();
+		assertTrue(orgs.size() > 0);
+	}
+
+	@Test
 	public void testFilterNavigationPropertyToManyValueAny() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
@@ -568,7 +594,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations?$filter=AdministrativeInformation/Created/By eq 'NonExistingUserId'");
-		helper.assertStatus(204);
+		helper.assertStatus(200);
+		final ArrayNode values = helper.getValues();
+
+		assertEquals(0, values.size());
 	};
 
 	@Ignore("RegionName currently not available in PostalAdress")

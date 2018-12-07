@@ -84,7 +84,7 @@ public class ODataServlet extends HttpServlet {
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
 
-		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,
+		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
 				elProperties,
 				new JPADefaultDatabaseProcessor());
 		((AbstractJPAAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
@@ -107,6 +107,13 @@ public class ODataServlet extends HttpServlet {
 				super.prepareDependencyInjection(dpi);
 				// example for custom dependency injection
 				dpi.registerDependencyMapping(String.class, getServletName());
+			}
+
+			@Override
+			protected void modifyResponse(final ODataResponse response) {
+				super.modifyResponse(response);
+				// example header
+				response.setHeader("dummy-header", "example to modify reponse header before sending back to client");
 			}
 		};
 

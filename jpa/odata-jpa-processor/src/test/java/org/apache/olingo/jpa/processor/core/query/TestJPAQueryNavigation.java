@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -46,7 +47,9 @@ public class TestJPAQueryNavigation extends TestBase {
 	}
 
 	@Test
-	public void testNavigationTwoHopUsingDefaultIdMappingHibernateStyle() throws IOException, ODataException {
+	public void testNavigationTwoHopUsingDefaultIdMapping() throws IOException, ODataException {
+		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
+				getJPAProvider() != JPAProvider.Hibernate);
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Persons('98')/Image3/PersonWithDefaultIdMapping");

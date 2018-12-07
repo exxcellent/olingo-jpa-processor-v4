@@ -14,4 +14,6 @@ public interface JPAAttributeAccessor {
 	public void setPropertyValue(final Object jpaEntity, final Object jpaPropertyValue) throws ODataJPAModelException;
 
 	public Object getPropertyValue(final Object jpaEntity) throws ODataJPAModelException;
+
+	public Object getDefaultPropertyValue() throws ODataJPAModelException;
 }

@@ -11,7 +11,8 @@ import java.lang.annotation.Target;
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 
 /**
- * Declare a converter for the datatype of attribute for OData.
+ * Declare a converter to map from the JPA attribute datatype to an OData specific one. The converter will adapt the datatype visible in
+ * OData metadata and convert between OData and JPA entity representations.
  *
  * @author Ralf Zozmann
  *

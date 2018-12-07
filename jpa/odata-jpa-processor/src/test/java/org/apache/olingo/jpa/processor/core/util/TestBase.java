@@ -10,24 +10,46 @@ import javax.persistence.EntityManagerFactory;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
 import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDB_DatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.junit.Before;
 
 public abstract class TestBase {
 
-	protected static final String PUNIT_NAME = org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME;
+	public enum JPAProvider {
+		EclipseLink, Hibernate, OpenJPA;
+	}
+
 	@Deprecated
 	protected EntityManagerFactory emf;
 	protected TestHelper helper;
 	protected Map<String, List<String>> headers;
-	protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(PUNIT_NAME);
+	protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
 	protected TestGenericJPAPersistenceAdapter persistenceAdapter;
+
 
 	@Before
 	public void setupTest() throws ODataJPAModelException {
-		persistenceAdapter = new TestGenericJPAPersistenceAdapter(PUNIT_NAME, new JPA_HSQLDB_DatabaseProcessor(),
+		persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
+				new JPA_HSQLDB_DatabaseProcessor(),
 				DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 		emf = persistenceAdapter.getEMF();
+	}
+
+	protected JPAProvider getJPAProvider() {
+		if (persistenceAdapter == null) {
+			throw new IllegalStateException("setup test before");
+		}
+		if (persistenceAdapter.getEMF().getClass().getName().startsWith("org.hibernate")) {
+			return JPAProvider.Hibernate;
+		}
+		if (persistenceAdapter.getEMF().getClass().getName().startsWith("org.apache.openjpa")) {
+			return JPAProvider.OpenJPA;
+		}
+		if (persistenceAdapter.getEMF().getClass().getName().startsWith("org.eclipse.persistence")) {
+			return JPAProvider.EclipseLink;
+		}
+		throw new UnsupportedOperationException("Current JPA provider not known");
 	}
 
 	protected void createHeaders() {

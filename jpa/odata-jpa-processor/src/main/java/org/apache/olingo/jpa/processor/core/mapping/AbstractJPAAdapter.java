@@ -97,4 +97,8 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
 		dtos.add(dto);
 	}
 
+	@Override
+	public void dispose() {
+		emf.close();
+	}
 }

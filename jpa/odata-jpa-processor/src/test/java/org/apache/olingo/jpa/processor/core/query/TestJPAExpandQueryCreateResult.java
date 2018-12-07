@@ -17,6 +17,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.util.EdmEntityTypeDouble;
 import org.apache.olingo.jpa.processor.core.util.ExpandItemDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -31,11 +32,11 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Before
 	public void setup() throws ODataException {
-		helper = new TestHelper(persistenceAdapter.getMetamodel(), PUNIT_NAME);
+		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
 		createHeaders();
 		final EdmEntityType targetEntity = new EdmEntityTypeDouble(nameBuilder, "BusinessPartnerRole");
 		final JPAODataSessionContextAccess context = new JPAODataContextAccessDouble(
-				new JPAEdmProvider(PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter);
+				new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter);
 		cut = new JPAExpandQuery(
 				null, context, persistenceAdapter.createEntityManager(),
 				new ExpandItemDouble(targetEntity).getResourcePath(),
