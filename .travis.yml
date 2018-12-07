@@ -17,8 +17,6 @@ cache:
     - $HOME/.m2/repository
 # 'true' will skip install step
 install: true
-after_install:
-  - cp .travis.settings.xml $HOME/.m2/settings.xml
 stages:
   - build_with_hibernate
   - build_with_eclipselink
@@ -31,10 +29,9 @@ jobs:
       script: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: deploy
       provider: script
-      script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
+      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
       skip_cleanup: false
       on:
-#       all_branches: true
         branch: eXXcellent_adaptions
 
 
