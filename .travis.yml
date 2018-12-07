@@ -7,7 +7,7 @@ language: java
 os:
   - linux
 sudo: required
-dist: trusty
+dist: xenial
 jdk:
 #  - oraclejdk8
 #  - oraclejdk9
@@ -17,16 +17,38 @@ cache:
     - $HOME/.m2/repository
 # 'true' will skip install step
 install: true
-script:
-  - cp .travis.settings.xml $HOME/.m2/settings.xml
-  - mvn clean verify -Duse-hibernate -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
-  - mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
-deploy:
-  provider: script
-  # deploy script must be single line command
-  script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
-  skip_cleanup: false
-  on:
-#    all_branches: true
-    branch: eXXcellent_adaptions
+stages:
+  - prepare
+  - build_with_hibernate
+  - build_with_eclipselink
+#  - deploy
+#    if: branch = eXXcellent_adaptions
+jobs:
+  include:
+    - stage: prepare
+      script: cp .travis.settings.xml $HOME/.m2/settings.xml
+    - stage: build_with_hibernate
+      script: mvn clean verify -Duse-hibernate -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
+    - stage: build_with_eclipselink
+      script: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
+    - stage: deploy
+      provider: script
+      script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
+      skip_cleanup: false
+      on:
+#       all_branches: true
+        branch: eXXcellent_adaptions
+
+#script:
+#  - cp .travis.settings.xml $HOME/.m2/settings.xml
+#  - mvn clean verify -Duse-hibernate -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
+#  - mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
+#deploy:
+#  provider: script
+#  # deploy script must be single line command
+#  script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
+#  skip_cleanup: false
+#  on:
+##    all_branches: true
+#    branch: eXXcellent_adaptions
 
