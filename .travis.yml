@@ -17,13 +17,12 @@ cache:
     - $HOME/.m2/repository
 # 'true' will skip install step
 install: true
-before_deploy:
+after_install:
   - cp .travis.settings.xml $HOME/.m2/settings.xml
 stages:
   - build_with_hibernate
   - build_with_eclipselink
   - deploy
-    if: branch = eXXcellent_adaptions
 jobs:
   include:
     - stage: build_with_hibernate
