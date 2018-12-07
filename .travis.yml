@@ -30,7 +30,8 @@ jobs:
       script: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: deploy
       provider: script
-      script: sh -c 'cp .travis.settings.xml $HOME/.m2/settings.xml && mvn clean package deploy:deploy -DskipTests -Djetty.skip'
+      script: cp .travis.settings.xml $HOME/.m2/settings.xml
+    - script: sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'
       skip_cleanup: false
       on:
 #       all_branches: true
