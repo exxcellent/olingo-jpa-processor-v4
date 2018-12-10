@@ -12,7 +12,6 @@ import javax.persistence.metamodel.Metamodel;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
-import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -68,12 +67,8 @@ public class JPAEntityConverter extends AbstractObjectConverter {
 		try {
 			final Object targetJPAInstance = newJPAInstance(jpaEntityType);
 			for(final JPAAttribute jpaAttribute: jpaEntityType.getAttributes()) {
-				final Property sourceOdataProperty = entity.getProperty(jpaAttribute.getExternalName());
-				if(sourceOdataProperty == null) {
-					continue;
-				}
-				convertOData2JPAProperty(targetJPAInstance, jpaEntityType/* , persistenceType */, jpaAttribute,
-						sourceOdataProperty);
+				convertOData2JPAProperty(targetJPAInstance, jpaEntityType, jpaAttribute,
+						entity.getProperties());
 			}
 			return targetJPAInstance;
 		} catch (ODataJPAModelException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {

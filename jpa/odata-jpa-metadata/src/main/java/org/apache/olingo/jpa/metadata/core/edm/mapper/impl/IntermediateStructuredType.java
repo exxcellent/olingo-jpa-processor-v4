@@ -512,44 +512,45 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		ArrayList<JPAAttribute> pathList;
 
 		lazyBuildEdmItem();
-		if (simpleAttributePathMap.size() == 0) {
-			String externalName;
-			for (final IntermediateProperty property : declaredPropertiesList.values()) {
-				if (property.isComplex()) {
-					complexAttributePathMap.put(property.getExternalName(),
-							new JPAPathImpl(property.getExternalName(), null, property));
-					final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType) property
-							.getStructuredType()).getComplexAttributePathMap();
-					for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
-						externalName = entry.getKey();
-						pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
-						pathList.add(0, property);
-						complexAttributePathMap.put(nameBuilder.buildPath(property.getExternalName(), externalName),
-								new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(),
-										externalName), null, pathList));
-					}
-
-					// add the (simple) properties of complex type as path to this type
-					final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType) property
-							.getStructuredType()).getSimpleAttributePathMap();
-					JPAPathImpl newPath;
-					for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
-						externalName = entry.getKey();
-						pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
-						pathList.add(0, property);
-						if (property.isKey()) {
-							newPath = new JPAPathImpl(externalName, determineDBFieldName(property, entry.getValue()),
-									pathList);
-						} else {
-							newPath = new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName),
-									determineDBFieldName(property, entry.getValue()), pathList);
-						}
-						simpleAttributePathMap.put(newPath.getAlias(), newPath);
-					}
-				} else {
-					simpleAttributePathMap.put(property.getExternalName(), new JPAPathImpl(property.getExternalName(), property
-							.getDBFieldName(), property));
+		if (!simpleAttributePathMap.isEmpty()) {
+			return;
+		}
+		String externalName;
+		for (final IntermediateProperty property : declaredPropertiesList.values()) {
+			if (property.isComplex()) {
+				complexAttributePathMap.put(property.getExternalName(),
+						new JPAPathImpl(property.getExternalName(), null, property));
+				final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType) property
+						.getStructuredType()).getComplexAttributePathMap();
+				for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
+					externalName = entry.getKey();
+					pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
+					pathList.add(0, property);
+					complexAttributePathMap.put(nameBuilder.buildPath(property.getExternalName(), externalName),
+							new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(),
+									externalName), null, pathList));
 				}
+
+				// add the (simple) properties of complex type as path to this type
+				final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType) property
+						.getStructuredType()).getSimpleAttributePathMap();
+				JPAPathImpl newPath;
+				for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
+					externalName = entry.getKey();
+					pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
+					pathList.add(0, property);
+					if (property.isKey()) {
+						newPath = new JPAPathImpl(externalName, determineDBFieldName(property, entry.getValue()),
+								pathList);
+					} else {
+						newPath = new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName),
+								determineDBFieldName(property, entry.getValue()), pathList);
+					}
+					simpleAttributePathMap.put(newPath.getAlias(), newPath);
+				}
+			} else {
+				simpleAttributePathMap.put(property.getExternalName(), new JPAPathImpl(property.getExternalName(), property
+						.getDBFieldName(), property));
 			}
 		}
 		// TODO: base class must be a JPA type, so we can cast... but has a bad smell

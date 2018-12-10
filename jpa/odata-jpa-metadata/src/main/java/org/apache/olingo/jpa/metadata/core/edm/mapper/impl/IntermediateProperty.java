@@ -23,6 +23,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -113,6 +114,14 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			return ((SingularAttribute<?, ?>) jpaAttribute).isId();
 		}
 		return false;
+	}
+
+	@Override
+	public AttributeMapping getAttributeMapping() {
+		if (isComplex) {
+			return AttributeMapping.AS_COMPLEX_TYPE;
+		}
+		return AttributeMapping.SIMPLE;
 	}
 
 	@Override

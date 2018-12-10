@@ -30,6 +30,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlOnDelete;
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
@@ -135,6 +136,11 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	public boolean isComplex() {
 		// navigation properties are targeting always a non primitive object
 		return true;
+	}
+
+	@Override
+	public AttributeMapping getAttributeMapping() {
+		return AttributeMapping.RELATIONSHIP;
 	}
 
 	@Override

@@ -9,12 +9,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
@@ -74,6 +78,18 @@ public abstract class JPAAbstractQuery {
 		return jpaEntityType;
 	}
 
+	private Path<?> buildPath(final From<?, ?> from, final UriParameter keyPredicate) throws ODataJPAModelException {
+		Path<?> path = from;
+		final JPASelector selector = jpaEntityType.getPath(keyPredicate.getName());
+		for (final JPAAttribute attribute : selector.getPathElements()) {
+			path = path.get(attribute.getInternalName());
+		}
+		if (path == from) {
+			throw new ODataJPAModelException(MessageKeys.NOT_SUPPORTED_EMBEDDED_KEY);
+		}
+		return path;
+	}
+
 	protected javax.persistence.criteria.Expression<Boolean> createWhereByKey(final From<?, ?> root,
 			final javax.persistence.criteria.Expression<Boolean> whereCondition, final List<UriParameter> keyPredicates)
 					throws ODataApplicationException {
@@ -87,8 +103,10 @@ public abstract class JPAAbstractQuery {
 		for (final UriParameter keyPredicate : keyPredicates) {
 			javax.persistence.criteria.Expression<Boolean> equalCondition;
 			try {
-				equalCondition = cb.equal(root.get(jpaEntityType.getPath(keyPredicate.getName()).getLeaf()
-						.getInternalName()), eliminateApostrophe(keyPredicate.getText()));
+				final Path<?> path = buildPath(root, keyPredicate);
+				equalCondition = cb.equal(path, eliminateApostrophe(keyPredicate.getText()));
+				//				equalCondition = cb.equal(root.get(jpaEntityType.getPath(keyPredicate.getName()).getLeaf()
+				//						.getInternalName()), eliminateApostrophe(keyPredicate.getText()));
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 			}
