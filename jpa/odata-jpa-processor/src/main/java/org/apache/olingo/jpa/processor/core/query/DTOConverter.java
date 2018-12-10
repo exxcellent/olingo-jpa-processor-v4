@@ -9,7 +9,6 @@ import javax.persistence.Tuple;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
-import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -41,12 +40,7 @@ public class DTOConverter extends AbstractObjectConverter {
 		try {
 			final Object targetDTOInstance = newJPAInstance(jpaEntityType);
 			for (final JPAAttribute jpaAttribute : jpaEntityType.getAttributes()) {
-				final Property sourceOdataProperty = entity.getProperty(jpaAttribute.getExternalName());
-				if (sourceOdataProperty == null) {
-					continue;
-				}
-				convertOData2JPAProperty(targetDTOInstance, jpaEntityType, jpaAttribute,
-						sourceOdataProperty);
+				convertOData2JPAProperty(targetDTOInstance, jpaEntityType, jpaAttribute, entity.getProperties());
 			}
 			return targetDTOInstance;
 		} catch (ODataJPAModelException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {

@@ -134,4 +134,32 @@ public class TestJPAActions extends TestBase {
 		assertEquals(testValue, object.get("value").asText());
 	}
 
+	@Test
+	public void testBoundActionForEntityWithEmbeddedId() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"AdministrativeDivisionDescriptions(CodePublisher='Eurostat',CodeID='NUTS3',DivisionCode='BE212',Language='de')/"
+						+ Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId",
+						null, HttpMethod.POST);
+		helper.assertStatus(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
+	@Test
+	public void testUnboundActionForEntityWithEmbeddedId() throws IOException, ODataException {
+
+		final StringBuffer requestBody = new StringBuffer("{");
+		requestBody.append("\"parameter\": {");
+		requestBody.append("\"Name\": \"test\",");
+		requestBody.append("\"CodePublisher\": \"Eurostat\",");
+		requestBody.append("\"CodeID\": \"NUTS3\",");
+		requestBody.append("\"DivisionCode\": \"BE212\",");
+		requestBody.append("\"Language\": \"de\"");
+		requestBody.append("}");
+		requestBody.append("}");
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"unboundActionCheckLoadingOfEmbeddedId", requestBody, HttpMethod.POST);
+		helper.assertStatus(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
 }

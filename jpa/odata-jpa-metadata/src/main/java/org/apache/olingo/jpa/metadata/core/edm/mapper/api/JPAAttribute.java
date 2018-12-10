@@ -18,6 +18,15 @@ public interface JPAAttribute extends JPAElement, JPATypedElement {
 	public JPAAttributeAccessor getAttributeAccessor();
 
 	/**
+	 * The mapping is used to convert between JPA and OData representation:
+	 * <ul>
+	 * <li>Build correct SQL column selection queries for database</li>
+	 * <li>Convert JPA entities in memory into OData entities and reverse</li>
+	 * </ul>
+	 */
+	public AttributeMapping getAttributeMapping();
+
+	/**
 	 *
 	 * @return TRUE if the type of the property is a complex type, having embedded
 	 *         properties.
