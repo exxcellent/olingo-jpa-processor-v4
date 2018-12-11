@@ -511,7 +511,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 */
 	private Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(final boolean isSourceOne)
 			throws ODataJPAModelException {
-		final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes();
+		final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
 		final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());
 		for (final JPASimpleAttribute idAttr : targetKeyAttributes) {
 			final String targetKeyName = idAttr.getDBFieldName();
@@ -530,7 +530,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	}
 
 	private List<JPASimpleAttribute> determineCheckedNumberOfKeyAttributes(final JPAStructuredType theType) throws ODataJPAModelException {
-		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes();
+		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes(false);
 		if (attributes.isEmpty()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
 		}

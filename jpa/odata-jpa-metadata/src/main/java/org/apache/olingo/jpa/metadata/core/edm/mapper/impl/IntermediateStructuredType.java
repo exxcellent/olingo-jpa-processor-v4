@@ -129,13 +129,14 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 	}
 
 	@Override
-	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException {
+	public List<JPASimpleAttribute> getKeyAttributes(final boolean exploded) throws ODataJPAModelException {
 		final List<JPASimpleAttribute> keyList = new LinkedList<JPASimpleAttribute>();
 		for (final JPASimpleAttribute attribute : getAttributes()) {
 			if (!attribute.isKey()) {
 				continue;
 			}
-			if (attribute.isComplex()) {
+			if (exploded && attribute.isComplex()) {
+				// take ALL attributes, because in @Embeddable are no keys (@Id)
 				keyList.addAll(attribute.getStructuredType().getAttributes());
 			} else {
 				keyList.add(attribute);
