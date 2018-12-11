@@ -3,8 +3,10 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.Table;
 
+import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
@@ -33,10 +35,12 @@ public class AdministrativeDivisionDescription {
 	}
 
 	@EdmAction()
-	public void boundActionCheckLoadingOfEmbeddedId() {
+	public void boundActionCheckLoadingOfEmbeddedId(@Inject final EntityManager em) {
 		if (key == null) {
 			throw new IllegalStateException("@EmbeddedId key not set");
 		}
+		// check transaction state (as managed bean), will trigger one more DB call
+		em.refresh(this);
 	}
 
 	@EdmAction()
