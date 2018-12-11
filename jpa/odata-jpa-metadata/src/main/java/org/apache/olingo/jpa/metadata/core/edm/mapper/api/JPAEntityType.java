@@ -20,12 +20,6 @@ public interface JPAEntityType extends JPAStructuredType {
 	public JPASelector getContentTypeAttributePath() throws ODataJPAModelException;
 
 	/**
-	 * @see org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType#getKeyAttributes()
-	 */
-	@Override
-	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException;
-
-	/**
 	 * Returns a list of path of all attributes annotated as Id. EmbeddedId are <b>not</b> resolved
 	 * @throws ODataJPAModelException
 	 */

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Tuple;
@@ -221,70 +222,208 @@ public abstract class AbstractObjectConverter extends JPAAbstractConverter {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked" })
-	protected void convertOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
-			/* final ManagedType<?> persistenceType, */ final JPAAttribute jpaAttribute, final Property sourceOdataProperty)
-					throws ODataApplicationException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException,
-					ODataJPAModelException {
-		if (jpaAttribute.isAssociation()) {
+	private Object determineSimpleOData2JPAProperty(final JPAStructuredType jpaEntityType,
+			final JPAAttribute jpaAttribute, final Property sourceOdataProperty)
+					throws ODataJPAProcessorException, ODataJPAModelException {
+		if (sourceOdataProperty == null) {
+			return null;
+		}
+
+		// convert simple/primitive value
+		return convertOData2JPAPropertyValue(jpaAttribute, sourceOdataProperty);
+	}
+
+	private boolean convertSimpleOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
+			final JPAAttribute jpaAttribute, final Property sourceOdataProperty)
+					throws ODataJPAProcessorException, ODataJPAModelException {
+		if (sourceOdataProperty == null) {
+			if (jpaAttribute.isKey()) {
+				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+						HttpStatusCode.BAD_REQUEST);
+			}
+			return false;
+		}
+
+		final boolean isGenerated = jpaAttribute.getAnnotation(GeneratedValue.class) != null;
+		// do not allow to set ID attributes if that attributes must be generated
+		if (isGenerated && jpaAttribute.isKey()) {
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+					HttpStatusCode.INTERNAL_SERVER_ERROR,
+					new IllegalArgumentException("The id attribute must not be set, because is generated"));
+		}
+		final Object jpaPropertyValue = determineSimpleOData2JPAProperty(jpaEntityType, jpaAttribute,
+				sourceOdataProperty);
+		jpaAttribute.getAttributeAccessor().setPropertyValue(targetJPAObject, jpaPropertyValue);
+		return true;
+	}
+
+	private Object determineEmbeddedIdOData2JPAProperty(final JPAStructuredType jpaEntityType,
+			final JPAAttribute jpaAttribute, final Object embeddedIdFieldObjectOrNull,
+			final Collection<Property> odataObjectProperties)
+					throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
+					IllegalAccessException {
+		final JPAStructuredType embeddedIdFieldType = jpaAttribute.getStructuredType();
+		Object embeddedIdFieldObject = embeddedIdFieldObjectOrNull;
+		if (embeddedIdFieldObject == null) {
+			embeddedIdFieldObject = newJPAInstance(embeddedIdFieldType);
+		}
+		for (final JPAAttribute jpaEmbeddedIdAttribute : embeddedIdFieldType.getAttributes()) {
+			final boolean done = convertOData2JPAProperty(embeddedIdFieldObject, embeddedIdFieldType,
+					jpaEmbeddedIdAttribute, odataObjectProperties);
+			if (!done) {
+				LOG.log(Level.SEVERE, "Missing key attribute value: " + jpaEntityType.getExternalName() + "/"
+						+ jpaAttribute.getExternalName() + "#" + jpaEmbeddedIdAttribute.getExternalName());
+				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+						HttpStatusCode.BAD_REQUEST);
+			}
+		}
+		return embeddedIdFieldObject;
+	}
+
+	private boolean convertEmbeddedIdOData2JPAProperty(final Object targetJPAObject,
+			final JPAStructuredType jpaEntityType,
+			final JPAAttribute jpaAttribute, final Collection<Property> odataObjectProperties)
+					throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
+					IllegalAccessException {
+		final Object embeddedIdFieldObject = jpaAttribute.getAttributeAccessor().getPropertyValue(targetJPAObject);
+		final Object embeddedIdFieldObjectFilled = determineEmbeddedIdOData2JPAProperty(jpaEntityType, jpaAttribute,
+				embeddedIdFieldObject, odataObjectProperties);
+		if (embeddedIdFieldObject == null) {
+			jpaAttribute.getAttributeAccessor().setPropertyValue(targetJPAObject, embeddedIdFieldObjectFilled);
+		}
+		return true;
+	}
+
+	private boolean convertComplexOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
+			final JPAAttribute jpaAttribute, final Property sourceOdataProperty)
+					throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
+					IllegalAccessException {
+		if (sourceOdataProperty == null) {
+			return false;
+		}
+		if (!sourceOdataProperty.isComplex()) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
 					HttpStatusCode.INTERNAL_SERVER_ERROR);
-		} else if (jpaAttribute.isComplex()) {
-			if (!sourceOdataProperty.isComplex()) {
-				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
-						HttpStatusCode.INTERNAL_SERVER_ERROR);
-			}
-			final Object embeddedFieldObject = jpaAttribute.getAttributeAccessor().getPropertyValue(targetJPAObject);
-			// final Object embeddedFieldObject = readJPAFieldValue(targetJPAObject,
-			// targetJPAObject.getClass(), jpaAttribute.getInternalName());
-			if (embeddedFieldObject == null) {
+		}
+		final Object embeddedFieldObject = jpaAttribute.getAttributeAccessor().getPropertyValue(targetJPAObject);
+		if (embeddedFieldObject == null) {
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+					HttpStatusCode.EXPECTATION_FAILED);
+		}
+		final JPAStructuredType embeddedJPAType = jpaAttribute.getStructuredType();
+		boolean done = true;
+		if (sourceOdataProperty.isCollection()) {
+			// manage structured types in a collection
+			@SuppressWarnings("unchecked")
+			final Collection<Object> collectionOfComplexTypes = (Collection<Object>) embeddedFieldObject;
+			if (!collectionOfComplexTypes.isEmpty()) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
 						HttpStatusCode.EXPECTATION_FAILED);
 			}
-			final JPAStructuredType embeddedJPAType = jpaAttribute.getStructuredType();
-			if (sourceOdataProperty.isCollection()) {
-				// manage structured types in a collection
-				final Collection<Object> collectionOfComplexTypes = (Collection<Object>) embeddedFieldObject;
-				if (!collectionOfComplexTypes.isEmpty()) {
-					throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-							HttpStatusCode.EXPECTATION_FAILED);
-				}
-				// final ManagedType<?> embeddedPersistenceType =
-				// metamodel.managedType(embeddedJPAType.getTypeClass());
-				for (final Object entry : sourceOdataProperty.asCollection()) {
-					final Object embeddedJPAInstance = newJPAInstance(embeddedJPAType);
-					for (final Property embeddedProperty : ((ComplexValue) entry).getValue()) {
-						final JPAAttribute embeddedJPAAttribute = embeddedJPAType.getPath(embeddedProperty.getName()).getLeaf();
-						convertOData2JPAProperty(embeddedJPAInstance, embeddedJPAType/* , embeddedPersistenceType */, embeddedJPAAttribute,
-								embeddedProperty);
-					}
-					collectionOfComplexTypes.add(embeddedJPAInstance);
-				}
-			} else {
-				// single structured type attribute
-				for (final Property embeddedProperty : sourceOdataProperty.asComplex().getValue()) {
+			for (final Object entry : sourceOdataProperty.asCollection()) {
+				final Object embeddedJPAInstance = newJPAInstance(embeddedJPAType);
+				final List<Property> listEmbeddedProperties = ((ComplexValue) entry).getValue();
+				for (final Property embeddedProperty : listEmbeddedProperties) {
 					final JPAAttribute embeddedJPAAttribute = embeddedJPAType.getPath(embeddedProperty.getName()).getLeaf();
-					// final ManagedType<?> embeddedPersistenceType =
-					// metamodel.managedType(embeddedJPAType.getTypeClass());
-					convertOData2JPAProperty(embeddedFieldObject, embeddedJPAType/* , embeddedPersistenceType */, embeddedJPAAttribute,
-							embeddedProperty);
+					convertOData2JPAProperty(embeddedJPAInstance, embeddedJPAType, embeddedJPAAttribute,
+							listEmbeddedProperties);
 				}
+				collectionOfComplexTypes.add(embeddedJPAInstance);
 			}
 		} else {
-			final boolean isGenerated = jpaAttribute.getAnnotation(GeneratedValue.class) != null;
-			// do not allow to set ID attributes if that attributes must be generated
-			if (isGenerated && jpaAttribute.isKey()/*
-			 * SingularAttribute.class.isInstance(persistenceAttribute) &&
-			 * ((SingularAttribute<?,?>)persistenceAttribute).isId()
-			 */) {
-				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-						HttpStatusCode.INTERNAL_SERVER_ERROR,
-						new IllegalArgumentException("The id attribute must not be set, because is generated"));
+			// single structured type attribute
+			for (final Property embeddedProperty : sourceOdataProperty.asComplex().getValue()) {
+				final JPAAttribute embeddedJPAAttribute = embeddedJPAType.getPath(embeddedProperty.getName()).getLeaf();
+				done = done && convertOData2JPAProperty(embeddedFieldObject, embeddedJPAType, embeddedJPAAttribute,
+						Collections.singletonList(embeddedProperty));
 			}
-			// convert simple/primitive value
-			final Object jpaPropertyValue = convertOData2JPAPropertyValue(jpaAttribute, sourceOdataProperty);
-			jpaAttribute.getAttributeAccessor().setPropertyValue(targetJPAObject, jpaPropertyValue);
 		}
+		return done;
+	}
+
+	/**
+	 *
+	 * @param targetJPAObject       The JPA related instance or DTO instance.
+	 * @param jpaEntityType         The meta model description of JPA related
+	 *                              object.
+	 * @param jpaAttribute          The JPA related attribute to process.
+	 * @param odataObjectProperties The list of all OData related properties as
+	 *                              source for conversion.
+	 * @return TRUE if conversion has done something (The OData property was not
+	 *         <code>null</code>).
+	 * @throws ODataApplicationException
+	 * @throws NoSuchFieldException
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 * @throws ODataJPAModelException
+	 */
+	protected boolean convertOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
+			final JPAAttribute jpaAttribute, final Collection<Property> odataObjectProperties)
+					throws ODataApplicationException,
+					NoSuchFieldException, IllegalArgumentException, IllegalAccessException, ODataJPAModelException {
+
+		Property sourceOdataProperty;
+		switch (jpaAttribute.getAttributeMapping()) {
+		case SIMPLE:
+			sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());
+			return convertSimpleOData2JPAProperty(targetJPAObject, jpaEntityType, jpaAttribute, sourceOdataProperty);
+		case AS_COMPLEX_TYPE:
+			sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());
+			return convertComplexOData2JPAProperty(targetJPAObject, jpaEntityType, jpaAttribute, sourceOdataProperty);
+		case EMBEDDED_ID:
+			return convertEmbeddedIdOData2JPAProperty(targetJPAObject, jpaEntityType, jpaAttribute,
+					odataObjectProperties);
+		case RELATIONSHIP:
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
+		default:
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 *
+	 * @return The JPA related value for attribute/property or <code>null</code>.
+	 * @throws ODataJPAProcessorException For unsupported attribute mappings.
+	 *
+	 * @see #convertOData2JPAProperty(Object, JPAStructuredType, JPAAttribute,
+	 *      Collection)
+	 */
+	public Object determineOData2JPAProperty(final JPAStructuredType jpaEntityType, final JPAAttribute jpaAttribute,
+			final Collection<Property> odataObjectProperties) throws ODataApplicationException, NoSuchFieldException,
+	IllegalArgumentException, IllegalAccessException, ODataJPAModelException {
+
+		Property sourceOdataProperty;
+		switch (jpaAttribute.getAttributeMapping()) {
+		case SIMPLE:
+			sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());
+			return determineSimpleOData2JPAProperty(jpaEntityType, jpaAttribute, sourceOdataProperty);
+		case AS_COMPLEX_TYPE:
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
+		case EMBEDDED_ID:
+			return determineEmbeddedIdOData2JPAProperty(jpaEntityType, jpaAttribute, null, odataObjectProperties);
+		case RELATIONSHIP:
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
+		default:
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 *
+	 * @return The property of requested name or <code>null</code>.
+	 */
+	private Property selectProperty(final Collection<Property> odataObjectProperties, final String propertyname) {
+		for (final Property p : odataObjectProperties) {
+			if (propertyname.equals(p.getName())) {
+				return p;
+			}
+		}
+		return null;
 	}
 
 	/**

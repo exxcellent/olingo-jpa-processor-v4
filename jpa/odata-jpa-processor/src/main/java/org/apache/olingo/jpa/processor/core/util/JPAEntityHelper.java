@@ -46,14 +46,23 @@ public class JPAEntityHelper {
 	private final ServiceMetadata serviceMetadata;
 	private final UriHelper uriHelper;
 	private final DependencyInjector dependencyInjector;
+	private final AbstractObjectConverter attributeConverter;
 
 	public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata,
-			final UriHelper uriHelper, final DependencyInjector dependencyInjector) {
+			final UriHelper uriHelper, final DependencyInjector dependencyInjector) throws ODataException {
 		this.em = em;
 		this.sd = sd;
 		this.serviceMetadata = serviceMetadata;
 		this.uriHelper = uriHelper;
 		this.dependencyInjector = dependencyInjector;
+		attributeConverter = new AbstractObjectConverter(null, uriHelper, sd, serviceMetadata) {
+			@Override
+			protected Collection<? extends Link> createExpand(final Tuple row, final URI uri)
+					throws ODataApplicationException {
+				return null;
+			}
+		};
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,15 +137,7 @@ public class JPAEntityHelper {
 				args[i] = p.getValue();
 				break;
 			case ENUM:
-				final AbstractObjectConverter converter = new AbstractObjectConverter(null, uriHelper, sd,
-						serviceMetadata) {
-					@Override
-					protected Collection<? extends Link> createExpand(final Tuple row, final URI uri)
-							throws ODataApplicationException {
-						return null;
-					}
-				};
-				args[i] = converter.convertOData2JPAPropertyValue(jpaParameter, p);
+				args[i] = attributeConverter.convertOData2JPAPropertyValue(jpaParameter, p);
 				break;
 			case COLLECTION_PRIMITIVE:
 				args[i] = p.asCollection();
@@ -176,13 +177,23 @@ public class JPAEntityHelper {
 	@SuppressWarnings("unchecked")
 	public final <O> O loadJPAEntity(final JPAEntityType jpaType, final Entity oDataEntity) throws ODataJPAModelException {
 		final List<Object> listPrimaryKeyValues = new LinkedList<>();
-		// TODO risk: the order of (primary) key/id attributes must be the same as in descriptor; that is not ensured
-		for (final JPAAttribute jpaAttribute : jpaType.getKeyAttributes()) {
-			if (jpaAttribute.isComplex() || jpaAttribute.isAssociation()) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
+		try {
+			for (final JPAAttribute jpaAttribute : jpaType.getKeyAttributes(false)) {
+				if (jpaAttribute.isComplex() && !listPrimaryKeyValues.isEmpty()) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
+				}
+				if (jpaAttribute.isAssociation()) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
+				}
+				final Object value = attributeConverter.determineOData2JPAProperty(jpaType, jpaAttribute,
+						oDataEntity.getProperties());
+				if (value == null) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER);
+				}
+				listPrimaryKeyValues.add(value);
 			}
-			final Object value = oDataEntity.getProperty(jpaAttribute.getExternalName()).getValue();
-			listPrimaryKeyValues.add(value);
+		} catch (final IllegalAccessException | NoSuchFieldException | ODataApplicationException ex) {
+			throw new ODataJPAModelException(ex);
 		}
 		if (listPrimaryKeyValues.isEmpty()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_KEY);
@@ -191,7 +202,7 @@ public class JPAEntityHelper {
 			return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues.get(0), LockModeType.NONE);
 		} else {
 			log.warning(jpaType.getInternalName()
-					+ " has multiple id properties, this supported only by a few JPA providers and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
+					+ " has multiple id properties, this is supported only by a few JPA providers and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
 			return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.NONE);
 		}
 	}

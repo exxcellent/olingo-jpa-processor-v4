@@ -189,7 +189,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 		final List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
 		try {
-			final List<? extends JPAAttribute> jpaKeyList = jpaEntity.getKeyAttributes();
+			final List<? extends JPAAttribute> jpaKeyList = jpaEntity.getKeyAttributes(true);
 
 			for (final String selectItem : selectList) {
 				final JPASelector selectItemPath = jpaEntity.getPath(selectItem);
@@ -201,15 +201,15 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 					// Primitive Type
 					jpaPathList.add(selectItemPath);
 				}
-				if (selectItemPath.getLeaf().isKey()) {
-					jpaKeyList.remove(selectItemPath.getLeaf());
-				}
 			}
 			Collections.sort(jpaPathList);
 			for (final JPAAttribute key : jpaKeyList) {
 				final JPASelector keyPath = jpaEntity.getPath(key.getExternalName());
 				final int insertAt = Collections.binarySearch(jpaPathList, keyPath);
 				if (insertAt < 0) {
+					LOG.log(Level.WARNING,
+							"OData-JPA bridge doesn't support $select without including of all key attributes, will add '"
+									+ keyPath.getAlias() + "' as part of result");
 					jpaPathList.add((insertAt * -1) - 1, keyPath);
 				}
 			}

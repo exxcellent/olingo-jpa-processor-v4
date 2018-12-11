@@ -10,6 +10,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -28,7 +29,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	private CsdlProperty edmProperty = null;
 
 	public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
-	        final IntermediateServiceDocument serviceDocument) {
+			final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, field.getName());
 		this.field = field;
 		this.setExternalName(nameBuilder.buildPropertyName(field.getName()));
@@ -80,7 +81,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 		edmProperty.setSrid(IntermediateProperty.getSRID(field));
 		// edmProperty.setDefaultValue(determineDefaultValue());
 		if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-		        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
+				|| edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
 			edmProperty.setMaxLength(maxLength);
 		}
 	}
@@ -112,6 +113,14 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	@Override
 	public boolean isComplex() {
 		return !isPrimitive();
+	}
+
+	@Override
+	public AttributeMapping getAttributeMapping() {
+		if (isComplex()) {
+			return AttributeMapping.AS_COMPLEX_TYPE;
+		}
+		return AttributeMapping.SIMPLE;
 	}
 
 	@Override

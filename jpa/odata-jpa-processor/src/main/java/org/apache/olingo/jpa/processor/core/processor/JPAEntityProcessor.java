@@ -14,6 +14,7 @@ import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
+import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -218,7 +219,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 				response.setContent(serializerResult.getContent());
 				response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 				response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-			} catch (final ODataJPAModelException e) {
+			} catch (final ODataException e) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
 						HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 			}
@@ -236,11 +237,11 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 			response.setContent(new ByteArrayInputStream("{}".getBytes()));
 			response.setStatusCode(HttpStatusCode.NOT_FOUND.getStatusCode());
 		} else {
-			final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-					getOData().createUriHelper(), context.getDependencyInjector());
 			final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
 			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 			try {
+				final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
+						getOData().createUriHelper(), context.getDependencyInjector());
 				final JPAEntityType jpaType = sd.getEntitySetType(targetEdmEntitySet.getName());
 				for(final Entity entity: entityCollection.getEntities()) {
 					final Object persistenceEntity = invoker.loadJPAEntity(jpaType, entity);
@@ -248,7 +249,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 				}
 				// ok
 				response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
-			} catch (final ODataJPAModelException e) {
+			} catch (final ODataException e) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
 						HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 			}

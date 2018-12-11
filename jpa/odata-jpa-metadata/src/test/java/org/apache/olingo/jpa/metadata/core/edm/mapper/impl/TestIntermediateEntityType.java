@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -275,7 +276,8 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 	public void checkGetKeyWithBaseType() throws ODataJPAModelException {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"Organization"), serviceDocument);
-		assertEquals(1, et.getKeyAttributes().size());
+		assertEquals(1, et.getKeyAttributes(true).size());
+		assertEquals(AttributeMapping.SIMPLE, et.getKeyAttributes(true).get(0).getAttributeMapping());
 	}
 
 	@Test
@@ -296,7 +298,9 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 	public void checkEmbeddedIdResovedKeyInternal() throws ODataJPAModelException {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivisionDescription"), serviceDocument);
-		assertEquals(4, et.getKeyAttributes().size());
+		assertEquals(1, et.getKeyAttributes(false).size());
+		assertEquals(AttributeMapping.EMBEDDED_ID, et.getKeyAttributes(false).get(0).getAttributeMapping());
+		assertEquals(4, et.getKeyAttributes(true).size());
 	}
 
 	@Test

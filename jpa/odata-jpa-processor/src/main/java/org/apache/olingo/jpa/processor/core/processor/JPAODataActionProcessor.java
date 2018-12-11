@@ -186,8 +186,6 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		}
 
 		final List<Object> results = new LinkedList<>();
-		final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(), getOData().createUriHelper(),
-				context.getDependencyInjector());
 		if (jpaAction.isBound()) {
 			// determine entity context
 			JPAQuery query = null;
@@ -205,21 +203,25 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 
 			final JPAEntityType jpaType = query.getJPAEntityType();
 			if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
-				for (final Entity entity : entityCollection.getEntities()) {
-					// call action in context of entity
-					try {
+				try {
+					final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
+							getOData().createUriHelper(), context.getDependencyInjector());
+					for (final Entity entity : entityCollection.getEntities()) {
+						// call action in context of entity
 						final Object resultAction = invoker.invokeBoundActionMethod(jpaType, entity, jpaAction,
 								parameters);
 						if (resultAction != null) {
 							results.add(resultAction);
 						}
-					} catch (final ODataException e) {
-						throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 					}
+				} catch (final ODataException e) {
+					throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 				}
 			}
 		} else {
 			try {
+				final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
+						getOData().createUriHelper(), context.getDependencyInjector());
 				final Object resultAction = invoker.invokeUnboundActionMethod(jpaAction, parameters);
 				if (resultAction != null) {
 					results.add(resultAction);

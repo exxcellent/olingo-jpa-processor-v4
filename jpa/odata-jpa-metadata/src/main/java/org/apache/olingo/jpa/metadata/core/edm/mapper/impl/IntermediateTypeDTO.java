@@ -316,7 +316,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 	}
 
 	@Override
-	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException {
+	public List<JPASimpleAttribute> getKeyAttributes(final boolean exploded) throws ODataJPAModelException {
 		throw new UnsupportedOperationException();
 	}
 

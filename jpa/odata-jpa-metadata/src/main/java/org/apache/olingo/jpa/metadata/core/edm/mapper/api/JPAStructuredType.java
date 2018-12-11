@@ -83,13 +83,15 @@ public interface JPAStructuredType extends JPAElement {
 	public JPAAssociationPath getDeclaredAssociation(JPAAssociationPath associationPath) throws ODataJPAModelException;
 
 	/**
-	 * Returns a resolved list of all attributes that are marked as Id, so the
-	 * attributes of an EmbeddedId are returned as separate entries.
+	 * Returns a resolved list of all attributes that are marked as Id. If
+	 * <i>exploded</i> is TRUE then the attributes of an @EmbeddedId property are
+	 * listed all as separate entries, if FALSE a @EmbeddedId is returned as one
+	 * entry, the nested key attributes are not separated.
 	 *
 	 * @return The list with attributes or empty list.
 	 *
 	 * @throws ODataJPAModelException
 	 */
-	public List<JPASimpleAttribute> getKeyAttributes() throws ODataJPAModelException;
+	public List<JPASimpleAttribute> getKeyAttributes(boolean exploded) throws ODataJPAModelException;
 
 }

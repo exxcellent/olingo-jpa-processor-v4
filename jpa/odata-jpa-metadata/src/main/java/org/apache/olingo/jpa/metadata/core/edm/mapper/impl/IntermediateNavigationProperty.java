@@ -30,6 +30,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlOnDelete;
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
@@ -135,6 +136,11 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	public boolean isComplex() {
 		// navigation properties are targeting always a non primitive object
 		return true;
+	}
+
+	@Override
+	public AttributeMapping getAttributeMapping() {
+		return AttributeMapping.RELATIONSHIP;
 	}
 
 	@Override
@@ -505,7 +511,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 */
 	private Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(final boolean isSourceOne)
 			throws ODataJPAModelException {
-		final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes();
+		final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
 		final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());
 		for (final JPASimpleAttribute idAttr : targetKeyAttributes) {
 			final String targetKeyName = idAttr.getDBFieldName();
@@ -524,7 +530,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	}
 
 	private List<JPASimpleAttribute> determineCheckedNumberOfKeyAttributes(final JPAStructuredType theType) throws ODataJPAModelException {
-		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes();
+		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes(false);
 		if (attributes.isEmpty()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
 		}
