@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
@@ -15,7 +16,7 @@ public class TestJPAQueryNavigationCount extends TestBase {
 	public void testEntitySetCount() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Organizations/$count");
-		assertEquals(200, helper.getStatus());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		assertEquals("10", helper.getRawResult());
 	}
@@ -25,7 +26,7 @@ public class TestJPAQueryNavigationCount extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Roles/$count");
-		assertEquals(200, helper.getStatus());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		assertEquals("3", helper.getRawResult());
 	}

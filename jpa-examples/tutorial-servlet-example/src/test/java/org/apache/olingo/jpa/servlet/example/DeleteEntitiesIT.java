@@ -30,7 +30,8 @@ public class DeleteEntitiesIT {
 	public void test1() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("NoExistingResource").appendKeySegment("-3");
 		try {
-			endpoint.deleteEntity(uriBuilder, "Try to delete non existing resource");
+			final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder,
+					"Try to delete non existing resource");
 		} catch(final ODataClientErrorException ex) {
 			Assert.assertTrue(ex.getStatusLine().getStatusCode() == HttpStatusCode.NOT_FOUND.getStatusCode());
 		}
@@ -40,7 +41,8 @@ public class DeleteEntitiesIT {
 	public void test2() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("9555559");
 		try {
-			endpoint.deleteEntity(uriBuilder, "Delete non existing person with ID 9555559");
+			final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder,
+					"Delete non existing person with ID 9555559");
 		} catch(final ODataClientErrorException ex) {
 			Assert.assertTrue(ex.getStatusLine().getStatusCode() == HttpStatusCode.NOT_FOUND.getStatusCode());
 		}

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.testmodel.ImageLoader;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -20,7 +21,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationToOwnPrimitiveProperty() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Organizations('3')/Name1");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("Third Org.", org.get("value").asText());
@@ -32,7 +33,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/LocationName");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("Vereinigte Staaten von Amerika", org.get("value").asText());
@@ -43,7 +44,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/Address");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("USA", org.get("Country").asText());
@@ -54,7 +55,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/AdministrativeInformation/Created");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		final JsonNode created = org.get("Created");
@@ -67,7 +68,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/AdministrativeInformation/Created/User/FirstName");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("Max", org.get("value").asText());
@@ -78,7 +79,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/Address?$select=Country,Region");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals(3, org.size()); // Node "@odata.context" is also counted
@@ -91,7 +92,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/Address");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("USA", org.get("Country").asText());
@@ -102,7 +103,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/Address/Region");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("US-UT", org.get("value").asText());
@@ -112,10 +113,10 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	@Ignore
 	@Test
 	public void testNavigationToStreamValue() throws IOException, ODataException {
-		new ImageLoader().loadPerson(emf.createEntityManager(), "OlingoOrangeTM.png", "99");
+		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "PersonImages('99')/$value");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final byte[] act = helper.getBinaryResult();
 		assertEquals(93316, act.length, 0);
@@ -124,11 +125,11 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	@Ignore
 	@Test
 	public void testNavigationToStreamValueVia() throws IOException, ODataException {
-		new ImageLoader().loadPerson(emf.createEntityManager(), "OlingoOrangeTM.png", "99");
+		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Persons('99')/Image/$value");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final byte[] act = helper.getBinaryResult();
 		assertEquals(93316, act.length, 0);
@@ -137,11 +138,11 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	@Ignore
 	@Test
 	public void testNavigationToComplexAttributeValue() throws IOException, ODataException {
-		new ImageLoader().loadPerson(emf.createEntityManager(), "OlingoOrangeTM.png", "99");
+		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/AdministrativeInformation/Created/By/$value");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String act = helper.getRawResult();
 		assertEquals("98", act);
@@ -150,11 +151,11 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	@Ignore
 	@Test
 	public void testNavigationToPrimitiveAttributeValue() throws IOException, ODataException {
-		new ImageLoader().loadPerson(emf.createEntityManager(), "OlingoOrangeTM.png", "99");
+		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('4')/ID/$value");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String act = helper.getRawResult();
 		assertEquals("4", act);

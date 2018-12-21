@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -76,6 +77,14 @@ public class JPAEntityHelper {
 				return null;
 			}
 			return (R) result;
+		} catch (final InvocationTargetException e) {
+			if (ODataApplicationException.class.isInstance(e.getTargetException())) {
+				log.log(Level.SEVERE, "Action call throws " + ODataApplicationException.class.getSimpleName()
+						+ "... unrwap to send custom error status", e);
+				throw ODataApplicationException.class.cast(e.getTargetException());
+			}
+			// otherwise
+			throw new ODataJPAModelException(e);
 		} catch (final Exception e) {
 			throw new ODataJPAModelException(e);
 		}

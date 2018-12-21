@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Ignore;
@@ -37,7 +38,7 @@ public class TestJPAFunction extends TestBase {
 	public void testNavigationAfterFunctionNotAllowed() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')/Parent");
-		helper.assertStatus(501);
+		helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
 	}
 
 	@Test
@@ -46,7 +47,7 @@ public class TestJPAFunction extends TestBase {
 		createSiblingsFunction();
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertTrue(helper.getValues().size() > 0);
 	}
 

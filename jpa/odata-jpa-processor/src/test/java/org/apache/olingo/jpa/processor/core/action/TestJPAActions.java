@@ -79,7 +79,7 @@ public class TestJPAActions extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
@@ -93,7 +93,7 @@ public class TestJPAActions extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"unboundVoidAction", null, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.NO_CONTENT.getStatusCode());
+		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 	}
 
@@ -108,7 +108,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"createOrganization", requestBody, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
 		assertEquals(testId, object.get("ID").asText());
@@ -127,7 +127,7 @@ public class TestJPAActions extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
@@ -141,7 +141,7 @@ public class TestJPAActions extends TestBase {
 				"AdministrativeDivisionDescriptions(CodePublisher='Eurostat',CodeID='NUTS3',DivisionCode='BE212',Language='de')/"
 						+ Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId",
 						null, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.NO_CONTENT.getStatusCode());
+		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
 	@Test
@@ -159,7 +159,17 @@ public class TestJPAActions extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"unboundActionCheckLoadingOfEmbeddedId", requestBody, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.NO_CONTENT.getStatusCode());
+		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
+	@Test
+	public void testActionThrowingCustomHttpStatusErrorCode()
+			throws IOException, ODataException, NoSuchMethodException {
+
+		persistenceAdapter.registerDTO(EnvironmentInfo.class);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"throwODataApplicationException", null, HttpMethod.POST);
+		helper.execute(911);
 	}
 
 }

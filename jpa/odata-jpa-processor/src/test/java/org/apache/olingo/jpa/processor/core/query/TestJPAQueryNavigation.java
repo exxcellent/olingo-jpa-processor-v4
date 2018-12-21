@@ -6,6 +6,7 @@ import static org.junit.Assume.assumeTrue;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Ignore;
@@ -20,7 +21,7 @@ public class TestJPAQueryNavigation extends TestBase {
 	public void testNavigationOneHop() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Organizations('3')/Roles");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(3, orgs.size());
@@ -30,7 +31,7 @@ public class TestJPAQueryNavigation extends TestBase {
 	public void testNavigationOneHopWithoutReferencedColumn() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image2");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode img = helper.getValue();
 		assertEquals(99, img.get("PID").asLong());
@@ -40,7 +41,7 @@ public class TestJPAQueryNavigation extends TestBase {
 	public void testNavigationOneHopWithoutJoinColumnButMappedBy() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('98')/Image3");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode img = helper.getValue();
 		assertEquals(99, img.get("PID").asLong());
@@ -53,7 +54,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Persons('98')/Image3/PersonWithDefaultIdMapping");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode img = helper.getValue();
 		assertEquals(97, img.get("ID").asLong());
@@ -63,7 +64,7 @@ public class TestJPAQueryNavigation extends TestBase {
 	public void testNoNavigationOneEntity() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Organizations('3')");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("Third Org.", org.get("Name1").asText());
@@ -74,7 +75,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Roles?$orderby=RoleCategory desc");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(3, orgs.size());
@@ -87,7 +88,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"BusinessPartnerRoles(BusinessPartnerID='2',RoleCategory='A')/BusinessPartner");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("2", org.get("ID").asText());
@@ -98,7 +99,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/AdministrativeInformation/Created/By");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("99", org.get("value").asText());
@@ -110,7 +111,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/AdministrativeInformation/Created/User/Address/AdministrativeDivision");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("3166-1", org.get("ParentCodeID").asText());
@@ -121,7 +122,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("NUTS2", org.get("CodeID").asText());
@@ -133,7 +134,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent/Parent");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
 		assertEquals("NUTS1", org.get("CodeID").asText());
@@ -146,7 +147,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')/Children?$orderby=DivisionCode desc");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(5, orgs.size());
@@ -160,7 +161,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')/Children(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')/Children?$orderby=DivisionCode desc");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(8, orgs.size());
@@ -174,7 +175,7 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Address/AdministrativeDivision/Parent/Parent");
-		helper.assertStatus(204);
+		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
 	@Ignore("Currently not available")
@@ -183,6 +184,6 @@ public class TestJPAQueryNavigation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Address/AdministrativeDivision/Children");
-		helper.assertStatus(204);
+		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 }

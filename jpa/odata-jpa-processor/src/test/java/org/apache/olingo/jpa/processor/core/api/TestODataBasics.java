@@ -6,9 +6,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestODataBasics extends TestBase {
 
@@ -16,11 +19,46 @@ public class TestODataBasics extends TestBase {
 	public void testMetadata() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$metadata");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String metadata = helper.getRawResult();
 		assertNotNull(metadata);
 		assertTrue(metadata.length() > 1);
+	}
+
+	@Test
+	public void testService() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final String servicedata = helper.getRawResult();
+		assertNotNull(servicedata);
+		assertTrue(servicedata.length() > 1);
+	}
+
+	@Test
+	public void testAll() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$all");
+		helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
+	}
+
+	@Test
+	public void testCrossjoin() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"$crossjoin(Persons,PersonImages)");
+		helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
+	}
+
+	@Test
+	public void testEntityId() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$entity?$id=Persons('99')");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ObjectNode person = helper.getValue();
+		assertNotNull(person);
 	}
 
 }

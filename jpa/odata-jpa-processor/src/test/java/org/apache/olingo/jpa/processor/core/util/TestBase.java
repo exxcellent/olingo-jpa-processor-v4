@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManagerFactory;
-
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
 import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDB_DatabaseProcessor;
@@ -20,8 +18,6 @@ public abstract class TestBase {
 		EclipseLink, Hibernate, OpenJPA;
 	}
 
-	@Deprecated
-	protected EntityManagerFactory emf;
 	protected TestHelper helper;
 	protected Map<String, List<String>> headers;
 	protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
@@ -33,7 +29,6 @@ public abstract class TestBase {
 		persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
 				new JPA_HSQLDB_DatabaseProcessor(),
 				DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
-		emf = persistenceAdapter.getEMF();
 	}
 
 	protected JPAProvider getJPAProvider() {

@@ -22,6 +22,7 @@ import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
+import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.OData;
@@ -29,21 +30,29 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataLibraryException;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
+import org.apache.olingo.server.api.ODataServerError;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.debug.DebugInformation;
 import org.apache.olingo.server.api.debug.DebugSupport;
 import org.apache.olingo.server.api.debug.DefaultDebugSupport;
 import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.api.uri.UriInfo;
+import org.apache.olingo.server.core.ODataExceptionHelper;
+import org.apache.olingo.server.core.ODataHandlerImpl;
 import org.apache.olingo.server.core.ODataHttpHandlerImpl;
+import org.apache.olingo.server.core.debug.ServerCoreDebugger;
 import org.apache.olingo.server.core.uri.parser.Parser;
+import org.apache.olingo.server.core.uri.parser.UriParserException;
+import org.apache.olingo.server.core.uri.parser.UriParserSemanticException;
+import org.apache.olingo.server.core.uri.parser.UriParserSyntaxException;
+import org.apache.olingo.server.core.uri.validator.UriValidationException;
 
 public class JPAODataGetHandler {
 
 	private static final Logger LOG = Logger.getLogger(JPAODataGetHandler.class.getName());
 
 	private final JPAODataContextImpl context;
-	private SecurityInceptor securityInceptor = null;
+	private SecurityInceptor securityInceptor = new AnnotationBasedSecurityInceptor();
 
 	public JPAODataGetHandler(final JPAAdapter mappingAdapter) throws ODataException {
 		super();
@@ -78,7 +87,6 @@ public class JPAODataGetHandler {
 		if (!response.getAllHeaders().containsKey(HttpHeader.CACHE_CONTROL)) {
 			response.setHeader(HttpHeader.CACHE_CONTROL, "max-age=0, no-cache, no-store, must-revalidate");
 		}
-
 	}
 
 	/**
@@ -129,7 +137,7 @@ public class JPAODataGetHandler {
 		private JPAODataDatabaseOperations operationConverter;
 		private JPAServiceDebugger debugger;
 		private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
-		private DependencyInjector dpi = new DependencyInjector();
+		private DependencyInjector dpi = null;
 
 		public JPAODataContextImpl(final JPAAdapter mappingAdapter) throws ODataException {
 			super();
@@ -227,7 +235,7 @@ public class JPAODataGetHandler {
 				}
 			}
 			if (isDebugMode) {
-				debugger = new JPACoreDeugger();
+				debugger = new JPACoreDebugger();
 			} else {
 				debugger = new JPAEmptyDebugger();
 			}
@@ -250,6 +258,9 @@ public class JPAODataGetHandler {
 
 		@Override
 		public DependencyInjector getDependencyInjector() {
+			if (dpi == null) {
+				throw new IllegalStateException("DependencyInjector not yet initialized");
+			}
 			return dpi;
 		}
 	}
@@ -305,7 +316,11 @@ public class JPAODataGetHandler {
 			final JPAAdapter mappingAdapter = context.getMappingAdapter();
 			context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
 
-			checkSecurity(request);
+			try {
+				checkSecurity(request);
+			} catch (final ODataLibraryException | ODataApplicationException e) {
+				return wrapIntoErrorResponse(request, e);
+			}
 
 			try {
 				mappingAdapter.beginTransaction(em);
@@ -328,19 +343,46 @@ public class JPAODataGetHandler {
 			}
 		}
 
-		private void checkSecurity(final ODataRequest request) throws RuntimeException {
+		private ODataResponse wrapIntoErrorResponse(final ODataRequest request, final ODataException ex) {
+			ODataServerError serverError;
+			// rethrow exception to simplify handling of exception occurred while security
+			// check
+			try {
+				throw ex;
+			} catch (final ODataApplicationException e) {
+				serverError = ODataExceptionHelper.createServerErrorObject(e);
+			} catch (final UriValidationException e) {
+				serverError = ODataExceptionHelper.createServerErrorObject(e, null);
+			} catch (final UriParserSemanticException e) {
+				serverError = ODataExceptionHelper.createServerErrorObject(e, null);
+			} catch (final UriParserSyntaxException e) {
+				serverError = ODataExceptionHelper.createServerErrorObject(e, null);
+			} catch (final UriParserException e) {
+				serverError = ODataExceptionHelper.createServerErrorObject(e, null);
+			} catch (final ODataLibraryException e) {
+				serverError = ODataExceptionHelper.createServerErrorObject(e, null);
+			} catch (final ODataException e) {
+				throw new UnsupportedOperationException(e);
+			}
+			// duplicate usage of classes not accessible on super class to delegate
+			// exception handling to other handler
+			final ODataResponse errorResponse = new ODataResponse();
+			final ServerCoreDebugger debugger = new ServerCoreDebugger(context.getOdata());
+			final ODataHandlerImpl handler = new ODataHandlerImpl(context.getOdata(), context.getServiceMetaData(),
+					debugger);
+			handler.handleException(request, errorResponse, serverError, ex);
+			return errorResponse;
+		}
+
+		private void checkSecurity(final ODataRequest request) throws ODataLibraryException, ODataApplicationException {
 			if (securityInceptor == null) {
 				return;
 			}
-			try {
-				context.getDependencyInjector().injectFields(securityInceptor);
-				final UriInfo uriInfo = new Parser(context.getServiceMetaData().getEdm(), context.getOdata())
-						.parseUri(request.getRawODataPath(),
-								request.getRawQueryPath(), null, request.getRawBaseUri());
-				securityInceptor.authorize(request, uriInfo);
-			} catch (final ODataLibraryException | ODataApplicationException e) {
-				throw new RuntimeException(e);
-			}
+			context.getDependencyInjector().injectFields(securityInceptor);
+			final UriInfo uriInfo = new Parser(context.getServiceMetaData().getEdm(), context.getOdata())
+					.parseUri(request.getRawODataPath(),
+							request.getRawQueryPath(), null, request.getRawBaseUri());
+			securityInceptor.authorize(request, uriInfo);
 		}
 	}
 

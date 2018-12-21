@@ -103,7 +103,7 @@ public class TestDependencyInjection extends TestBase {
 	public void testReadDTO() throws IOException, ODataException, SQLException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"DIDtos");
-		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertTrue(helper.getValues().size() == 2);
 	}
 
@@ -116,7 +116,7 @@ public class TestDependencyInjection extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DIDtos(" + id + ")",
 				requestBody, HttpMethod.PUT);
-		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

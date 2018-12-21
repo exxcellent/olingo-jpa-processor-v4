@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
@@ -19,7 +20,7 @@ public class TestJPAEnumFilter extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"DatatypeConversionEntities?$filter=AStringMappedEnum eq java.time.chrono.IsoEra'CE'");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode dces = helper.getValues();
 		assertEquals(1, dces.size());
@@ -31,7 +32,7 @@ public class TestJPAEnumFilter extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"DatatypeConversionEntities?$filter=AStringMappedEnum ne java.time.chrono.IsoEra'BCE'");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode dces = helper.getValues();
 		assertTrue(dces.size() > 0);
@@ -42,7 +43,7 @@ public class TestJPAEnumFilter extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"DatatypeConversionEntities?$filter=AOrdinalMappedEnum eq java.time.temporal.ChronoUnit'NANOS'");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode dces = helper.getValues();
 		assertEquals(1, dces.size());
