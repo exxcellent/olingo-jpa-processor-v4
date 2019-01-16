@@ -18,6 +18,7 @@ import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceAction;
+import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 
 /**
  * Generic interceptor configured via annotations on entity classes. This
@@ -116,8 +117,10 @@ public class AnnotationBasedSecurityInceptor implements SecurityInceptor {
 		case action:
 			checkMethodAccess((UriResourceAction) lastPathSegment);
 			break;
-		case function:
 		case entitySet:
+			checkResourceAccess((UriResourceEntitySet) lastPathSegment);
+			break;
+		case function:
 		case navigationProperty:
 		case singleton:
 		case count:
@@ -131,6 +134,11 @@ public class AnnotationBasedSecurityInceptor implements SecurityInceptor {
 			throw new UnsupportedOperationException(lastPathSegment.getKind() + " unknown to security inceptor");
 		}
 
+	}
+
+	private void checkResourceAccess(final UriResourceEntitySet uriResource) throws ODataApplicationException {
+		// FIXME
+		throw new UnsupportedOperationException();
 	}
 
 	private void checkMethodAccess(final UriResourceAction uriAction) throws ODataApplicationException {
