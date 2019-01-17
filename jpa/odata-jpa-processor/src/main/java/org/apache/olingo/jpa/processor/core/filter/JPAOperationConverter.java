@@ -76,7 +76,12 @@ public class JPAOperationConverter {
 		switch (jpaOperator.getOperator()) {
 		case EQ:
 			if (jpaOperator.getRight() instanceof JPALiteralOperator) {
-				return cb.equal(jpaOperator.getLeft(), jpaOperator.getRightAsComparable());
+				final JPALiteralOperator right = (JPALiteralOperator) jpaOperator.getRight();
+				if (right.isNullLiteral()) {
+					return cb.isNull(jpaOperator.getLeft());
+				} else {
+					return cb.equal(jpaOperator.getLeft(), jpaOperator.getRightAsComparable());
+				}
 			} else {
 				return cb.equal(jpaOperator.getLeft(), jpaOperator.getRightAsExpression());
 			}

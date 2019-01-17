@@ -52,6 +52,15 @@ public class JPALiteralOperator implements JPAOperator<Object> {
 		}
 	}
 
+	public boolean isNullLiteral() {
+		final String text = literal.getText();
+		if(text == null) {
+			//not the 'null' text value for literal
+			return false;
+		}
+		return "null".equalsIgnoreCase(text);
+	}
+
 	/**
 	 * Converts a literal value into system type of attribute
 	 */
@@ -64,6 +73,9 @@ public class JPALiteralOperator implements JPAOperator<Object> {
 			// normal primitive type handling
 			final CsdlProperty edmProperty = (CsdlProperty) attribute.getProperty();
 			final EdmPrimitiveTypeKind edmTypeKind = JPATypeConvertor.convertToEdmSimpleType(attribute);
+			if (isNullLiteral()) {
+				return null;
+			}
 			// TODO literal does not convert decimals without scale properly
 			// EdmPrimitiveType edmType = ((EdmPrimitiveType) literal.getType());
 			String value = null;
