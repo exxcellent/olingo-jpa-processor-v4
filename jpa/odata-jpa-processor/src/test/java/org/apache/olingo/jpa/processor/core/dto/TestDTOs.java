@@ -35,15 +35,15 @@ public class TestDTOs extends TestBase {
 				new JPA_HSQLDB_DatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 		myPersistenceAdapter.registerDTO(TestDTOs.class);
 		// must throw an exception on further processing
-		@SuppressWarnings("unused")
 		final IntegrationTestHelper helper = new IntegrationTestHelper(myPersistenceAdapter, "$metadata");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 	}
 
 	@Test
 	public void testDTOMetadata() throws IOException, ODataException, SQLException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$metadata");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final String xml = helper.getRawResult();
 		assertTrue(!xml.isEmpty());
 		assertTrue(xml.contains(EnvironmentInfo.class.getSimpleName()));
@@ -55,7 +55,7 @@ public class TestDTOs extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"EnvironmentInfos");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertTrue(helper.getValues().size() > 0);
 		assertEquals(System.getProperty("java.version"), helper.getValues().get(0).get("JavaVersion").asText());
 	}
@@ -64,7 +64,7 @@ public class TestDTOs extends TestBase {
 	public void testGetSpecificDTO() throws IOException, ODataException, SQLException {
 		// our example DTO handler will not support loading of a DTO with a specific ID
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "EnvironmentInfos(1)");
-		assertTrue(helper.getStatus() > 400); // normally a 500
+		helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
 	}
 
 	@Test
@@ -79,7 +79,7 @@ public class TestDTOs extends TestBase {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"EnvironmentInfos(" + id + ")",
 				requestBody, HttpMethod.PUT);
-		helper.assertStatus(HttpStatusCode.OK.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertEquals(id, helper.getValue().get("Id").asText());
 	}
 

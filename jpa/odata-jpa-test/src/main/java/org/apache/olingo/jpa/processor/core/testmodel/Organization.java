@@ -16,7 +16,6 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
 
 @Entity(name = "Organization")
 @DiscriminatorValue(value = "2")
-//@Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BusinessPartner\"")
 public class Organization extends BusinessPartner {
 
 	@Column(name = "\"NameLine1\"")

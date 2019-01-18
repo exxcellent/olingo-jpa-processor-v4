@@ -226,6 +226,8 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 				if (resultAction != null) {
 					results.add(resultAction);
 				}
+			} catch (final ODataApplicationException e) {
+				throw e;
 			} catch (final ODataException e) {
 				throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 			}

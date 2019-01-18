@@ -2,12 +2,14 @@ package org.apache.olingo.jpa.processor.core.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
@@ -22,8 +24,10 @@ public class TestBatchRequests extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
 				HttpMethod.POST);
+		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
 		final List<String> act = helper.getRawBatchResult();
 		assertNotNull(act);
+		assertTrue(!act.isEmpty());
 	}
 
 	@Test
@@ -32,6 +36,7 @@ public class TestBatchRequests extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
 				HttpMethod.POST);
+		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
 		assertEquals(200, helper.getBatchResultStatus(1));
 	}
 
@@ -41,6 +46,7 @@ public class TestBatchRequests extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
 				HttpMethod.POST);
+		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
 		final JsonNode value = helper.getBatchResult(1);
 		assertEquals("3", value.get("ID").asText());
 	}
@@ -51,6 +57,7 @@ public class TestBatchRequests extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
 				HttpMethod.POST);
+		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
 		assertEquals(404, helper.getBatchResultStatus(2));
 	}
 
@@ -60,6 +67,7 @@ public class TestBatchRequests extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
 				HttpMethod.POST);
+		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
 		final JsonNode value = helper.getBatchResult(2);
 		assertEquals("5", value.get("ID").asText());
 	}

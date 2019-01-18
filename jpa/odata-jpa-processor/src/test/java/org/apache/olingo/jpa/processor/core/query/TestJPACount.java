@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class TestJPACount extends TestBase {
 	public void testSimpleCount() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons/$count");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertEquals(3, Integer.parseInt(helper.getRawResult()));
 	}
 
@@ -28,7 +29,7 @@ public class TestJPACount extends TestBase {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				// skip the ID's '1' and '10'
 				"Organizations?$skip=2&$top=5&$orderby=ID&$expand=Roles/$count");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(5, orgs.size());
 		final ObjectNode org = (ObjectNode) orgs.get(1); // after skipping '1' and '10' this should be '3'

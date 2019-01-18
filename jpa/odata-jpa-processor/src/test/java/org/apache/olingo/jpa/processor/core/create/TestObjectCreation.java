@@ -26,7 +26,7 @@ public class TestObjectCreation extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DatatypeConversionEntities",
 				requestBody, HttpMethod.POST);
-		helper.assertStatus(HttpStatusCode.CREATED.getStatusCode());
+		helper.execute(HttpStatusCode.CREATED.getStatusCode());
 
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);

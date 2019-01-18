@@ -45,7 +45,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
 	@Override
 	JPAEntityType getEntityType(final Class<?> targetClass) {
-		return dtoTypes.get(JPANameBuilder.buildStructuredTypeName(targetClass));
+		return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
 	}
 
 	@Override
@@ -60,7 +60,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 	}
 
 	IntermediateTypeDTO getDTOType(final Class<?> targetClass) {
-		return dtoTypes.get(targetClass.getSimpleName());
+		return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
 	}
 
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
@@ -128,7 +128,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		IntermediateTypeDTO dtoType = getDTOType(clazz);
 		if (dtoType == null) {
 			dtoType = new IntermediateTypeDTO(getNameBuilder(), clazz, serviceDocument);
-			dtoTypes.put(clazz.getSimpleName(), dtoType);
+			dtoTypes.put(dtoType.getExternalName(), dtoType);
 			// build actions for DTO
 			final IntermediateActionFactory factory = new IntermediateActionFactory();
 			actions.putAll(factory.create(getNameBuilder(), dtoType.getTypeClass(), serviceDocument));
@@ -162,8 +162,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
 	@Override
 	JPAEntityType getEntityType(final String externalName) {
-		// currently not supported
-		return null;
+		return dtoTypes.get(externalName);
 	}
 
 	@Override

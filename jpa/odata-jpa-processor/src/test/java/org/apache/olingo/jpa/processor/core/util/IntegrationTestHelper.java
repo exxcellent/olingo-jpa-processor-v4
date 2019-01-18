@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,10 +22,8 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
-import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
-import org.apache.olingo.jpa.processor.core.test.Constant;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
+import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.ODataServerError;
@@ -56,13 +54,10 @@ public class IntegrationTestHelper {
 	// ----------------------------------------------------------------------------------
 	public final HttpServletRequestDouble req;
 	public final HttpServletResponseDouble resp;
+	private final JPAAdapter persistenceAdapter;
 	private static final String uriPrefix = "http://localhost:8080/Test/Olingo.svc/";
-
-	@Deprecated
-	public IntegrationTestHelper(final EntityManagerFactory localEmf, final String urlPath) throws IOException,
-	ODataException {
-		this(localEmf, null, urlPath, null, HttpMethod.GET);
-	}
+	private boolean executed = false;
+	private SecurityInceptor securityInceptor = null;
 
 	/**
 	 * Does the same as <i>IntegrationTestHelper(persistenceAdapter.getEMF(),
@@ -73,42 +68,33 @@ public class IntegrationTestHelper {
 	 */
 	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath)
 			throws IOException, ODataException {
-		this(persistenceAdapter.getEMF(), persistenceAdapter, urlPath, null, HttpMethod.GET);
+		this(persistenceAdapter, urlPath, null, HttpMethod.GET);
 	}
 
-	/**
-	 * @deprecated Use
-	 *             {@link #IntegrationTestHelper(TestGenericJPAPersistenceAdapter, String, StringBuffer, HttpMethod)}
-	 */
-	@Deprecated
-	public IntegrationTestHelper(final EntityManagerFactory localEmf, final String urlPath,
-			final StringBuffer requestBody, final HttpMethod requestMethod)
-					throws IOException, ODataException {
-		this(localEmf, null, urlPath, requestBody, requestMethod);
-	}
-
-	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath,
-			final StringBuffer requestBody, final HttpMethod requestMethod) throws IOException, ODataException {
-		this(persistenceAdapter.getEMF(), persistenceAdapter, urlPath, requestBody, requestMethod);
-	}
-
-	private IntegrationTestHelper(final EntityManagerFactory localEmf, final JPAAdapter persistenceAdapter,
+	public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
 			final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
 					throws IOException,
 					ODataException {
 		super();
 		this.req = new HttpServletRequestDouble(uriPrefix + urlPath, requestBody);
-		req.setMethod(requestMethod);
+		this.req.setMethod(requestMethod);
 		this.resp = new HttpServletResponseDouble();
-		JPAAdapter mappingAdapter = persistenceAdapter;
-		if (mappingAdapter == null) {
-			if (localEmf == null) {
-				throw new IllegalArgumentException("EntityManager must not be null if persistence adapter is not given");
-			}
-			mappingAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-					new JPADefaultDatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
+		this.persistenceAdapter = persistenceAdapter;
+		if (persistenceAdapter == null) {
+			throw new IllegalArgumentException("JPAAdapter required");
 		}
-		final JPAODataGetHandler handler = new JPAODataGetHandler(mappingAdapter) {
+	}
+
+	public void setSecurityInceptor(final SecurityInceptor securityInceptor) {
+		this.securityInceptor = securityInceptor;
+	}
+
+	public void setUser(final Principal principal) {
+		req.setUserPrincipal(principal);
+	}
+
+	public void execute(final int status) throws ODataException {
+		final JPAODataGetHandler handler = new JPAODataGetHandler(persistenceAdapter) {
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,
 					final HttpServletResponse response, final EntityManager em) {
@@ -116,19 +102,45 @@ public class IntegrationTestHelper {
 				processors.add(new TestErrorProcessor());
 				return processors;
 			}
+
+			@Override
+			protected void prepareDependencyInjection(final DependencyInjector dpi) {
+				super.prepareDependencyInjection(dpi);
+				if (req.getUserPrincipal() != null) {
+					// convenience setting for our tests to make the user injectable
+					dpi.registerDependencyMapping(Principal.class, req.getUserPrincipal());
+				}
+			}
 		};
+		if (securityInceptor != null) {
+			handler.setSecurityInceptor(securityInceptor);
+		}
 		handler.process(req, resp);
+		executed = true;
+		assertEquals(parseResponse(), status, getStatus());
+
 	}
 
-	public HttpServletResponseDouble getResponce() {
-		return resp;
+	private String parseResponse() {
+		try {
+			return getRawResult();
+		} catch (final IOException e) {
+			e.printStackTrace();
+			return e.getMessage();
+		}
 	}
 
 	public int getStatus() {
+		if (!executed) {
+			throw new IllegalStateException("call execute() before");
+		}
 		return resp.getStatus();
 	}
 
 	public String getRawResult() throws IOException {
+		if (!executed) {
+			throw new IllegalStateException("call execute() before");
+		}
 		final InputStream in = resp.getInputStream();
 		final StringBuilder sb = new StringBuilder();
 		final BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -156,6 +168,9 @@ public class IntegrationTestHelper {
 	}
 
 	public ArrayNode getValues() throws JsonProcessingException, IOException {
+		if (!executed) {
+			throw new IllegalStateException("call execute() before");
+		}
 		final ObjectMapper mapper = new ObjectMapper();
 		final JsonNode node = mapper.readTree(getRawResult());
 		if (!(node.get("value") instanceof ArrayNode)) {
@@ -166,17 +181,15 @@ public class IntegrationTestHelper {
 	}
 
 	public ObjectNode getValue() throws JsonProcessingException, IOException {
+		if (!executed) {
+			throw new IllegalStateException("call execute() before");
+		}
 		final ObjectMapper mapper = new ObjectMapper();
 		final JsonNode value = mapper.readTree(getRawResult());
 		if (!(value instanceof ObjectNode)) {
 			fail("Wrong result type; ObjectNode expected");
 		}
 		return (ObjectNode) value;
-	}
-
-	public void assertStatus(final int exp) throws IOException {
-		assertEquals(getRawResult(), exp, getStatus());
-
 	}
 
 	public int getBatchResultStatus(final int i) throws IOException {

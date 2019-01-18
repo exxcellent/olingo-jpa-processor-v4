@@ -28,6 +28,7 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
 import org.apache.olingo.commons.api.http.HttpMethod;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 
 class HttpServletRequestDouble implements HttpServletRequest {
 	private final HttpRequestHeaderDouble reqHeader;
@@ -35,12 +36,9 @@ class HttpServletRequestDouble implements HttpServletRequest {
 	private final StringBuffer url;
 	private final StringBuffer input;
 	private HttpMethod requestMethod = null;
+	private Principal principal = null;
 
-	public HttpServletRequestDouble(final String uri) throws IOException {
-		this(uri, null);
-	}
-
-	public HttpServletRequestDouble(final String uri, final StringBuffer body) throws IOException {
+	HttpServletRequestDouble(final String uri, final StringBuffer body) throws IOException {
 		super();
 		this.reqHeader = new HttpRequestHeaderDouble();
 		final String[] uriParts = uri.split("\\?");
@@ -291,6 +289,8 @@ class HttpServletRequestDouble implements HttpServletRequest {
 		case POST:
 			// fall through
 		case PUT:
+			// fall through
+		case PATCH:
 			reqHeader.addHeader("Content-Type", "application/json");
 			break;
 		default:
@@ -343,14 +343,27 @@ class HttpServletRequestDouble implements HttpServletRequest {
 
 	@Override
 	public boolean isUserInRole(final String role) {
-		fail();
-		return false;
+		if ("*".equals(role) || "**".equals(role)) {
+			throw new UnsupportedOperationException("Do not use * and ** for testing");
+		}
+		if(getUserPrincipal() == null) {
+			return false;
+		}
+		return ((PrincipalMock) getUserPrincipal()).isUserInRole(role);
 	}
 
 	@Override
 	public Principal getUserPrincipal() {
-		fail();
-		return null;
+		return principal;
+	}
+
+	/**
+	 *
+	 * @param principal The user used as {@link #getUserPrincipal() authenticated
+	 *                  user}.
+	 */
+	public void setUserPrincipal(final Principal principal) {
+		this.principal = principal;
 	}
 
 	@Override
@@ -414,92 +427,96 @@ class HttpServletRequestDouble implements HttpServletRequest {
 
 	@Override
 	public long getContentLengthLong() {
-		// TODO Auto-generated method stub
+		fail();
 		return 0;
 	}
 
 	@Override
 	public ServletContext getServletContext() {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public AsyncContext startAsync() throws IllegalStateException {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public AsyncContext startAsync(final ServletRequest servletRequest, final ServletResponse servletResponse)
 			throws IllegalStateException {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public boolean isAsyncStarted() {
-		// TODO Auto-generated method stub
+		fail();
 		return false;
 	}
 
 	@Override
 	public boolean isAsyncSupported() {
-		// TODO Auto-generated method stub
+		fail();
 		return false;
 	}
 
 	@Override
 	public AsyncContext getAsyncContext() {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public DispatcherType getDispatcherType() {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public String changeSessionId() {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public boolean authenticate(final HttpServletResponse response) throws IOException, ServletException {
-		// TODO Auto-generated method stub
-		return false;
+		// authenticate the request, because test case has assigned a principal to use
+		// as present
+		if (principal == null) {
+			// reject request
+			response.sendError(HttpStatusCode.UNAUTHORIZED.getStatusCode(), HttpStatusCode.UNAUTHORIZED.getInfo());
+			return false;
+		}
+		return true;
 	}
 
 	@Override
 	public void login(final String username, final String password) throws ServletException {
-		// TODO Auto-generated method stub
-
+		fail();
 	}
 
 	@Override
 	public void logout() throws ServletException {
-		// TODO Auto-generated method stub
-
+		fail();
 	}
 
 	@Override
 	public Collection<Part> getParts() throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public Part getPart(final String name) throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 
 	@Override
 	public <T extends HttpUpgradeHandler> T upgrade(final Class<T> handlerClass) throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		fail();
 		return null;
 	}
 

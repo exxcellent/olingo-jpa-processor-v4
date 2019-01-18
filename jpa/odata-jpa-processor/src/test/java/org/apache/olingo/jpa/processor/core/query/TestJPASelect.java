@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
@@ -19,7 +20,7 @@ public class TestJPASelect extends TestBase {
 	public void testSimpleGet() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode p = helper.getValue();
 		assertEquals(99, p.get("ID").asLong());
@@ -32,7 +33,7 @@ public class TestJPASelect extends TestBase {
 	public void testDatatypeConversionEntities() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DatatypeConversionEntities(1)");
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode p = helper.getValue();
 		assertEquals(1, p.get("ID").asLong());
@@ -43,7 +44,7 @@ public class TestJPASelect extends TestBase {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisionDescriptions?$select=CodePublisher,DivisionCode&$filter=CodeID eq 'NUTS3'");
 
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(88, orgs.size());
 		// Not selected non key attributes must not be set

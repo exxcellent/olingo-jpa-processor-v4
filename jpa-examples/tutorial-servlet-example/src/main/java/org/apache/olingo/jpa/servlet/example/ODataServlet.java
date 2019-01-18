@@ -1,12 +1,10 @@
 package org.apache.olingo.jpa.servlet.example;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 import javax.naming.InitialContext;
@@ -32,12 +30,12 @@ import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * Example call: http://localhost:8080/odata/$metadata
@@ -53,6 +51,8 @@ public class ODataServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String JNDI_DATASOURCE = "java:comp/env/jdbc/testDS";
 
+	private JPAODataGetHandler requestHandler = null;
+
 	@Override
 	public void init() throws ServletException {
 		super.init();
@@ -60,18 +60,15 @@ public class ODataServlet extends HttpServlet {
 		try {
 			final DataSource ds = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/testDS");
 			DataSourceHelper.initializeDatabase(ds);
+
+			requestHandler = createHandler();
+
+			logSchema(requestHandler.getJPAODataContext().getEdmProvider().getServiceDocument());
 		} catch (final NamingException ne) {
 			throw new ServletException("Initialization of DataSource failed", ne);
+		} catch (final ODataException e) {
+			throw new ServletException("Initialization of request handler failed", e);
 		}
-
-		// redirect logging to slf4j
-		try {
-			final InputStream is = getClass().getResourceAsStream("/java.util.logging.properties");
-			LogManager.getLogManager().readConfiguration(is);
-		} catch (SecurityException | IOException e) {
-			throw new ServletException("Initialization of Logging failed", e);
-		}
-		SLF4JBridgeHandler.install();
 
 		log("oData endpoint prepared");
 	}
@@ -79,35 +76,15 @@ public class ODataServlet extends HttpServlet {
 	@Override
 	protected void service(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
-
-		JPAODataGetHandler handler = null;
-		try {
-
-			handler = createHandler();
-
-			//			logSchema(handler.getJPAODataContext().getEdmProvider().getServiceDocument());
-
-			handler.process(req, resp);
-		} catch (final RuntimeException | ODataException e) {
-			throw new ServletException(e);
-		} finally {
-			if (handler != null) {
-				handler.dispose();
-			}
-		}
-
+		requestHandler.process(req, resp);
 	}
 
 	private JPAODataGetHandler createHandler() throws ODataException, ServletException {
 
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
-		// force logging over slf4j for EclipseLink
-		//		elProperties.put("eclipselink.logging.logger", "org.eclipse.persistence.logging.slf4j.SLF4JLogger");
-		elProperties.put("eclipselink.logging.logger", "JavaLogger");
 
-		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(
-				org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
+		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
 				elProperties,
 				new JPADefaultDatabaseProcessor());
 		((AbstractJPAAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
@@ -139,10 +116,12 @@ public class ODataServlet extends HttpServlet {
 				response.setHeader("dummy-header", "example to modify reponse header before sending back to client");
 			}
 		};
+
+		handler.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
+
 		return handler;
 	}
 
-	@SuppressWarnings("unused")
 	private void logSchema(final IntermediateServiceDocument sd) throws ODataException {
 		for (final CsdlSchema schema : sd.getEdmSchemas()) {
 
