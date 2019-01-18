@@ -2,11 +2,8 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.List;
 
-import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -35,12 +32,7 @@ public class JPAExpandItemWrapper implements UriInfoResource {
 	public JPAExpandItemWrapper(final IntermediateServiceDocument sd, final ExpandItem item) throws ODataApplicationException {
 		super();
 		this.item = item;
-		try {
-			this.jpaEntityType = sd.getEntityType(Util.determineTargetEntityType(getUriResourceParts()));
-		} catch (final ODataJPAModelException e) {
-			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ENTITY_UNKNOWN,
-					HttpStatusCode.BAD_REQUEST, e, Util.determineTargetEntityType(getUriResourceParts()).getName());
-		}
+		this.jpaEntityType = sd.getEntityType(Util.determineTargetEntityType(getUriResourceParts()));
 	}
 
 	public JPAExpandItemWrapper(final ExpandItem item, final JPAEntityType jpaEntityType) {

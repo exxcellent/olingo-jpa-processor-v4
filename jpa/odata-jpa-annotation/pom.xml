@@ -21,8 +21,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+		<!-- Required for security annotations -->
     	<groupId>org.apache.olingo</groupId>
     	<artifactId>odata-commons-api</artifactId>
+	  	<scope>provided</scope>
     </dependency>
 	<dependency>
 		<!-- Required for DTO implementation -->

@@ -319,6 +319,7 @@ public class JPAODataGetHandler {
 			try {
 				checkSecurity(request);
 			} catch (final ODataLibraryException | ODataApplicationException e) {
+				LOG.log(Level.FINER, "Security check failed", e);
 				return wrapIntoErrorResponse(request, e);
 			}
 

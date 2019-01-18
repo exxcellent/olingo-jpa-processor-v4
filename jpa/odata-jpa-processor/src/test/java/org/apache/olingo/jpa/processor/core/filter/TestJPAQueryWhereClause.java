@@ -22,8 +22,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNullValue() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions?$filter=AlternativeCode eq null");
-
-		helper.assertStatus(200);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
 		assertTrue(orgs.size() > 0);
 

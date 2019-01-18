@@ -289,6 +289,8 @@ class HttpServletRequestDouble implements HttpServletRequest {
 		case POST:
 			// fall through
 		case PUT:
+			// fall through
+		case PATCH:
 			reqHeader.addHeader("Content-Type", "application/json");
 			break;
 		default:

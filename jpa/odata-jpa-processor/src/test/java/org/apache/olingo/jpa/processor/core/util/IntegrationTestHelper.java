@@ -117,8 +117,17 @@ public class IntegrationTestHelper {
 		}
 		handler.process(req, resp);
 		executed = true;
-		assertEquals(status, getStatus());
+		assertEquals(parseResponse(), status, getStatus());
 
+	}
+
+	private String parseResponse() {
+		try {
+			return getRawResult();
+		} catch (final IOException e) {
+			e.printStackTrace();
+			return e.getMessage();
+		}
 	}
 
 	public int getStatus() {

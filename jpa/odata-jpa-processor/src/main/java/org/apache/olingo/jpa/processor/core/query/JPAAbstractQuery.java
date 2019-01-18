@@ -58,11 +58,7 @@ public abstract class JPAAbstractQuery {
 		this.em = em;
 		this.cb = em.getCriteriaBuilder();
 		this.sd = sd;
-		try {
-			this.jpaEntityType = sd.getEntityType(edmEntityType);
-		} catch (final ODataJPAModelException e) {
-			throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-		}
+		this.jpaEntityType = sd.getEntityType(edmEntityType);
 	}
 
 	public JPAAbstractQuery(final IntermediateServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em,

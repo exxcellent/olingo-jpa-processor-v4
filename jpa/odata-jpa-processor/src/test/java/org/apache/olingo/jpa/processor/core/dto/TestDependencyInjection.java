@@ -30,13 +30,13 @@ import org.junit.Test;
 
 public class TestDependencyInjection extends TestBase {
 
-	@ODataDTO(handler = DIDtoHandler.class)
-	public static class DIDto {
+	@ODataDTO(handler = DtoHandler.class)
+	public static class Dto {
 		@Id
 		private long id;
 	}
 
-	public static class DIDtoHandler implements ODataDTOHandler<DIDto> {
+	public static class DtoHandler implements ODataDTOHandler<Dto> {
 
 		@Inject
 		private HttpServletRequest request;
@@ -54,15 +54,15 @@ public class TestDependencyInjection extends TestBase {
 		private EntityManager em;
 
 		@Override
-		public Collection<DIDto> read(final UriInfoResource requestedResource) throws RuntimeException {
+		public Collection<Dto> read(final UriInfoResource requestedResource) throws RuntimeException {
 			checkInjection();
-			final Collection<DIDto> result = new LinkedList<>();
+			final Collection<Dto> result = new LinkedList<>();
 
-			final DIDto dto1 = new DIDto();
+			final Dto dto1 = new Dto();
 			dto1.id = 1;
 			result.add(dto1);
 
-			final DIDto dto2 = new DIDto();
+			final Dto dto2 = new Dto();
 			dto2.id = 2;
 			result.add(dto2);
 
@@ -70,7 +70,7 @@ public class TestDependencyInjection extends TestBase {
 		};
 
 		@Override
-		public void write(final UriInfoResource requestedResource, final DIDto dto) throws RuntimeException {
+		public void write(final UriInfoResource requestedResource, final Dto dto) throws RuntimeException {
 			checkInjection();
 		}
 
@@ -96,13 +96,13 @@ public class TestDependencyInjection extends TestBase {
 
 	@Before
 	public void setup() throws ODataJPAModelException {
-		persistenceAdapter.registerDTO(DIDto.class);
+		persistenceAdapter.registerDTO(Dto.class);
 	}
 
 	@Test
 	public void testReadDTO() throws IOException, ODataException, SQLException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"DIDtos");
+				"Dtos");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertTrue(helper.getValues().size() == 2);
 	}
@@ -114,7 +114,7 @@ public class TestDependencyInjection extends TestBase {
 		requestBody.append("\"Id\": " + id);
 		requestBody.append("}");
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DIDtos(" + id + ")",
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Dtos(" + id + ")",
 				requestBody, HttpMethod.PUT);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 	}

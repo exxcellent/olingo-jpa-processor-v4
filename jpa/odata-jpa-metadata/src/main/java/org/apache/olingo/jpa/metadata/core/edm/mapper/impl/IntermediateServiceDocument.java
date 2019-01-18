@@ -118,7 +118,7 @@ public class IntermediateServiceDocument {
 		}
 	}
 
-	public JPAEntityType getEntityType(final EdmType edmType) throws ODataJPAModelException {
+	public JPAEntityType getEntityType(final EdmType edmType) {
 		synchronized (lock) {
 			initializeDependendSchemas();
 

@@ -52,6 +52,12 @@ public class JPALiteralOperator implements JPAOperator<Object> {
 		}
 	}
 
+	/**
+	 *
+	 * @return TRUE if this literal represents the <i>null</i> literal as defined in
+	 *         OData specification.
+	 * @see http://docs.oasis-open.org/odata/odata/v4.01/cs01/part1-protocol/odata-v4.01-cs01-part1-protocol.html#sec_BuiltinQueryFunctions
+	 */
 	public boolean isNullLiteral() {
 		final String text = literal.getText();
 		if(text == null) {
