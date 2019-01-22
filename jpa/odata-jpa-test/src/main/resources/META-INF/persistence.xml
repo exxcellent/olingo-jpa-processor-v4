@@ -26,6 +26,9 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.PersonImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AbstractRelationshipEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipTargetEntity</class>
 		
 		<properties>
 			<!--  EclipselInk properties -->
@@ -69,6 +72,9 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.PersonImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.AbstractRelationshipEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipTargetEntity</class>
 		
 		<!-- Embeddables, only required by openJPA -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData</class>

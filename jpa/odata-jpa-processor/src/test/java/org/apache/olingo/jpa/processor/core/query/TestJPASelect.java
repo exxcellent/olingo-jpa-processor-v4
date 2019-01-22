@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
@@ -45,11 +46,31 @@ public class TestJPASelect extends TestBase {
 				"AdministrativeDivisionDescriptions?$select=CodePublisher,DivisionCode&$filter=CodeID eq 'NUTS3'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		final ArrayNode orgs = helper.getValues();
-		assertEquals(88, orgs.size());
+		final ArrayNode adds = helper.getValues();
+		assertEquals(88, adds.size());
 		// Not selected non key attributes must not be set
-		assertNull(orgs.get(0).get("Name"));
+		assertNull(adds.get(0).get("Name"));
 
+	}
+
+	@Test
+	public void testSelectRelationshipTargets() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities(1)/Targets");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(2, targets.size());
+	}
+
+	@Test
+	public void testSelectRelationshipSource() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipTargetEntities(3)/Source");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ObjectNode source = helper.getValue();
+		assertNotNull(source);
 	}
 
 }

@@ -25,7 +25,6 @@ import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 
 @Entity(name = "Person")
 @DiscriminatorValue(value = "1")
-//@Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BusinessPartner\"")
 public class Person extends BusinessPartner {
 
 	/**

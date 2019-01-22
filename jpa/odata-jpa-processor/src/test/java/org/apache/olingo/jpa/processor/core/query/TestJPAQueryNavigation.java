@@ -28,6 +28,16 @@ public class TestJPAQueryNavigation extends TestBase {
 	}
 
 	@Test
+	public void testNavigationOneHopNormal() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image1");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ObjectNode img = helper.getValue();
+		assertEquals(99, img.get("PID").asLong());
+	}
+
+	@Test
 	public void testNavigationOneHopWithoutReferencedColumn() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image2");

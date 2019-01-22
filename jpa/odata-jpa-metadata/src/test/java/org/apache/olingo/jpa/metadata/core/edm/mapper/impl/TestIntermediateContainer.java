@@ -16,13 +16,11 @@ import org.junit.Test;
 
 public class TestIntermediateContainer extends TestMappingRoot {
 	private IntermediateServiceDocument serviceDocument;
-	private AbstractJPASchema schema;
 
 	@Before
 	public void setup() throws ODataJPAModelException {
-		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
-		schema = serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
+		serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
 	}
 
 	@Test

@@ -154,17 +154,20 @@ public class JPANavigationQuery extends JPAAbstractQuery {
 				final JPASelector left = leftSelectors.get(index);
 				final JPASelector right = rightSelectors.get(index);
 
-				// the JPA framework will do the correct things
 				if (JPAAssociationPath.class.isInstance(left)) {
+					// the JPA framework will do the correct things for navigation of n:1 property
+					subPath = subRoot
+							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+					return cb.equal(parentFrom, subPath);
+				}
+				if (JPAAssociationPath.class.isInstance(right)) {
+					// the JPA framework will do the correct things for navigation of 1:n property
 					subPath = subRoot
 							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
 					return cb.equal(parentFrom, subPath);
 				}
 				for (final JPAElement jpaPathElement : left.getPathElements()) {
 					subPath = subPath.get(jpaPathElement.getInternalName());
-				}
-				if (JPAAssociationPath.class.isInstance(right)) {
-					throw new UnsupportedOperationException();
 				}
 				for (final JPAElement jpaPathElement : right.getPathElements()) {
 					parentPath = parentPath.get(jpaPathElement.getInternalName());

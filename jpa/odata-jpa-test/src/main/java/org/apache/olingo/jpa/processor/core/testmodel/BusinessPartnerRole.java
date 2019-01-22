@@ -19,6 +19,7 @@ public class BusinessPartnerRole {
 	@Id
 	@Column(name = "\"BusinessPartnerID\"")
 	private String businessPartnerID;
+
 	@Id
 	@Column(name = "\"BusinessPartnerRole\"")
 	private String roleCategory;
