@@ -264,7 +264,11 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 
 			// TODO determine ContainsTarget
 
-			if (sourceType instanceof IntermediateEntityType) {
+			if (targetType == null) {
+				LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
+						+ getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
+				setIgnore(true);
+			} else if (sourceType instanceof IntermediateEntityType) {
 				// Partner Attribute must not be defined at Complex Types.
 				// JPA bi-directional associations are defined at both sides, e.g.
 				// at the BusinessPartner and at the Roles. JPA only defines the
