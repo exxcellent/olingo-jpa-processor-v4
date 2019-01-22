@@ -24,6 +24,8 @@ import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceAction;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
+import org.apache.olingo.server.api.uri.UriResourceNavigation;
+import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 
 /**
  * Generic inceptor configured via annotations on entity classes. This inceptor
@@ -145,11 +147,13 @@ public class AnnotationBasedSecurityInceptor implements SecurityInceptor {
 
 	protected void authorizeAll(final ODataRequest odRequest, final UriInfo uriInfo) throws ODataApplicationException {
 		// accept every time (no implemented yet)
+		LOG.warning(uriInfo.getKind() + " call not covered by security inceptor");
 	}
 
 	protected void authorizeCrossjoin(final ODataRequest odRequest, final UriInfo uriInfo)
 			throws ODataApplicationException {
 		// accept every time (no implemented yet)
+		LOG.warning(uriInfo.getKind() + " call not covered by security inceptor");
 	}
 
 	protected void authorizeBatch(final ODataRequest odRequest, final UriInfo uriInfo)
@@ -178,18 +182,19 @@ public class AnnotationBasedSecurityInceptor implements SecurityInceptor {
 		case action:
 			checkMethodAccess(method, (UriResourceAction) lastPathSegment);
 			break;
+		case complexProperty:
 		case entitySet:
-			checkResourceAccess(method, (UriResourceEntitySet) lastPathSegment);
+		case navigationProperty:
+		case primitiveProperty:
+		case count:
+			final UriResourcePartTyped affectedResource = findParentResource(uriInfo);
+			checkResourceAccess(method, affectedResource);
 			break;
 		case function:
-		case navigationProperty:
 		case singleton:
-		case count:
-		case primitiveProperty:
-		case complexProperty:
 		case value:
 		case ref:
-			LOG.warning(lastPathSegment + " call not covered by security inceptor");
+			authorizeUncoveredCall(odRequest, uriInfo);
 			break;
 		default:
 			throw new UnsupportedOperationException(lastPathSegment.getKind() + " unknown to security inceptor");
@@ -197,8 +202,40 @@ public class AnnotationBasedSecurityInceptor implements SecurityInceptor {
 
 	}
 
-	private void checkResourceAccess(final HttpMethod method, final UriResourceEntitySet uriResource)
+	/**
+	 * Hook method for sub classes to override the behaviour for unsupported kinds
+	 * of calls.
+	 */
+	protected void authorizeUncoveredCall(final ODataRequest odRequest, final UriInfo uriInfo) {
+		final int lastPathSegmentIndex = uriInfo.getUriResourceParts().size() - 1;
+		final UriResource lastPathSegment = uriInfo.getUriResourceParts().get(lastPathSegmentIndex);
+		LOG.warning(lastPathSegment + " call not covered by security inceptor");
+	}
+
+	/**
+	 *
+	 * @return The most tailing resource uri part or <code>null</code>.
+	 */
+	private UriResourcePartTyped findParentResource(final UriInfo uriInfo) {
+		UriResource part;
+		for (int i = uriInfo.getUriResourceParts().size(); i > 0; i--) {
+			part = uriInfo.getUriResourceParts().get(i - 1);
+			if (UriResourceEntitySet.class.isInstance(part)) {
+				return (UriResourceEntitySet) part;
+			}
+			if (UriResourceNavigation.class.isInstance(part)) {
+				// navigation is also targeting a entity
+				return (UriResourceNavigation) part;
+			}
+		}
+		return null;
+	}
+
+	private void checkResourceAccess(final HttpMethod method, final UriResourcePartTyped uriResource)
 			throws ODataApplicationException {
+		if (uriResource == null) {
+			return;
+		}
 		final EdmType type = uriResource.getType();
 		final JPAEntityType jpaEntity = jpaProvider.getServiceDocument().getEntityType(type);
 		final SecurityConfiguration securityConfiguration = determineEffectiveEntitySecurityConfiguration(method,
