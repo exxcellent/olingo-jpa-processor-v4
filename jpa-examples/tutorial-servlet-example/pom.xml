@@ -9,15 +9,15 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-  <artifactId>olingo-generic-servlet-example</artifactId>
-  <packaging>war</packaging>
+	<artifactId>olingo-generic-servlet-example</artifactId>
+	<packaging>war</packaging>
 
-  <name>olingo-jpa-servlet-example</name>
+	<name>OData-JPA bridge servlet-example</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <disable.jetty>true</disable.jetty>
-  </properties>
+	<properties>
+	  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	  <disable.jetty>true</disable.jetty>
+	</properties>
 
   <dependencies>
 		<dependency>

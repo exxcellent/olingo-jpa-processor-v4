@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -98,7 +99,6 @@ public abstract class BusinessPartner {
 	// Hibernate has problems to support a scenario to join only one column from a
 	// table with more columns as part of the id so we "invent" a dynamic filled
 	// join table
-	//	@JoinColumn(name = "\"DivisionCode\"", referencedColumnName = "\"Address.Region\"", nullable = false, insertable = false)
 	@OneToMany(fetch = FetchType.EAGER, orphanRemoval = false)
 	@JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BPADDJoinTable\"", joinColumns = {
 			@JoinColumn(referencedColumnName = "\"ID\"", name = "\"BusinessPartnerID\"") }, inverseJoinColumns = {
@@ -124,7 +124,8 @@ public abstract class BusinessPartner {
 	private AdministrativeInformation administrativeInformation = new AdministrativeInformation();
 
 	// BusinessPartnerRole is defined as 'read only' and must not be deleted
-	@OneToMany(mappedBy = "businessPartner", fetch = FetchType.LAZY, orphanRemoval = false)
+	@OneToMany(mappedBy = "businessPartner", fetch = FetchType.LAZY, orphanRemoval = false, cascade = {
+			CascadeType.REMOVE })
 	private Collection<BusinessPartnerRole> roles;
 
 	@ElementCollection

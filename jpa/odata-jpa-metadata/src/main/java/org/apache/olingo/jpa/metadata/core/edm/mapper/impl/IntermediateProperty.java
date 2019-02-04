@@ -333,7 +333,6 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 				isVersion = true;
 			}
 		}
-		postProcessor.processProperty(this, jpaAttribute.getDeclaringType().getJavaType().getCanonicalName());
 	}
 
 	@Override

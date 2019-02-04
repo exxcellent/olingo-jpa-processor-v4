@@ -70,7 +70,6 @@ public class TestIntermediateContainer extends TestMappingRoot {
 		fail();
 	}
 
-	@Ignore("Some attributes are currently commented out")
 	@Test
 	public void checkGetNoNavigationPropertyBindings() throws ODataJPAModelException {
 
@@ -80,7 +79,7 @@ public class TestIntermediateContainer extends TestMappingRoot {
 		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
 		for (final CsdlEntitySet entitySet : entitySets) {
 			if (entitySet.getName().equals("BusinessPartners")) {
-				assertEquals(4, entitySet.getNavigationPropertyBindings().size());
+				assertEquals(3, entitySet.getNavigationPropertyBindings().size());
 				return;
 			}
 		}
@@ -146,7 +145,6 @@ public class TestIntermediateContainer extends TestMappingRoot {
 		fail();
 	}
 
-	@Ignore("Mapping has changed, so the requested navigaion binding may be invalid?!")
 	@Test
 	public void checkGetNavigationPropertyBindingsPathComplexTypeNested() throws ODataJPAModelException {
 
@@ -155,11 +153,12 @@ public class TestIntermediateContainer extends TestMappingRoot {
 
 		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
 		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
-					if ("AdministrativeInformation/Created/User".equals(binding.getPath())) {
-						return;
-					}
+			if (!entitySet.getName().equals("BusinessPartners")) {
+				continue;
+			}
+			for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
+				if ("Address/AdministrativeDivision".equals(binding.getPath())) {
+					return;
 				}
 			}
 		}

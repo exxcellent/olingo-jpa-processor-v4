@@ -138,7 +138,7 @@ public class TestAssociations extends AbstractTest {
 		assertNotNull(region);
 	}
 
-	@Ignore("'countryName' is temporary removed from datamodel to fix the O/R mapping")
+	@Ignore("'regionName' is temporary removed from datamodel to fix the O/R mapping")
 	@Test
 	public void getBuPaRegionName() {
 		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
@@ -203,4 +203,5 @@ public class TestAssociations extends AbstractTest {
 		assertEquals("NUTS3", act.getCodeID());
 		assertEquals("BE251", act.getDivisionCode());
 	}
+
 }

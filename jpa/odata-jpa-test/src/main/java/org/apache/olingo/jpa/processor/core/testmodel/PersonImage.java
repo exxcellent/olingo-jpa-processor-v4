@@ -42,6 +42,7 @@ public class PersonImage {
 
 	// Workaround to have a selection column for $expand queries without JOINing the
 	// complete JPA entity (Person)
+	// FIXME try to remove this attribute
 	@EdmIgnore
 	@Column(name = "\"NOT_MAPPED_PID\"")
 	private String notMappedPid;

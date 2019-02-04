@@ -16,7 +16,6 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
-import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -49,12 +48,7 @@ public class IntermediateServiceDocument {
 		this.container = new IntermediateEntityContainer(new JPAEdmNameBuilder(namespaceDefault), this);
 	}
 
-	@Deprecated
-	public static void setPostProcessor(final JPAEdmMetadataPostProcessor pP) {
-		IntermediateModelElement.setPostProcessor(pP);
-	}
-
-	private final void initializeDependendSchemas() {
+	private final void resolveSchemas() {
 		synchronized (lock) {
 			if (!dependendSchemaCreationRequired) {
 				return;
@@ -79,6 +73,8 @@ public class IntermediateServiceDocument {
 					}
 				}
 			}
+			// recursive second strike to touch also new (on demand) created schemas
+			resolveSchemas();
 		}
 	}
 
@@ -97,7 +93,7 @@ public class IntermediateServiceDocument {
 	public List<CsdlSchema> getEdmSchemas() throws ODataJPAModelException {
 		final List<CsdlSchema> schemas = new ArrayList<CsdlSchema>();
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
 				// assign entity container to schema... only to the schema of same name space as
 				// in entity container (simply to reduce complexity of meta data)
@@ -113,14 +109,14 @@ public class IntermediateServiceDocument {
 
 	Collection<AbstractJPASchema> getJPASchemas() {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			return schemaListInternalKey.values();
 		}
 	}
 
 	public JPAEntityType getEntityType(final EdmType edmType) {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 
 			final AbstractJPASchema schema = schemaListInternalKey.get(edmType.getNamespace());
 			if (schema != null) {
@@ -136,7 +132,7 @@ public class IntermediateServiceDocument {
 	 */
 	public JPAEntityType getEntityType(final FullQualifiedName typeName) {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			final AbstractJPASchema schema = schemaListInternalKey.get(typeName.getNamespace());
 			if (schema != null) {
 				return schema.getEntityType(typeName.getName());
@@ -147,7 +143,7 @@ public class IntermediateServiceDocument {
 
 	public JPAEntityType getEntitySetType(final String edmEntitySetName) throws ODataJPAModelException {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			final IntermediateEntitySet entitySet = container.getEntitySet(edmEntitySetName);
 			if (entitySet != null) {
 				return entitySet.getEntityType();
@@ -158,7 +154,7 @@ public class IntermediateServiceDocument {
 
 	public JPAFunction getFunction(final EdmFunction function) {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			final AbstractJPASchema schema = schemaListInternalKey.get(function.getNamespace());
 			if (schema != null) {
 				return schema.getFunction(function.getName());
@@ -169,7 +165,7 @@ public class IntermediateServiceDocument {
 
 	public JPAAction getAction(final EdmAction action) {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			final AbstractJPASchema schema = schemaListInternalKey.get(action.getNamespace());
 			if (schema != null) {
 				return schema.getAction(action.getName());
@@ -184,9 +180,14 @@ public class IntermediateServiceDocument {
 	IntermediateStructuredType getStructuredType(final Attribute<?, ?> jpaAttribute) {
 		IntermediateStructuredType structuredType;
 		synchronized (lock) {
-			initializeDependendSchemas();
+			// do not resolve the on-demand schemas here; we have to avoid recursion
+			// problems and want to optimize performance
 			for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
-				structuredType = schema.getStructuredType(jpaAttribute);
+				// only the JPA meta model based schema can have the requested type of attribute
+				if (!IntermediateMetamodelSchema.class.isInstance(schema)) {
+					continue;
+				}
+				structuredType = IntermediateMetamodelSchema.class.cast(schema).getStructuredType(jpaAttribute);
 				if (structuredType != null) {
 					return structuredType;
 				}
@@ -197,8 +198,11 @@ public class IntermediateServiceDocument {
 
 	JPAEntityType getEntityType(final Class<?> targetClass) {
 		JPAEntityType entityType;
+		if (Object.class.equals(targetClass)) {
+			return null;
+		}
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
 				entityType = schema.getEntityType(targetClass);
 				if (entityType != null) {
@@ -212,7 +216,7 @@ public class IntermediateServiceDocument {
 	IntermediateEnumType getEnumType(final Class<?> targetClass) {
 		IntermediateEnumType enumType;
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
 				enumType = schema.getEnumType(targetClass);
 				if (enumType != null) {
@@ -227,7 +231,6 @@ public class IntermediateServiceDocument {
 	public AbstractJPASchema createMetamodelSchema(final String namespace, final Metamodel jpaMetamodel)
 			throws ODataJPAModelException {
 		synchronized (lock) {
-			initializeDependendSchemas();
 			if (schemaListInternalKey.containsKey(namespace)) {
 				throw new ODataJPAModelException(MessageKeys.GENERAL);
 			}
@@ -250,7 +253,6 @@ public class IntermediateServiceDocument {
 
 	IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
 		synchronized (lock) {
-			initializeDependendSchemas();
 			final String namespace = clazz.getPackage().getName();
 			AbstractJPASchema schema = schemaListInternalKey.get(namespace);
 			if(schema == null) {
@@ -279,7 +281,7 @@ public class IntermediateServiceDocument {
 
 	public JPAElement getEntitySet(final JPAEntityType entityType) throws ODataJPAModelException {
 		synchronized (lock) {
-			initializeDependendSchemas();
+			resolveSchemas();
 			return container.getEntitySet(entityType);
 		}
 	}

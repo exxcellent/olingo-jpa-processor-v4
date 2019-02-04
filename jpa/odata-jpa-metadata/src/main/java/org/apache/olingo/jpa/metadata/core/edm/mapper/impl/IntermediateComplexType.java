@@ -27,6 +27,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 class IntermediateComplexType extends IntermediateStructuredType {
 	private CsdlComplexType edmComplexType;
+	private InitializationState initStateEdm = InitializationState.NotInitialized;
 
 	IntermediateComplexType(final JPAEdmNameBuilder nameBuilder, final EmbeddableType<?> jpaEmbeddable,
 			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
@@ -39,22 +40,37 @@ class IntermediateComplexType extends IntermediateStructuredType {
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		if (edmComplexType == null) {
-			buildPropertyList();
-			edmComplexType = new CsdlComplexType();
+		switch (initStateEdm) {
+		case Initialized:
+			return;
+		case InProgress:
+			throw new IllegalStateException("Initialization already in progress, recursion problem!");
+		default:
+			break;
+		}
 
-			edmComplexType.setName(this.getExternalName());
-			edmComplexType.setProperties((List<CsdlProperty>) extractEdmModelElements(declaredPropertiesList));
-			edmComplexType.setNavigationProperties((List<CsdlNavigationProperty>) extractEdmModelElements(
-					declaredNaviPropertiesList));
-			edmComplexType.setBaseType(determineBaseType());
-			// TODO Abstract
-			// edmComplexType.setAbstract(isAbstract)
-			// TODO OpenType
-			// edmComplexType.setOpenType(isOpenType)
-			if (determineHasStream()) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_STREAM,
-						internalName);
+		if (edmComplexType == null) {
+			try {
+				initStateEdm = InitializationState.InProgress;
+
+				initializeType();
+				edmComplexType = new CsdlComplexType();
+
+				edmComplexType.setName(this.getExternalName());
+				edmComplexType.setProperties((List<CsdlProperty>) extractEdmModelElements(declaredPropertiesList));
+				edmComplexType.setNavigationProperties((List<CsdlNavigationProperty>) extractEdmModelElements(
+						declaredNaviPropertiesList));
+				edmComplexType.setBaseType(determineBaseType());
+				// TODO Abstract
+				// edmComplexType.setAbstract(isAbstract)
+				// TODO OpenType
+				// edmComplexType.setOpenType(isOpenType)
+				if (determineHasStream()) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_STREAM,
+							internalName);
+				}
+			} finally {
+				initStateEdm = InitializationState.Initialized;
 			}
 		}
 	}

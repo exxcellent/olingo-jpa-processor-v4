@@ -41,7 +41,6 @@ public abstract class JPAAbstractQuery {
 	protected final CriteriaBuilder cb;
 	protected final JPAEntityType jpaEntityType;
 	protected final IntermediateServiceDocument sd;
-	protected Locale locale;
 
 	public JPAAbstractQuery(final IntermediateServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em)
 			throws ODataApplicationException {

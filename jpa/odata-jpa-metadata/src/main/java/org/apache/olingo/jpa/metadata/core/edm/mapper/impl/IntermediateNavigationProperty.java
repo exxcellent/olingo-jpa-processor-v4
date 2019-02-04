@@ -1,12 +1,12 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -18,6 +18,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -52,6 +53,22 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavi
 class IntermediateNavigationProperty extends IntermediateModelElement
 implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 
+	private static class JoinConfiguration {
+		private final List<IntermediateJoinColumn> sourceJoinColumns = new LinkedList<IntermediateJoinColumn>();
+		private List<IntermediateJoinColumn> targetJoinColumns = null;
+		private boolean useJoinTable = false;
+	}
+
+	private static class Pair {
+		private final String left;
+		private final String right;
+
+		public Pair(final String left, final String right) {
+			this.left = left;
+			this.right = right;
+		}
+	}
+
 	private final static Logger LOG = Logger.getLogger(IntermediateNavigationProperty.class.getName());
 
 	private final Attribute<?, ?> jpaAttribute;
@@ -60,10 +77,9 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	private final JPAStructuredType sourceType;
 	private IntermediateStructuredType targetType;
 	private final IntermediateServiceDocument serviceDocument;
-	private final List<IntermediateJoinColumn> sourceJoinColumns = new LinkedList<IntermediateJoinColumn>();
-	private List<IntermediateJoinColumn> targetJoinColumns = null;
-	private boolean useJoinTable = false;
 	private final JPAAttributeAccessor accessor;
+	private JoinConfiguration joinConfiguration = null;
+	private InitializationState initStateEdm = InitializationState.NotInitialized;
 
 	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final JPAStructuredType parent, final Attribute<?, ?> jpaAttribute,
 			final IntermediateServiceDocument serviceDocument) {
@@ -71,8 +87,10 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		this.jpaAttribute = jpaAttribute;
 		this.serviceDocument = serviceDocument;
 		this.sourceType = parent;
-		buildNaviProperty();
-		final java.lang.reflect.Member attribute = jpaAttribute.getJavaMember();
+
+		this.setExternalName(nameBuilder.buildNaviPropertyName(jpaAttribute));
+
+		final AccessibleObject attribute = (AccessibleObject) jpaAttribute.getJavaMember();
 		if (Field.class.isInstance(attribute)) {
 			accessor = new FieldAttributeAccessor((Field) attribute);
 		} else if (Method.class.isInstance(attribute)) {
@@ -82,6 +100,9 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		} else {
 			throw new UnsupportedOperationException("Unsupported property type: "+attribute);
 		}
+
+		// do not wait with setting this important property
+		setIgnore(attribute.isAnnotationPresent(EdmIgnore.class));
 	}
 
 	@Override
@@ -169,194 +190,227 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 
 	@Override
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		if (edmNaviProperty == null) {
-			targetType = serviceDocument.getStructuredType(jpaAttribute);
+		switch (initStateEdm) {
+		case Initialized:
+			return;
+		case InProgress:
+			throw new IllegalStateException("Initialization already in progress, recursion problem!");
+		default:
+			break;
+		}
 
-			String mappedBy = null;
-			boolean isSourceOne = false;
-			edmNaviProperty = new CsdlNavigationProperty();
-			edmNaviProperty.setName(getExternalName());
-			edmNaviProperty.setType(nameBuilder.buildFQN(targetType.getExternalName()));
-			edmNaviProperty.setCollection(jpaAttribute.isCollection());
-			// Optional --> ReleationAnnotation
-			if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
+		if (edmNaviProperty == null) {
+			try {
+				initStateEdm = InitializationState.InProgress;
+
+				targetType = serviceDocument.getStructuredType(jpaAttribute);
+
+				String mappedBy = null;
+				boolean isSourceOne = false;
+				edmNaviProperty = new CsdlNavigationProperty();
+				edmNaviProperty.setName(getExternalName());
+				edmNaviProperty.setType(nameBuilder.buildFQN(targetType.getExternalName()));
+				edmNaviProperty.setCollection(jpaAttribute.isCollection());
+
 				final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
+
 				switch (jpaAttribute.getPersistentAttributeType()) {
 				case ONE_TO_MANY:
-					final OneToMany cardinalityOtM = annotatedElement.getAnnotation(OneToMany.class);
-					if (cardinalityOtM != null) {
-						mappedBy = cardinalityOtM.mappedBy();
-						edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(cardinalityOtM.cascade()));
+					final OneToMany o2m = annotatedElement.getAnnotation(OneToMany.class);
+					if (o2m != null) {
+						mappedBy = o2m.mappedBy();
+						edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(o2m.cascade()));
 					}
 					isSourceOne = true;
 					break;
 				case ONE_TO_ONE:
-					final OneToOne cardinalityOtO = annotatedElement.getAnnotation(OneToOne.class);
-					edmNaviProperty.setNullable(Boolean.valueOf(cardinalityOtO.optional()));
-					mappedBy = cardinalityOtO.mappedBy();
+					final OneToOne oto = annotatedElement.getAnnotation(OneToOne.class);
+					edmNaviProperty.setNullable(Boolean.valueOf(oto.optional()));
+					mappedBy = oto.mappedBy();
 					isSourceOne = true;
-					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(cardinalityOtO.cascade()));
+					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(oto.cascade()));
 					break;
 				case MANY_TO_ONE:
-					final ManyToOne cardinalityMtO = annotatedElement.getAnnotation(ManyToOne.class);
-					edmNaviProperty.setNullable(Boolean.valueOf(cardinalityMtO.optional()));
-					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(cardinalityMtO.cascade()));
+					final ManyToOne mto = annotatedElement.getAnnotation(ManyToOne.class);
+					edmNaviProperty.setNullable(Boolean.valueOf(mto.optional()));
+					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(mto.cascade()));
 					break;
 				case MANY_TO_MANY:
-					// fall through
+					final ManyToMany m2m = annotatedElement.getAnnotation(ManyToMany.class);
+					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(m2m.cascade()));
+					mappedBy = m2m.mappedBy();
+					break;
 				default:
 					break;
 				}
 
-				final JoinTable annoJoinTable = annotatedElement.getAnnotation(JoinTable.class);
-				final JoinColumns annoJoinColumns = annotatedElement.getAnnotation(JoinColumns.class);
-				final JoinColumn annoJoinColumn = annotatedElement.getAnnotation(JoinColumn.class);
-				if (annoJoinTable != null) {
-					useJoinTable = true;
-					handleSourceJoinColumnAnnotations(isSourceOne, annoJoinTable.joinColumns());
-					handleTargetJoinColumnAnnotations(annoJoinTable.inverseJoinColumns());
-				} else if (annoJoinColumns != null) {
-					handleSourceJoinColumnAnnotations(isSourceOne, annoJoinColumns.value());
-				}
-				else if (annoJoinColumn != null) {
-					handleSourceJoinColumnAnnotations(isSourceOne, new JoinColumn[] { annoJoinColumn });
-				} else if (mappedBy != null && !mappedBy.isEmpty()) {
-					// find the join columns on opposite and fill up with informations on our
-					// (source) side
-					final List<IntermediateJoinColumn> oppositeJoinColumns = getJoinColumnsMappedByOfTarget(mappedBy);
-					if (oppositeJoinColumns.isEmpty()) {
-						// no explicit mapping on other side, try with 'id'
-						final Collection<IntermediateJoinColumn> intermediateColumns = buildDefaultKeyBasedJoinColumns(
-								isSourceOne);
-						sourceJoinColumns.addAll(intermediateColumns);
+				final String relationshipLabel = sourceType.getInternalName().concat("#").concat(getInternalName());
+				this.joinConfiguration = buildJoinConfiguration(jpaAttribute, mappedBy, targetType,
+						relationshipLabel);
 
-					} else {
-						IntermediateJoinColumn intermediateJoinColumn;
-						for (final IntermediateJoinColumn inverseColumn : oppositeJoinColumns) {
-							String columnName;
-							String refernceColumnName;
-							switch (jpaAttribute.getPersistentAttributeType()) {
-							case ONE_TO_MANY:
-								// invert direction by using the SAME
-								refernceColumnName = inverseColumn.getReferencedColumnName();
-								columnName = inverseColumn.getName();
-								intermediateJoinColumn = new IntermediateJoinColumn(columnName, refernceColumnName);
-								fillMissingName(isSourceOne, intermediateJoinColumn);
-								sourceJoinColumns.add(intermediateJoinColumn);
-								break;
-							case ONE_TO_ONE:
-								columnName = inverseColumn.getReferencedColumnName();
-								refernceColumnName = inverseColumn.getName();
-								intermediateJoinColumn = new IntermediateJoinColumn(columnName, refernceColumnName);
-								fillMissingName(isSourceOne, intermediateJoinColumn);
-								sourceJoinColumns.add(intermediateJoinColumn);
-								break;
-							default:
-								throw new ODataJPAModelException(
-										ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
-							}
-						}
-					}
-				}
 				// Determine referential constraint
-				determineReferentialConstraints(annotatedElement);
-			}
+				assignReferentialConstraints();
 
-			// TODO determine ContainsTarget
+				// TODO determine ContainsTarget
 
-			if (targetType == null) {
-				LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
-						+ getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
-				setIgnore(true);
-			} else if (sourceType instanceof IntermediateEntityType) {
-				// Partner Attribute must not be defined at Complex Types.
-				// JPA bi-directional associations are defined at both sides, e.g.
-				// at the BusinessPartner and at the Roles. JPA only defines the
-				// "mappedBy" at the Parent.
-				if (mappedBy != null && !mappedBy.isEmpty()) {
-					// edmNaviProperty.setPartner(targetType.getCorrespondingNavigationProperty(sourceType, getInternalName())
-					// .getExternalName());
-					edmNaviProperty.setPartner(targetType.getAssociation(mappedBy).getExternalName());
-				} else {
-					// no @JoinColumn and no 'mappedBy'... try alternative ways
-					final IntermediateNavigationProperty partner = targetType.getCorrespondingAssociation(sourceType, getInternalName());
-					if (partner != null) {
-						if (partner.isMapped()) {
-							edmNaviProperty.setPartner(partner.getExternalName());
+				if (targetType == null) {
+					LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
+							+ getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
+					setIgnore(true);
+				} else if (sourceType instanceof IntermediateEntityType) {
+					// Partner Attribute must not be defined at Complex Types.
+					// JPA bi-directional associations are defined at both sides, e.g.
+					// at the BusinessPartner and at the Roles. JPA only defines the
+					// "mappedBy" at the Parent.
+					if (mappedBy != null && !mappedBy.isEmpty()) {
+						edmNaviProperty.setPartner(targetType.getAssociation(mappedBy).getExternalName());
+					} else {
+						// no @JoinColumn and no 'mappedBy'... try alternative ways
+						final String partnerName = targetType.determineCorrespondingMappedByImplementingAssociationName(sourceType, getInternalName());
+						if (partnerName != null) {
+							edmNaviProperty.setPartner(partnerName);
+						} else if (isSourceOne && joinConfiguration.sourceJoinColumns.isEmpty()) {
+							// define joins by 'id' column(s)
+							final Collection<IntermediateJoinColumn> intermediateColumns = buildDefaultKeyBasedJoinColumns();
+							joinConfiguration.sourceJoinColumns.addAll(intermediateColumns);
 						}
-					} else if (isSourceOne && sourceJoinColumns.isEmpty()) {
-						// define joins by 'id' column(s)
-						final Collection<IntermediateJoinColumn> intermediateColumns = buildDefaultKeyBasedJoinColumns(
-								isSourceOne);
-						sourceJoinColumns.addAll(intermediateColumns);
 					}
 				}
-			}
 
-			if (sourceJoinColumns.isEmpty()) {
-				LOG.log(Level.SEVERE, "Navigation property (" + sourceType.getInternalName() + "#" + getInternalName()
-				+ ") without columns to join found, navigation to target entity is not possible!");
-				setIgnore(true);
-			}
+				if (joinConfiguration.sourceJoinColumns.isEmpty()) {
+					LOG.log(Level.SEVERE, "Navigation property (" + sourceType.getInternalName() + "#" + getInternalName()
+					+ ") without columns to join found, navigation to target entity is not possible!");
+					setIgnore(true);
+				}
 
+			} finally {
+				initStateEdm = InitializationState.Initialized;
+			}
 		}
 
 	}
 
-	// TODO replace 'IntermediateJoinColumn' by direct use of @JoinColumn list
-	List<IntermediateJoinColumn> getJoinColumnsMappedByOfTarget(final String relationshipName) {
-
-		final Attribute<?, ?> jpaAttribute = targetType.getJpaManagedType().getAttribute(relationshipName);
-		if (jpaAttribute == null) {
-			return Collections.emptyList();
-		}
-
-		final List<IntermediateJoinColumn> result = new ArrayList<IntermediateJoinColumn>();
+	private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> jpaAttribute,
+			final String mappedBy, final IntermediateStructuredType targetType, final String relationshipLabel)
+					throws ODataJPAModelException {
 		final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
-		final JoinColumns columns = annotatedElement.getAnnotation(JoinColumns.class);
-		if (columns != null) {
-			for (final JoinColumn column : columns.value()) {
-				result.add(new IntermediateJoinColumn(column));
+		final JoinConfiguration joinConfiguration = new JoinConfiguration();
+		final JoinTable annoJoinTable = annotatedElement.getAnnotation(JoinTable.class);
+		final JoinColumns annoJoinColumns = annotatedElement.getAnnotation(JoinColumns.class);
+		final JoinColumn annoJoinColumn = annotatedElement.getAnnotation(JoinColumn.class);
+		if (annoJoinTable != null) {
+			joinConfiguration.useJoinTable = true;
+			handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinTable.joinColumns(),
+					relationshipLabel);
+			handleTargetJoinColumnAnnotations(joinConfiguration, annoJoinTable.inverseJoinColumns(), relationshipLabel);
+		} else if (annoJoinColumns != null) {
+			handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinColumns.value(),
+					relationshipLabel);
+		} else if (annoJoinColumn != null) {
+			handleSourceJoinColumnAnnotations(joinConfiguration, new JoinColumn[] { annoJoinColumn },
+					relationshipLabel);
+		} else if (mappedBy != null && !mappedBy.isEmpty() && targetType != null) {
+			// find the join columns on opposite side and fill up with informations on our
+			// (source) side
+			final Attribute<?, ?> attribute = targetType.findJPARelationshipAttribute(mappedBy);
+			handleJoinColumnsMappedByOfTarget(joinConfiguration, attribute, relationshipLabel);
+		}
+		return joinConfiguration;
+	}
+
+	static void handleJoinColumnsMappedByOfTarget(final JoinConfiguration joinConfiguration,
+			final Attribute<?, ?> attributeTarget, final String relationshipLabel) throws ODataJPAModelException {
+
+		if (attributeTarget == null) {
+			LOG.log(Level.SEVERE, "Navigation property (" + relationshipLabel
+					+ ") without mapping on target side, navigation to target entity is not possible!");
+			return;
+		}
+		// take all informations from the other end of relationship
+
+		final JoinConfiguration oppositeConfiguration = buildJoinConfiguration(attributeTarget, null,
+				null, relationshipLabel + "->" + attributeTarget.getName());
+		joinConfiguration.useJoinTable = oppositeConfiguration.useJoinTable;//then we have also the join table
+		String columnName;
+		String refernceColumnName;
+		IntermediateJoinColumn intermediateJoinColumn;
+		if (joinConfiguration.useJoinTable) {
+			// invert also source and target join columns, because we are on the other side
+			// of join table...
+			if (oppositeConfiguration.targetJoinColumns != null) {
+				// exchange side
+				for (final IntermediateJoinColumn ojc : oppositeConfiguration.targetJoinColumns) {
+					refernceColumnName = ojc.getTargetColumnName();
+					columnName = ojc.getSourceEntityColumnName();
+					intermediateJoinColumn = new IntermediateJoinColumn(columnName, refernceColumnName);
+					joinConfiguration.sourceJoinColumns.add(intermediateJoinColumn);
+
+				}
+			}
+			joinConfiguration.targetJoinColumns = new LinkedList<IntermediateJoinColumn>();
+			// exchange side
+			for (final IntermediateJoinColumn ojc : oppositeConfiguration.sourceJoinColumns) {
+				refernceColumnName = ojc.getTargetColumnName();
+				columnName = ojc.getSourceEntityColumnName();
+				intermediateJoinColumn = new IntermediateJoinColumn(columnName, refernceColumnName);
+				joinConfiguration.targetJoinColumns.add(intermediateJoinColumn);
 			}
 		} else {
-			final JoinColumn column = annotatedElement.getAnnotation(JoinColumn.class);
-			if (column != null) {
-				result.add(new IntermediateJoinColumn(column));
+			for (final IntermediateJoinColumn ojc : oppositeConfiguration.sourceJoinColumns) {
+				// exchange column names
+				columnName = ojc.getTargetColumnName();
+				refernceColumnName = ojc.getSourceEntityColumnName();
+				intermediateJoinColumn = new IntermediateJoinColumn(columnName, refernceColumnName);
+				joinConfiguration.sourceJoinColumns.add(intermediateJoinColumn);
 			}
 		}
-		return result;
 	}
 
-	private void handleSourceJoinColumnAnnotations(final boolean isSourceOne, final JoinColumn[] annoJoinColumns)
-			throws ODataJPAModelException {
+	private static void handleSourceJoinColumnAnnotations(final JoinConfiguration joinConfiguration,
+			final JoinColumn[] annoJoinColumns, final String internalName)
+					throws ODataJPAModelException {
 		int implicitColumns = 0;
 		for (final JoinColumn column : annoJoinColumns) {
-			final IntermediateJoinColumn intermediateColumn = new IntermediateJoinColumn(column);
-			final String refColumnName = intermediateColumn.getReferencedColumnName();
-			final String name = intermediateColumn.getName();
+			final IntermediateJoinColumn intermediateColumn;
+			if (!joinConfiguration.useJoinTable) {
+				intermediateColumn = new IntermediateJoinColumn(column);
+			} else {
+				intermediateColumn = new IntermediateJoinColumn(column.referencedColumnName(), column.name());
+			}
+			final String refColumnName = intermediateColumn.getTargetColumnName();
+			final String name = intermediateColumn.getSourceEntityColumnName();
 			if (refColumnName == null || refColumnName.isEmpty() || name == null || name.isEmpty()) {
 				implicitColumns += 1;
 				if (implicitColumns > 1) {
 					throw new ODataJPAModelException(
-							ODataJPAModelException.MessageKeys.NOT_SUPPORTED_NO_IMPLICIT_COLUMNS, getInternalName());
+							ODataJPAModelException.MessageKeys.NOT_SUPPORTED_NO_IMPLICIT_COLUMNS, internalName);
 				}
-				fillMissingName(isSourceOne, intermediateColumn);
 			}
-			sourceJoinColumns.add(intermediateColumn);
+			joinConfiguration.sourceJoinColumns.add(intermediateColumn);
 		}
 	}
 
-	private void handleTargetJoinColumnAnnotations(final JoinColumn[] annoJoinColumns) throws ODataJPAModelException {
-		targetJoinColumns = new ArrayList<>(annoJoinColumns.length);
+	private static void handleTargetJoinColumnAnnotations(final JoinConfiguration joinConfiguration,
+			final JoinColumn[] annoJoinColumns, final String internalName) throws ODataJPAModelException {
+		joinConfiguration.targetJoinColumns = new ArrayList<>(annoJoinColumns.length);
+		int implicitColumns = 0;
 		for (final JoinColumn column : annoJoinColumns) {
-			final IntermediateJoinColumn intermediateColumn = new IntermediateJoinColumn(column);
-			final String refColumnName = intermediateColumn.getReferencedColumnName();
-			final String name = intermediateColumn.getName();
-			if (refColumnName == null || refColumnName.isEmpty() || name == null || name.isEmpty()) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_NO_IMPLICIT_COLUMNS,
-						getInternalName());
+			final IntermediateJoinColumn intermediateColumn;
+			if (!joinConfiguration.useJoinTable) {
+				intermediateColumn = new IntermediateJoinColumn(column);
+			} else {
+				intermediateColumn = new IntermediateJoinColumn(column.referencedColumnName(), column.name());
 			}
-			targetJoinColumns.add(intermediateColumn);
+			final String refColumnName = intermediateColumn.getTargetColumnName();
+			final String name = intermediateColumn.getSourceEntityColumnName();
+			if (refColumnName == null || refColumnName.isEmpty() || name == null || name.isEmpty()) {
+				implicitColumns += 1;
+				if (implicitColumns > 1) {
+					throw new ODataJPAModelException(
+							ODataJPAModelException.MessageKeys.NOT_SUPPORTED_NO_IMPLICIT_COLUMNS, internalName);
+				}
+			}
+			joinConfiguration.targetJoinColumns.add(intermediateColumn);
 		}
 	}
 
@@ -365,84 +419,106 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 * @return TRUE if a @JoinTable annotation was found
 	 */
 	public boolean doesUseJoinTable() {
-		return useJoinTable;
+		return joinConfiguration.useJoinTable;
 	}
 
-	private void determineReferentialConstraints(final AnnotatedElement annotatedElement) throws ODataJPAModelException {
+	private void assignReferentialConstraints() throws ODataJPAModelException {
+		final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
 
 		final AssociationOverride overwrite = annotatedElement.getAnnotation(AssociationOverride.class);
 		if (overwrite != null) {
 			return;
 		}
 
+		final PersistentAttributeType cardinality = jpaAttribute.getPersistentAttributeType();
 		final List<CsdlReferentialConstraint> constraints = edmNaviProperty.getReferentialConstraints();
-		for (final IntermediateJoinColumn intermediateColumn : sourceJoinColumns) {
+		for (int i = 0; i < joinConfiguration.sourceJoinColumns.size(); i++) {
 
-			final CsdlReferentialConstraint constraint = new CsdlReferentialConstraint();
-			IntermediateModelElement sP = null;
-			IntermediateModelElement tP = null;
-			// TODO: navigation properties are only allowed for JPA types, so we can cast...
-			// but has bad smell
-			sP = ((IntermediateStructuredType) sourceType).getPropertyByDBField(intermediateColumn.getName());
-			if (sP != null) {
-				// do not create referential constraints (visible in $metadata) for ignored
-				// attributes
-				if (sP.ignore()) {
-					continue;
-				}
-				constraint.setProperty(sP.getExternalName());
-				tP = targetType.getPropertyByDBField(intermediateColumn.getReferencedColumnName());
-				if (tP == null) {
-					final ODataJPAModelException ex = new ODataJPAModelException(
-							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
-							intermediateColumn.getReferencedColumnName(), targetType.getExternalName());
-					LOG.log(Level.FINER, ex.getMessage());
-					// skip constraint
-					continue;
-				}
-				// do not create referential constraints (visible in $metadata) for ignored
-				// attributes
-				if (tP.ignore()) {
-					continue;
-				}
-				constraint.setReferencedProperty(tP.getExternalName());
-				constraints.add(constraint);
-			} else {
-				// TODO: navigation properties are only allowed for JPA types, so we can cast...
-				// but has bad smell
-				sP = ((IntermediateStructuredType) sourceType).getPropertyByDBField(intermediateColumn.getReferencedColumnName());
-				if (sP == null) {
-					final ODataJPAModelException ex = new ODataJPAModelException(
-							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
-							intermediateColumn.getReferencedColumnName(), sourceType.getExternalName());
-					LOG.log(Level.FINER, ex.getMessage());
-					// skip constraint
-					continue;
-				}
-				// do not create referential constraints (visible in $metadata) for ignored
-				// attributes
-				if (sP.ignore()) {
-					continue;
-				}
-				constraint.setProperty(sP.getExternalName());
-				tP = targetType.getPropertyByDBField(intermediateColumn.getName());
-				if (tP == null) {
-					final ODataJPAModelException ex = new ODataJPAModelException(
-							ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(),
-							intermediateColumn.getName(), targetType.getExternalName());
-					LOG.log(Level.FINE, ex.getMessage());
-					// skip constraint
-					continue;
-				}
-				// do not create referential constraints (visible in $metadata) for ignored
-				// attributes
-				if (tP.ignore()) {
-					continue;
-				}
-				constraint.setReferencedProperty(tP.getExternalName());
-				constraints.add(constraint);
+			if (!joinConfiguration.useJoinTable) {
+				// with an join table the columns are not easy enough to set
+				JPAAssociationPathImpl.fillMissingName(cardinality, sourceType, targetType,
+						joinConfiguration.sourceJoinColumns.get(i));
 			}
+
+			final Pair pair = determineRelationshipPropertyEnds(cardinality, joinConfiguration, i);
+			if (pair == null) {
+				continue;
+			}
+			final IntermediateModelElement sP = ((IntermediateStructuredType) sourceType)
+					.getPropertyByDBField(pair.left);
+			if (sP == null) {
+				// may happen if source db field is part of an @EmbeddedId
+				// may happen if relationship join column is not mapped as separate property
+				final ODataJPAModelException ex = new ODataJPAModelException(
+						ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(), pair.left,
+						sourceType.getExternalName());
+				LOG.log(Level.FINER, ex.getMessage());
+				continue;
+			}
+			// do not create referential constraints (visible in $metadata) for ignored
+			// attributes
+			if (sP.ignore()) {
+				continue;
+			}
+			final IntermediateModelElement tP = targetType.getPropertyByDBField(pair.right);
+			if (tP == null) {
+				// may happen if target db field is part of an @EmbeddedId
+				// may happen for inverted join columns from 'mappedBy' having now an not set
+				// 'referencedColumnName'
+				final ODataJPAModelException ex = new ODataJPAModelException(
+						ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(), pair.right,
+						targetType.getExternalName());
+				LOG.log(Level.FINER, ex.getMessage());
+				continue;
+			}
+			// do not create referential constraints (visible in $metadata) for ignored
+			// attributes
+			if (tP.ignore()) {
+				continue;
+			}
+			final CsdlReferentialConstraint constraint = new CsdlReferentialConstraint();
+			constraint.setProperty(sP.getExternalName());
+			constraint.setReferencedProperty(tP.getExternalName());
+			constraints.add(constraint);
 		}
+
+	}
+
+	/**
+	 * Determine the name of attribute for left and right side of relationship
+	 * derived from join column/table information.
+	 *
+	 * @return The pair of attribute names for left and right side or
+	 *         <code>null</code>.
+	 */
+	private static Pair determineRelationshipPropertyEnds(final PersistentAttributeType cardinality,
+			final JoinConfiguration joinConfiguration,
+			final int joinColumnIndex) {
+		if (joinColumnIndex >= joinConfiguration.sourceJoinColumns.size()) {
+			return null;
+		}
+
+		final String left;
+		final String right;
+
+		if (joinConfiguration.useJoinTable) {
+			// having a join table means; it's possible that the number of source side
+			// attributes may differ from the number of attributes on target side used to
+			// join
+			if (joinConfiguration.targetJoinColumns == null) {
+				return null;
+			}
+			if (joinConfiguration.targetJoinColumns.size() != joinConfiguration.sourceJoinColumns.size()) {
+				return null;
+			}
+			// left side is always coming from source join columns
+			left = joinConfiguration.sourceJoinColumns.get(joinColumnIndex).getSourceEntityColumnName();
+			right = joinConfiguration.targetJoinColumns.get(joinColumnIndex).getSourceEntityColumnName();
+		} else {
+			left = joinConfiguration.sourceJoinColumns.get(joinColumnIndex).getSourceEntityColumnName();
+			right = joinConfiguration.sourceJoinColumns.get(joinColumnIndex).getTargetColumnName();
+		}
+		return new Pair(left, right);
 	}
 
 	@Override
@@ -462,7 +538,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 */
 	List<IntermediateJoinColumn> getSourceJoinColumns() throws ODataJPAModelException {
 		lazyBuildEdmItem();
-		return sourceJoinColumns;
+		return joinConfiguration.sourceJoinColumns;
 	}
 
 	/**
@@ -474,37 +550,11 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 */
 	List<IntermediateJoinColumn> getTargetJoinColumns() throws ODataJPAModelException {
 		lazyBuildEdmItem();
-		return targetJoinColumns;
-	}
-
-	private boolean isMapped() {
-		if (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.ONE_TO_ONE) {
-			final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
-			final OneToOne cardinalityOtO = annotatedElement.getAnnotation(OneToOne.class);
-			return cardinalityOtO.mappedBy() != null && !cardinalityOtO.mappedBy().isEmpty() ? true : false;
-		}
-		if (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.ONE_TO_MANY) {
-			final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
-			final OneToMany cardinalityOtM = annotatedElement.getAnnotation(OneToMany.class);
-			return cardinalityOtM.mappedBy() != null && !cardinalityOtM.mappedBy().isEmpty() ? true : false;
-		}
-		return false;
-	}
-
-	private void buildNaviProperty() {
-		this.setExternalName(nameBuilder.buildNaviPropertyName(jpaAttribute));
-		if (this.jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
-			final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaAttribute.getJavaMember()).getAnnotation(EdmIgnore.class);
-			if (jpaIgnore != null) {
-				this.setIgnore(true);
-			}
-		}
-
-		postProcessor.processNavigationProperty(this, jpaAttribute.getDeclaringType().getJavaType().getCanonicalName());
+		return joinConfiguration.targetJoinColumns;
 	}
 
 	/**
-	 * Calculate the join column names based on default JPA naming stratgey:
+	 * Calculate the join column names based on default JPA naming strategy:
 	 * <ul>
 	 * <li>the foreign key is located in the source table</li>
 	 * <li>the foreign key has name with pattern: <b>&lt;relationship attribute
@@ -513,7 +563,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 * Requirements: {@link #targetType} must be set, {@link #sourceType} must be
 	 * set
 	 */
-	private Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(final boolean isSourceOne)
+	private Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns()
 			throws ODataJPAModelException {
 		final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
 		final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());
@@ -531,65 +581,6 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 			joinColumns.add(intermediateColumn);
 		}
 		return joinColumns;
-	}
-
-	private List<JPASimpleAttribute> determineCheckedNumberOfKeyAttributes(final JPAStructuredType theType) throws ODataJPAModelException {
-		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes(false);
-		if (attributes.isEmpty()) {
-			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
-		}
-		if (attributes.size() > 1) {
-			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE, this.getExternalName(),
-					theType.getExternalName());
-		}
-		return attributes;
-	}
-
-	private void fillMissingName(final boolean isSourceOne, final IntermediateJoinColumn intermediateColumn) throws ODataJPAModelException {
-
-		final String refColumnName = intermediateColumn.getReferencedColumnName();
-		final String name = intermediateColumn.getName();
-		switch (jpaAttribute.getPersistentAttributeType()) {
-		case MANY_TO_ONE:
-			if (!isSourceOne && (refColumnName == null || refColumnName.isEmpty())) {
-				final List<JPASimpleAttribute> targetKeyAttributes = determineCheckedNumberOfKeyAttributes(targetType);
-				intermediateColumn.setReferencedColumnName(targetKeyAttributes.get(0).getDBFieldName());
-			} else if (!isSourceOne && (name == null || name.isEmpty())) {
-				final List<JPASimpleAttribute> sourceKeyAttributes = determineCheckedNumberOfKeyAttributes(sourceType);
-				intermediateColumn.setName(sourceKeyAttributes.get(0).getDBFieldName());
-			}
-			break;
-		case ONE_TO_ONE:
-			if (isSourceOne && (refColumnName == null || refColumnName.isEmpty())) {
-				final List<JPASimpleAttribute> targetKeyAttributes = determineCheckedNumberOfKeyAttributes(targetType);
-				intermediateColumn.setReferencedColumnName(targetKeyAttributes.get(0).getDBFieldName());
-			} else if (isSourceOne && (name == null || name.isEmpty())) {
-				final List<JPASimpleAttribute> sourceKeyAttributes = determineCheckedNumberOfKeyAttributes(sourceType);
-				intermediateColumn.setName(sourceKeyAttributes.get(0).getDBFieldName());
-			}
-			break;
-		case MANY_TO_MANY:
-			if (!isSourceOne && (refColumnName == null || refColumnName.isEmpty())) {
-				final List<JPASimpleAttribute> targetKeyAttributes = determineCheckedNumberOfKeyAttributes(targetType);
-				intermediateColumn.setReferencedColumnName(targetKeyAttributes.get(0).getDBFieldName());
-			} else if (!isSourceOne && (name == null || name.isEmpty())) {
-				final List<JPASimpleAttribute> sourceKeyAttributes = determineCheckedNumberOfKeyAttributes(sourceType);
-				intermediateColumn.setReferencedColumnName(sourceKeyAttributes.get(0).getDBFieldName());
-			}
-			break;
-		case ONE_TO_MANY:
-			if (refColumnName == null || refColumnName.isEmpty()) {
-				final List<JPASimpleAttribute> sourceKeyAttributes = determineCheckedNumberOfKeyAttributes(sourceType);
-				intermediateColumn.setReferencedColumnName(sourceKeyAttributes.get(0).getDBFieldName());
-			} else if (isSourceOne && (name == null || name.isEmpty())) {
-				final List<JPASimpleAttribute> targetKeyAttributes = determineCheckedNumberOfKeyAttributes(targetType);
-				intermediateColumn.setName(targetKeyAttributes.get(0).getDBFieldName());
-			}
-			break;
-		default:
-			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
-		}
-
 	}
 
 	private CsdlOnDelete setJPAOnDelete(final CascadeType[] cascades) {

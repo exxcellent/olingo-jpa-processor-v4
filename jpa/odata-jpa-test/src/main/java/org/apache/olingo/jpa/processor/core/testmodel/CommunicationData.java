@@ -3,30 +3,36 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
+
 @Embeddable
 public class CommunicationData {
-    @Column(name = "\"Telecom.Phone\"")
-    private String landlinePhoneNumber;
-    @Column(name = "\"Telecom.Mobile\"")
-    private String mobilePhoneNumber;
-    @Column(name = "\"Telecom.Fax\"")
-    private String fax;
-    @Column(name = "\"Telecom.Email\"")
-    private String email;
+	@Column(name = "\"Telecom.Phone\"")
+	private String landlinePhoneNumber;
 
-    public String getEmail() {
-        return email;
-    }
+	@Column(name = "\"Telecom.Mobile\"")
+	private String mobilePhoneNumber;
 
-    public String getFax() {
-        return fax;
-    }
+	@Column(name = "\"Telecom.Fax\"")
+	private String fax;
 
-    public String getLandlinePhoneNumber() {
-        return landlinePhoneNumber;
-    }
+	@EdmIgnore("Ignore for test purposes")
+	@Column(name = "\"Telecom.Email\"")
+	private String email;
 
-    public String getMobilePhoneNumber() {
-        return mobilePhoneNumber;
-    }
+	public String getEmail() {
+		return email;
+	}
+
+	public String getFax() {
+		return fax;
+	}
+
+	public String getLandlinePhoneNumber() {
+		return landlinePhoneNumber;
+	}
+
+	public String getMobilePhoneNumber() {
+		return mobilePhoneNumber;
+	}
 }

@@ -11,18 +11,12 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 
-import org.apache.olingo.commons.api.edm.provider.CsdlOnDelete;
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
-import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
-import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateNavigationProperty extends TestMappingRoot {
@@ -71,6 +65,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 	public void checkGetIgnoreTrue() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"),
 				"customString1");
+		// customString1 is not a relation, but that is ok for this test
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getStructuredType(jpaAttribute), jpaAttribute, helper.serviceDocument);
 		assertTrue(property.ignore());
@@ -82,10 +77,9 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(BusinessPartner.class), jpaAttribute, helper.serviceDocument);
 
-		assertTrue(property.getEdmItem().isNullable());
+		assertTrue(property.getEdmItem().isNullable().booleanValue());
 	}
 
-	@Ignore("mapping has changed, so cascade delete is not longer valid?!")
 	@Test
 	public void checkGetPropertyOnDelete() throws ODataJPAModelException {
 		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
@@ -102,7 +96,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(BusinessPartnerRole.class), jpaAttribute, helper.serviceDocument);
 
-		assertFalse(property.getEdmItem().isNullable());
+		assertFalse(property.getEdmItem().isNullable().booleanValue());
 	}
 
 	@Test
@@ -111,7 +105,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
 				helper.schema.getEntityType(BusinessPartner.class), jpaAttribute, helper.serviceDocument);
 
-		assertTrue(property.getEdmItem().isNullable());
+		assertTrue(property.getEdmItem().isNullable().booleanValue());
 	}
 
 	@Test
@@ -183,8 +177,8 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 				helper.schema.getEntityType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
 
 		final IntermediateJoinColumn act = property.getSourceJoinColumns().get(0);
-		assertEquals("\"BusinessPartnerID\"", act.getName());
-		assertEquals("\"ID\"", act.getReferencedColumnName());
+		assertEquals("\"ID\"", act.getSourceEntityColumnName());
+		assertEquals("\"BusinessPartnerID\"", act.getTargetColumnName());
 	}
 
 	@Test
@@ -196,8 +190,8 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 				helper.schema.getEntityType(et.getJavaType()), jpaAttribute, helper.serviceDocument);
 
 		final IntermediateJoinColumn act = property.getSourceJoinColumns().get(0);
-		assertEquals("\"BusinessPartnerID\"", act.getName());
-		assertEquals("\"ID\"", act.getReferencedColumnName());
+		assertEquals("\"BusinessPartnerID\"", act.getSourceEntityColumnName());
+		assertEquals("\"ID\"", act.getTargetColumnName());
 	}
 
 	@Test
@@ -210,7 +204,6 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		assertEquals(1, property.getSourceJoinColumns().size());
 	}
 
-	@Ignore("attribute commented out")
 	@Test
 	public void checkGetJoinColumnsSize2() throws ODataJPAModelException {
 		final EmbeddableType<?> et = helper.getEmbeddedableType("PostalAddressData");
@@ -257,107 +250,4 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
 		}
 	}
 
-	@Test
-	public void checkPostProcessorCalled() throws ODataJPAModelException {
-		final PostProcessorSpy spy = new PostProcessorSpy();
-		IntermediateModelElement.setPostProcessor(spy);
-
-		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType(
-				"BusinessPartner"), "roles");
-		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
-				helper.schema.getEntityType(BusinessPartner.class), jpaAttribute, helper.serviceDocument);
-
-		property.getEdmItem();
-		assertTrue(spy.called);
-	}
-
-	@Test
-	public void checkPostProcessorNameChanged() throws ODataJPAModelException {
-		final PostProcessorSetName pPDouble = new PostProcessorSetName();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
-		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
-		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
-				helper.schema.getEntityType(BusinessPartner.class), jpaAttribute, helper.serviceDocument);
-
-		assertEquals("Wrong name", "RoleAssignment", property.getEdmItem().getName());
-	}
-
-	@Test
-	public void checkPostProcessorExternalNameChanged() throws ODataJPAModelException {
-		final PostProcessorSetName pPDouble = new PostProcessorSetName();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
-		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
-		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
-				helper.schema.getStructuredType(jpaAttribute), jpaAttribute, helper.serviceDocument);
-
-		assertEquals("Wrong name", "RoleAssignment", property.getExternalName());
-	}
-
-	@Test
-	public void checkPostProcessorSetOnDelete() throws ODataJPAModelException {
-		final PostProcessorOneDelete pPDouble = new PostProcessorOneDelete();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
-		final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("AdministrativeDivision"),
-				"children");
-		final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
-				helper.schema.getEntityType(AdministrativeDivision.class), jpaAttribute, helper.serviceDocument);
-
-		assertEquals(CsdlOnDeleteAction.None, property.getProperty().getOnDelete().getAction());
-	}
-
-	private class PostProcessorSpy extends JPAEdmMetadataPostProcessor {
-		boolean called = false;
-
-		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {
-			called = true;
-		}
-
-		@Override
-		public void processProperty(final IntermediatePropertyAccess property, final String jpaManagedTypeClassName) {
-
-		}
-
-	}
-
-	private class PostProcessorSetName extends JPAEdmMetadataPostProcessor {
-		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {
-			if (jpaManagedTypeClassName.equals(
-					BUPA_CANONICAL_NAME)) {
-				if (property.getInternalName().equals("roles")) {
-					property.setExternalName("RoleAssignment");
-				}
-			}
-		}
-
-		@Override
-		public void processProperty(final IntermediatePropertyAccess property, final String jpaManagedTypeClassName) {
-
-		}
-	}
-
-	private class PostProcessorOneDelete extends JPAEdmMetadataPostProcessor {
-		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {
-			if (jpaManagedTypeClassName.equals(ADMIN_CANONICAL_NAME)) {
-				if (property.getInternalName().equals("children")) {
-					final CsdlOnDelete oD = new CsdlOnDelete();
-					oD.setAction(CsdlOnDeleteAction.None);
-					property.setOnDelete(oD);
-				}
-			}
-		}
-
-		@Override
-		public void processProperty(final IntermediatePropertyAccess property, final String jpaManagedTypeClassName) {
-
-		}
-	}
 }

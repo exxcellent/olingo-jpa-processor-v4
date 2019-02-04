@@ -15,13 +15,6 @@ public interface JPAAssociationPath extends JPASelector {
 	public boolean hasJoinTableBetweenSourceAndTarget();
 
 	/**
-	 * @deprecated Split into 'getLeftPath()' and 'getRightPath()', because mostly
-	 *             only one of the sides is of interest
-	 */
-	@Deprecated
-	List<JPAOnConditionItem> getJoinConditions() throws ODataJPAModelException;
-
-	/**
 	 *
 	 * @return The selectors defining the columns to select on left side of an
 	 *         association.

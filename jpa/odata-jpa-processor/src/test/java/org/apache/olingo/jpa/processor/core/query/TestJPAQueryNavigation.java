@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
@@ -151,7 +152,6 @@ public class TestJPAQueryNavigation extends TestBase {
 		assertEquals("BE3", org.get("DivisionCode").asText());
 	}
 
-	@Ignore("TODO")
 	@Test
 	public void testNavigationSelfToManyOneHops() throws IOException, ODataException {
 
@@ -165,7 +165,6 @@ public class TestJPAQueryNavigation extends TestBase {
 		assertEquals("BE25", orgs.get(0).get("DivisionCode").asText());
 	}
 
-	@Ignore("TODO")
 	@Test
 	public void testNavigationSelfToManyTwoHops() throws IOException, ODataException {
 
@@ -179,7 +178,6 @@ public class TestJPAQueryNavigation extends TestBase {
 		assertEquals("BE258", orgs.get(0).get("DivisionCode").asText());
 	}
 
-	@Ignore("Currently not available")
 	@Test
 	public void testNavigationSelfToOneThreeHopsNoResult() throws IOException, ODataException {
 
@@ -188,12 +186,12 @@ public class TestJPAQueryNavigation extends TestBase {
 		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
-	@Ignore("Currently not available")
 	@Test
 	public void testNavigationSelfToManyOneHopsNoResult() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Address/AdministrativeDivision/Children");
-		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		assertNotNull(helper.getValues());
 	}
 }

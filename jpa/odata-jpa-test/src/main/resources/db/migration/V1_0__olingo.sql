@@ -740,6 +740,20 @@ insert into "org.apache.olingo.jpa::RelationshipEntity" values( 3, 1, 'rel 1_3',
 insert into "org.apache.olingo.jpa::RelationshipEntity" values( 4, null, 'source 2', 'RelationshipSourceEntity');
 insert into "org.apache.olingo.jpa::RelationshipEntity" values( 5, 4, 'rel 4_5', 'RelationshipTargetEntity');
 
+-- jointable to simulate a m:n relationship for the 'other' association
+CREATE TABLE "org.apache.olingo.jpa::RELATIONSHIPJoinTable"(
+    "LEFT_ID" BIGINT NOT NULL,
+    "RIGHT_ID" BIGINT NOT NULL
+);
+
+-- join table matching several scenarios
+insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 1, 4);
+insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 1, 5);
+insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 2, 4);
+insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 1);
+insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 4);
+
+
 --CREATE FUNCTION IS_PRIME(number Integer) RETURNS BOOLEAN
 --       PARAMETER STYLE JAVA NO SQL LANGUAGE JAVA 
 --       EXTERNAL NAME 'org.apache.olingo.jpa.processor.core.test_udf.isPrime';

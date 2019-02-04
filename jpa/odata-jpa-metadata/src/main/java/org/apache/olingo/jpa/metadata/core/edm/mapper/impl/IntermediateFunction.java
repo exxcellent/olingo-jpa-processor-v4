@@ -135,12 +135,12 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		FullQualifiedName fqn;
 		if (returnType.type() == Object.class) {
 			final JPAStructuredType et = schema.getEntityType(jpaDefiningPOJO);
-			fqn = nameBuilder.buildFQN(et.getEdmItem().getName());
+			fqn = nameBuilder.buildFQN(et.getExternalName());
 			this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
 		} else {
 			final JPAStructuredType et = schema.getEntityType(returnType.type());
 			if (et != null) {
-				fqn = nameBuilder.buildFQN(et.getEdmItem().getName());
+				fqn = nameBuilder.buildFQN(et.getExternalName());
 				this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
 			} else {
 				fqn = JPATypeConvertor.convertToEdmSimpleType(returnType.type()).getFullQualifiedName();

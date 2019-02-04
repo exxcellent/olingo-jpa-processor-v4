@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.apache.olingo.jpa.metadata.core.edm.annotation;
 
@@ -15,5 +15,8 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE, ElementType.FIELD })
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface EdmIgnore {
-
+	/**
+	 * A message to explain ignore reason.
+	 */
+	String value() default "";
 }

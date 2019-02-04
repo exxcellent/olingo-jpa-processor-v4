@@ -8,9 +8,8 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
-import org.apache.olingo.jpa.processor.core.query.JPANavigationFilterQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationProptertyInfo;
-import org.apache.olingo.jpa.processor.core.query.JPANavigationQuery;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -91,7 +90,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 		// 1. Determine all relevant associations
 		final List<JPANavigationProptertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
 		JPAAbstractQuery parent = root;
-		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
+		final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>();
 
 		// 2. Create the queries and roots
 
@@ -101,10 +100,10 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 			if (i == 0 && aggregationType == null) {
 				final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getLiteral(),
 						operator);
-				queryList.add(new JPANavigationFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
+				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
 						.getAssociationPath(), expression));
 			} else {
-				queryList.add(new JPANavigationFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
+				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
 						.getAssociationPath()));
 			}
 			parent = queryList.get(queryList.size() - 1);

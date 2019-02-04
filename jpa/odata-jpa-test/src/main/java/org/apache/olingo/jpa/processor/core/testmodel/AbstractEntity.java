@@ -16,4 +16,7 @@ public abstract class AbstractEntity {
 	@Column(name = "\"ID\"", updatable = false, nullable = false, unique = true, columnDefinition = "bigint")
 	private Integer ID;
 
+	public Integer getID() {
+		return ID;
+	}
 }

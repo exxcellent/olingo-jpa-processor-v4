@@ -2,8 +2,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.util.List;
 
-import javax.persistence.metamodel.Attribute;
-
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
@@ -54,12 +52,6 @@ public abstract class AbstractJPASchema implements JPAElement {
 	abstract List<JPAAction> getActions();
 
 	public abstract CsdlSchema getEdmItem() throws ODataJPAModelException;
-
-	/**
-	 * {@link IntermediateStructuredType Structured types} including
-	 * {@link IntermediateEntityType}'s.
-	 */
-	abstract IntermediateStructuredType getStructuredType(final Attribute<?, ?> jpaAttribute);
 
 	abstract IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
 

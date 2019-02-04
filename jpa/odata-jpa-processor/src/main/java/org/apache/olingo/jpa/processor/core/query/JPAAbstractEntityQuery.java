@@ -68,6 +68,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 	protected final JPAODataSessionContextAccess context;
 	private final OData odata;
 	private final Map<String, List<String>> requestHeaders;
+	private final Locale locale;
 
 	public JPAAbstractEntityQuery(final OData odata, final JPAODataSessionContextAccess context,
 			final JPAEntityType jpaEntityType, final EntityManager em, final Map<String, List<String>> requestHeaders,
@@ -277,6 +278,13 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 			for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> entry : associationPathList.entrySet()) {
 				try {
 					for (final JPASelector leftSelector : entry.getValue().getLeftPaths()) {
+						if (JPAAssociationPath.class.isInstance(leftSelector)) {
+							// we have to join a relationship without mapped join columns...
+							LOG.log(Level.WARNING, "The $expand will join complete association '"
+									+ JPAAssociationPath.class.cast(leftSelector).getAlias()
+									+ "', because no ID column is present... Ignore that... you will have trouble... This is an bug in join column selection or a problem in your mapping!");
+							continue;
+						}
 						final int insertIndex = Collections.binarySearch(jpaPathList, leftSelector);
 						if (insertIndex < 0) {
 							jpaPathList.add(/* Math.abs(insertIndex), */ leftSelector);

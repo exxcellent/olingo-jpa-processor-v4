@@ -36,8 +36,10 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 class IntermediateEntityType extends IntermediateStructuredType implements JPAEntityType {
+
 	private CsdlEntityType edmEntityType;
 	private boolean hasEtag = false;
+	private InitializationState initStateEdm = InitializationState.NotInitialized;
 
 	IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
 			final IntermediateServiceDocument serviceDocument)
@@ -59,7 +61,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 
 	@Override
 	public List<JPAAttributePath> getKeyPath() throws ODataJPAModelException {
-		lazyBuildEdmItem();
+		initializeType();
 
 		final List<JPAAttributePath> result = new ArrayList<JPAAttributePath>();
 		for (final String internalName : this.declaredPropertiesList.keySet()) {
@@ -189,25 +191,39 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		if (edmEntityType == null) {
-			buildPropertyList();
-			edmEntityType = new CsdlEntityType();
-			edmEntityType.setName(getExternalName());
-			edmEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
-			edmEntityType.setNavigationProperties(
-					(List<CsdlNavigationProperty>) extractEdmProperties(
-							declaredNaviPropertiesList));
-			edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
-			edmEntityType.setAbstract(isAbstract());
-			edmEntityType.setBaseType(determineBaseType());
-			edmEntityType.setHasStream(determineHasStream());
-			determineHasEtag();
-			// TODO determine OpenType
+		switch (initStateEdm) {
+		case Initialized:
+			return;
+		case InProgress:
+			throw new IllegalStateException("Initialization already in progress, recursion problem!");
+		default:
+			break;
+		}
 
+		if (edmEntityType == null) {
+			try {
+				initStateEdm = InitializationState.InProgress;
+
+				initializeType();
+				edmEntityType = new CsdlEntityType();
+				edmEntityType.setName(getExternalName());
+				edmEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
+				edmEntityType.setNavigationProperties(
+						(List<CsdlNavigationProperty>) extractEdmProperties(
+								declaredNaviPropertiesList));
+				edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
+				edmEntityType.setAbstract(isAbstract());
+				edmEntityType.setBaseType(determineBaseType());
+				edmEntityType.setHasStream(determineHasStream());
+				determineHasEtag();
+				// TODO determine OpenType
+			} finally {
+				initStateEdm = InitializationState.Initialized;
+			}
 		}
 	}
 
-	void determineHasEtag() {
+	private void determineHasEtag() {
 		for (final String internalName : this.declaredPropertiesList.keySet()) {
 			if (declaredPropertiesList.get(internalName).isEtag()) {
 				hasEtag = true;

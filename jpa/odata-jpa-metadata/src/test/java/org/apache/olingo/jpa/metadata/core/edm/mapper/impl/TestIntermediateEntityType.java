@@ -11,17 +11,14 @@ import java.util.Set;
 
 import javax.persistence.metamodel.EntityType;
 
-import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
 import org.apache.olingo.jpa.processor.core.test.TestDataConstants;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateEntityType extends TestMappingRoot {
@@ -51,17 +48,6 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 				serviceDocument);
 		et.getEdmItem();
 		assertTrue(et.ignore());
-	}
-
-	@Ignore("Some attributes are currently commented out")
-	@Test
-	public void checkGetAllProperties() throws ODataJPAModelException {
-		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
-				"BusinessPartner"),
-				serviceDocument);
-		assertEquals("Wrong number of entities", TestDataConstants.NO_DEC_ATTRIBUTES_BUISNESS_PARTNER, et.getEdmItem()
-				.getProperties()
-				.size());
 	}
 
 	@Test
@@ -96,22 +82,28 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertEquals("ID", et.getPath("ID").getLeaf().getExternalName());
 	}
 
-	@Ignore("Attributea re now not longer ignored by immediate/meta-model, but by querying from DB, so that this test is wrong")
 	@Test
 	public void checkGetPathByNameIgnore() throws ODataJPAModelException {
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"BusinessPartner"),
 				serviceDocument);
-		assertNull(et.getPath("CustomString2"));
+		// must exist as DB path (for selection)
+		assertNotNull(et.getPath("CustomString2"));
+		// but must be ignored as OData attribute
+		assertTrue(((JPAAttributePath) et.getPath("CustomString2")).ignore());
+		assertNull(et.getAttribute("customString2"));
+		// and must be accessible by internal methods
+		assertNotNull(et.getPropertyByDBField("\"CustomString2\""));
+		assertNotNull(et.getProperty("customString2"));
 	}
 
-	@Ignore("Attributea re now not longer ignored by immediate/meta-model, but by querying from DB, so that this test is wrong")
 	@Test
 	public void checkGetPathByNameIgnoreCompexType() throws ODataJPAModelException {
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"BusinessPartner"),
 				serviceDocument);
-		assertNull(et.getPath("Address/RegionCodePublisher"));
+		assertNotNull(et.getPath("Address/RegionCodePublisher"));
+		assertTrue(((JPAAttributePath) et.getPath("Address/RegionCodePublisher")).ignore());
 	}
 
 	@Test
@@ -146,7 +138,6 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertEquals("Roles", et.getEdmItem().getNavigationProperty("Roles").getName());
 	}
 
-	@Ignore("Address/AdministrativeDivision commented out")
 	@Test
 	public void checkGetAssoziationOfComplexTypeByNameCorrectEntity() throws ODataJPAModelException {
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
@@ -185,16 +176,13 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertEquals("Not all join columns found", 3, actCount);
 	}
 
-	@Ignore("Some attributes are currently commented out")
 	@Test
 	public void checkGetPropertiesSkipIgnored() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"BusinessPartner"),
 				serviceDocument);
-		assertEquals("Wrong number of entities", TestDataConstants.NO_DEC_ATTRIBUTES_BUISNESS_PARTNER - 1, et.getEdmItem()
+		assertEquals("Wrong number of entities", TestDataConstants.NO_ATTRIBUTES_BUISNESS_PARTNER,
+				et.getEdmItem()
 				.getProperties().size());
 	}
 
@@ -237,13 +225,13 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		assertEquals("Wrong number of entities", 2, et.getPathList().size());
 	}
 
-	@Ignore("Some attributes are currently commented out")
 	@Test
 	public void checkGetAllAttributesWithBaseType() throws ODataJPAModelException {
 		final IntermediateStructuredType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"Organization"),
 				serviceDocument);
-		final int exp = TestDataConstants.NO_ATTRIBUTES_BUISNESS_PARTNER
+		// 'paths' are more then attributes
+		final int exp = TestDataConstants.NO_ATTRIBUTES_BUISNESS_PARTNER + 1
 				+ TestDataConstants.NO_ATTRIBUTES_POSTAL_ADDRESS
 				+ TestDataConstants.NO_ATTRIBUTES_COMMUNICATION_DATA
 				+ 2 * TestDataConstants.NO_ATTRIBUTES_CHANGE_INFO
@@ -350,29 +338,6 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"AdministrativeDivision"), serviceDocument);
 		assertFalse(et.hasEtag());
-	}
-
-	@Ignore
-	@Test
-	public void checkGetPropertyWithEnumerationType() {
-
-	}
-
-	private class PostProcessorSetIgnore extends JPAEdmMetadataPostProcessor {
-
-		@Override
-		public void processProperty(final IntermediatePropertyAccess property, final String jpaManagedTypeClassName) {
-			if (jpaManagedTypeClassName.equals(
-					TestMappingRoot.BUPA_CANONICAL_NAME)) {
-				if (property.getInternalName().equals("communicationData")) {
-					property.setIgnore(true);
-				}
-			}
-		}
-
-		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {}
 	}
 
 	private EntityType<?> getEntityType(final String typeName) {

@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import javax.persistence.metamodel.Attribute;
-
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
@@ -35,12 +33,6 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 			throws ODataJPAModelException {
 		super(namespace);
 		this.serviceDocument = serviceDocument;
-	}
-
-	@Override
-	IntermediateStructuredType getStructuredType(final Attribute<?, ?> jpaAttribute) {
-		// currently not supported
-		return null;
 	}
 
 	@Override
@@ -95,7 +87,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 		}).collect(Collectors.toList());
 	}
 
-	private List<CsdlAction> buildActionList() throws ODataJPAModelException {
+	private List<CsdlAction> buildActionList() throws RuntimeException {
 		return actions.entrySet().stream().map(x -> {
 			try {
 				return x.getValue().getEdmItem();

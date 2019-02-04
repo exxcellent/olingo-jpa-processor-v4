@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpHeader;
-import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -186,11 +185,6 @@ public class JPAODataGetHandler {
 		@Override
 		public void setOperationConverter(final JPAODataDatabaseOperations jpaOperationConverter) {
 			operationConverter = jpaOperationConverter;
-		}
-
-		@Override
-		public void setMetadataPostProcessor(final JPAEdmMetadataPostProcessor postProcessor) throws ODataException {
-			IntermediateServiceDocument.setPostProcessor(postProcessor);
 		}
 
 		@Override

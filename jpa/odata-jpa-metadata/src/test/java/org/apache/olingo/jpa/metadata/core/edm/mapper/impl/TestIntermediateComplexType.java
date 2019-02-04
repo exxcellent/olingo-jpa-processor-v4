@@ -9,11 +9,8 @@ import java.util.Set;
 
 import javax.persistence.metamodel.EmbeddableType;
 
-import org.apache.olingo.jpa.metadata.api.JPAEdmMetadataPostProcessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,14 +18,12 @@ import org.junit.Test;
 public class TestIntermediateComplexType extends TestMappingRoot {
 	private Set<EmbeddableType<?>> etList;
 	private IntermediateServiceDocument serviceDocument;
-	private AbstractJPASchema schema;
 
 	@Before
 	public void setup() throws ODataJPAModelException {
-		IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
 		etList = emf.getMetamodel().getEmbeddables();
 		serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
-		schema = serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
+		serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
 	}
 
 	@Test
@@ -48,11 +43,13 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 	}
 
 	@Test
-	public void checkGetAllProperties() throws ODataJPAModelException {
+	public void checkGetPropertiesSkipIgnored() throws ODataJPAModelException {
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"CommunicationData"),
 				serviceDocument);
-		assertEquals("Wrong number of entities", 4, ct.getEdmItem().getProperties().size());
+		// one attribute is ignored, so we should have 3 properties, but 4 paths
+		assertEquals("Wrong number of properties", 3, ct.getEdmItem().getProperties().size());
+		assertEquals("Wrong number of properties", 4, ct.getPathList().size());
 	}
 
 	@Test
@@ -73,9 +70,6 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
 	@Test
 	public void checkGetPropertyIsNullable() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
@@ -83,59 +77,33 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 		assertTrue(ct.getEdmItem().getProperty("POBox").isNullable());
 	}
 
-	@Ignore("Some attributes are currently commented out")
 	@Test
 	public void checkGetAllNaviProperties() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
-		assertEquals("Wrong number of entities", 1, ct.getEdmItem().getNavigationProperties().size());
+		assertEquals("Wrong number of properties", 1, ct.getEdmItem().getNavigationProperties().size());
 	}
 
-	@Ignore("administrativeDivision is currently commented out")
 	@Test
 	public void checkGetNaviPropertyByNameNotNull() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
 		assertNotNull(ct.getEdmItem().getNavigationProperty("AdministrativeDivision").getName());
 	}
 
-	@Ignore("administrativeDivision is currently commented out")
 	@Test
 	public void checkGetNaviPropertyByNameRightEntity() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
 		assertEquals("AdministrativeDivision", ct.getEdmItem().getNavigationProperty("AdministrativeDivision").getName());
 	}
 
-	@Test
-	public void checkGetPropertiesSkipIgnored() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
-		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
-				"CommunicationData"),
-				serviceDocument);
-		assertEquals("Wrong number of entities", 3, ct.getEdmItem().getProperties().size());
-	}
-
 	@Ignore("countryName is currently commented out")
 	@Test
 	public void checkGetDescriptionPropertyManyToOne() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
@@ -145,9 +113,6 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 	@Ignore("regionName is currently commented out")
 	@Test
 	public void checkGetDescriptionPropertyManyToMany() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
@@ -157,9 +122,6 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 	@Ignore("countryName is currently commented out")
 	@Test
 	public void checkDescriptionPropertyType() throws ODataJPAModelException {
-		final PostProcessorSetIgnore pPDouble = new PostProcessorSetIgnore();
-		IntermediateModelElement.setPostProcessor(pPDouble);
-
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"PostalAddressData"),
 				serviceDocument);
@@ -213,28 +175,4 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 	public void checkGetPropertyWithEnumerationType() {
 
 	}
-
-	private class PostProcessorSetIgnore extends JPAEdmMetadataPostProcessor {
-
-		@Override
-		public void processProperty(final IntermediatePropertyAccess property, final String jpaManagedTypeClassName) {
-			if (jpaManagedTypeClassName.equals(
-					COMM_CANONICAL_NAME)) {
-				if (property.getInternalName().equals("landlinePhoneNumber")) {
-					property.setIgnore(true);
-				}
-			}
-		}
-
-		@Override
-		public void processNavigationProperty(final IntermediateNavigationPropertyAccess property,
-				final String jpaManagedTypeClassName) {
-			if (jpaManagedTypeClassName.equals(ADDR_CANONICAL_NAME)) {
-				if (property.getInternalName().equals("countryName")) {
-					property.setIgnore(false);
-				}
-			}
-		}
-	}
-
 }

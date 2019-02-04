@@ -5,6 +5,7 @@ import java.util.Collection;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
 @Entity(name = "RelationshipSourceEntity")
@@ -12,6 +13,8 @@ import javax.persistence.OneToMany;
 public class RelationshipSourceEntity extends AbstractRelationshipEntity {
 
 	@OneToMany(mappedBy = "source", fetch = FetchType.LAZY, orphanRemoval = false)
-	private Collection<RelationshipTargetEntity> targets;
+	protected Collection<RelationshipTargetEntity> targets;
 
+	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "rightM2Ns")
+	protected Collection<RelationshipTargetEntity> leftM2Ns;
 }

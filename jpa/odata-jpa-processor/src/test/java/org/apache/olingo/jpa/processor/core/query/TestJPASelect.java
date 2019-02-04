@@ -71,6 +71,67 @@ public class TestJPASelect extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode source = helper.getValue();
 		assertNotNull(source);
+		assertEquals(1, source.get("ID").asInt());
+	}
+
+	@Test
+	public void testSelectRelationshipM2NLeftNavigation() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities(1)/LeftM2Ns");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(1, targets.size());
+	}
+
+	@Test
+	public void testSelectRelationshipM2NRightNavigation() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipTargetEntities(5)/RightM2Ns");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(1, targets.size());
+	}
+
+	@Test
+	public void testSelectRelationshipOne2Many() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipTargetEntities(5)/One2ManyTest");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(1, targets.size());
+	}
+
+	@Test
+	public void testSelectRelationshipSecondM2NLeftNavigation() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipEntities(2)/SecondLeftM2Ns");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(1, targets.size());
+	}
+
+	@Test
+	public void testSelectRelationshipSecondM2NRightNavigation() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipEntities(4)/SecondRightM2Ns");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(3, targets.size());
+	}
+
+	@Test
+	public void testSelectRelationshipM2NBusinessPartnerRoles() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"BusinessPartners('5')/Locations");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode targets = helper.getValues();
+		assertEquals(2, targets.size());
 	}
 
 }

@@ -13,7 +13,7 @@
 	<artifactId>odata-jpa-examples</artifactId>
 	<packaging>pom</packaging>
 
-	<name>odata-jpa-examples</name>
+	<name>OData-JPA bridge examples</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

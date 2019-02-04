@@ -2,6 +2,11 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import javax.persistence.JoinColumn;
 
+/**
+ * The mapping is always defined as navigate 'from' ([source] entity column)
+ * 'to' ([target] entity or join table column).
+ *
+ */
 class IntermediateJoinColumn {
 	private String name;
 	private String referencedColumnName;
@@ -19,22 +24,26 @@ class IntermediateJoinColumn {
 	/**
 	 * @see JoinColumn#name()
 	 */
-	public String getName() {
+	public String getSourceEntityColumnName() {
 		return name;
 	}
 
-	public void setName(final String name) {
+	public void setSourceEntityColumnName(final String name) {
 		this.name = name;
 	}
 
 	/**
 	 * @see JoinColumn#referencedColumnName()
 	 */
-	public String getReferencedColumnName() {
+	public String getTargetColumnName() {
 		return referencedColumnName;
 	}
 
-	public void setReferencedColumnName(final String referencedColumnName) {
+	/**
+	 *
+	 * @param referencedColumnName The name or target entity or join table column.
+	 */
+	public void setTargetColumnName(final String referencedColumnName) {
 		this.referencedColumnName = referencedColumnName;
 	}
 

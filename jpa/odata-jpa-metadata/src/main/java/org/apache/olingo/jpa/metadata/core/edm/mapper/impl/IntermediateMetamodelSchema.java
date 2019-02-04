@@ -82,7 +82,10 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 		return edmSchema;
 	}
 
-	@Override
+	/**
+	 * {@link IntermediateStructuredType Structured types} including
+	 * {@link IntermediateEntityType}'s.
+	 */
 	IntermediateStructuredType getStructuredType(final Attribute<?, ?> jpaAttribute) {
 		Class<?> targetClass = null;
 		if (jpaAttribute.isCollection()) {

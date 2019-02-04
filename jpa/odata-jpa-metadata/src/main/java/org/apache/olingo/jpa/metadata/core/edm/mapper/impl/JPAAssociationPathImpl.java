@@ -10,8 +10,8 @@ import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOnConditionItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
@@ -117,78 +117,63 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 		rightSelectors = new ArrayList<JPASelector>(sourceJoinColumns.size());
 		JPASelector selectorLeft;
 		JPASelector selectorRight;
+
 		for (final IntermediateJoinColumn column : this.sourceJoinColumns) {
-			try {
-				switch (cardinality) {
-				case MANY_TO_ONE:
-				case MANY_TO_MANY: /* TODO m:n really also ?! */
-				case ONE_TO_ONE:
-					selectorLeft = findJoinConditionPath(sourceType, column.getName());
-					selectorRight = findJoinConditionPath(targetType, column.getReferencedColumnName());
-					break;
-				case ONE_TO_MANY:
-					selectorLeft = findJoinConditionPath(sourceType, column.getReferencedColumnName());
-					selectorRight = findJoinConditionPath(targetType, column.getName());
-					break;
-				default:
-					throw new ODataJPAModelException(MessageKeys.GENERAL,
-							"Invalid relationship declaration: " + column.getName() + "<->"
-									+ column.getReferencedColumnName() + " between " + sourceType.getInternalName()
-									+ " and " + targetType.getInternalName());
-				}
-				leftSelectors.add(selectorLeft);
+			fillMissingName(cardinality, sourceType, targetType, column);
+			// always take source for left side
+			selectorLeft = findJoinConditionPath(sourceType, column.getSourceEntityColumnName());
+			leftSelectors.add(selectorLeft);
+			selectorRight = null;
+			// take source for right side only if no join table exists, defining target
+			// columns
+			if(!useJoinTable) {
+				selectorRight = findJoinConditionPath(targetType, column.getTargetColumnName());
 				if (selectorRight != null) {
 					rightSelectors.add(selectorRight);
 				}
-			} catch (final IllegalArgumentException ex) {
-				throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM, ex,
-						"Invalid relationship declaration: " + column.getName() + "<->"
-								+ column.getReferencedColumnName() + " between " + sourceType.getInternalName()
-								+ " and " + targetType.getInternalName());
 			}
 		}
-		if (rightSelectors.isEmpty()) {
+
+		if (useJoinTable) {
+			// force target join columns
 			rightSelectors.addAll(determineTargetSelectorBehindJoinTable());
+		}
+		if (rightSelectors.isEmpty()) {
+			throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM,
+					"Invalid relationship declaration: " + alias + " ->" + " between " + sourceType.getInternalName()
+					+ " and " + targetType.getInternalName());
+		}
+
+	}
+
+
+	static void fillMissingName(final PersistentAttributeType cardinality, final JPAStructuredType sourceType,
+			final JPAStructuredType targetType,
+			final IntermediateJoinColumn intermediateColumn) throws ODataJPAModelException {
+
+		final String refColumnName = intermediateColumn.getTargetColumnName();
+		final String name = intermediateColumn.getSourceEntityColumnName();
+		if ((name == null || name.isEmpty())) {
+			final JPASimpleAttribute keyAttribute = determineSingleKeyAttribute(sourceType);
+			intermediateColumn.setSourceEntityColumnName(keyAttribute.getDBFieldName());
+		}
+		if ((refColumnName == null || refColumnName.isEmpty())) {
+			final JPASimpleAttribute keyAttribute = determineSingleKeyAttribute(targetType);
+			intermediateColumn.setTargetColumnName(keyAttribute.getDBFieldName());
 		}
 	}
 
-	@Override
-	public List<JPAOnConditionItem> getJoinConditions() throws ODataJPAModelException {
-		final List<JPAOnConditionItem> joinConditions = new ArrayList<JPAOnConditionItem>();
-		JPAOnConditionItemImpl onCondition;
-		JPASelector selectorLeft;
-		JPASelector selectorRight;
-		for (final IntermediateJoinColumn column : this.sourceJoinColumns) {
-			try {
-				switch (cardinality) {
-				case MANY_TO_ONE:
-				case MANY_TO_MANY: /* TODO m:n really also ?! */
-				case ONE_TO_ONE:
-					selectorLeft = findJoinConditionPath(sourceType, column.getName());
-					selectorRight = findJoinConditionPath(targetType, column.getReferencedColumnName());
-					onCondition = new JPAOnConditionItemImpl(selectorLeft, selectorRight);
-					break;
-				case ONE_TO_MANY:
-					selectorLeft = findJoinConditionPath(sourceType,
-							column.getReferencedColumnName());
-					selectorRight = findJoinConditionPath(targetType, column.getName());
-					onCondition = new JPAOnConditionItemImpl(selectorLeft, selectorRight);
-					break;
-				default:
-					throw new ODataJPAModelException(MessageKeys.GENERAL,
-							"Invalid relationship declaration: " + column.getName() + "<->"
-									+ column.getReferencedColumnName() + " between " + sourceType.getInternalName()
-									+ " and " + targetType.getInternalName());
-				}
-				joinConditions.add(onCondition);
-			} catch (final IllegalArgumentException ex) {
-				throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM, ex,
-						"Invalid relationship declaration: " + column.getName() + "<->"
-								+ column.getReferencedColumnName() + " between " + sourceType.getInternalName()
-								+ " and " + targetType.getInternalName());
-			}
+	private static JPASimpleAttribute determineSingleKeyAttribute(final JPAStructuredType theType)
+			throws ODataJPAModelException {
+		final List<JPASimpleAttribute> attributes = theType.getKeyAttributes(false);
+		if (attributes.isEmpty()) {
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
 		}
-		return joinConditions;
+		if (attributes.size() > 1) {
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
+					theType.getExternalName(), "?");
+		}
+		return attributes.get(0);
 	}
 
 	private JPASelector findJoinConditionPath(final IntermediateStructuredType type,
@@ -199,10 +184,11 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 			return selector;
 		}
 
-		// try as association (maybe the result is 'this')
+		// try as association (maybe the result is 'this'), this will lead to an 'join'
+		// for navigation queries, for entity queries we will throw an warning
 		for (final Entry<String, JPAAssociationPathImpl> entry : type.getAssociationPathMap().entrySet()) {
 			for (final IntermediateJoinColumn jc : entry.getValue().getSourceJoinColumns()) {
-				if (jc.getName().equals(joinColumnName)) {
+				if (jc.getSourceEntityColumnName().equals(joinColumnName)) {
 					return entry.getValue();
 				}
 			}
@@ -226,7 +212,8 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 		final List<JPASelector> selectors = new LinkedList<>();
 		JPASelector selector;
 		for (final IntermediateJoinColumn jc : targetJoinColumns) {
-			selector = targetType.getPathByDBField(jc.getReferencedColumnName());
+			fillMissingName(cardinality, sourceType, targetType, jc);
+			selector = targetType.getPathByDBField(jc.getSourceEntityColumnName());
 			if (selector == null) {
 				throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM,
 						"Invalid relationship declaration: between " + sourceType.getInternalName() + " and "
