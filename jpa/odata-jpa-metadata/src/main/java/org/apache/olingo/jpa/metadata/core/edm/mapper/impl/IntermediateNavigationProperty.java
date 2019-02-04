@@ -263,7 +263,15 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 					// at the BusinessPartner and at the Roles. JPA only defines the
 					// "mappedBy" at the Parent.
 					if (mappedBy != null && !mappedBy.isEmpty()) {
-						edmNaviProperty.setPartner(targetType.getAssociation(mappedBy).getExternalName());
+						final JPAAssociationAttribute association = targetType.getAssociation(mappedBy);
+						if (association != null) {
+							edmNaviProperty.setPartner(association.getExternalName());
+						} else {
+							LOG.log(Level.FINER,
+									"Couldn't determine association partner for " + sourceType.getExternalName() + "#"
+											+ getInternalName() + " -> " + targetType.getExternalName()
+											+ " (mapped by: " + mappedBy + ")");
+						}
 					} else {
 						// no @JoinColumn and no 'mappedBy'... try alternative ways
 						final String partnerName = targetType.determineCorrespondingMappedByImplementingAssociationName(sourceType, getInternalName());
