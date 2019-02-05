@@ -67,22 +67,21 @@ public class TestAssociations extends AbstractTest {
 		assertTrue(result.get(0).get("ID").equals("2"));
 	}
 
-	@Ignore("Problems with quoting of Address.Region in navigation of BusinessPartner#locations")
 	@Test
 	public void getAdministrativeDivisionDescriptions() {
-		final CriteriaQuery<AdministrativeDivisionDescription> cq = cb
-				.createQuery(AdministrativeDivisionDescription.class);
+		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
 		final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
 		final ParameterExpression<String> p = cb.parameter(String.class);
 		cq.multiselect(root.get("locations").alias("locations")).where(cb.equal(root.get("ID"), p));
 
-		final TypedQuery<AdministrativeDivisionDescription> tq = em.createQuery(cq);
+		final TypedQuery<Tuple> tq = em.createQuery(cq);
 		tq.setParameter(p, "3");// BusinessPartner with that Id
-		final List<AdministrativeDivisionDescription> result = tq.getResultList();
+		final List<Tuple> result = tq.getResultList();
 		// 'US-CA' must bring 2 results
 		assertEquals(2, result.size());
-		final AdministrativeDivisionDescription add = result.get(1);
+		final AdministrativeDivisionDescription add = (AdministrativeDivisionDescription) result.get(1)
+				.get("locations");
 		assertNotNull(add);
 		assertNotNull(add.getKey());
 		assertEquals("US-CA", add.getKey().getDivisonCode());

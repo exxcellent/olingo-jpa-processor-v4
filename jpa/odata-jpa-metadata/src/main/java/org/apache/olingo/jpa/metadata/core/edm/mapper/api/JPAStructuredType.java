@@ -84,9 +84,10 @@ public interface JPAStructuredType extends JPAElement {
 
 	/**
 	 * Returns a resolved list of all attributes that are marked as Id. If
-	 * <i>exploded</i> is TRUE then the attributes of an @EmbeddedId property are
-	 * listed all as separate entries, if FALSE a @EmbeddedId is returned as one
-	 * entry, the nested key attributes are not separated.
+	 * <i>exploded</i> is TRUE then the attributes of an @EmbeddedId property (or
+	 * other complex attribute types) are listed all as separate entries, if FALSE
+	 * a @EmbeddedId is returned as one entry, the nested key attributes are not
+	 * separated.
 	 *
 	 * @return The list with attributes or empty list.
 	 *

@@ -15,8 +15,10 @@ import javax.persistence.OneToMany;
 @DiscriminatorValue(value = "RelationshipTargetEntity")
 public class RelationshipTargetEntity extends AbstractRelationshipEntity {
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "\"SOURCE_ID\"", insertable = false, updatable = false)
+	// force usage of (default id name pattern) as join column, because no
+	// 'mappedBy' or @JoinColumn is given
+	@ManyToOne
+	// @JoinColumn(name = "SOURCE_ID", insertable = false, updatable = false)
 	protected RelationshipSourceEntity source;
 
 	@ManyToMany(fetch = FetchType.LAZY)

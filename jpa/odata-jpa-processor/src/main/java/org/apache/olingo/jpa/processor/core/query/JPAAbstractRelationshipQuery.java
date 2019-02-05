@@ -44,6 +44,9 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery {
 		super(sd, (EdmEntityType) ((UriResourcePartTyped) uriResourceItem).getType(), em);
 		this.keyPredicates = determineKeyPredicates(uriResourceItem);
 		this.association = association;
+		if (association == null) {
+			throw new IllegalArgumentException("association required");
+		}
 		this.parentQuery = parent;
 		this.subQuery = parent.getQuery().subquery(this.jpaEntityType.getKeyType());
 		this.queryRoot = subQuery.from(this.jpaEntityType.getTypeClass());

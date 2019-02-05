@@ -582,6 +582,11 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 		// 2. Create the queries and roots
 		for (final JPANavigationProptertyInfo naviInfo : naviPathList) {
+			if (naviInfo.getAssociationPath() == null) {
+				LOG.log(Level.SEVERE, "Association for navigation path to '"
+						+ naviInfo.getUriResiource().getType().getName() + "' not found. Cannot resolve target entity");
+				continue;
+			}
 			final JPANavigationQuery navQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em,
 					naviInfo.getAssociationPath());
 			queryList.add(navQuery);

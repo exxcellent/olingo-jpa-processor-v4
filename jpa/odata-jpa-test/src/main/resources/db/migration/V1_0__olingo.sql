@@ -65,7 +65,7 @@ insert into "org.apache.olingo.jpa::Phone" values ('97','+42/1234/987654321');
 CREATE TABLE "org.apache.olingo.jpa::PersonImage" (
 	"PID" VARCHAR(32) NOT NULL , -- standard behaviour to navigate to a Person
 	"NOT_MAPPED_PID" VARCHAR(32) NOT NULL , -- used to join in JPA, but without explicit attribute in model
-	PersonWithDefaultIdMapping_ID VARCHAR(32) NOT NULL , -- special JPA case to auto build a join column name for navigation without further mapping informations; do NOT Wrap the column name with ""!!!
+	personWithDefaultIdMapping_ID VARCHAR(32) NOT NULL , -- special JPA case to auto build a join column name for navigation without further mapping informations
 	"Image" BLOB,
 	"CreatedBy" VARCHAR(32) NOT NULL ,
 	"CreatedAt" TIMESTAMP,   
@@ -728,7 +728,7 @@ insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 1, '0610-0
 -- additional table only used to test relationship scenarios
 CREATE TABLE "org.apache.olingo.jpa::RelationshipEntity" (
 	"ID" BIGINT NOT NULL ,
-    "SOURCE_ID" BIGINT,
+    "source_ID" BIGINT, -- do not uppercase the column name, the autonaming of Hibernate will fail with different column name
 	"Name" VARCHAR(255),
 	"Type" VARCHAR(255),
 	 PRIMARY KEY ("ID"))
