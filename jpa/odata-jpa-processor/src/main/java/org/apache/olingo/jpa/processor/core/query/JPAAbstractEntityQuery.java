@@ -37,9 +37,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
-import org.apache.olingo.jpa.processor.core.filter.JPAFilterComplier;
-import org.apache.olingo.jpa.processor.core.filter.JPAFilterCrossComplier;
-import org.apache.olingo.jpa.processor.core.filter.JPAOperationConverter;
+import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -64,7 +62,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 	protected final UriInfoResource uriResource;
 	protected final CriteriaQuery<Tuple> cq;
 	protected final Root<?> root;
-	protected final JPAFilterComplier filter;
+	protected final JPAEntityFilterProcessor filter;
 	protected final JPAODataSessionContextAccess context;
 	private final OData odata;
 	private final Map<String, List<String>> requestHeaders;
@@ -81,8 +79,8 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 		this.uriResource = uriResource;
 		this.cq = cb.createTupleQuery();
 		this.root = cq.from(jpaEntityType.getTypeClass());
-		this.filter = new JPAFilterCrossComplier(odata, sd, em, jpaEntityType, new JPAOperationConverter(cb, context
-				.getOperationConverter()), uriResource, this);
+		this.filter = new JPAEntityFilterProcessor(odata, sd, em, jpaEntityType, context.getDatabaseProcessor(),
+				uriResource, this);
 		this.context = context;
 	}
 

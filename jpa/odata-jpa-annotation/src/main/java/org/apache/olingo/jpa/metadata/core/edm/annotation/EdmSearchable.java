@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks an attribute as searchable
+ * Marks an attribute as searchable (via $search option)
+ * 
  * @author Oliver Grande
  *
  */

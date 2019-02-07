@@ -9,6 +9,7 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationProptertyInfo;
 import org.apache.olingo.jpa.processor.core.query.Util;
@@ -20,16 +21,16 @@ import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 
-abstract class JPAExistsOperation implements JPAOperator<Expression<Boolean>> {
+abstract class JPAExistsOperation implements JPAExpression<Expression<Boolean>> {
 
-	protected final JPAOperationConverter converter;
+	protected final JPAODataDatabaseProcessor converter;
 	protected final List<UriResource> uriResourceParts;
 	protected final JPAAbstractQuery root;
 	protected final IntermediateServiceDocument sd;
 	protected final EntityManager em;
 	protected final OData odata;
 
-	JPAExistsOperation(final JPAFilterComplierAccess jpaComplier) {
+	JPAExistsOperation(final JPAAbstractFilterProcessor jpaComplier) {
 
 		this.uriResourceParts = jpaComplier.getUriResourceParts();
 		this.root = jpaComplier.getParent();
@@ -52,7 +53,7 @@ abstract class JPAExistsOperation implements JPAOperator<Expression<Boolean>> {
 
 	@Override
 	public Expression<Boolean> get() throws ODataApplicationException {
-		return converter.cb.exists(getExistsQuery());
+		return converter.getCriteriaBuilder().exists(getExistsQuery());
 	}
 
 	abstract Subquery<?> getExistsQuery() throws ODataApplicationException;

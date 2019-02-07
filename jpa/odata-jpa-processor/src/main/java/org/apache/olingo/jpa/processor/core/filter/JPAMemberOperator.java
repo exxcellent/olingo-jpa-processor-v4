@@ -15,7 +15,7 @@ import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
-public class JPAMemberOperator implements JPAOperator<Path<?>> {
+public class JPAMemberOperator implements JPAExpression<Path<?>> {
 	private final Member member;
 	private final JPAEntityType jpaEntityType;
 	private final Root<?> root;

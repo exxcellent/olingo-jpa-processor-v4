@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 
 /**
@@ -17,7 +17,7 @@ import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdap
  */
 public class TestGenericJPAPersistenceAdapter extends ResourceLocalPersistenceAdapter {
 
-	public TestGenericJPAPersistenceAdapter(final String pUnit, final JPAODataDatabaseProcessor dbAccessor,
+	public TestGenericJPAPersistenceAdapter(final String pUnit, final AbstractJPADatabaseProcessor dbAccessor,
 			final DataSource ds) {
 		super(pUnit, prepareEMFProperties(ds), dbAccessor);
 	}

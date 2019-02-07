@@ -12,6 +12,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestMappingRoot;
+import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
@@ -28,7 +29,7 @@ public class TestJPACustomScalarFunctions {
 	@BeforeClass
 	public static void setupClass() throws ODataJPAModelException {
 		persistenceAdapter = new TestGenericJPAPersistenceAdapter(
-				TestMappingRoot.PUNIT_NAME, null,
+				TestMappingRoot.PUNIT_NAME, new JPA_HSQLDBDatabaseProcessor(),
 				DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 		CreateDenfityFunction();
 	}

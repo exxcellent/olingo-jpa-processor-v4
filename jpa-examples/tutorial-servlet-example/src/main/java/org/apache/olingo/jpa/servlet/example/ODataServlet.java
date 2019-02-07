@@ -26,9 +26,9 @@ import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
-import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
+import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
-import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
@@ -84,12 +84,13 @@ public class ODataServlet extends HttpServlet {
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
 
-		final JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
+		final AbstractJPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(
+				org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
 				elProperties,
-				new JPADefaultDatabaseProcessor());
-		((AbstractJPAAdapter) mappingAdapter).registerDTO(EnvironmentInfo.class);
+				new JPA_DERBYDatabaseProcessor());
+		mappingAdapter.registerDTO(EnvironmentInfo.class);
 
-		final JPAODataGetHandler handler = new JPAODataGetHandler(mappingAdapter) {
+		final JPAODataServletHandler handler = new JPAODataServletHandler(mappingAdapter) {
 			/**
 			 * Use anonymous instance to add an error processor logging errors while
 			 * processing to the servlet container terminal...

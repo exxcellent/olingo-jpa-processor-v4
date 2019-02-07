@@ -357,12 +357,11 @@ public class TestJPAQueryWhereClause extends TestBase {
 		assertEquals(7, orgs.size());
 	}
 
-	@Ignore("TODO")
 	@Test
 	public void testFilterSubstringStartIndex() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,6) eq 'Dakota'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and length(Name) gt 6 and substring(Name,6) eq 'Dakota'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -431,7 +430,6 @@ public class TestJPAQueryWhereClause extends TestBase {
 		assertEquals(1, orgs.size());
 	}
 
-	@Ignore("TODO")
 	@Test
 	public void testFilterToUpperInvers() throws IOException, ODataException {
 
@@ -441,7 +439,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
-		assertEquals(1, orgs.size());
+		assertEquals(3, orgs.size());
 	}
 
 	@Test
@@ -696,4 +694,37 @@ public class TestJPAQueryWhereClause extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertNotNull(helper.getValue());
 	}
+
+	@Test
+	public void testFilterContainsOnInteger() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities?$filter=contains(cast(AIntegerYear, Edm.String), '90')");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode entities = helper.getValues();
+		assertEquals(1, entities.size());
+	}
+
+	@Test
+	public void testFilterCastFailingForInteger2Binary() throws IOException, ODataException {
+
+		// cast should fail with our current implementation
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities?$filter=cast(AIntegerYear, Edm.Binary) gt 90");
+		helper.execute(HttpStatusCode.BAD_REQUEST.getStatusCode());
+	}
+
+	@Test
+	public void testFilterCaseInsensitive() throws IOException, ODataException {
+
+		// find 'EuroSTat'
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"AdministrativeDivisions?$filter=contains(toupper(CodePublisher), 'ST')");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode entities = helper.getValues();
+		assertEquals(122, entities.size());
+	}
+
 }

@@ -25,7 +25,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
  * @author Oliver Grande
  *
  */
-public class JPAFunctionOperator implements JPAOperator<Expression<?>> {
+public class JPAFunctionOperator implements JPAExpression<Expression<?>> {
 	private final JPAFunction jpaFunction;
 	private final JPAVisitor visitor;
 	private final List<UriParameter> uriParams;

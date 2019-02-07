@@ -16,8 +16,7 @@ import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.database.JPADefaultDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.database.JPAODataDatabaseOperations;
+import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
@@ -53,6 +52,12 @@ public class JPAODataGetHandler {
 	private final JPAODataContextImpl context;
 	private SecurityInceptor securityInceptor = new AnnotationBasedSecurityInceptor();
 
+	/**
+	 * @deprecated Use {@link JPAODataServletHandler} instead. This class will be
+	 *             removed in the next release.
+	 *
+	 */
+	@Deprecated
 	public JPAODataGetHandler(final JPAAdapter mappingAdapter) throws ODataException {
 		super();
 		this.context = new JPAODataContextImpl(mappingAdapter);
@@ -128,12 +133,11 @@ public class JPAODataGetHandler {
 
 	private static class JPAODataContextImpl implements JPAODataContext {
 		private final JPAEdmProvider jpaEdm;
-		private JPAODataDatabaseProcessor databaseProcessor;
+		private final AbstractJPADatabaseProcessor databaseProcessor;
 		private final JPAAdapter mappingAdapter;
 		private final OData odata;
 		private final ServiceMetadata serviceMetaData;
 		private final List<EdmxReference> references = new LinkedList<EdmxReference>();
-		private JPAODataDatabaseOperations operationConverter;
 		private JPAServiceDebugger debugger;
 		private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
 		private DependencyInjector dpi = null;
@@ -143,9 +147,9 @@ public class JPAODataGetHandler {
 			this.odata = OData.newInstance();
 			this.mappingAdapter = mappingAdapter;
 
-			operationConverter = new JPADefaultDatabaseProcessor();
 			jpaEdm = new JPAEdmProvider(mappingAdapter.getNamespace(), mappingAdapter.getMetamodel());
 			databaseProcessor = mappingAdapter.getDatabaseAccessor();
+			assert databaseProcessor != null;
 			this.serviceMetaData = odata.createServiceMetadata(jpaEdm, references);
 			registerDTOs();
 		}
@@ -173,18 +177,8 @@ public class JPAODataGetHandler {
 		}
 
 		@Override
-		public JPAODataDatabaseOperations getOperationConverter() {
-			return operationConverter;
-		}
-
-		@Override
 		public List<EdmxReference> getReferences() {
 			return references;
-		}
-
-		@Override
-		public void setOperationConverter(final JPAODataDatabaseOperations jpaOperationConverter) {
-			operationConverter = jpaOperationConverter;
 		}
 
 		@Override
@@ -202,11 +196,6 @@ public class JPAODataGetHandler {
 		}
 
 		@Override
-		public void setDatabaseProcessor(final JPAODataDatabaseProcessor databaseProcessor) {
-			this.databaseProcessor = databaseProcessor;
-		}
-
-		@Override
 		public void setDebugSupport(final DebugSupport jpaDebugSupport) {
 			this.debugSupport = new JPADebugSupportWrapper(jpaDebugSupport);
 		}
@@ -216,8 +205,7 @@ public class JPAODataGetHandler {
 			return debugger;
 		}
 
-		@Override
-		public void initDebugger(final String debugFormat) {
+		void initDebugger(final String debugFormat) {
 			// see org.apache.olingo.server.core.debug.ServerCoreDebugger
 			boolean isDebugMode = false;
 
@@ -312,6 +300,9 @@ public class JPAODataGetHandler {
 
 			try {
 				checkSecurity(request);
+			} catch (final UriParserException e) {
+				LOG.log(Level.SEVERE, "Failed to preprocess request for security checks", e);
+				return wrapIntoErrorResponse(request, e);
 			} catch (final ODataLibraryException | ODataApplicationException e) {
 				LOG.log(Level.FINER, "Security check failed", e);
 				return wrapIntoErrorResponse(request, e);

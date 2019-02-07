@@ -2,17 +2,18 @@ package org.apache.olingo.jpa.processor.core.filter;
 
 import javax.persistence.criteria.Expression;
 
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
 
 class JPAUnaryBooleanOperatorImp implements JPAUnaryBooleanOperator {
 
-	private final JPAOperationConverter converter;
+	private final JPAODataDatabaseProcessor converter;
 	private final UnaryOperatorKind operator;
-	private final JPAOperator<Expression<Boolean>> operand;
+	private final JPAExpression<Expression<Boolean>> operand;
 
-	public JPAUnaryBooleanOperatorImp(final JPAOperationConverter converter, final UnaryOperatorKind operator,
-			final JPAOperator<Expression<Boolean>> operand) {
+	public JPAUnaryBooleanOperatorImp(final JPAODataDatabaseProcessor converter, final UnaryOperatorKind operator,
+			final JPAExpression<Expression<Boolean>> operand) {
 		super();
 		this.converter = converter;
 		this.operator = operator;

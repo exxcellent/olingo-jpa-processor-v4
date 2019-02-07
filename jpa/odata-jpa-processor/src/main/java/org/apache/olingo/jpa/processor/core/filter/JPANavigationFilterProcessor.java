@@ -7,6 +7,7 @@ import javax.persistence.criteria.Expression;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -21,8 +22,8 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
  *
  */
 //TODO handle $it ...
-public class JPAFilterElementComplier extends JPAAbstractFilter {
-	final JPAOperationConverter converter;
+public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
+	private final JPAODataDatabaseProcessor converter;
 	final EntityManager em;
 	final OData odata;
 	final IntermediateServiceDocument sd;
@@ -30,8 +31,8 @@ public class JPAFilterElementComplier extends JPAAbstractFilter {
 	final JPAAbstractQuery parent;
 	final VisitableExpression expression;
 
-	public JPAFilterElementComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-			final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
+	public JPANavigationFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
+			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
 			final List<UriResource> uriResourceParts, final JPAAbstractQuery parent, final VisitableExpression expression) {
 
 		super(jpaEntityType, expression);
@@ -48,14 +49,14 @@ public class JPAFilterElementComplier extends JPAAbstractFilter {
 	@SuppressWarnings("unchecked")
 	public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
 
-		final ExpressionVisitor<JPAOperator<?>> visitor = new JPAVisitor(this);
+		final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
 		final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
 
 		return finalExpression;
 	}
 
 	@Override
-	public JPAOperationConverter getConverter() {
+	public JPAODataDatabaseProcessor getConverter() {
 		return converter;
 	}
 

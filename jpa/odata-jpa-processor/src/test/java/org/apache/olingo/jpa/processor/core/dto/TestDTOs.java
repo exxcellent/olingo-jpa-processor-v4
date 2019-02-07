@@ -10,7 +10,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDB_DatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
@@ -32,7 +32,7 @@ public class TestDTOs extends TestBase {
 		// create own instance to avoid pollution of other tests
 		final TestGenericJPAPersistenceAdapter myPersistenceAdapter = new TestGenericJPAPersistenceAdapter(
 				Constant.PUNIT_NAME,
-				new JPA_HSQLDB_DatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
+				new JPA_HSQLDBDatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 		myPersistenceAdapter.registerDTO(TestDTOs.class);
 		// must throw an exception on further processing
 		final IntegrationTestHelper helper = new IntegrationTestHelper(myPersistenceAdapter, "$metadata");

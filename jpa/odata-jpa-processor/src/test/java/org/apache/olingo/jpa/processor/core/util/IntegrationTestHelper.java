@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
-import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
+import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.server.api.ODataRequest;
@@ -94,7 +94,7 @@ public class IntegrationTestHelper {
 	}
 
 	public void execute(final int status) throws ODataException {
-		final JPAODataGetHandler handler = new JPAODataGetHandler(persistenceAdapter) {
+		final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,
 					final HttpServletResponse response, final EntityManager em) {

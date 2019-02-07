@@ -46,8 +46,8 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 	final JPALiteralOperator operand;
 	private final UriResourceKind aggregationType;
 
-	JPANavigationOperation(final JPAFilterComplierAccess jpaComplier, final BinaryOperatorKind operator,
-			final JPAOperator<?> left, final JPAOperator<?> right) {
+	JPANavigationOperation(final JPAAbstractFilterProcessor jpaComplier, final BinaryOperatorKind operator,
+			final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 
 		super(jpaComplier);
 		this.aggregationType = null;
@@ -79,7 +79,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 		if (aggregationType != null) {
 			return (Expression<Boolean>) getExistsQuery().getRoots().toArray()[0];
 		}
-		return converter.cb.exists(getExistsQuery());
+		return converter.getCriteriaBuilder().exists(getExistsQuery());
 	}
 
 	@Override

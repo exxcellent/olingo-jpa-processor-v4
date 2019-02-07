@@ -36,11 +36,10 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Temporal(TemporalType.DATE)
 	private java.util.Date aDate1;
 
-	@Column(name = "\"ADate1\"", updatable = false, insertable = false)
-	private java.sql.Date aDate11;
-
-	@Column(name = "\"ADate2\"")
-	private java.time.LocalDate aDate2;
+	// only java.util.Date and java.util.Calendar are supported by JSONSerializer of
+	// Olingo
+	//	@Column(name = "\"ADate2\"")
+	//	private java.time.LocalDate aDate2;
 
 	@Column(name = "\"ADate3\"")
 	@Temporal(TemporalType.DATE)
@@ -62,6 +61,9 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
 	// @Column(name = "\"AYear\"")
 	// private java.time.Year aYear;
+
+	@Column(name = "\"AYear\"")
+	private Integer aIntegerYear;
 
 	@Column(name = "\"AStringMappedEnum\"")
 	@Enumerated(EnumType.STRING)
@@ -90,9 +92,6 @@ public class DatatypeConversionEntity extends AbstractEntity {
 		}
 		if (jpaEnity.aDate1 == null) {
 			throw new IllegalStateException("aDate1 not set");
-		}
-		if (jpaEnity.aDate11 == null) {
-			throw new IllegalStateException("aDate11 not set");
 		}
 		if (jpaEnity.aUrl == null) {
 			throw new IllegalStateException("aUrl not set");

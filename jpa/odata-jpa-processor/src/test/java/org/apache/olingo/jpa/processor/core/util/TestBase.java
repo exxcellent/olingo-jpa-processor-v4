@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
-import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDB_DatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.junit.Before;
@@ -27,7 +27,7 @@ public abstract class TestBase {
 	@Before
 	public void setupTest() throws ODataJPAModelException {
 		persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-				new JPA_HSQLDB_DatabaseProcessor(),
+				new JPA_HSQLDBDatabaseProcessor(),
 				DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 	}
 

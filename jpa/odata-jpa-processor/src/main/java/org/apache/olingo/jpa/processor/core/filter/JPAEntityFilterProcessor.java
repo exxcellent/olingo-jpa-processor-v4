@@ -7,6 +7,7 @@ import javax.persistence.criteria.Expression;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -32,8 +33,8 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor
  *
  */
 //TODO handle $it ...
-public class JPAFilterCrossComplier extends JPAAbstractFilter {
-	final JPAOperationConverter converter;
+public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
+	private final JPAODataDatabaseProcessor converter;
 	// TODO Check if it is allowed to select via navigation
 	// ...Organizations?$select=Roles/RoleCategory eq 'C'
 	// see also https://issues.apache.org/jira/browse/OLINGO-414
@@ -43,8 +44,8 @@ public class JPAFilterCrossComplier extends JPAAbstractFilter {
 	final List<UriResource> uriResourceParts;
 	final JPAAbstractQuery parent;
 
-	public JPAFilterCrossComplier(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-			final JPAEntityType jpaEntityType, final JPAOperationConverter converter,
+	public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
+			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
 			final UriInfoResource uriResource, final JPAAbstractQuery parent) {
 
 		super(jpaEntityType, uriResource);
@@ -68,14 +69,14 @@ public class JPAFilterCrossComplier extends JPAAbstractFilter {
 		if (expression == null) {
 			return null;
 		}
-		final ExpressionVisitor<JPAOperator<?>> visitor = new JPAVisitor(this);
+		final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
 		final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
 
 		return finalExpression;
 	}
 
 	@Override
-	public JPAOperationConverter getConverter() {
+	public JPAODataDatabaseProcessor getConverter() {
 		return converter;
 	}
 

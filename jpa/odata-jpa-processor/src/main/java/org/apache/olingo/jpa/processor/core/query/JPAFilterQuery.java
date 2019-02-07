@@ -18,10 +18,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
-import org.apache.olingo.jpa.processor.core.filter.JPAFilterElementComplier;
 import org.apache.olingo.jpa.processor.core.filter.JPAFilterExpression;
 import org.apache.olingo.jpa.processor.core.filter.JPAMemberOperator;
-import org.apache.olingo.jpa.processor.core.filter.JPAOperationConverter;
+import org.apache.olingo.jpa.processor.core.filter.JPANavigationFilterProcessor;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -33,21 +32,21 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
 
 public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 
-	private final JPAFilterElementComplier filterComplier;
+	private final JPANavigationFilterProcessor filter;
 
 	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
 			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
 					throws ODataApplicationException {
 		super(sd, uriResourceItem, parent, em, association);
-		this.filterComplier = null;
+		this.filter = null;
 	}
 
 	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
 			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association,
 			final VisitableExpression expression) throws ODataApplicationException {
 		super(sd, uriResourceItem, parent, em, association);
-		this.filterComplier = new JPAFilterElementComplier(odata, sd, em, jpaEntityType, new JPAOperationConverter(cb,
-				getContext().getOperationConverter()), null, this, expression);
+		this.filter = new JPANavigationFilterProcessor(odata, sd, em, jpaEntityType,
+				getContext().getDatabaseProcessor(), null, this, expression);
 	}
 
 	@Override
@@ -71,10 +70,10 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 			throws ODataApplicationException, ODataJPAModelException {
 		Expression<Boolean> whereCondition = super.createSubqueryWhereByAssociation(parentFrom, subRoot);
 
-		if (filterComplier != null && getAggregationType(this.filterComplier.getExpressionMember()) == null) {
+		if (filter != null && getAggregationType(this.filter.getExpressionMember()) == null) {
 			try {
-				if (filterComplier.getExpressionMember() != null) {
-					whereCondition = cb.and(whereCondition, filterComplier.compile());
+				if (filter.getExpressionMember() != null) {
+					whereCondition = cb.and(whereCondition, filter.compile());
 				}
 			} catch (final ExpressionVisitException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -84,12 +83,14 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 		return whereCondition;
 	}
 
+	@Override
 	protected List<JPASelector> determineSourceSelectors() throws ODataJPAModelException {
 		// 'parentFrom' represents the target of navigation (association), means: the
 		// right side
 		return getAssociation().getRightPaths();
 	}
 
+	@Override
 	protected List<JPASelector> determineTargetSelectors() throws ODataJPAModelException {
 		// 'subRoot' is the source of navigation; the left side
 		return getAssociation().getLeftPaths();
@@ -100,10 +101,10 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException {
 
-		if (filterComplier == null) {
+		if (filter == null) {
 			return;
 		}
-		if (getAggregationType(this.filterComplier.getExpressionMember()) == null) {
+		if (getAggregationType(this.filter.getExpressionMember()) == null) {
 			return;
 		}
 		final List<Expression<?>> groupByLIst = new ArrayList<Expression<?>>();
@@ -118,7 +119,7 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 		}
 		subQuery.groupBy(groupByLIst);
 		try {
-			subQuery.having(this.filterComplier.compile());
+			subQuery.having(this.filter.compile());
 		} catch (final ExpressionVisitException e) {
 			throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}

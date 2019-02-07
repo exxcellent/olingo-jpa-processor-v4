@@ -13,7 +13,7 @@ import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
 
-import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 
 /**
  * Persistence adapter with separate {@link UserTransaction transaction}
@@ -32,9 +32,9 @@ public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 
 	/**
 	 * @see #UserTransctionPersistenceAdapter(String, Map,
-	 *      JPAODataDatabaseProcessor)
+	 *      AbstractJPADatabaseProcessor)
 	 */
-	public UserTransctionPersistenceAdapter(final String namespace, final JPAODataDatabaseProcessor dbAccessor) {
+	public UserTransctionPersistenceAdapter(final String namespace, final AbstractJPADatabaseProcessor dbAccessor) {
 		this(namespace, null, dbAccessor);
 	}
 
@@ -42,7 +42,7 @@ public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 	 * {@inheritDoc}
 	 */
 	public UserTransctionPersistenceAdapter(final String namespace, final Map<?, ?> mapEntityManagerProperties,
-			final JPAODataDatabaseProcessor dbAccessor) {
+			final AbstractJPADatabaseProcessor dbAccessor) {
 		super(namespace, mapEntityManagerProperties, dbAccessor);
 		this.jndiUserTxName = DEFAULT_USERTRANSACTION_NAME;
 	}
@@ -51,10 +51,10 @@ public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 	 * Use a user transaction got via JNDI lookup for
 	 * {@link #DEFAULT_USERTRANSACTION_NAME}.
 	 *
-	 * @see #UserTransctionPersistenceAdapter(String, JPAODataDatabaseProcessor,
+	 * @see #UserTransctionPersistenceAdapter(String, AbstractJPADatabaseProcessor,
 	 *      EntityManagerFactory, String)
 	 */
-	public UserTransctionPersistenceAdapter(final String namespace, final JPAODataDatabaseProcessor dbAccessor,
+	public UserTransctionPersistenceAdapter(final String namespace, final AbstractJPADatabaseProcessor dbAccessor,
 			final EntityManagerFactory entityManagerFactory) throws IllegalArgumentException {
 		this(namespace, dbAccessor, entityManagerFactory, DEFAULT_USERTRANSACTION_NAME);
 	}
@@ -72,7 +72,7 @@ public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 	 * @param jndiUserTxName
 	 *            The JNDI name used to lookup for user transaction.
 	 */
-	public UserTransctionPersistenceAdapter(final String namespace, final JPAODataDatabaseProcessor dbAccessor,
+	public UserTransctionPersistenceAdapter(final String namespace, final AbstractJPADatabaseProcessor dbAccessor,
 			final EntityManagerFactory entityManagerFactory, final String jndiUserTxName)
 					throws IllegalArgumentException {
 		super(namespace, entityManagerFactory, dbAccessor);

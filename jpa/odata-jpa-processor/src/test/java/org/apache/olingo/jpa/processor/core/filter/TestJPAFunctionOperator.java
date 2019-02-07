@@ -23,73 +23,73 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAFunctionOperator {
-  private CriteriaBuilder cb;
-  private JPAFunctionOperator cut;
-  private UriResourceFunction uriFunction;
-  private JPAVisitor jpaVisitor;
-  private JPAFunction jpaFunction;
-  private JPAOperationResultParameter jpaResultParam;
-  private List<UriParameter> uriParams;
+	private CriteriaBuilder cb;
+	private JPAFunctionOperator cut;
+	private UriResourceFunction uriFunction;
+	private JPAVisitor jpaVisitor;
+	private JPAFunction jpaFunction;
+	private JPAOperationResultParameter jpaResultParam;
+	private List<UriParameter> uriParams;
 
-  @Before
-  public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 
-    cb = mock(CriteriaBuilder.class);
-    jpaVisitor = mock(JPAVisitor.class);
-    when(jpaVisitor.getCriteriaBuilder()).thenReturn(cb);
-    uriFunction = mock(UriResourceFunction.class);
-    jpaFunction = mock(JPAFunction.class);
-    jpaResultParam = mock(JPAOperationResultParameter.class);
-    when(jpaFunction.getResultParameter()).thenReturn(jpaResultParam);
-    List<UriResource> resources = new ArrayList<UriResource>();
-    resources.add(uriFunction);
+		cb = mock(CriteriaBuilder.class);
+		jpaVisitor = mock(JPAVisitor.class);
+		when(jpaVisitor.getCriteriaBuilder()).thenReturn(cb);
+		uriFunction = mock(UriResourceFunction.class);
+		jpaFunction = mock(JPAFunction.class);
+		jpaResultParam = mock(JPAOperationResultParameter.class);
+		when(jpaFunction.getResultParameter()).thenReturn(jpaResultParam);
+		final List<UriResource> resources = new ArrayList<UriResource>();
+		resources.add(uriFunction);
 
-    uriParams = new ArrayList<UriParameter>();
+		uriParams = new ArrayList<UriParameter>();
 
-    cut = new JPAFunctionOperator(jpaVisitor, uriParams, jpaFunction);
-  }
+		cut = new JPAFunctionOperator(jpaVisitor, uriParams, jpaFunction);
+	}
 
-  @SuppressWarnings("unchecked")
-  @Test
-  public void testReturnsExpression() throws ODataApplicationException {
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testReturnsExpression() throws ODataApplicationException {
 
-    final Expression<?>[] jpaParameter = new Expression<?>[0];
+		final Expression<?>[] jpaParameter = new Expression<?>[0];
 
-    when(jpaFunction.getDBName()).thenReturn("Test");
-    doReturn(new Integer(5).getClass()).when(jpaResultParam).getType();
-    when(cb.function(jpaFunction.getDBName(), jpaResultParam.getType(), jpaParameter)).thenReturn(mock(
-        Expression.class));
-    when(jpaFunction.getResultParameter()).thenReturn(jpaResultParam);
-    Expression<?> act = cut.get();
-    assertNotNull(act);
-  }
+		when(jpaFunction.getDBName()).thenReturn("Test");
+		doReturn(new Integer(5).getClass()).when(jpaResultParam).getType();
+		when(cb.function(jpaFunction.getDBName(), jpaResultParam.getType(), jpaParameter)).thenReturn(mock(
+				Expression.class));
+		when(jpaFunction.getResultParameter()).thenReturn(jpaResultParam);
+		final Expression<?> act = cut.get();
+		assertNotNull(act);
+	}
 
-  @Test
-  public void testAbortOnNonFunctionReturnsCollection() {
+	@Test
+	public void testAbortOnNonFunctionReturnsCollection() {
 
-    when(jpaFunction.getDBName()).thenReturn("org.apache.olingo.jpa::Siblings");
-    when(jpaResultParam.isCollection()).thenReturn(true);
+		when(jpaFunction.getDBName()).thenReturn("org.apache.olingo.jpa::Siblings");
+		when(Boolean.valueOf(jpaResultParam.isCollection())).thenReturn(Boolean.TRUE);
 
-    try {
-      cut.get();
-    } catch (ODataApplicationException e) {
-      return;
-    }
-    fail("Function provided not checked");
-  }
+		try {
+			cut.get();
+		} catch (final ODataApplicationException e) {
+			return;
+		}
+		fail("Function provided not checked");
+	}
 
-  @Test
-  public void testAbortOnNonScalarFunction() {
+	@Test
+	public void testAbortOnNonScalarFunction() {
 
-    when(jpaFunction.getDBName()).thenReturn("org.apache.olingo.jpa::Siblings");
-    when(jpaResultParam.isCollection()).thenReturn(false);
-    doReturn(AdministrativeDivision.class).when(jpaResultParam).getType();
+		when(jpaFunction.getDBName()).thenReturn("org.apache.olingo.jpa::Siblings");
+		when(Boolean.valueOf(jpaResultParam.isCollection())).thenReturn(Boolean.FALSE);
+		doReturn(AdministrativeDivision.class).when(jpaResultParam).getType();
 
-    try {
-      cut.get();
-    } catch (ODataApplicationException e) {
-      return;
-    }
-    fail("Function provided not checked");
-  }
+		try {
+			cut.get();
+		} catch (final ODataApplicationException e) {
+			return;
+		}
+		fail("Function provided not checked");
+	}
 }

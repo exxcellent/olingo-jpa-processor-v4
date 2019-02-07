@@ -6,7 +6,7 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
-public interface JPAArithmeticOperator extends JPAOperator<Expression<Number>> {
+public interface JPAArithmeticOperator extends JPAExpression<Expression<Number>> {
 	@Override
 	Expression<Number> get() throws ODataApplicationException;
 

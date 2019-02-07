@@ -11,7 +11,7 @@ public interface JPAComparisonOperator<T extends Comparable<T>> extends JPAExpre
 
 	Object getRight();
 
-	Comparable<T> getRightAsComparable() throws ODataApplicationException;
+	T getRightAsComparable() throws ODataApplicationException;
 
 	Expression<T> getRightAsExpression() throws ODataApplicationException;
 

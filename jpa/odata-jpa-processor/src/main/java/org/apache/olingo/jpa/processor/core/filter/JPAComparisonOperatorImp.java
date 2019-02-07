@@ -2,18 +2,19 @@ package org.apache.olingo.jpa.processor.core.filter;
 
 import javax.persistence.criteria.Expression;
 
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
 //
 class JPAComparisonOperatorImp<T extends Comparable<T>> implements JPAComparisonOperator<T> {
-	private final JPAOperationConverter converter;
+	private final JPAODataDatabaseProcessor converter;
 	private final BinaryOperatorKind operator;
-	private final JPAOperator<?> left;
-	private final JPAOperator<?> right;
+	private final JPAExpressionElement<?> left;
+	private final JPAExpressionElement<?> right;
 
-	public JPAComparisonOperatorImp(final JPAOperationConverter converter, final BinaryOperatorKind operator,
-			final JPAOperator<?> left, final JPAOperator<?> right) {
+	public JPAComparisonOperatorImp(final JPAODataDatabaseProcessor converter, final BinaryOperatorKind operator,
+			final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 		super();
 		this.converter = converter;
 		this.operator = operator;
@@ -50,22 +51,22 @@ class JPAComparisonOperatorImp<T extends Comparable<T>> implements JPAComparison
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Comparable<T> getRightAsComparable() throws ODataApplicationException {
+	public T getRightAsComparable() throws ODataApplicationException {
 		if (left instanceof JPALiteralOperator) {
 			if (right instanceof JPAMemberOperator) {
-				return (Comparable<T>) ((JPALiteralOperator) left).get(((JPAMemberOperator) right).determineAttribute());
+				return (T) ((JPALiteralOperator) left).get(((JPAMemberOperator) right).determineAttribute());
 			} else {
-				return (Comparable<T>) left.get();
+				return (T) left.get();
 			}
 		}
 		if (right instanceof JPALiteralOperator) {
 			if (left instanceof JPAMemberOperator) {
-				return (Comparable<T>) ((JPALiteralOperator) right).get(((JPAMemberOperator) left).determineAttribute());
+				return (T) ((JPALiteralOperator) right).get(((JPAMemberOperator) left).determineAttribute());
 			} else {
-				return (Comparable<T>) right.get();
+				return (T) right.get();
 			}
 		}
-		return (Comparable<T>) right.get();
+		return (T) right.get();
 	}
 
 	@Override

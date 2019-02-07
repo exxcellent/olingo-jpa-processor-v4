@@ -6,8 +6,9 @@ import org.apache.olingo.server.api.ODataApplicationException;
  *
  * @author Ralf zozmann
  *
- * @param <T> The type of operator
+ * @param <T> The result type of parameter
  */
-public interface JPAOperator<T> {
+//TODO remove this interface by using only 'JPAExpression<Expression>' as more correct style
+public interface JPAExpressionElement<T> {
 	public T get() throws ODataApplicationException;
 }

@@ -724,6 +724,7 @@ CREATE TABLE "org.apache.olingo.jpa::DatatypeConversionEntity" (
 ;
 
 insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 1, '0610-01-01', null, null, '2010-01-01 09:21:00', '2016-01-20 09:21:23', 12.34, 'http://www.anywhere.org/image.jpg', 123, 1900, 'CE', 0, 'Two', '7f905a0b-bb6e-11e3-9e8f-000000000000', 1);
+insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 2, '2090-12-01', '1600-12-01', '1000-10-12', '2010-01-01 23:00:59', '2016-01-20 09:21:23', 98989898.34678, 'http://www.anywhere.org/image.jpg', 8888888, 2000, 'BCE', 1, 'Two', '7f905a0b-bb6e-11e3-9e8f-000000000001', 0);
 	 
 -- additional table only used to test relationship scenarios
 CREATE TABLE "org.apache.olingo.jpa::RelationshipEntity" (
@@ -757,3 +758,4 @@ insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 4);
 --CREATE FUNCTION IS_PRIME(number Integer) RETURNS BOOLEAN
 --       PARAMETER STYLE JAVA NO SQL LANGUAGE JAVA 
 --       EXTERNAL NAME 'org.apache.olingo.jpa.processor.core.test_udf.isPrime';
+

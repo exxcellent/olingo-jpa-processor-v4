@@ -20,7 +20,7 @@ public class ODataServlet extends HttpServlet {
 
 		try {
 
-			JPAODataGetHandler requestHandler = createHandler();
+			JPAODataServletHandler requestHandler = createHandler();
 			requestHandler.process(req, resp);
 		} catch (final RuntimeException | ODataException e) {
 			throw new ServletException(e);
@@ -28,11 +28,11 @@ public class ODataServlet extends HttpServlet {
 
 	}
 
-	private JPAODataGetHandler createHandler() throws ODataException {
+	private JPAODataServletHandler createHandler() throws ODataException {
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
-		JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,	elProperties, new JPADefaultDatabaseProcessor());
-		return new JPAODataGetHandler(mappingAdapter);
+		JPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(Constant.PUNIT_NAME,	elProperties, new JPA_DefaultDatabaseProcessor());
+		return new JPAODataServletHandler(mappingAdapter);
 	}
 
 }

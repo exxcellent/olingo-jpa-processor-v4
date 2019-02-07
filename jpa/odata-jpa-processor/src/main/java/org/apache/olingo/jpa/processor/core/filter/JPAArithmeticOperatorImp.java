@@ -4,18 +4,19 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
 class JPAArithmeticOperatorImp implements JPAArithmeticOperator {
-	private final JPAOperationConverter converter;
+	private final JPAODataDatabaseProcessor converter;
 	private final BinaryOperatorKind operator;
-	private final JPAOperator<?> left;
-	private final JPAOperator<?> right;
+	private final JPAExpressionElement<?> left;
+	private final JPAExpressionElement<?> right;
 
-	public JPAArithmeticOperatorImp(final JPAOperationConverter converter, final BinaryOperatorKind operator,
-			final JPAOperator<?> left, final JPAOperator<?> right) {
+	public JPAArithmeticOperatorImp(final JPAODataDatabaseProcessor converter, final BinaryOperatorKind operator,
+			final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 		super();
 		this.converter = converter;
 		this.operator = operator;

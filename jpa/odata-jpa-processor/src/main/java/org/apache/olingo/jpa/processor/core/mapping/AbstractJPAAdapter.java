@@ -11,7 +11,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.metamodel.Metamodel;
 
-import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 
 /**
  * Generic implementation to map OData entities 1:1 to JPA entities.
@@ -24,7 +24,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 public abstract class AbstractJPAAdapter implements JPAAdapter {
 
 	private final String namespace;
-	private final JPAODataDatabaseProcessor dbAccessor;
+	private final AbstractJPADatabaseProcessor dbAccessor;
 	private final EntityManagerFactory emf;
 	private final Set<Class<?>> dtos = new HashSet<>();
 
@@ -38,7 +38,7 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
 	 * @param dbAccessor
 	 */
 	public AbstractJPAAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
-			final JPAODataDatabaseProcessor dbAccessor) {
+			final AbstractJPADatabaseProcessor dbAccessor) {
 		this(pUnit, Persistence.createEntityManagerFactory(pUnit, mapEntityManagerProperties), dbAccessor);
 	}
 
@@ -46,13 +46,17 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
 	 * Only for internal use; protect against usage outside of our package.
 	 */
 	AbstractJPAAdapter(final String pUnit, final EntityManagerFactory emf,
-			final JPAODataDatabaseProcessor dbAccessor) throws IllegalArgumentException {
+			final AbstractJPADatabaseProcessor dbAccessor) throws IllegalArgumentException {
 		this.namespace = pUnit;
 		this.dbAccessor = dbAccessor;
 		this.emf = emf;
+		if (dbAccessor == null) {
+			throw new IllegalArgumentException("DB processor required");
+		}
 		if (emf == null) {
 			throw new IllegalArgumentException("EntityManagerFactory required");
 		}
+		dbAccessor.initialize(emf.getCriteriaBuilder());
 	}
 
 	protected final EntityManagerFactory getEntityManagerFactory() {
@@ -75,7 +79,7 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
 	}
 
 	@Override
-	public JPAODataDatabaseProcessor getDatabaseAccessor() {
+	public AbstractJPADatabaseProcessor getDatabaseAccessor() {
 		return dbAccessor;
 	}
 

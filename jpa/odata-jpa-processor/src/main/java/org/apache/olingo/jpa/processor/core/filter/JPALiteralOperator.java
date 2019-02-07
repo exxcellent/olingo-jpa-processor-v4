@@ -18,7 +18,8 @@ import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 
-public class JPALiteralOperator implements JPAOperator<Object> {
+//FIXME return a Expression<Object> (from cb.literal(...)) instead ob Object
+public class JPALiteralOperator implements JPAExpressionElement<Object> {
 	private final Literal literal;
 	private final OData odata;
 

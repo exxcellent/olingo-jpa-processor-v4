@@ -29,27 +29,27 @@ import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
 import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
 
-class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
+class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 
-	private final JPAFilterComplierAccess jpaComplier;
+	private final JPAAbstractFilterProcessor jpaComplier;
 
 	/**
 	 * @param jpaFilterCrossComplier
 	 */
-	JPAVisitor(final JPAFilterComplierAccess jpaFilterCrossComplier) {
+	JPAVisitor(final JPAAbstractFilterProcessor jpaFilterCrossComplier) {
 		this.jpaComplier = jpaFilterCrossComplier;
 	}
 
 	@Override
-	public JPAOperator<?> visitAlias(final String aliasName)
+	public JPAExpression<?> visitAlias(final String aliasName)
 			throws ExpressionVisitException, ODataApplicationException {
 		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
 				HttpStatusCode.NOT_IMPLEMENTED, "Alias");
 	}
 
 	@Override
-	public JPAOperator<?> visitBinaryOperator(final BinaryOperatorKind operator,
-			final JPAOperator<?> left, final JPAOperator<?> right)
+	public JPAExpressionElement<?> visitBinaryOperator(final BinaryOperatorKind operator,
+			final JPAExpressionElement<?> left, final JPAExpressionElement<?> right)
 					throws ExpressionVisitException, ODataApplicationException {
 
 		if (hasNavigation(left) || hasNavigation(right)) {
@@ -77,28 +77,28 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private JPAOperator<Expression<Boolean>> checkBooleanExpressionOperand(final JPAOperator<?> operand)
+	private JPAExpression<Expression<Boolean>> checkBooleanExpressionOperand(final JPAExpressionElement<?> operator)
 			throws ODataJPAFilterException {
-		if (JPAExpressionOperator.class.isInstance(operand)) {
-			return JPAExpressionOperator.class.cast(operand);
-		} else if (ODataBuiltinFunctionCall.class.isInstance(operand)) {
-			// only a few builtin function are of result type 'boolean'
-			switch (ODataBuiltinFunctionCall.class.cast(operand).getFunctionKind()) {
+		if (JPAExpressionOperator.class.isInstance(operator)) {
+			return JPAExpressionOperator.class.cast(operator);
+		} else if (ODataBuiltinFunctionCall.class.isInstance(operator)) {
+			// only a few builtin functions are of result type 'boolean'
+			switch (ODataBuiltinFunctionCall.class.cast(operator).getFunctionKind()) {
 			case CONTAINS:
 			case STARTSWITH:
 			case ENDSWITH:
-				return (JPAOperator<Expression<Boolean>>) operand;
+				return (JPAExpression<Expression<Boolean>>) operator;
 			default:
 				// throw exception at end of method
 			}
 		}
 		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
-				HttpStatusCode.NOT_IMPLEMENTED, operand.getClass().getSimpleName());
+				HttpStatusCode.NOT_IMPLEMENTED, operator.getClass().getSimpleName());
 
 	}
 
 	@Override
-	public JPAOperator<?> visitEnum(final EdmEnumType type, final List<String> enumValues)
+	public JPAExpressionElement<?> visitEnum(final EdmEnumType type, final List<String> enumValues)
 			throws ExpressionVisitException,
 			ODataApplicationException {
 		if (enumValues.isEmpty()) {
@@ -114,7 +114,8 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 	}
 
 	@Override
-	public JPAOperator<Expression<?>> visitLambdaExpression(final String lambdaFunction, final String lambdaVariable,
+	public JPAExpressionElement<Expression<?>> visitLambdaExpression(final String lambdaFunction,
+			final String lambdaVariable,
 			final org.apache.olingo.server.api.uri.queryoption.expression.Expression expression)
 					throws ExpressionVisitException, ODataApplicationException {
 		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
@@ -122,20 +123,21 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 	}
 
 	@Override
-	public JPAOperator<Expression<?>> visitLambdaReference(final String variableName) throws ExpressionVisitException,
-	ODataApplicationException {
+	public JPAExpressionElement<Expression<?>> visitLambdaReference(final String variableName)
+			throws ExpressionVisitException,
+			ODataApplicationException {
 		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
 				HttpStatusCode.NOT_IMPLEMENTED, "Lambda Reference");
 	}
 
 	@Override
-	public JPAOperator<?> visitLiteral(final Literal literal)
+	public JPAExpressionElement<?> visitLiteral(final Literal literal)
 			throws ExpressionVisitException, ODataApplicationException {
 		return new JPALiteralOperator(this.jpaComplier.getOdata(), literal);
 	}
 
 	@Override
-	public JPAOperator<?> visitMember(final Member member)
+	public JPAExpressionElement<?> visitMember(final Member member)
 			throws ExpressionVisitException, ODataApplicationException {
 
 		if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAny) {
@@ -143,7 +145,7 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 		} else if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAll) {
 			return new JPALambdaAllOperation(this.jpaComplier, member);
 		} else if (isAggregation(member.getResourcePath())) {
-			return new JPAAggregationOperationImp(jpaComplier.getParent().getRoot(), jpaComplier.getConverter());
+			return new JPAAggregationOperationCountImp(jpaComplier.getParent().getRoot(), jpaComplier.getConverter());
 		} else if (isCustomFunction(member.getResourcePath())) {
 			final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
 			final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource)
@@ -156,22 +158,22 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 	}
 
 	@Override
-	public JPAOperator<?> visitMethodCall(final MethodKind methodCall,
-			final List<JPAOperator<?>> parameters)
+	public JPAExpressionElement<?> visitMethodCall(final MethodKind methodCall,
+			final List<JPAExpressionElement<?>> parameters)
 					throws ExpressionVisitException, ODataApplicationException {
 		return new ODataBuiltinFunctionCallImp(this.jpaComplier.getConverter(), methodCall, parameters);
 	}
 
 	@Override
-	public JPAOperator<?> visitTypeLiteral(final EdmType type)
+	public JPAExpressionElement<?> visitTypeLiteral(final EdmType type)
 			throws ExpressionVisitException, ODataApplicationException {
-		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
-				HttpStatusCode.NOT_IMPLEMENTED, "Type Literal");
+		return new JPALiteralTypeOperator(type);
 	}
 
 	@Override
-	public JPAOperator<?> visitUnaryOperator(final UnaryOperatorKind operator, final JPAOperator<?> operand)
-			throws ExpressionVisitException, ODataApplicationException {
+	public JPAExpressionElement<?> visitUnaryOperator(final UnaryOperatorKind operator,
+			final JPAExpressionElement<?> operand)
+					throws ExpressionVisitException, ODataApplicationException {
 		if (operator == UnaryOperatorKind.NOT) {
 			return new JPAUnaryBooleanOperatorImp(this.jpaComplier.getConverter(), operator,
 					checkBooleanExpressionOperand(operand));
@@ -191,7 +193,7 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 		return null;
 	}
 
-	boolean hasNavigation(final JPAOperator<?> operand) {
+	boolean hasNavigation(final JPAExpressionElement<?> operand) {
 		if (operand instanceof JPAMemberOperator) {
 			final List<UriResource> uriResourceParts = ((JPAMemberOperator) operand).getMember().getResourcePath()
 					.getUriResourceParts();
@@ -221,7 +223,7 @@ class JPAVisitor implements ExpressionVisitor<JPAOperator<?>> {
 	}
 
 	CriteriaBuilder getCriteriaBuilder() {
-		return jpaComplier.getConverter().cb;
+		return jpaComplier.getConverter().getCriteriaBuilder();
 	}
 
 	IntermediateServiceDocument getSd() {

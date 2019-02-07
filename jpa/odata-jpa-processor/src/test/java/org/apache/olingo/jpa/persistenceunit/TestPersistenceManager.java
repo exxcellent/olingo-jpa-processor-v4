@@ -12,7 +12,7 @@ import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDB_DatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
@@ -35,7 +35,7 @@ public class TestPersistenceManager extends TestBase {
 
 		// check the correct handling of a second persistence unit in persistence.xml
 		final TestGenericJPAPersistenceAdapter specialPersistenceAdapter = new TestGenericJPAPersistenceAdapter("DUMMY",
-				new JPA_HSQLDB_DatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
+				new JPA_HSQLDBDatabaseProcessor(), DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB));
 		final Set<EntityType<?>> entitiesSpecial = specialPersistenceAdapter.getMetamodel().getEntities();
 		// Hibernate returns the number of the first loaded PU
 		assertEquals(1, entitiesSpecial.size());

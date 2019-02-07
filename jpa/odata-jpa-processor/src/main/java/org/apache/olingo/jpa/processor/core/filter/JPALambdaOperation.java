@@ -21,12 +21,12 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 
 	protected final UriInfoResource member;
 
-	JPALambdaOperation(final JPAFilterComplierAccess jpaComplier, final UriInfoResource member) {
+	JPALambdaOperation(final JPAAbstractFilterProcessor jpaComplier, final UriInfoResource member) {
 		super(jpaComplier);
 		this.member = member;
 	}
 
-	public JPALambdaOperation(final JPAFilterComplierAccess jpaComplier, final Member member) {
+	public JPALambdaOperation(final JPAAbstractFilterProcessor jpaComplier, final Member member) {
 		super(jpaComplier);
 		this.member = member.getResourcePath();
 	}

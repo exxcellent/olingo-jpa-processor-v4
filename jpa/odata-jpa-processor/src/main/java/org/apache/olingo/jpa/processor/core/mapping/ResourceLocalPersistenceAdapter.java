@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
-import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 
 /**
  * Persistence adapter assuming to work with a resource local transaction
@@ -17,17 +17,17 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
  */
 public class ResourceLocalPersistenceAdapter extends AbstractJPAAdapter {
 
-	public ResourceLocalPersistenceAdapter(final String pUnit, final JPAODataDatabaseProcessor dbAccessor) {
+	public ResourceLocalPersistenceAdapter(final String pUnit, final AbstractJPADatabaseProcessor dbAccessor) {
 		this(pUnit, Collections.emptyMap(), dbAccessor);
 	}
 
 	public ResourceLocalPersistenceAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
-			final JPAODataDatabaseProcessor dbAccessor) {
+			final AbstractJPADatabaseProcessor dbAccessor) {
 		super(pUnit, mapEntityManagerProperties, dbAccessor);
 	}
 
 	public ResourceLocalPersistenceAdapter(final String pUnit, final EntityManagerFactory emf,
-			final JPAODataDatabaseProcessor dbAccessor) throws IllegalArgumentException {
+			final AbstractJPADatabaseProcessor dbAccessor) throws IllegalArgumentException {
 		super(pUnit, emf, dbAccessor);
 	}
 
