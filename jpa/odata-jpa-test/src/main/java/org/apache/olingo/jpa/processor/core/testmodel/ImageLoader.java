@@ -16,154 +16,158 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 
 public class ImageLoader {
-  private static final String SELECT_PERSON_IMAGE =
-      "SELECT * FROM \"OLINGO\".\"org.apache.olingo.jpa::PersonImage\" WHERE ID = '$&1'";
-  private static final String SELECT_ORGANIZATION_IMAGE =
-      "SELECT * FROM \"OLINGO\".\"org.apache.olingo.jpa::OrganizationImage\" WHERE ID = '$&1'";
-  private static final String PATH = "images/";
-  private static final String TEST_IMAGE = "test.png";
-  private static final String ENTITY_MANAGER_DATA_SOURCE = "javax.persistence.nonJtaDataSource";
-  private static final String PUNIT_NAME = "org.apache.olingo.jpa";
+	private static final String SELECT_PERSON_IMAGE =
+			"SELECT * FROM \"OLINGO\".\"org.apache.olingo.jpa::PersonImage\" WHERE ID = '$&1'";
+	private static final String SELECT_ORGANIZATION_IMAGE =
+			"SELECT * FROM \"OLINGO\".\"org.apache.olingo.jpa::OrganizationImage\" WHERE ID = '$&1'";
+	private static final String PATH = "images/";
+	private static final String TEST_IMAGE = "test.png";
+	private static final String ENTITY_MANAGER_DATA_SOURCE = "javax.persistence.nonJtaDataSource";
+	private static final String PUNIT_NAME = "org.apache.olingo.jpa";
 
-  public static void main(String[] args) throws Exception {
-    ImageLoader i = new ImageLoader();
-    EntityManager em = createEntityManager();
-    i.loadPerson(em, "OlingoOrangeTM.png", "99");
+	public static void main(final String[] args) throws Exception {
+		final ImageLoader i = new ImageLoader();
+		final EntityManager em = createEntityManager();
+		i.loadPerson(em, "OlingoOrangeTM.png", "99");
 
-  }
+	}
 
-  public void loadPerson(EntityManager em, String imageName, String businessPartnerID) {
-    byte[] image = loadImage(imageName);
-    storePersonImageDB(em, image, businessPartnerID, SELECT_PERSON_IMAGE);
-    storeImageLocal(image, "restored.png");
-  }
+	public void loadPerson(final EntityManager em, final String imageName, final String businessPartnerID) {
+		final byte[] image = loadImage(imageName);
+		storePersonImageDB(em, image, businessPartnerID, SELECT_PERSON_IMAGE);
+		storeImageLocal(image, "restored.png");
+	}
 
-  public void loadPerson(String imageName, String businessPartnerID) {
-    byte[] image = loadImage(imageName);
-    storePersonImageDB(createEntityManager(), image, businessPartnerID, SELECT_PERSON_IMAGE);
-    storeImageLocal(image, "restored.png");
-  }
+	public void loadPerson(final String imageName, final String businessPartnerID) {
+		final byte[] image = loadImage(imageName);
+		storePersonImageDB(createEntityManager(), image, businessPartnerID, SELECT_PERSON_IMAGE);
+		storeImageLocal(image, "restored.png");
+	}
 
-  public void loadOrg(EntityManager em, String imageName, String businessPartnerID) {
-    byte[] image = loadImage(imageName);
-    storeOrgImageDB(em, image, businessPartnerID, SELECT_ORGANIZATION_IMAGE);
-    storeImageLocal(image, "restored.png");
-  }
+	public void loadOrg(final EntityManager em, final String imageName, final String businessPartnerID) {
+		final byte[] image = loadImage(imageName);
+		storeOrgImageDB(em, image, businessPartnerID, SELECT_ORGANIZATION_IMAGE);
+		storeImageLocal(image, "restored.png");
+	}
 
-  public void loadOrg(String imageName, String businessPartnerID) {
-    byte[] image = loadImage(imageName);
-    storeOrgImageDB(createEntityManager(), image, businessPartnerID, SELECT_ORGANIZATION_IMAGE);
-    storeImageLocal(image, "restored.png");
-  }
+	public void loadOrg(final String imageName, final String businessPartnerID) {
+		final byte[] image = loadImage(imageName);
+		storeOrgImageDB(createEntityManager(), image, businessPartnerID, SELECT_ORGANIZATION_IMAGE);
+		storeImageLocal(image, "restored.png");
+	}
 
-  private void storePersonImageDB(EntityManager em, byte[] image, String businessPartnerID, String query) {
+	private void storePersonImageDB(final EntityManager em, final byte[] image, final String businessPartnerID, final String query) {
 
-    String s = query.replace("$&1", businessPartnerID);
-    Query q = em.createNativeQuery(s, PersonImage.class);
-    @SuppressWarnings("unchecked")
-    List<PersonImage> result = q.getResultList();
-    result.get(0).setImage(image);
-    updateDB(em, result);
+		final String s = query.replace("$&1", businessPartnerID);
+		final Query q = em.createNativeQuery(s, PersonImage.class);
+		@SuppressWarnings("unchecked")
+		final
+		List<PersonImage> result = q.getResultList();
+		result.get(0).setImage(image);
+		updateDB(em, result);
 
-    Query storedImageQ = em.createNativeQuery(s, PersonImage.class);
-    @SuppressWarnings("unchecked")
-    List<PersonImage> result2 = storedImageQ.getResultList();
-    byte[] storedImage = result2.get(0).getImage();
-    System.out.println(storedImage.length);
-    compareImage(image, storedImage);
-    storeImageLocal(storedImage, TEST_IMAGE);
+		final Query storedImageQ = em.createNativeQuery(s, PersonImage.class);
+		@SuppressWarnings("unchecked")
+		final
+		List<PersonImage> result2 = storedImageQ.getResultList();
+		final byte[] storedImage = result2.get(0).getImage();
+		System.out.println(storedImage.length);
+		compareImage(image, storedImage);
+		storeImageLocal(storedImage, TEST_IMAGE);
 
-  }
+	}
 
-  private void storeOrgImageDB(EntityManager em, byte[] image, String businessPartnerID, String query) {
+	private void storeOrgImageDB(final EntityManager em, final byte[] image, final String businessPartnerID, final String query) {
 
-    String s = query.replace("$&1", businessPartnerID);
-    Query q = em.createNativeQuery(s, OrganizationImage.class);
-    @SuppressWarnings("unchecked")
-    List<OrganizationImage> result = q.getResultList();
-    result.get(0).setImage(image);
-    updateDB(em, result);
+		final String s = query.replace("$&1", businessPartnerID);
+		final Query q = em.createNativeQuery(s, OrganizationImage.class);
+		@SuppressWarnings("unchecked")
+		final
+		List<OrganizationImage> result = q.getResultList();
+		result.get(0).setImage(image);
+		updateDB(em, result);
 
-    Query storedImageQ = em.createNativeQuery(s, OrganizationImage.class);
-    @SuppressWarnings("unchecked")
-    List<OrganizationImage> result2 = storedImageQ.getResultList();
-    byte[] storedImage = result2.get(0).getImage();
-    System.out.println(storedImage.length);
-    compareImage(image, storedImage);
-    storeImageLocal(storedImage, TEST_IMAGE);
+		final Query storedImageQ = em.createNativeQuery(s, OrganizationImage.class);
+		@SuppressWarnings("unchecked")
+		final
+		List<OrganizationImage> result2 = storedImageQ.getResultList();
+		final byte[] storedImage = result2.get(0).getImage();
+		System.out.println(storedImage.length);
+		compareImage(image, storedImage);
+		storeImageLocal(storedImage, TEST_IMAGE);
 
-  }
+	}
 
-  private void updateDB(EntityManager em, List<?> result) {
-    em.getTransaction().begin();
-    em.persist(result.get(0));
-    em.getTransaction().commit();
-  }
+	private void updateDB(final EntityManager em, final List<?> result) {
+		em.getTransaction().begin();
+		em.persist(result.get(0));
+		em.getTransaction().commit();
+	}
 
-  private static EntityManager createEntityManager() {
-    final Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put(ENTITY_MANAGER_DATA_SOURCE, DataSourceHelper.createDataSource(DataSourceHelper.DB_H2));
-    final EntityManagerFactory emf = Persistence.createEntityManagerFactory(PUNIT_NAME, properties);
-    EntityManager em = emf.createEntityManager();
-    return em;
-  }
+	private static EntityManager createEntityManager() {
+		final Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(ENTITY_MANAGER_DATA_SOURCE, DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.H2));
+		final EntityManagerFactory emf = Persistence.createEntityManagerFactory(PUNIT_NAME, properties);
+		final EntityManager em = emf.createEntityManager();
+		return em;
+	}
 
-  private void compareImage(byte[] image, byte[] storedImage) {
-    if (image.length != storedImage.length)
-      System.out.println("[Image]: length miss match");
-    else {
-      for (int i = 0; i < image.length; i++) {
-        if (image[i] != storedImage[i]) {
-          System.out.println("[Image]: missmatch at" + Integer.toString(i));
-          break;
-        }
-      }
-    }
-  }
+	private void compareImage(final byte[] image, final byte[] storedImage) {
+		if (image.length != storedImage.length) {
+			System.out.println("[Image]: length miss match");
+		} else {
+			for (int i = 0; i < image.length; i++) {
+				if (image[i] != storedImage[i]) {
+					System.out.println("[Image]: missmatch at" + Integer.toString(i));
+					break;
+				}
+			}
+		}
+	}
 
-  public void storeImageLocal(byte[] storedImage, String fileName) {
+	public void storeImageLocal(final byte[] storedImage, final String fileName) {
 
-    String home = System.getProperty("java.io.tmpdir");
-    File fileDir = new File(home + File.separator+"olingo-downloads");
-    fileDir.mkdirs();
-    File filePath = new File(fileDir, fileName);
-    
-    OutputStream o = null;
-    try {
-      o = new FileOutputStream(filePath);
-      o.write(storedImage);
-      o.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        o.close();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
+		final String home = System.getProperty("java.io.tmpdir");
+		final File fileDir = new File(home + File.separator+"olingo-downloads");
+		fileDir.mkdirs();
+		final File filePath = new File(fileDir, fileName);
 
-  }
+		OutputStream o = null;
+		try {
+			o = new FileOutputStream(filePath);
+			o.write(storedImage);
+			o.flush();
+		} catch (final IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				o.close();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+		}
 
-  private byte[] loadImage(String imageName) {
-    String path = PATH + imageName;
-    InputStream i = null;
-    byte[] image = null;
-    URL u = this.getClass().getClassLoader().getResource(path);
-    try {
-      i = u.openStream();
-      image = new byte[i.available()];
-      i.read(image);
-    } catch (IOException e1) {
-      e1.printStackTrace();
-    } finally {
-      try {
-        i.close();
-        return image;
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-    return null;
-  }
+	}
+
+	private byte[] loadImage(final String imageName) {
+		final String path = PATH + imageName;
+		InputStream i = null;
+		byte[] image = null;
+		final URL u = this.getClass().getClassLoader().getResource(path);
+		try {
+			i = u.openStream();
+			image = new byte[i.available()];
+			i.read(image);
+		} catch (final IOException e1) {
+			e1.printStackTrace();
+		} finally {
+			try {
+				i.close();
+				return image;
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
 }

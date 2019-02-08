@@ -1,13 +1,14 @@
 package org.apache.olingo.jpa.processor.core.util;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
+import org.apache.olingo.jpa.processor.core.test.AbstractTest;
+import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 
 /**
  * Adapter using a non jta data source for testing purposes.
@@ -17,15 +18,21 @@ import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdap
  */
 public class TestGenericJPAPersistenceAdapter extends ResourceLocalPersistenceAdapter {
 
-	public TestGenericJPAPersistenceAdapter(final String pUnit, final AbstractJPADatabaseProcessor dbAccessor,
-			final DataSource ds) {
-		super(pUnit, prepareEMFProperties(ds), dbAccessor);
+	public TestGenericJPAPersistenceAdapter(final String pUnit, final DataSourceHelper.DatabaseType dbType) {
+		super(pUnit, AbstractTest.buildEntityManagerFactoryProperties(dbType), determineDatabaseProcessor(dbType));
 	}
 
-	private static Map<String, Object> prepareEMFProperties(final DataSource ds) {
-		final Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put(org.apache.olingo.jpa.processor.core.test.Constant.ENTITY_MANAGER_DATA_SOURCE, ds);
-		return properties;
+	private static AbstractJPADatabaseProcessor determineDatabaseProcessor(final DataSourceHelper.DatabaseType dbType) {
+		switch (dbType) {
+		case DERBY:
+			return new JPA_DERBYDatabaseProcessor();
+		case HSQLDB:
+			return new JPA_HSQLDBDatabaseProcessor();
+		case H2:
+			// fall trough
+		default:
+			return new JPA_DefaultDatabaseProcessor();
+		}
 	}
 
 	public EntityManagerFactory getEMF() {

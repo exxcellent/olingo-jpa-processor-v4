@@ -39,7 +39,7 @@ public class TestFunctions {
 
 		final Map<String, Object> properties = new HashMap<String, Object>();
 
-		ds = DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB);
+		ds = DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.HSQLDB);
 
 		properties.put(ENTITY_MANAGER_DATA_SOURCE, ds);
 		emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME, properties);

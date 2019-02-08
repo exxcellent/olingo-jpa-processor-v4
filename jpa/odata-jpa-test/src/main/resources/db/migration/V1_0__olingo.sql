@@ -729,7 +729,7 @@ insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 2, '2090-1
 -- additional table only used to test relationship scenarios
 CREATE TABLE "org.apache.olingo.jpa::RelationshipEntity" (
 	"ID" BIGINT NOT NULL ,
-    "source_ID" BIGINT, -- do not uppercase the column name, the autonaming of Hibernate will fail with different column name
+    "SOURCE_ID" BIGINT,
 	"Name" VARCHAR(255),
 	"Type" VARCHAR(255),
 	 PRIMARY KEY ("ID"))

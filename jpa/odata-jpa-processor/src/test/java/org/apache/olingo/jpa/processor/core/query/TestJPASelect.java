@@ -66,7 +66,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipSource() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipTargetEntities(3)/Source");
+				"RelationshipTargetEntities(3)/SOURCE");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode source = helper.getValue();

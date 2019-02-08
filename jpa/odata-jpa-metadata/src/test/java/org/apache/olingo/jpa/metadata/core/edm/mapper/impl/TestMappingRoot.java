@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import javax.persistence.EntityManagerFactory;
 
+import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.junit.BeforeClass;
 
 public abstract class TestMappingRoot extends org.apache.olingo.jpa.processor.core.test.AbstractTest {
@@ -15,7 +16,7 @@ public abstract class TestMappingRoot extends org.apache.olingo.jpa.processor.co
 
 	@BeforeClass
 	public static void setupClass() {
-		emf = createEntityManagerFactory(TestDatabaseType.HSQLDB);
+		emf = createEntityManagerFactory(DataSourceHelper.DatabaseType.HSQLDB);
 	}
 
 }
