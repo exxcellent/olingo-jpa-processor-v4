@@ -11,6 +11,10 @@ import com.googlecode.flyway.core.Flyway;
 import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
 
 public class DataSourceHelper {
+	public enum DatabaseType {
+		H2, HSQLDB, DERBY, REMOTE;
+	}
+
 	private static final String DB_SCHEMA = "OLINGO";
 
 	private static final String H2_URL = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
@@ -30,21 +34,21 @@ public class DataSourceHelper {
 	public static final int DB_REMOTE = 3;
 	public static final int DB_DERBY = 4;
 
-	public static DataSource createDataSource(final int database) {
+	public static DataSource createDataSource(final DatabaseType database) {
 		DriverDataSource ds = null;
 		switch (database) {
-		case DB_H2:
+		case H2:
 			ds = new DriverDataSource(H2_DRIVER_CLASS_NAME, H2_URL, null, null, new String[0]);
 			break;
 
-		case DB_HSQLDB:
+		case HSQLDB:
 			ds = new DriverDataSource(HSQLDB_DRIVER_CLASS_NAME, HSQLDB_URL, null, null, new String[0]);
 			break;
-		case DB_DERBY:
+		case DERBY:
 			ds = new DriverDataSource(DERBY_DRIVER_CLASS_NAME, DERBY_URL, null, null, new String[0]);
 			break;
 
-		case DB_REMOTE:
+		case REMOTE:
 			final String env = System.getenv().get("REMOTE_DB_LOGON");
 			final ObjectMapper mapper = new ObjectMapper();
 			ObjectNode hanaInfo;

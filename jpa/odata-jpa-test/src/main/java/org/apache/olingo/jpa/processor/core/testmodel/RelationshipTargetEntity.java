@@ -17,9 +17,11 @@ public class RelationshipTargetEntity extends AbstractRelationshipEntity {
 
 	// force usage of (default id name pattern) as join column, because no
 	// 'mappedBy' or @JoinColumn is given
+	// do not lower case the attribute name: depending on the writing in *.sql file
+	// EclipseLInk or Hibernate will fail with it's auto naming
 	@ManyToOne
 	// @JoinColumn(name = "SOURCE_ID", insertable = false, updatable = false)
-	protected RelationshipSourceEntity source;
+	protected RelationshipSourceEntity SOURCE;
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::RELATIONSHIPJoinTable\"", joinColumns = {

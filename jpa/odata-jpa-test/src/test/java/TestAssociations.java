@@ -24,6 +24,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRoleKey;
 import org.apache.olingo.jpa.processor.core.testmodel.Country;
+import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -36,7 +37,7 @@ public class TestAssociations extends AbstractTest {
 
 	@BeforeClass
 	public static void setupClass() {
-		emf = createEntityManagerFactory(TestDatabaseType.HSQLDB);
+		emf = createEntityManagerFactory(DataSourceHelper.DatabaseType.HSQLDB);
 	}
 
 	@Before

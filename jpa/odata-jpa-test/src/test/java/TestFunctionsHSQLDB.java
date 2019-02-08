@@ -31,7 +31,7 @@ public class TestFunctionsHSQLDB {
 
 		final Map<String, Object> properties = new HashMap<String, Object>();
 
-		final DataSource ds = DataSourceHelper.createDataSource(DataSourceHelper.DB_HSQLDB);
+		final DataSource ds = DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.HSQLDB);
 		properties.put(ENTITY_MANAGER_DATA_SOURCE, ds);
 		emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME, properties);
 	}

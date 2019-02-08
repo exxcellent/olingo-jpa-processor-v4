@@ -12,7 +12,7 @@ import javax.persistence.OneToMany;
 @DiscriminatorValue(value = "RelationshipSourceEntity")
 public class RelationshipSourceEntity extends AbstractRelationshipEntity {
 
-	@OneToMany(mappedBy = "source", fetch = FetchType.LAZY, orphanRemoval = false)
+	@OneToMany(mappedBy = "SOURCE", fetch = FetchType.LAZY, orphanRemoval = false)
 	protected Collection<RelationshipTargetEntity> targets;
 
 	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "rightM2Ns")
