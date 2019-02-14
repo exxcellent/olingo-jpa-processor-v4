@@ -42,7 +42,7 @@ public class TestJPAQueryFromClause extends TestBase {
 		final JPAODataSessionContextAccess context = new JPAODataContextAccessDouble(
 				new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter);
 		createHeaders();
-		cut = new JPAQuery(null, new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
+		cut = new JPAEntityQuery(null, new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
 				persistenceAdapter.createEntityManager(), headers, null);
 	}
 

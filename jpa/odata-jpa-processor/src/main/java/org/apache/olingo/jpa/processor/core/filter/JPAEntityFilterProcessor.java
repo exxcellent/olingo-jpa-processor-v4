@@ -42,11 +42,11 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	final OData odata;
 	final IntermediateServiceDocument sd;
 	final List<UriResource> uriResourceParts;
-	final JPAAbstractQuery parent;
+	final JPAAbstractQuery<?> parent;
 
 	public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
 			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
-			final UriInfoResource uriResource, final JPAAbstractQuery parent) {
+			final UriInfoResource uriResource, final JPAAbstractQuery<?> parent) {
 
 		super(jpaEntityType, uriResource);
 
@@ -106,7 +106,7 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	}
 
 	@Override
-	public JPAAbstractQuery getParent() {
+	public JPAAbstractQuery<?> getParent() {
 		return parent;
 	}
 

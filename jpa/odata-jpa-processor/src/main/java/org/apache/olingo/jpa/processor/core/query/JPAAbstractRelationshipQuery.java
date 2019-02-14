@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
@@ -30,15 +29,15 @@ import org.apache.olingo.server.api.uri.UriResourcePartTyped;
  * @author Oliver Grande
  *
  */
-abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery {
+abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>> {
 	private final List<UriParameter> keyPredicates;
 	private final JPAAssociationPath association;
 	private final Root<?> queryRoot;
 	private final Subquery<?> subQuery;
-	private final JPAAbstractQuery parentQuery;
+	private final JPAAbstractQuery<?> parentQuery;
 
 	public <T extends Object> JPAAbstractRelationshipQuery(final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
+			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
 					throws ODataApplicationException {
 
 		super(sd, (EdmEntityType) ((UriResourcePartTyped) uriResourceItem).getType(), em);
@@ -67,7 +66,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery {
 	}
 
 	@Override
-	final public AbstractQuery<?> getQuery() {
+	final public Subquery<?> getQuery() {
 		return subQuery;
 	}
 

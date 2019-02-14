@@ -46,7 +46,7 @@ abstract class JPAAbstractFilterProcessor {
 	 */
 	public abstract Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException;
 
-	protected abstract JPAAbstractQuery getParent();
+	protected abstract JPAAbstractQuery<?> getParent();
 
 	protected abstract List<UriResource> getUriResourceParts();
 

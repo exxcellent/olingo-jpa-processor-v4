@@ -25,8 +25,9 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.jpa.processor.core.query.JPAEntityCountQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAInstanceResultConverter;
-import org.apache.olingo.jpa.processor.core.query.JPAQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCollection;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCount;
@@ -312,16 +313,23 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 			return helper.loadEntities(targetEdmEntitySet);
 		} else {
 			// Create a JPQL Query and execute it
-			JPAQuery query = null;
 			try {
-				query = new JPAQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
-						serviceMetadata);
+				if (uriInfo.getCountOption() != null && uriInfo.getCountOption().getValue()) {
+					// count entities
+					final JPAEntityCountQuery query = new JPAEntityCountQuery(odata, targetEdmEntitySet, context,
+							uriInfo, em, request.getAllHeaders());
+					return query.execute();
+				} else {
+					// load entities
+					final JPAEntityQuery query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em,
+							request.getAllHeaders(), serviceMetadata);
+					return query.execute(true);
+				}
+
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
 						HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 			}
-
-			return query.execute(true);
 		}
 	}
 

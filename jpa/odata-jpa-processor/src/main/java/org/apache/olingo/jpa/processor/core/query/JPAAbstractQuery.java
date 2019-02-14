@@ -29,7 +29,7 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
-public abstract class JPAAbstractQuery {
+public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 
 	protected final static Logger LOG = Logger.getLogger(JPAAbstractQuery.class.getName());
 
@@ -134,7 +134,7 @@ public abstract class JPAAbstractQuery {
 
 	public abstract <T> Root<T> getRoot();
 
-	public abstract AbstractQuery<?> getQuery();
+	public abstract QueryType getQuery();
 
 	protected abstract Locale getLocale();
 

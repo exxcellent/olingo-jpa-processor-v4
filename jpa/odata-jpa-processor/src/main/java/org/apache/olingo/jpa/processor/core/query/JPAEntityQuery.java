@@ -15,7 +15,6 @@ import javax.persistence.criteria.Root;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
@@ -23,85 +22,53 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriResource;
-import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
-import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
-import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
-import org.apache.olingo.server.api.uri.queryoption.SelectOption;
-import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
-import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
-import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
-public class JPAQuery extends JPAAbstractEntityQuery {
+public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 
 	private final ServiceMetadata serviceMetadata;
+	private final CriteriaQuery<Tuple> cq;
+	private final Root<?> root;
 
-	public JPAQuery(final OData odata, final EdmEntitySet entitySet, final JPAODataSessionContextAccess context,
+	public JPAEntityQuery(final OData odata, final EdmEntitySet entitySet, final JPAODataSessionContextAccess context,
 			final UriInfo uriInfo, final EntityManager em, final Map<String, List<String>> requestHeaders,
 			final ServiceMetadata serviceMetadata)
 					throws ODataApplicationException, ODataJPAModelException {
 		super(odata, context, context.getEdmProvider().getServiceDocument().getEntitySetType(entitySet.getName()), em,
 				requestHeaders, uriInfo);
 		this.serviceMetadata = serviceMetadata;
+		this.cq = cb.createTupleQuery();
+		this.root = cq.from(jpaEntityType.getTypeClass());
+	}
+
+	@Override
+	public CriteriaQuery<Tuple> getQuery() {
+		return cq;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Root<?> getRoot() {
+		return root;
 	}
 
 	/**
-	 * Counts the number of results to be expected by a query. The method shall
-	 * fulfill the requirements of the $count query option. This is defined as
-	 * follows:
-	 * <p>
-	 * <i>The $count system query option ignores any $top, $skip, or $expand query
-	 * options, and returns the total count of results across all pages including
-	 * only those results matching any specified $filter and $search.</i>
-	 * <p>
-	 * For details see: <a href=
-	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398308"
-	 * >OData Version 4.0 Part 1 - 11.2.5.5 System Query Option $count</a>
+	 * @see JPAEntityCountQuery#execute()
 	 *
-	 * @return Number of results
-	 * @throws ODataApplicationException
-	 * @throws ExpressionVisitException
-	 * @deprecated Replace this method by an more specialized CountQuery using the
-	 *             same logic as JPAQuery
 	 */
-	@Deprecated
-	public Long countResults() throws ODataApplicationException {
-		/*
-		 * URL example:
-		 * .../Organizations?$count=true
-		 * .../Organizations/count
-		 * .../Organizations('3')/Roles/$count
-		 */
-		final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
-
-		final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-		final Root<?> queryRoot = cq.from(jpaEntityType.getTypeClass());
-
-		joinTables.put(jpaEntityType.getTypeClass().getCanonicalName(), queryRoot);
-
-		final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
-		if (whereClause != null) {
-			cq.where(whereClause);
-		}
-		cq.select(cb.count(queryRoot));
-		return em.createQuery(cq).getSingleResult();
-	}
-
 	public EntityCollection execute(final boolean processExpandOption) throws ODataApplicationException {
 		// Pre-process URI parameter, so they can be used at different places
 		// TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
 		final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
-		final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(this.uriResource);
 		final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(orderByNaviAttributes);
 
+		final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(this.uriResource);
 		cq.multiselect(createSelectClause(selectionPathDirectMappings));
 
 		final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
@@ -196,10 +163,6 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		return allExpResults;
 	}
 
-	public SelectOption getSelectOption() {
-		return uriResource.getSelectOption();
-	}
-
 	private List<javax.persistence.criteria.Expression<?>> createGroupBy(final List<JPASelector> selectionPathList)
 			throws ODataApplicationException {
 
@@ -215,34 +178,6 @@ public class JPAQuery extends JPAAbstractEntityQuery {
 		}
 
 		return groupBy;
-	}
-
-	private List<JPAAssociationAttribute> extractOrderByNaviAttributes() throws ODataApplicationException {
-		final List<JPAAssociationAttribute> naviAttributes = new ArrayList<JPAAssociationAttribute>();
-
-		final OrderByOption orderBy = uriResource.getOrderByOption();
-		if (orderBy != null) {
-			for (final OrderByItem orderByItem : orderBy.getOrders()) {
-				final Expression expression = orderByItem.getExpression();
-				if (expression instanceof Member) {
-					final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
-					for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
-						if (uriResource instanceof UriResourceNavigation) {
-							final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource).getProperty();
-							try {
-								naviAttributes.add((JPAAssociationAttribute) jpaEntityType
-										.getAssociationPath(edmNaviProperty.getName())
-										.getLeaf());
-							} catch (final ODataJPAModelException e) {
-								throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-										HttpStatusCode.INTERNAL_SERVER_ERROR, e);
-							}
-						}
-					}
-				}
-			}
-		}
-		return naviAttributes;
 	}
 
 }

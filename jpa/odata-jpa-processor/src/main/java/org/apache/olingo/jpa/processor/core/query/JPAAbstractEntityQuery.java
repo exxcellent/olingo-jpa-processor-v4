@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
@@ -57,11 +56,9 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
-public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
+public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>> extends JPAAbstractQuery<QueryType> {
 
 	protected final UriInfoResource uriResource;
-	protected final CriteriaQuery<Tuple> cq;
-	protected final Root<?> root;
 	protected final JPAEntityFilterProcessor filter;
 	protected final JPAODataSessionContextAccess context;
 	private final OData odata;
@@ -77,8 +74,6 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 		this.locale = determineLocale(requestHeaders);
 		this.requestHeaders = requestHeaders;
 		this.uriResource = uriResource;
-		this.cq = cb.createTupleQuery();
-		this.root = cq.from(jpaEntityType.getTypeClass());
 		this.filter = new JPAEntityFilterProcessor(odata, sd, em, jpaEntityType, context.getDatabaseProcessor(),
 				uriResource, this);
 		this.context = context;
@@ -90,11 +85,6 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 	protected Map<String, List<String>> getRequestHeaders() {
 		return requestHeaders;
-	}
-
-	@Override
-	public AbstractQuery<?> getQuery() {
-		return cq;
 	}
 
 	/**
@@ -307,6 +297,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 	protected Map<String, From<?, ?>> createFromClause(final List<JPAAssociationAttribute> orderByTarget)
 			throws ODataApplicationException {
 		final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
+		final Root<?> root = getRoot();
 		// 1. Create root
 		joinTables.put(jpaEntityType.getInternalName(), root);
 
@@ -453,6 +444,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 		javax.persistence.criteria.Expression<Boolean> whereCondition = null;
 
 		final List<UriResource> resources = uriResource.getUriResourceParts();
+		final Root<?> root = getRoot();
 		UriResource resourceItem = null;
 		// Given key: Organizations('1')
 		if (resources != null) {
@@ -471,7 +463,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 	protected javax.persistence.criteria.Expression<Boolean> createWhere() throws ODataApplicationException {
 
 		javax.persistence.criteria.Expression<Boolean> whereCondition = createWhereFromKeyPredicates();
-		final javax.persistence.criteria.Expression<Boolean> existsSubQuery = buildNavigationSubQueries(root);
+		final javax.persistence.criteria.Expression<Boolean> existsSubQuery = buildNavigationSubQueries();
 		whereCondition = addWhereClause(whereCondition, existsSubQuery);
 
 		// http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
@@ -486,7 +478,9 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 		if (uriResource.getSearchOption() != null && uriResource.getSearchOption().getSearchExpression() != null) {
 			whereCondition = addWhereClause(whereCondition,
-					context.getDatabaseProcessor().createSearchWhereClause(cb, this.cq, root, jpaEntityType, uriResource
+					context.getDatabaseProcessor().createSearchWhereClause(cb, this.getQuery(), getRoot(),
+							jpaEntityType,
+							uriResource
 							.getSearchOption()));
 		}
 
@@ -510,14 +504,8 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Root<?> getRoot() {
-		return root;
-	}
-
 	protected final Path<?> convertToCriteriaPath(final JPASelector jpaPath) {
-		Path<?> p = root;
+		Path<?> p = getRoot();
 		for (final JPAAttribute jpaPathElement : jpaPath.getPathElements()) {
 			if (jpaPathElement.isCollection()) {
 				p = From.class.cast(p).join(jpaPathElement.getInternalName(), JoinType.LEFT);
@@ -563,7 +551,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 	 * WHERE inner = lower))</code><p>
 	 * This is solved by a three steps approach
 	 */
-	private javax.persistence.criteria.Expression<Boolean> buildNavigationSubQueries(final Root<?> root)
+	private javax.persistence.criteria.Expression<Boolean> buildNavigationSubQueries()
 			throws ODataApplicationException {
 
 		final List<UriResource> resourceParts = uriResource.getUriResourceParts();
@@ -575,7 +563,7 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 
 		// 1. Determine all relevant associations
 		final List<JPANavigationProptertyInfo> naviPathList = Util.determineAssoziations(sd, resourceParts);
-		JPAAbstractQuery parent = this;
+		JPAAbstractQuery<?> parent = this;
 		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
 
 		// 2. Create the queries and roots
@@ -608,4 +596,34 @@ public abstract class JPAAbstractEntityQuery extends JPAAbstractQuery {
 	JPAODataSessionContextAccess getContext() {
 		return context;
 	}
+
+	protected List<JPAAssociationAttribute> extractOrderByNaviAttributes() throws ODataApplicationException {
+		final List<JPAAssociationAttribute> naviAttributes = new ArrayList<JPAAssociationAttribute>();
+
+		final OrderByOption orderBy = uriResource.getOrderByOption();
+		if (orderBy != null) {
+			for (final OrderByItem orderByItem : orderBy.getOrders()) {
+				final Expression expression = orderByItem.getExpression();
+				if (expression instanceof Member) {
+					final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
+					for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
+						if (uriResource instanceof UriResourceNavigation) {
+							final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource)
+									.getProperty();
+							try {
+								naviAttributes.add((JPAAssociationAttribute) jpaEntityType
+										.getAssociationPath(edmNaviProperty.getName()).getLeaf());
+							} catch (final ODataJPAModelException e) {
+								throw new ODataJPAQueryException(
+										ODataJPAQueryException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+										HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+							}
+						}
+					}
+				}
+			}
+		}
+		return naviAttributes;
+	}
+
 }

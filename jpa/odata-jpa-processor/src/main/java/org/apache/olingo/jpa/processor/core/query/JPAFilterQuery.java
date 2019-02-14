@@ -35,14 +35,14 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 	private final JPANavigationFilterProcessor filter;
 
 	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
+			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
 					throws ODataApplicationException {
 		super(sd, uriResourceItem, parent, em, association);
 		this.filter = null;
 	}
 
 	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association,
+			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association,
 			final VisitableExpression expression) throws ODataApplicationException {
 		super(sd, uriResourceItem, parent, em, association);
 		this.filter = new JPANavigationFilterProcessor(odata, sd, em, jpaEntityType,

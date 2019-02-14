@@ -10,7 +10,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.JPAQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -42,9 +42,9 @@ class JPANavigationRequestProcessor extends JPAAbstractRequestProcessor implemen
 		final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 
 		// Create a JPQL Query and execute it
-		JPAQuery query = null;
+		JPAEntityQuery query = null;
 		try {
-			query = new JPAQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
+			query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
 					serviceMetadata);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,

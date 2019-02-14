@@ -8,6 +8,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -21,6 +22,22 @@ public class TestJPACount extends TestBase {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons/$count");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertEquals(3, Integer.parseInt(helper.getRawResult()));
+	}
+
+	// TODO '$orderby' is ignored
+	@Ignore("Currently not working/supported")
+	@Test
+	public void testFilteredCount() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Persons?$expand=Roles($count=true)&$orderby=Country asc");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode persons = helper.getValues();
+		assertEquals(3, persons.size());
+		final ObjectNode person = (ObjectNode) persons.get(2);
+		// all persons have DEU or CHE, so CHE should be the last entry (as defined in
+		// $orderby)
+		assertEquals("CHE", person.get("Country").asText());
 	}
 
 	@Test

@@ -28,12 +28,13 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 	final OData odata;
 	final IntermediateServiceDocument sd;
 	final List<UriResource> uriResourceParts;
-	final JPAAbstractQuery parent;
+	final JPAAbstractQuery<?> parent;
 	final VisitableExpression expression;
 
 	public JPANavigationFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
 			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
-			final List<UriResource> uriResourceParts, final JPAAbstractQuery parent, final VisitableExpression expression) {
+			final List<UriResource> uriResourceParts, final JPAAbstractQuery<?> parent,
+			final VisitableExpression expression) {
 
 		super(jpaEntityType, expression);
 		this.converter = converter;
@@ -86,7 +87,7 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 	}
 
 	@Override
-	public JPAAbstractQuery getParent() {
+	public JPAAbstractQuery<?> getParent() {
 		return parent;
 	}
 

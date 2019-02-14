@@ -25,7 +25,7 @@ abstract class JPAExistsOperation implements JPAExpression<Expression<Boolean>> 
 
 	protected final JPAODataDatabaseProcessor converter;
 	protected final List<UriResource> uriResourceParts;
-	protected final JPAAbstractQuery root;
+	protected final JPAAbstractQuery<?> root;
 	protected final IntermediateServiceDocument sd;
 	protected final EntityManager em;
 	protected final OData odata;

@@ -59,7 +59,7 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 			// ignored attributes are not part of the query selection result
 			buffer.append(JPASelector.PATH_SEPERATOR);
 			// if we got here an exception, then a required (key) join column was not
-			// selected in the query (see JPAQuery to fix!)
+			// selected in the query (see JPAEntityQuery to fix!)
 			buffer.append(row.get(left.getAlias()));
 		}
 		if (buffer.length() < 1) {

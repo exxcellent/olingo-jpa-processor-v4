@@ -24,7 +24,7 @@ import org.apache.olingo.server.api.uri.UriResource;
 public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 
 	public <T extends Object> JPANavigationQuery(final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery parent, final EntityManager em, final JPAAssociationPath association)
+			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
 					throws ODataApplicationException {
 
 		super(sd, uriResourceItem, parent, em, association);
@@ -36,6 +36,7 @@ public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 	@Override
 	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException {
+		// do nothing
 	}
 
 	@Override

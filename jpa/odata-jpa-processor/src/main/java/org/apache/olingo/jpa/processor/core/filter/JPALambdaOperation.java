@@ -42,7 +42,7 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 
 		// 1. Determine all relevant associations
 		final List<JPANavigationProptertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
-		JPAAbstractQuery parent = root;
+		JPAAbstractQuery<?> parent = root;
 		final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>(
 				naviPathList.size());
 

@@ -9,10 +9,12 @@ import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -45,9 +47,11 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
  * @author Oliver Grande
  *
  */
-class JPAExpandQuery extends JPAAbstractEntityQuery {
+class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 	private final JPAAssociationPath assoziation;
 	private final JPAExpandItemInfo item;
+	private final CriteriaQuery<Tuple> cq;
+	private final Root<?> root;
 
 	public JPAExpandQuery(final OData odata, final JPAODataSessionContextAccess context, final EntityManager em,
 			final UriInfoResource uriInfo, final JPAAssociationPath assoziation, final JPAEntityType entityType,
@@ -55,6 +59,8 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		super(odata, context, entityType, em, requestHeaders, uriInfo);
 		this.assoziation = assoziation;
 		this.item = null;
+		this.cq = cb.createTupleQuery();
+		this.root = cq.from(jpaEntityType.getTypeClass());
 	}
 
 	public JPAExpandQuery(final OData odata, final JPAODataSessionContextAccess context, final EntityManager em,
@@ -63,6 +69,19 @@ class JPAExpandQuery extends JPAAbstractEntityQuery {
 		super(odata, context, item.getEntityType(), em, requestHeaders, item.getUriInfo());
 		this.assoziation = item.getExpandAssociation();
 		this.item = item;
+		this.cq = cb.createTupleQuery();
+		this.root = cq.from(jpaEntityType.getTypeClass());
+	}
+
+	@Override
+	public CriteriaQuery<Tuple> getQuery() {
+		return cq;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Root<?> getRoot() {
+		return root;
 	}
 
 	/**

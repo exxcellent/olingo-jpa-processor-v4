@@ -34,7 +34,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.JPAQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
 import org.apache.olingo.server.api.OData;
@@ -188,10 +188,10 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		final List<Object> results = new LinkedList<>();
 		if (jpaAction.isBound()) {
 			// determine entity context
-			JPAQuery query = null;
+			JPAEntityQuery query = null;
 			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 			try {
-				query = new JPAQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
+				query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
 						getServiceMetadata());
 			} catch (final ODataJPAModelException e) {
 				debugger.stopRuntimeMeasurement(handle);
