@@ -52,11 +52,11 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 
 	private FullQualifiedName createTypeName() throws ODataJPAModelException {
 		if (isCollection()) {
-			final Class<?> elementType = JPATypeConvertor.extractElementTypeOfCollection(field);
-			return JPATypeConvertor.convertToEdmSimpleType(elementType).getFullQualifiedName();
+			final Class<?> elementType = TypeMapping.extractElementTypeOfCollection(field);
+			return TypeMapping.convertToEdmSimpleType(elementType).getFullQualifiedName();
 		} else {
 			// trigger exception if not possible
-			return JPATypeConvertor.convertToEdmSimpleType(field).getFullQualifiedName();
+			return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
 		}
 	}
 
@@ -101,7 +101,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	public Class<?> getType() {
 		if (isCollection()) {
 			try {
-				return JPATypeConvertor.extractElementTypeOfCollection(field);
+				return TypeMapping.extractElementTypeOfCollection(field);
 			} catch (final ODataJPAModelException e) {
 				throw new RuntimeException(e);
 			}
@@ -144,7 +144,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 
 	@Override
 	public boolean isPrimitive() {
-		return JPATypeConvertor.isPrimitiveType(field);
+		return TypeMapping.isPrimitiveType(field);
 	}
 
 	@Override

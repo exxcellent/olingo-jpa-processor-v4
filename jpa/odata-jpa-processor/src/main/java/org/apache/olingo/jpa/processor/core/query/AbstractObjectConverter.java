@@ -19,7 +19,6 @@ import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.Valuable;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConverter;
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -452,30 +451,10 @@ public abstract class AbstractObjectConverter extends JPAAbstractConverter {
 		}
 		final ODataAttributeConverter<Object, Object> converter = determineODataAttributeConverter(jpaElement, oadataType);
 		if (converter != null) {
-			return converter.convertToJPAEntity(odataPropertyValue);
+			return converter.convertToJPA(odataPropertyValue);
 		}
 		// no conversion
 		return odataPropertyValue;
-	}
-
-	/**
-	 * Look for any matching converter, including default implementation for some data type combinations.
-	 *
-	 * @return A found converter or <code>null</code> if no converter is available.
-	 */
-	@SuppressWarnings("unchecked")
-	private ODataAttributeConverter<Object, Object> determineODataAttributeConverter(final JPATypedElement jpaElement,
-			final Class<?> odataAttributeType) throws ODataJPAModelException {
-		final EdmAttributeConverter annoConverter = jpaElement.getAnnotation(EdmAttributeConverter.class);
-		if (annoConverter != null) {
-			try {
-				return (ODataAttributeConverter<Object, Object>) annoConverter.value().newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_MAPPER_COULD_NOT_INSANTIATE, e);
-			}
-		}
-		// look for default converter
-		return determineDefaultODataAttributeConverter(odataAttributeType, jpaElement.getType());
 	}
 
 	private static <E extends Enum<E>> E lookupEnum(final Class<E> clzz, final int ordinal) {

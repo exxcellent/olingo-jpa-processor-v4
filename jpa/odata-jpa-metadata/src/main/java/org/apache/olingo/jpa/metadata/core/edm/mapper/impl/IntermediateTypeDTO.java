@@ -86,7 +86,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 				continue;
 			}
 			// currently only primitive types are supported
-			if (!JPATypeConvertor.isPrimitiveType(field)) {
+			if (!TypeMapping.isPrimitiveType(field)) {
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
 						field.getType().getName(), field.getName());
 			}

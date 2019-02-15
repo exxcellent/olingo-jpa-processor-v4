@@ -15,9 +15,10 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConverter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
@@ -45,22 +46,27 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Temporal(TemporalType.DATE)
 	private java.util.Calendar aDate3;
 
-	// @Column(name = "\"ATimestamp1\"")
-	// private java.time.LocalDateTime aTimestamp1;
+	@Column(name = "\"ATimestamp1\"")
+	@Temporal(TemporalType.TIMESTAMP)
+	private java.util.Date aTimestamp1;
 
-	// @Column(name = "\"ATimestamp2\"")
-	// private java.time.LocalDateTime aTimestamp2;
+	@Column(name = "\"ATimestamp2\"")
+	private java.time.LocalDateTime aTimestamp2;
+
+	@Column(name = "\"ATime1\"")
+	@EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.TimeOfDay)
+	private java.time.LocalTime aTime1;
 
 	@Column(name = "\"AUrlString\"", columnDefinition = "clob")
 	@Convert(converter = JPAUrlConverter.class)
-	@EdmAttributeConverter(EdmUrlConverter.class)
+	@EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.String, converter = EdmUrlConverter.class)
 	private URL aUrl;
 
 	@Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5)
 	private BigDecimal aDecimal;
 
-	// @Column(name = "\"AYear\"")
-	// private java.time.Year aYear;
+	//	@Column(name = "\"AYear\"", insertable = false, updatable = false)
+	//	private java.time.Year aYear;
 
 	@Column(name = "\"AYear\"")
 	private Integer aIntegerYear;
@@ -73,8 +79,8 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Enumerated(EnumType.ORDINAL)
 	private ChronoUnit aOrdinalMappedEnum;
 
-	@Enumerated(javax.persistence.EnumType.STRING)
 	@Column(name = "\"AOtherPackageEnum\"")
+	@Enumerated(javax.persistence.EnumType.STRING)
 	private TestEnum aEnumFromOtherPackage;
 
 	// do not define a JPA converter here, we want to test the autoapply!

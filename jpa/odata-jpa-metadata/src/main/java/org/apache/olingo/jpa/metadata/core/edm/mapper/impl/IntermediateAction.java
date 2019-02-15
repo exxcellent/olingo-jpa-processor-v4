@@ -130,7 +130,7 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
 				}
 			} else {
 				// may throw an ODataJPAModelException
-				final EdmPrimitiveTypeKind simpleType = JPATypeConvertor.convertToEdmSimpleType(clazzType);
+				final EdmPrimitiveTypeKind simpleType = TypeMapping.convertToEdmSimpleType(clazzType);
 				return simpleType.getFullQualifiedName();
 			}
 		}

@@ -1,25 +1,15 @@
 package org.apache.olingo.jpa.metadata.core.edm.converter;
 
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
-
 /**
  * A class that implements this interface can be used to convert entity
  * attribute state into oData representation and back again.
  *
- * @param <X>
- *            The type of the JPA entity attribute.
- * @param <Y>
- *            The type of the oData entity attribute. The type must be supported
- *            by {@link org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind
- *            EdmPrimitiveTypeKind}.
+ * @param <X> The type of the JPA entity attribute.
+ * @param <Y> The (JAVA representation) type of the oData entity attribute. The
+ *        JAVA type must be supported by the Olingo serialization as defined by
+ *        {@link org.apache.olingo.commons.api.edm.EdmPrimitiveType#getDefaultType()}
  */
 public interface ODataAttributeConverter<X, Y> {
-
-	/**
-	 *
-	 * @return The oData type.
-	 */
-	public EdmPrimitiveTypeKind getODataType();
 
 	/**
 	 * Converts the value stored in the entity attribute into the data
@@ -36,5 +26,5 @@ public interface ODataAttributeConverter<X, Y> {
 	 *            the data from the oData entity attribute to be converted
 	 * @return the converted value to be stored in the JPA entity attribute
 	 */
-	public X convertToJPAEntity(Y oDataValue);
+	public X convertToJPA(Y oDataValue);
 }

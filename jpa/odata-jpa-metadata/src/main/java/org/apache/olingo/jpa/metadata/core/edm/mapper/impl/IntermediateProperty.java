@@ -33,7 +33,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
 /**
  * A Property is described on the one hand by its Name and Type and on the other hand by its Property Facets. The
  * type is a qualified name of either a primitive type, a complex type or a enumeration type. Primitive types are mapped
- * by {@link JPATypeConvertor}.
+ * by {@link TypeMapping}.
  *
  * <p>
  * For details about Property metadata see:
@@ -70,10 +70,14 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 		this.serviceDocument = serviceDocument;
 
 		isComplex = (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED)
-				|| JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute);
+				|| TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute);
 		javaMember = determineJavaMemberOfAttribute(jpaAttribute);
 		accessor = new FieldAttributeAccessor((Field) javaMember);
 		buildProperty(nameBuilder);
+	}
+
+	Member getJavaMember() {
+		return javaMember;
 	}
 
 	@Override
@@ -130,9 +134,9 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			return false;
 		}
 		if (isCollection()) {
-			return JPATypeConvertor.isCollectionTypeOfPrimitive(jpaAttribute);
+			return TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute);
 		}
-		return JPATypeConvertor.isPrimitiveType(jpaAttribute);
+		return TypeMapping.isPrimitiveType(jpaAttribute);
 	}
 
 	@Override
@@ -154,20 +158,20 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 						.createEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
 				return jpaEnumType.getExternalFQN();
 			} else {
-				return JPATypeConvertor.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
+				return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
 			}
 		case EMBEDDED:
 			return nameBuilder.buildFQN(type.getExternalName());
 		case ELEMENT_COLLECTION:
 			final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) jpaAttribute;
-			if (JPATypeConvertor.isCollectionTypeOfPrimitive(jpaAttribute)) {
-				return JPATypeConvertor.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
-			} else if (JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute)) {
+			if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
+				return TypeMapping.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
+			} else if (TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute)) {
 				return serviceDocument.getStructuredType(jpaAttribute).getExternalFQN();
 			}
 		default:
 			// trigger exception if not possible
-			return JPATypeConvertor.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
+			return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
 		}
 	}
 

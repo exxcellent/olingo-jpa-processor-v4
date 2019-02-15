@@ -12,7 +12,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPATypeConvertor;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -79,7 +79,7 @@ public class JPALiteralOperator implements JPAExpressionElement<Object> {
 		try {
 			// normal primitive type handling
 			final CsdlProperty edmProperty = (CsdlProperty) attribute.getProperty();
-			final EdmPrimitiveTypeKind edmTypeKind = JPATypeConvertor.convertToEdmSimpleType(attribute);
+			final EdmPrimitiveTypeKind edmTypeKind = TypeMapping.convertToEdmSimpleType(attribute);
 			if (isNullLiteral()) {
 				return null;
 			}

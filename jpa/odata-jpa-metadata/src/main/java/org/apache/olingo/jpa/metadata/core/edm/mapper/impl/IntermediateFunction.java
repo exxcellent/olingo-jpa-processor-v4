@@ -106,7 +106,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 
 			final CsdlParameter edmInputParameter = new CsdlParameter();
 			edmInputParameter.setName(jpaParameter.name());
-			edmInputParameter.setType(JPATypeConvertor.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName());
+			edmInputParameter.setType(TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName());
 
 			edmInputParameter.setNullable(false);
 			edmInputParameter.setCollection(jpaParameter.isCollection());
@@ -143,7 +143,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 				fqn = nameBuilder.buildFQN(et.getExternalName());
 				this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
 			} else {
-				fqn = JPATypeConvertor.convertToEdmSimpleType(returnType.type()).getFullQualifiedName();
+				fqn = TypeMapping.convertToEdmSimpleType(returnType.type()).getFullQualifiedName();
 			}
 		}
 		edmResultType.setType(fqn);
@@ -211,7 +211,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 
 		@Override
 		public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
-			return JPATypeConvertor.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName();
+			return TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName();
 		}
 
 		@Override

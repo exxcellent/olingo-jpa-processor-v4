@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.servlet.example;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Entity;
 
 import org.apache.olingo.client.api.communication.response.ODataEntityCreateResponse;
@@ -74,11 +76,33 @@ public class CreateUpdateEntitiesIT {
 				factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf((int) System.currentTimeMillis())));
 		entity.getProperties().add(property);
 
-		// property = factory.newPrimitiveProperty("ADate1",
-		// factory.newPrimitiveValueBuilder().buildString("0610-01-01"));
-		// entity.getProperties().add(property);
+		property = factory.newPrimitiveProperty("ADate1", factory.newPrimitiveValueBuilder().buildString("1610-10-11"));
+		entity.getProperties().add(property);
 
 		property = factory.newPrimitiveProperty("ADate3", factory.newPrimitiveValueBuilder().buildString("0610-01-01"));
+		entity.getProperties().add(property);
+
+		property = factory.newPrimitiveProperty("ATimestamp1",
+				factory.newPrimitiveValueBuilder().buildString("2016-01-20T09:21:23+01:00"));
+		entity.getProperties().add(property);
+
+		property = factory.newPrimitiveProperty("ATimestamp2",
+				factory.newPrimitiveValueBuilder().buildString("2026-01-20T00:21:23"));
+		entity.getProperties().add(property);
+
+		property = factory.newPrimitiveProperty("ATime1", factory.newPrimitiveValueBuilder().buildString("22:19:40"));
+		entity.getProperties().add(property);
+
+		property = factory.newPrimitiveProperty("ADecimal",
+				factory.newPrimitiveValueBuilder().buildDecimal(BigDecimal.valueOf(17.12345)));
+		entity.getProperties().add(property);
+
+		property = factory.newPrimitiveProperty("AUrl",
+				factory.newPrimitiveValueBuilder().buildString("http://www.anywhere.org/reverse.pdf"));
+		entity.getProperties().add(property);
+
+		property = factory.newEnumProperty("AEnumFromOtherPackage",
+				factory.newEnumValue("org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum", "Three"));
 		entity.getProperties().add(property);
 
 		final ODataEntityCreateResponse<ClientEntity> responseCreate = endpoint.createEntity(uriBuilder, entity);

@@ -58,16 +58,6 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		private boolean useJoinTable = false;
 	}
 
-	private static class Pair {
-		private final String left;
-		private final String right;
-
-		public Pair(final String left, final String right) {
-			this.left = left;
-			this.right = right;
-		}
-	}
-
 	private final static Logger LOG = Logger.getLogger(IntermediateNavigationProperty.class.getName());
 
 	private final Attribute<?, ?> jpaAttribute;
@@ -453,7 +443,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 						joinConfiguration.sourceJoinColumns.get(i));
 			}
 
-			final Pair pair = determineRelationshipPropertyEnds(cardinality, joinConfiguration, i);
+			final Pair<String, String> pair = determineRelationshipPropertyEnds(cardinality, joinConfiguration, i);
 			if (pair == null) {
 				continue;
 			}
@@ -504,7 +494,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 * @return The pair of attribute names for left and right side or
 	 *         <code>null</code>.
 	 */
-	private static Pair determineRelationshipPropertyEnds(final PersistentAttributeType cardinality,
+	private static Pair<String, String> determineRelationshipPropertyEnds(final PersistentAttributeType cardinality,
 			final JoinConfiguration joinConfiguration,
 			final int joinColumnIndex) {
 		if (joinColumnIndex >= joinConfiguration.sourceJoinColumns.size()) {
@@ -531,7 +521,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 			left = joinConfiguration.sourceJoinColumns.get(joinColumnIndex).getSourceEntityColumnName();
 			right = joinConfiguration.sourceJoinColumns.get(joinColumnIndex).getTargetColumnName();
 		}
-		return new Pair(left, right);
+		return new Pair<String, String>(left, right);
 	}
 
 	@Override

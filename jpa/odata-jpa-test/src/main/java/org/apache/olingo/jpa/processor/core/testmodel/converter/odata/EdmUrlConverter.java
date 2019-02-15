@@ -3,7 +3,6 @@ package org.apache.olingo.jpa.processor.core.testmodel.converter.odata;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 
 /**
@@ -14,13 +13,9 @@ import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter
  *
  */
 public class EdmUrlConverter implements ODataAttributeConverter<URL, String> {
-	@Override
-	public EdmPrimitiveTypeKind getODataType() {
-		return EdmPrimitiveTypeKind.String;
-	}
 
 	@Override
-	public URL convertToJPAEntity(final String oDataValue) {
+	public URL convertToJPA(final String oDataValue) {
 		if (oDataValue == null) {
 			return null;
 		}

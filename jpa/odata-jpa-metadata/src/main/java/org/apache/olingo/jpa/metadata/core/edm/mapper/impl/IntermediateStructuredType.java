@@ -261,11 +261,11 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 					declaredNaviPropertiesList.put(navProp.internalName, navProp);
 					break;
 				case ELEMENT_COLLECTION:
-					if (JPATypeConvertor.isCollectionTypeOfPrimitive(jpaAttribute)) {
+					if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
 						property = new IntermediateProperty(nameBuilder, jpaAttribute, serviceDocument);
 						declaredPropertiesList.put(property.internalName, property);
 						break;
-					} else if (JPATypeConvertor.isCollectionTypeOfEmbeddable(jpaAttribute)) {
+					} else if (TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute)) {
 						property = new IntermediateProperty(nameBuilder, jpaAttribute, serviceDocument);
 						declaredPropertiesList.put(property.internalName, property);
 						break;

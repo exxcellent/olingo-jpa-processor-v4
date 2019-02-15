@@ -7,7 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConverter;
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
@@ -28,7 +29,7 @@ public class OrganizationImage {
 	private String mimeType;
 
 	@Column(name = "\"ThumbnailUrl\"", length = 4000)
-	@EdmAttributeConverter(EdmUrlConverter.class)
+	@EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.String, converter = EdmUrlConverter.class)
 	private URL thumbnailUrl;
 
 	String getID() {

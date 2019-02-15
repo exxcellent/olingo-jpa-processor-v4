@@ -8,12 +8,13 @@ import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Lob;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.PluralAttribute;
@@ -22,18 +23,78 @@ import javax.persistence.metamodel.Type;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.geo.Geospatial.Dimension;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConverter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
-import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
 /**
  * This class holds utility methods for type conversions between JPA Java types and OData Types.
  *
  */
-public final class JPATypeConvertor {
+public final class TypeMapping {
+
+	private final static Map<Class<?>, EdmPrimitiveTypeKind> MAPPING_JPA2ODATA = new HashMap<>();
+
+	static {
+		// global definition for trivial mappings without additional logic
+
+		// JPA -> ODATA (n:1 mapping)
+		MAPPING_JPA2ODATA.put(String.class, EdmPrimitiveTypeKind.String);
+		MAPPING_JPA2ODATA.put(Character.class, EdmPrimitiveTypeKind.String);
+		MAPPING_JPA2ODATA.put(char.class, EdmPrimitiveTypeKind.String);
+		MAPPING_JPA2ODATA.put(char[].class, EdmPrimitiveTypeKind.String);
+		MAPPING_JPA2ODATA.put(Character[].class, EdmPrimitiveTypeKind.String);
+
+		MAPPING_JPA2ODATA.put(Long.class, EdmPrimitiveTypeKind.Int64);
+		MAPPING_JPA2ODATA.put(long.class, EdmPrimitiveTypeKind.Int64);
+
+		MAPPING_JPA2ODATA.put(Short.class, EdmPrimitiveTypeKind.Int16);
+		MAPPING_JPA2ODATA.put(short.class, EdmPrimitiveTypeKind.Int16);
+
+		MAPPING_JPA2ODATA.put(Integer.class, EdmPrimitiveTypeKind.Int32);
+		MAPPING_JPA2ODATA.put(int.class, EdmPrimitiveTypeKind.Int32);
+
+		MAPPING_JPA2ODATA.put(Double.class, EdmPrimitiveTypeKind.Double);
+		MAPPING_JPA2ODATA.put(double.class, EdmPrimitiveTypeKind.Double);
+
+		MAPPING_JPA2ODATA.put(Float.class, EdmPrimitiveTypeKind.Single);
+		MAPPING_JPA2ODATA.put(float.class, EdmPrimitiveTypeKind.Single);
+
+		MAPPING_JPA2ODATA.put(BigDecimal.class, EdmPrimitiveTypeKind.Decimal);
+
+		MAPPING_JPA2ODATA.put(Byte[].class, EdmPrimitiveTypeKind.Binary);
+		MAPPING_JPA2ODATA.put(byte[].class, EdmPrimitiveTypeKind.Binary);
+
+		MAPPING_JPA2ODATA.put(Byte.class, EdmPrimitiveTypeKind.SByte);
+		MAPPING_JPA2ODATA.put(byte.class, EdmPrimitiveTypeKind.SByte);
+
+		MAPPING_JPA2ODATA.put(Boolean.class, EdmPrimitiveTypeKind.Boolean);
+		MAPPING_JPA2ODATA.put(boolean.class, EdmPrimitiveTypeKind.Boolean);
+
+		MAPPING_JPA2ODATA.put(java.time.LocalTime.class, EdmPrimitiveTypeKind.TimeOfDay);
+		MAPPING_JPA2ODATA.put(java.sql.Time.class, EdmPrimitiveTypeKind.TimeOfDay);
+
+		MAPPING_JPA2ODATA.put(java.time.LocalDate.class, EdmPrimitiveTypeKind.Date);
+		MAPPING_JPA2ODATA.put(java.sql.Date.class, EdmPrimitiveTypeKind.Date);
+
+		MAPPING_JPA2ODATA.put(java.time.Duration.class, EdmPrimitiveTypeKind.Duration);
+
+		MAPPING_JPA2ODATA.put(java.time.Year.class, EdmPrimitiveTypeKind.Int16);
+
+		MAPPING_JPA2ODATA.put(java.time.LocalDateTime.class, EdmPrimitiveTypeKind.DateTimeOffset);
+
+		MAPPING_JPA2ODATA.put(UUID.class, EdmPrimitiveTypeKind.Guid);
+
+		// ODATA -> JPA mapping is handled by separate logic to manage 1:n problem for
+		// ambiguous data type mappings
+
+	}
+
+	// TODO
+	private static Class<?> convertToJPAType(final JPAAttribute attribute) {
+		throw new UnsupportedOperationException();
+	}
 
 	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> type) throws ODataJPAModelException {
 		return convertToEdmSimpleType(type, (AccessibleObject) null);
@@ -76,50 +137,20 @@ public final class JPATypeConvertor {
 	private static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
 			final AccessibleObject javaMember) throws ODataJPAModelException {
 		// use a converter if available
-		final EdmPrimitiveTypeKind simpleType = determineSimpleTypeFromConverter(javaMember);
+		EdmPrimitiveTypeKind simpleType = determineSimpleTypeFromConverter(javaMember);
 		if (simpleType != null) {
 			return simpleType;
 		}
 
+		simpleType = MAPPING_JPA2ODATA.get(jpaType);
+		if (simpleType != null) {
+			return simpleType;
+		}
+		// determine mappings with more logic...
 		final String memberName = (javaMember instanceof Field) ? ((Field) javaMember).getName() : null;
-		if (jpaType.equals(String.class) || jpaType.equals(Character.class) || jpaType.equals(char.class) || jpaType.equals(
-				char[].class) || jpaType.equals(Character[].class)) {
-			return EdmPrimitiveTypeKind.String;
-		} else if (jpaType.equals(Long.class) || jpaType.equals(long.class)) {
-			return EdmPrimitiveTypeKind.Int64;
-		} else if (jpaType.equals(Short.class) || jpaType.equals(short.class)) {
-			return EdmPrimitiveTypeKind.Int16;
-		} else if (jpaType.equals(Integer.class) || jpaType.equals(int.class)) {
-			return EdmPrimitiveTypeKind.Int32;
-		} else if (jpaType.equals(Double.class) || jpaType.equals(double.class)) {
-			return EdmPrimitiveTypeKind.Double;
-		} else if (jpaType.equals(Float.class) || jpaType.equals(float.class)) {
-			return EdmPrimitiveTypeKind.Single;
-		} else if (jpaType.equals(BigDecimal.class)) {
-			return EdmPrimitiveTypeKind.Decimal;
-		} else if (jpaType.equals(byte[].class)) {
-			return EdmPrimitiveTypeKind.Binary;
-		} else if (jpaType.equals(Byte.class) || jpaType.equals(byte.class)) {
-			return EdmPrimitiveTypeKind.SByte;
-		} else if (jpaType.equals(Boolean.class) || jpaType.equals(boolean.class)) {
-			return EdmPrimitiveTypeKind.Boolean;
-		} else if (jpaType.equals(java.time.LocalTime.class) || jpaType.equals(java.sql.Time.class)) {
-			return EdmPrimitiveTypeKind.TimeOfDay;
-		} else if (jpaType.equals(java.time.Duration.class)) {
-			return EdmPrimitiveTypeKind.Duration;
-		} else if (jpaType.equals(java.time.Year.class)) {
-			return EdmPrimitiveTypeKind.Int16;
-		} else if (jpaType.equals(java.time.LocalDate.class) || jpaType.equals(java.sql.Date.class)) {
-			return EdmPrimitiveTypeKind.Date;
-		} else if (jpaType.equals(java.util.Calendar.class) || jpaType.equals(java.sql.Timestamp.class)
-				|| jpaType.equals(java.util.Date.class) /* || jpaType.equals(java.time.LocalDateTime.class) */) {
-			if (determineTemporalType(javaMember) == TemporalType.TIME) {
-				return EdmPrimitiveTypeKind.TimeOfDay;
-			} else if (determineTemporalType(javaMember) == TemporalType.DATE) {
-				return EdmPrimitiveTypeKind.Date;
-			} else {
-				return EdmPrimitiveTypeKind.DateTimeOffset;
-			}
+		if (jpaType.equals(java.util.Calendar.class) || jpaType.equals(java.sql.Timestamp.class)
+				|| jpaType.equals(java.util.Date.class)) {
+			return mapTemporalType(javaMember);
 		} else if (jpaType.equals(UUID.class)) {
 			return EdmPrimitiveTypeKind.Guid;
 		} else if (jpaType.equals(Byte[].class)) {
@@ -146,26 +177,20 @@ public final class JPATypeConvertor {
 		if (javaMember == null) {
 			return null;
 		}
-		final EdmAttributeConverter converterAnnotation = javaMember
-				.getAnnotation(EdmAttributeConverter.class);
+		final EdmAttributeConversion converterAnnotation = javaMember
+				.getAnnotation(EdmAttributeConversion.class);
 		if (converterAnnotation == null) {
 			return null;
 		}
-		final Class<? extends ODataAttributeConverter<?, ?>> clazz = converterAnnotation.value();
-		if (clazz == null) {
-			throw new ODataJPAModelException(MessageKeys.GENERAL);
-		}
-		try {
-			final ODataAttributeConverter<?, ?> converter = clazz.newInstance();
-			return converter.getODataType();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new ODataJPAModelException(MessageKeys.GENERAL, e);
-		}
+		return converterAnnotation.odataType();
 	}
 
 	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPAAttribute attribute)
 			throws ODataJPAModelException {
-		return convertToEdmSimpleType(attribute.getType(), (AccessibleObject) null);
+		return convertToEdmSimpleType(attribute.getType(),
+				IntermediateProperty.class.isInstance(attribute)
+						? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
+						: null);
 	}
 
 	public static boolean isScalarType(final Class<?> type) {
@@ -237,14 +262,22 @@ public final class JPATypeConvertor {
 				jpaType.getName(), memberName);
 	}
 
-	private static TemporalType determineTemporalType(final AnnotatedElement javaMember) {
+	private static EdmPrimitiveTypeKind mapTemporalType(final AnnotatedElement javaMember) {
 		if (javaMember != null) {
 			final Temporal temporal = javaMember.getAnnotation(Temporal.class);
 			if (temporal != null) {
-				return temporal.value();
+				switch (temporal.value()) {
+				case TIME:
+					return EdmPrimitiveTypeKind.TimeOfDay;
+				case DATE:
+					return EdmPrimitiveTypeKind.Date;
+				default:
+					return EdmPrimitiveTypeKind.DateTimeOffset;
+				}
 			}
 		}
-		return null;
+		// default
+		return EdmPrimitiveTypeKind.DateTimeOffset;
 	}
 
 	private static Dimension getDimension(final AnnotatedElement javaMember) {
@@ -258,10 +291,8 @@ public final class JPATypeConvertor {
 	}
 
 	private static boolean isBlob(final AnnotatedElement javaMember) {
-		if (javaMember != null) {
-			if (javaMember.getAnnotation(Lob.class) != null) {
-				return true;
-			}
+		if (javaMember != null && javaMember.getAnnotation(Lob.class) != null) {
+			return true;
 		}
 		return false;
 	}

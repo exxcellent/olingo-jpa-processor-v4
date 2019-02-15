@@ -10,7 +10,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPATypeConvertor;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -49,7 +49,7 @@ public class JPAFunctionOperator implements JPAExpression<Expression<?>> {
 					HttpStatusCode.NOT_IMPLEMENTED);
 		}
 
-		if (!JPATypeConvertor.isScalarType(
+		if (!TypeMapping.isScalarType(
 				jpaFunction.getResultParameter().getType())) {
 			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_NOT_SCALAR,
 					HttpStatusCode.NOT_IMPLEMENTED);
