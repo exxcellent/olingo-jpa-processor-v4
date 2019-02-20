@@ -22,7 +22,7 @@ class FieldAttributeAccessor implements JPAAttributeAccessor {
 		// only from an instance field.get(Object obj).toString();
 		try {
 			// FIXME
-			//			final Constructor<?> constructor = jpaAttribute.getDeclaringType().getJavaType().getConstructor();
+			// final Constructor<?> constructor = jpaAttribute.getDeclaringType().getJavaType().getConstructor();
 			final Constructor<?> constructor = field.getDeclaringClass().getConstructor();
 			final Object pojo = constructor.newInstance();
 			return getPropertyValue(pojo);
@@ -32,13 +32,16 @@ class FieldAttributeAccessor implements JPAAttributeAccessor {
 			// and will be ignored
 		} catch (final IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.PROPERTY_DEFAULT_ERROR, e,
-					field.getName());
+			        field.getName());
 		}
 		return null;
 	}
 
 	@Override
 	public void setPropertyValue(final Object jpaEntity, final Object jpaPropertyValue) throws ODataJPAModelException {
+		// don't try to set null values to primitive fields
+		if (jpaPropertyValue == null && field.getType().isPrimitive())
+			return;
 		try {
 			writeJPAFieldValue(jpaEntity, field, jpaPropertyValue);
 		} catch (IllegalArgumentException | IllegalAccessException e) {
@@ -56,7 +59,7 @@ class FieldAttributeAccessor implements JPAAttributeAccessor {
 	}
 
 	private static Object readJPAFieldValue(final Object object, /* final Class<?> jpaClassType, */ final Field field)
-			throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+	        throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
 		boolean revertAccessibility = false;
 		// try {
 		// final Field field = jpaClassType.getDeclaredField(fieldName);
@@ -73,14 +76,14 @@ class FieldAttributeAccessor implements JPAAttributeAccessor {
 	}
 
 	private static void writeJPAFieldValue(final Object jpaEntity, final Field field, final Object jpaPropertyValue)
-			throws IllegalArgumentException, IllegalAccessException {
+	        throws IllegalArgumentException, IllegalAccessException {
 		boolean revertAccessibility = false;
 		if (!field.isAccessible()) {
 			field.setAccessible(true);
 			revertAccessibility = true;
 		}
 		if (Collection.class.isAssignableFrom(field.getType()) && Collection.class.isInstance(jpaPropertyValue)
-				&& field.get(jpaEntity) != null) {
+		        && field.get(jpaEntity) != null) {
 			// do not set the collection directly, because some specific implementations may
 			// cause problems... add entries in collection instead
 			@SuppressWarnings("unchecked")

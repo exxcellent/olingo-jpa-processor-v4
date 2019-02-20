@@ -40,7 +40,7 @@ public class DTOConverter extends AbstractObjectConverter {
 		try {
 			final Object targetDTOInstance = newJPAInstance(jpaEntityType);
 			for (final JPAAttribute jpaAttribute : jpaEntityType.getAttributes()) {
-				convertOData2JPAProperty(targetDTOInstance, jpaEntityType, jpaAttribute, entity.getProperties());
+				transferOData2JPAProperty(targetDTOInstance, jpaEntityType, jpaAttribute, entity.getProperties());
 			}
 			return targetDTOInstance;
 		} catch (ODataJPAModelException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {

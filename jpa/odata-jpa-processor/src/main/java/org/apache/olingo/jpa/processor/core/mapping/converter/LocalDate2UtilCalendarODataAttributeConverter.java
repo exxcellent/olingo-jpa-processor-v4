@@ -1,6 +1,5 @@
 package org.apache.olingo.jpa.processor.core.mapping.converter;
 
-import java.time.ZoneId;
 import java.util.Calendar;
 
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
@@ -12,7 +11,7 @@ import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter
  *
  */
 public class LocalDate2UtilCalendarODataAttributeConverter
-implements ODataAttributeConverter<java.time.LocalDate, java.util.Calendar> {
+        implements ODataAttributeConverter<java.time.LocalDate, java.util.Calendar> {
 
 	@Override
 	public java.util.Calendar convertToOData(final java.time.LocalDate jpaValue) {
@@ -31,7 +30,8 @@ implements ODataAttributeConverter<java.time.LocalDate, java.util.Calendar> {
 		if (oDataValue == null) {
 			return null;
 		}
-		return oDataValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		return java.time.LocalDate.of(oDataValue.get(Calendar.YEAR), oDataValue.get(Calendar.MONTH) + 1,
+		        oDataValue.get(Calendar.DAY_OF_MONTH));
 	}
 
 }

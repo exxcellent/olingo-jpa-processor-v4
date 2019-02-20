@@ -2,8 +2,6 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +10,10 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.Tuple;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.Entity;
-import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.data.Parameter;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
@@ -28,8 +24,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter.
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.query.AbstractObjectConverter;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.jpa.processor.core.query.ValueConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
@@ -47,23 +43,15 @@ public class JPAEntityHelper {
 	private final ServiceMetadata serviceMetadata;
 	private final UriHelper uriHelper;
 	private final DependencyInjector dependencyInjector;
-	private final AbstractObjectConverter attributeConverter;
+	private final ValueConverter attributeConverter = new ValueConverter();;
 
 	public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata,
-			final UriHelper uriHelper, final DependencyInjector dependencyInjector) throws ODataException {
+	        final UriHelper uriHelper, final DependencyInjector dependencyInjector) throws ODataException {
 		this.em = em;
 		this.sd = sd;
 		this.serviceMetadata = serviceMetadata;
 		this.uriHelper = uriHelper;
 		this.dependencyInjector = dependencyInjector;
-		attributeConverter = new AbstractObjectConverter(null, uriHelper, sd, serviceMetadata) {
-			@Override
-			protected Collection<? extends Link> createExpand(final Tuple row, final URI uri)
-					throws ODataApplicationException {
-				return null;
-			}
-		};
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -80,7 +68,7 @@ public class JPAEntityHelper {
 		} catch (final InvocationTargetException e) {
 			if (ODataApplicationException.class.isInstance(e.getTargetException())) {
 				log.log(Level.SEVERE, "Action call throws " + ODataApplicationException.class.getSimpleName()
-						+ "... unrwap to send custom error status", e);
+				        + "... unrwap to send custom error status", e);
 				throw ODataApplicationException.class.cast(e.getTargetException());
 			}
 			// otherwise
@@ -100,7 +88,7 @@ public class JPAEntityHelper {
 	 */
 	@SuppressWarnings("unchecked")
 	public final <R> R invokeBoundActionMethod(final JPAEntityType jpaType, final Entity oDataEntity, final JPAAction jpaAction,
-			final Map<String, Parameter> parameters) throws ODataException {
+	        final Map<String, Parameter> parameters) throws ODataException {
 		final Object jpaEntity = loadJPAEntity(jpaType, oDataEntity);
 		if (jpaEntity == null) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.GENERAL);
@@ -131,7 +119,7 @@ public class JPAEntityHelper {
 				final Object value = dependencyInjector.getDependencyValue(jpaParameter.getType());
 				if (value == null) {
 					log.warning(
-							"Cannot inject value for method parameter " + jpaParameter.getName() + " of type " + jpaParameter.getType());
+					        "Cannot inject value for method parameter " + jpaParameter.getName() + " of type " + jpaParameter.getType());
 				}
 				args[i] = value;
 				continue;
@@ -159,13 +147,13 @@ public class JPAEntityHelper {
 				final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
 
 				final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, uriHelper, sd, serviceMetadata,
-						em.getMetamodel());
+				        em.getMetamodel());
 				final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity);
 				args[i] = jpaEntity;
 				break;
 			default:
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, p.getValueType().toString(),
-						p.getName());
+				        p.getName());
 			}
 		}
 		return args;
@@ -194,8 +182,8 @@ public class JPAEntityHelper {
 				if (jpaAttribute.isAssociation()) {
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
 				}
-				final Object value = attributeConverter.determineOData2JPAProperty(jpaType, jpaAttribute,
-						oDataEntity.getProperties());
+				final Object value = attributeConverter.transferOData2JPAProperty(null, jpaType, jpaAttribute,
+				        oDataEntity.getProperties());
 				if (value == null) {
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER);
 				}
@@ -211,7 +199,7 @@ public class JPAEntityHelper {
 			return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues.get(0), LockModeType.NONE);
 		} else {
 			log.warning(jpaType.getInternalName()
-					+ " has multiple id properties, this is supported only by a few JPA providers and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
+			        + " has multiple id properties, this is supported only by a few JPA providers and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
 			return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.NONE);
 		}
 	}

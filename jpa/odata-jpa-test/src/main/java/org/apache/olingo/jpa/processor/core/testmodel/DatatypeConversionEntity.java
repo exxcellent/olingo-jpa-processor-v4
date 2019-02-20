@@ -37,10 +37,8 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Temporal(TemporalType.DATE)
 	private java.util.Date aDate1;
 
-	// only java.util.Date and java.util.Calendar are supported by JSONSerializer of
-	// Olingo
-	//	@Column(name = "\"ADate2\"")
-	//	private java.time.LocalDate aDate2;
+	@Column(name = "\"ADate2\"")
+	private java.time.LocalDate aDate2;
 
 	@Column(name = "\"ADate3\"")
 	@Temporal(TemporalType.DATE)
@@ -65,8 +63,8 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5)
 	private BigDecimal aDecimal;
 
-	//	@Column(name = "\"AYear\"", insertable = false, updatable = false)
-	//	private java.time.Year aYear;
+	// @Column(name = "\"AYear\"", insertable = false, updatable = false)
+	// private java.time.Year aYear;
 
 	@Column(name = "\"AYear\"")
 	private Integer aIntegerYear;
@@ -92,7 +90,7 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
 	@EdmAction()
 	public static boolean unboundActionCheckAllValueSettings(
-			@EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
+	        @EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
 		if (jpaEnity == null) {
 			throw new IllegalStateException("Entity not given");
 		}

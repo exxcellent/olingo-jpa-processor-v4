@@ -8,18 +8,22 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeException;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
+import org.apache.olingo.jpa.processor.core.query.ValueConverter;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 
-//FIXME return a Expression<Object> (from cb.literal(...)) instead ob Object
+// FIXME return a Expression<Object> (from cb.literal(...)) instead of Object
 public class JPALiteralOperator implements JPAExpressionElement<Object> {
+
+	private final static ValueConverter CONVERTER = new ValueConverter();
 	private final Literal literal;
 	private final OData odata;
 
@@ -61,8 +65,8 @@ public class JPALiteralOperator implements JPAExpressionElement<Object> {
 	 */
 	public boolean isNullLiteral() {
 		final String text = literal.getText();
-		if(text == null) {
-			//not the 'null' text value for literal
+		if (text == null) {
+			// not the 'null' text value for literal
 			return false;
 		}
 		return "null".equalsIgnoreCase(text);
@@ -88,8 +92,11 @@ public class JPALiteralOperator implements JPAExpressionElement<Object> {
 			String value = null;
 			final EdmPrimitiveType edmType = odata.createPrimitiveTypeInstance(edmTypeKind);
 			value = edmType.fromUriLiteral(literal.getText());
-			return edmType.valueOfString(value, Boolean.valueOf(edmProperty.isNullable()), edmProperty.getMaxLength(),
-					edmProperty.getPrecision(), edmProperty.getScale(), Boolean.TRUE, attribute.getType());
+			final Class<?> oadataType = EdmPrimitiveTypeFactory.getInstance(edmTypeKind).getDefaultType();
+
+			final Object odataValue = edmType.valueOfString(value, Boolean.valueOf(edmProperty.isNullable()), edmProperty.getMaxLength(),
+			        edmProperty.getPrecision(), edmProperty.getScale(), Boolean.TRUE, oadataType);
+			return CONVERTER.convertOData2JPAValue(attribute, odataValue);
 
 		} catch (final EdmPrimitiveTypeException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -109,8 +116,10 @@ public class JPALiteralOperator implements JPAExpressionElement<Object> {
 		String value;
 		try {
 			value = edmType.fromUriLiteral(literal.getText());
+			// TODO proper handling of type converting (use OData default type as in #get(JPAAttribute) instead of JPA parameter type),
+			// because OData prefers java.util.Calendar and JPA may have a different type (like java.tim.LocalTime)
 			return edmType.valueOfString(value, Boolean.TRUE, returnType.getMaxLength(), returnType.getPrecision(),
-					returnType.getScale(), Boolean.TRUE, returnType.getType());
+			        returnType.getScale(), Boolean.TRUE, returnType.getType());
 		} catch (final EdmPrimitiveTypeException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
@@ -123,8 +132,10 @@ public class JPALiteralOperator implements JPAExpressionElement<Object> {
 			String value;
 
 			value = edmType.fromUriLiteral(literal.getText());
+			// TODO proper handling of type converting (use OData default type as in #get(JPAAttribute) instead of JPA parameter type),
+			// because OData prefers java.util.Calendar and JPA may have a different type (like java.tim.LocalTime)
 			return edmType.valueOfString(value, Boolean.TRUE, jpaParameter.getMaxLength(), jpaParameter.getPrecision(),
-					jpaParameter.getScale(), Boolean.TRUE, jpaParameter.getType());
+			        jpaParameter.getScale(), Boolean.TRUE, jpaParameter.getType());
 		} catch (final EdmPrimitiveTypeException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		} catch (final ODataJPAModelException e) {

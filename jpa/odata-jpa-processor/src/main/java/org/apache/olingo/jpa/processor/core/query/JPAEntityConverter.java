@@ -67,7 +67,7 @@ public class JPAEntityConverter extends AbstractObjectConverter {
 		try {
 			final Object targetJPAInstance = newJPAInstance(jpaEntityType);
 			for(final JPAAttribute jpaAttribute: jpaEntityType.getAttributes()) {
-				convertOData2JPAProperty(targetJPAInstance, jpaEntityType, jpaAttribute,
+				transferOData2JPAProperty(targetJPAInstance, jpaEntityType, jpaAttribute,
 						entity.getProperties());
 			}
 			return targetJPAInstance;

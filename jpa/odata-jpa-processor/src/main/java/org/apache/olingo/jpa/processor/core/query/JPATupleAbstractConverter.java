@@ -20,7 +20,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
 
-public abstract class JPATupleAbstractConverter extends JPAAbstractConverter {
+public abstract class JPATupleAbstractConverter extends AbstractJPAODataConverter {
 
 	public static final String ACCESS_MODIFIER_GET = "get";
 	public static final String ACCESS_MODIFIER_SET = "set";
@@ -28,9 +28,9 @@ public abstract class JPATupleAbstractConverter extends JPAAbstractConverter {
 	private final JPAQueryResult jpaQueryResult;
 
 	public JPATupleAbstractConverter(final JPAQueryResult jpaQueryResult,
-			final UriHelper uriHelper, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
-					throws ODataApplicationException {
-		super(jpaQueryResult.getEntityType(), uriHelper,sd, serviceMetadata);
+	        final UriHelper uriHelper, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
+	        throws ODataApplicationException {
+		super(jpaQueryResult.getEntityType(), uriHelper, sd, serviceMetadata);
 
 		this.jpaQueryResult = jpaQueryResult;
 	}
@@ -41,7 +41,7 @@ public abstract class JPATupleAbstractConverter extends JPAAbstractConverter {
 
 	@Override
 	protected Collection<? extends Link> createExpand(final Tuple owningEntityRow, final URI uri)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		final Map<JPAAssociationPath, JPAQueryResult> children = jpaQueryResult.getExpandChildren();
 		if (children == null) {
 			return Collections.emptyList();
@@ -49,16 +49,16 @@ public abstract class JPATupleAbstractConverter extends JPAAbstractConverter {
 		final List<Link> entityExpandLinks = new ArrayList<Link>(children.size());
 		for (final Entry<JPAAssociationPath, JPAQueryResult> entry : children.entrySet()) {
 			try {
-				if (jpaConversionTargetEntity.getDeclaredAssociation(entry.getKey()) == null) {
+				if (getJpaEntityType().getDeclaredAssociation(entry.getKey()) == null) {
 					continue;
 				}
 				final Link expand = new JPATupleExpandResultConverter(entry.getValue(), owningEntityRow, entry.getKey(),
-						getUriHelper(), sd, serviceMetadata).getResult();
+				        getUriHelper(), getIntermediateServiceDocument(), getServiceMetadata()).getResult();
 				// TODO Check how to convert Organizations('3')/AdministrativeInformation?$expand=Created/User
 				entityExpandLinks.add(expand);
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_ERROR,
-						HttpStatusCode.INTERNAL_SERVER_ERROR, entry.getKey().getAlias());
+				        HttpStatusCode.INTERNAL_SERVER_ERROR, entry.getKey().getAlias());
 			}
 		}
 		return entityExpandLinks;
