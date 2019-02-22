@@ -11,9 +11,11 @@ import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException.MessageKeys;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
@@ -51,16 +53,36 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 		return link;
 	}
 
-	private final String buildOwningEntityKey(final Tuple row, final List<JPASelector> joinColumns) {
+	private final String buildOwningEntityKey(final Tuple row, final List<JPASelector> joinColumns)
+			throws ODataApplicationException {
 		final StringBuilder buffer = new StringBuilder();
 		// we use all columns used in JOIN from left side (the owning entity) to build a
 		// identifying key accessing all nested relationship results
-		for (final JPASelector left : joinColumns) {
-			// ignored attributes are not part of the query selection result
-			buffer.append(JPASelector.PATH_SEPERATOR);
-			// if we got here an exception, then a required (key) join column was not
-			// selected in the query (see JPAEntityQuery to fix!)
-			buffer.append(row.get(left.getAlias()));
+		String alias;
+		for (final JPASelector item : joinColumns) {
+			if (JPAAssociationPath.class.isInstance(item)) {
+				final JPAAssociationPath asso = ((JPAAssociationPath) item);
+				try {
+					// select all the key attributes from target (right) side table so we can build
+					// a 'result
+					// key' from the tuples in the result set
+					final List<JPASimpleAttribute> keys = asso.getTargetType().getKeyAttributes(true);
+					for (final JPASimpleAttribute jpaAttribute : keys) {
+						alias = JPAAbstractEntityQuery.buildTargetJoinAlias(asso, jpaAttribute);
+						buffer.append(JPASelector.PATH_SEPERATOR);
+						buffer.append(row.get(alias));
+					}
+				} catch (final ODataJPAModelException e) {
+					throw new ODataJPAQueryException(MessageKeys.QUERY_RESULT_EXPAND_ERROR,
+							HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+				}
+
+			} else {
+				// if we got here an exception, then a required (key) join column was not
+				// selected in the query (see JPAEntityQuery to fix!)
+				buffer.append(JPASelector.PATH_SEPERATOR);
+				buffer.append(row.get(item.getAlias()));
+			}
 		}
 		if (buffer.length() < 1) {
 			return null;
@@ -73,6 +95,8 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 
 		List<Tuple> subResult = null;
 		try {
+			// build key using source side + source side join columns, resulting key must be
+			// identical for target side + target side join columns
 			final String key = buildOwningEntityKey(owningEnityRow, assoziation.getLeftPaths());
 			subResult = getJpaQueryResult().getDirectMappingsResult(key);
 		} catch (final ODataJPAModelException e) {

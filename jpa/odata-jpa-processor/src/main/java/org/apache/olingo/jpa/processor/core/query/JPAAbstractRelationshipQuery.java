@@ -135,14 +135,10 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 				final JPASelector sourceSelector = navigationSourceSelectors.get(index);
 				final JPASelector targetSelector = navigationTargetSelectors.get(index);
 
-				if (JPAAssociationPath.class.isInstance(sourceSelector)) {
-					// the JPA framework will do the correct things for navigation of n:1 property
-					subPath = subRoot
-							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
-					return cb.equal(parentFrom, subPath);
-				}
-				if (JPAAssociationPath.class.isInstance(targetSelector)) {
-					// the JPA framework will do the correct things for navigation of 1:n property
+				if (JPAAssociationPath.class.isInstance(sourceSelector)
+						|| JPAAssociationPath.class.isInstance(targetSelector)) {
+					// the JPA framework will do the correct things for navigation of n:1 or 1:n
+					// property
 					subPath = subRoot
 							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
 					return cb.equal(parentFrom, subPath);
