@@ -12,7 +12,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 
 @Entity(name = "PersonImage")
@@ -39,13 +38,6 @@ public class PersonImage {
 	// detect
 	@JoinColumn(name = "\"NOT_MAPPED_PID\"", insertable = false, updatable = false, nullable = true)
 	private Person personReferenceWithoutMappedAttribute;
-
-	// Workaround to have a selection column for $expand queries without JOINing the
-	// complete JPA entity (Person)
-	// FIXME try to remove this attribute
-	@EdmIgnore
-	@Column(name = "\"NOT_MAPPED_PID\"")
-	private String notMappedPid;
 
 	// force usage of (default id name pattern) as join column, because no
 	// 'mappedBy' or @JoinColumn is given

@@ -147,7 +147,9 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		for (final Tuple row : intermediateResult) {
 			String actuallKey;
 			try {
-				actuallKey = buildResultKey(row, a.getRightPaths());
+				// build key using target side + target side join columns, resulting key must be
+				// identical for source side + source side join columns
+				actuallKey = buildTargetResultKey(row, a.getRightPaths());
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 			} catch (final IllegalArgumentException e) {
@@ -173,11 +175,19 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		return convertedResult;
 	}
 
-	private String buildResultKey(final Tuple row, final List<JPASelector> joinColumns) {
+	private String buildTargetResultKey(final Tuple row, final List<JPASelector> joinColumns) {
 		final StringBuffer buffer = new StringBuffer();
 		for (final JPASelector item : joinColumns) {
 			buffer.append(JPASelector.PATH_SEPERATOR);
-			buffer.append(row.get(item.getAlias()));
+			if (JPAAssociationPath.class.isInstance(item)) {
+				// special case for relationships without join columns mapped as attribute -> we
+				// have to take all the key attributes from the joined source to build an
+				// 'result key'; see
+				final boolean b = true;
+			} else {
+				// default simple case
+				buffer.append(row.get(item.getAlias()));
+			}
 		}
 		buffer.deleteCharAt(0);
 		return buffer.toString();
@@ -242,7 +252,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		expandPathList.addAll(item.getHops());
 
 		// 2. Create the queries and roots
-		JPAAbstractQuery parent = this;
+		JPAAbstractQuery<?> parent = this;
 		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
 
 		for (final JPANavigationProptertyInfo naviInfo : expandPathList) {

@@ -75,6 +75,7 @@ CREATE TABLE "org.apache.olingo.jpa::PersonImage" (
 );
  
 insert into "org.apache.olingo.jpa::PersonImage" values ('99', '98', '97', null, '99', '2016-01-20 09:21:23', null, null); 	
+insert into "org.apache.olingo.jpa::PersonImage" values ('97', '99', '99', null, '99', '2019-01-20 09:21:23', 'John Doe', null); 	
 
 CREATE TABLE "org.apache.olingo.jpa::OrganizationImage" (
 	"ID" VARCHAR(32) NOT NULL ,

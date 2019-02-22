@@ -32,6 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
@@ -266,12 +267,11 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> entry : associationPathList.entrySet()) {
 				try {
 					for (final JPASelector leftSelector : entry.getValue().getLeftPaths()) {
-						if (JPAAssociationPath.class.isInstance(leftSelector)) {
-							// we have to join a relationship without mapped join columns...
-							LOG.log(Level.WARNING, "The $expand will join complete association '"
+						if (JPAAssociationPath.class.isInstance(leftSelector) && LOG.isLoggable(Level.FINEST)) {
+							// we have to expand a relationship without mapped join columns...
+							LOG.log(Level.FINEST, "The $expand must join the association target of '"
 									+ JPAAssociationPath.class.cast(leftSelector).getAlias()
-									+ "', because no ID column is present... Ignore that... you will have trouble... This is an bug in join column selection or a problem in your mapping!");
-							continue;
+									+ "', because the join column is not mapped as attribute... but we need the key attribute values from the other side!");
 						}
 						final int insertIndex = Collections.binarySearch(jpaPathList, leftSelector);
 						if (insertIndex < 0) {
@@ -412,31 +412,56 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 * @return
 	 * @throws ODataApplicationException
 	 */
-	protected List<Selection<?>> createSelectClause(final List<JPASelector> jpaPathList)
-			throws ODataApplicationException {
+	protected final List<Selection<?>> createSelectClause(final List<JPASelector> jpaPathList)
+			throws ODataJPAQueryException {
 
 		final List<Selection<?>> selections = new LinkedList<Selection<?>>();
 
 		// Build select clause
 		for (final JPASelector jpaPath : jpaPathList) {
+			// TODO 2. move logic into 'convertToCriteriaPath()'?
+
+			// special join case for not mapped join columns
 			if (JPAAssociationPath.class.isInstance(jpaPath)) {
+				// happens for $expand queries without join columns mapped as attribute(s)
 				final JPAAssociationPath asso = ((JPAAssociationPath) jpaPath);
-				LOG.log(Level.SEVERE,
-						"Query includes a association (navigation join via '"
-								+ asso.getSourceType().getExternalName() + "#"
-								+ jpaPath.getAlias()
-								+ "'), but without mapped JPA attributes usable for JOIN. That is not supported! An $expand will not work! Map the column as attribute to be usable for OData.");
+				try {
+					// join all the key attributes from target side table so we can build a 'result
+					// key' from the tuples in the result set
+					final List<JPASimpleAttribute> keys = asso.getTargetType().getKeyAttributes(true);
+					final Join<?, ?> join = getRoot()
+							.join(asso.getSourceType().getAssociationByPath(asso).getInternalName());
+					for (final JPASimpleAttribute jpaAttribute : keys) {
+						final Path<?> p = join.get(jpaAttribute.getInternalName());
+						p.alias(buildTargetJoinAlias(asso, jpaAttribute));
+						selections.add(p);
+					}
+				} catch (final ODataJPAModelException e) {
+					throw new ODataJPAQueryException(e, HttpStatusCode.NOT_ACCEPTABLE);
+				}
 				continue;
 			}
+
+			// default case
 			final Path<?> p = convertToCriteriaPath(jpaPath);
 			if (p == null) {
 				continue;
 			}
+			// TODO 1. move 'alias' setting into 'convertToCriteriaPath()'?
 			p.alias(jpaPath.getAlias());
 			selections.add(p);
 		}
 
 		return selections;
+	}
+
+	/**
+	 * @return A unique and reproducible alias name to access the attribute value in
+	 *         the result set after loading
+	 */
+	static final String buildTargetJoinAlias(final JPAAssociationPath association,
+			final JPASimpleAttribute targetAttribute) {
+		return association.getAlias().concat("_").concat(targetAttribute.getInternalName());
 	}
 
 	protected javax.persistence.criteria.Expression<Boolean> createWhereFromKeyPredicates()
@@ -505,10 +530,13 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	protected final Path<?> convertToCriteriaPath(final JPASelector jpaPath) {
+		if (JPAAssociationPath.class.isInstance(jpaPath)) {
+			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
+		}
 		Path<?> p = getRoot();
 		for (final JPAAttribute jpaPathElement : jpaPath.getPathElements()) {
 			if (jpaPathElement.isCollection()) {
-				p = From.class.cast(p).join(jpaPathElement.getInternalName(), JoinType.LEFT);
+				p = From.class.cast(getRoot()).join(jpaPathElement.getInternalName(), JoinType.LEFT);
 			} else {
 				p = p.get(jpaPathElement.getInternalName());
 			}
