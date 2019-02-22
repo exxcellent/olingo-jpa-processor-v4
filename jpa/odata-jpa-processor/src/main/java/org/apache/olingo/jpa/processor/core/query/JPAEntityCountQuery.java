@@ -68,9 +68,6 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
 		 * .../Organizations('3')/Roles/$count
 		 */
 
-		// FIXME: instance declares a 'Tuple' as query result type, but here we use
-		// another type, we have to clarify that with class API
-
 		final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
 		/* final Map<String, From<?, ?>> resultsetAffectingTables = */ createFromClause(orderByNaviAttributes);
 

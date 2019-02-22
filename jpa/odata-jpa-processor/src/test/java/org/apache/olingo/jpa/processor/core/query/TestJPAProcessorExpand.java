@@ -456,14 +456,28 @@ public class TestJPAProcessorExpand extends TestBase {
 	}
 
 	@Test
-	public void testExpandPersonImages() throws IOException, ODataException {
+	public void testExpandNotMappedPersonFromPersonImage() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"PersonImages('99')?$expand=PersonReferenceWithoutMappedAttribute");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode pi = helper.getValue();
-		helper.getRawResult();
 		assertNotNull(pi.get("PersonReferenceWithoutMappedAttribute"));
 		assertNotEquals(NullNode.getInstance(), pi.get("PersonReferenceWithoutMappedAttribute"));
+	}
+
+	@Test
+	public void testExpandAllLoadingNotMappedPersonFromPersonImage() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"PersonImages?$expand=PersonReferenceWithoutMappedAttribute");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode pis = helper.getValues();
+		assertEquals(2, pis.size());
+		final ObjectNode pi1 = (ObjectNode) pis.get(0);
+		final ObjectNode pi2 = (ObjectNode) pis.get(1);
+		assertNotEquals(pi1.get("PID"), pi2.get("PID"));
+		assertNotEquals(pi1.get("PersonReferenceWithoutMappedAttribute").get("ID"),
+				pi2.get("PersonReferenceWithoutMappedAttribute").get("ID"));
 	}
 }
