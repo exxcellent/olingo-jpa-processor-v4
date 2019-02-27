@@ -1,15 +1,20 @@
 package org.apache.olingo.jpa.servlet.example;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.logging.Logger;
 
 import javax.persistence.Entity;
 
 import org.apache.olingo.client.api.communication.response.ODataEntityCreateResponse;
 import org.apache.olingo.client.api.communication.response.ODataEntityUpdateResponse;
+import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
 import org.apache.olingo.client.api.domain.ClientCollectionValue;
 import org.apache.olingo.client.api.domain.ClientComplexValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientEntitySet;
 import org.apache.olingo.client.api.domain.ClientObjectFactory;
+import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.client.api.domain.ClientProperty;
 import org.apache.olingo.client.api.domain.ClientValue;
 import org.apache.olingo.client.api.uri.URIBuilder;
@@ -23,6 +28,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Person;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -33,6 +39,8 @@ import org.junit.Test;
  *
  */
 public class CreateUpdateEntitiesIT {
+
+	private final Logger log = Logger.getLogger(CreateUpdateEntitiesIT.class.getName());
 
 	private ODataEndpointTestDefinition endpoint;
 
@@ -65,6 +73,54 @@ public class CreateUpdateEntitiesIT {
 
 	@Test
 	public void test2() {
+		final ClientEntity bodyCreate = createDatatypeConversionEntity((int) System.currentTimeMillis());
+		Assert.assertNotNull(bodyCreate);
+	}
+
+	@Ignore("Activate only on demand")
+	@Test
+	public void testMassCreation() throws Exception {
+		// create
+		final int number = 10000;
+		long start = System.currentTimeMillis();
+		final int idOffset = (int) System.currentTimeMillis();
+		for (int i = 0; i < number; i++) {
+			final ClientEntity bodyCreate = createDatatypeConversionEntity(idOffset + i);
+			Assert.assertNotNull(bodyCreate);
+		}
+		log.info((System.currentTimeMillis() - start) / 1000 + " sec to create " + number + " entities");
+
+		// count
+		URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("DatatypeConversionEntities").count();
+		final ODataRetrieveResponse<ClientPrimitiveValue> responseCount = endpoint.retrieveValue(uriBuilder,
+				"Count entities in database");
+		Assert.assertTrue(responseCount.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+		final String sCount = responseCount.getBody().toCastValue(String.class);
+		final int iCount = Integer.valueOf(sCount).intValue();
+		Assert.assertTrue(iCount > 0);
+		responseCount.close();
+
+		// load
+		start = System.currentTimeMillis();
+		uriBuilder = endpoint.newUri().appendEntitySetSegment("DatatypeConversionEntities");
+		final ODataRetrieveResponse<ClientEntitySet> responseSelectAll = endpoint.retrieveEntityCollection(uriBuilder,
+				"Load all data conversion entities");
+		Assert.assertTrue(responseSelectAll.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+		//		final ClientEntitySet body = response.getBody();
+		final InputStream is = responseSelectAll.getRawResponse();
+		int size = 0;
+		while (is.read() != -1) {
+			size++;
+		}
+		responseSelectAll.close();
+		//		System.out.println("Read " + body.getEntities().size() + " entities in "
+		//				+ (System.currentTimeMillis() - start) / 1000 + " sec");
+		final long duration = (System.currentTimeMillis() - start) / 1000;
+		log.info("Read " + iCount + " entities in " + size + " bytes in " + duration + " sec");
+		Assert.assertTrue("Loading 10000 entries takes more than 4 seconds", duration < 4);
+	}
+
+	private ClientEntity createDatatypeConversionEntity(final int ID) {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("DatatypeConversionEntities");
 		final ClientObjectFactory factory = endpoint.getObjectFactory();
 		final FullQualifiedName fqn = new FullQualifiedName(Constant.PUNIT_NAME,
@@ -73,7 +129,7 @@ public class CreateUpdateEntitiesIT {
 		ClientProperty property;
 
 		property = factory.newPrimitiveProperty("ID",
-				factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf((int) System.currentTimeMillis())));
+				factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(ID)));
 		entity.getProperties().add(property);
 
 		property = factory.newPrimitiveProperty("ADate1", factory.newPrimitiveValueBuilder().buildString("1610-10-11"));
@@ -97,8 +153,10 @@ public class CreateUpdateEntitiesIT {
 				factory.newPrimitiveValueBuilder().buildDecimal(BigDecimal.valueOf(17.12345)));
 		entity.getProperties().add(property);
 
+		// do something dynamic
 		property = factory.newPrimitiveProperty("AUrl",
-				factory.newPrimitiveValueBuilder().buildString("http://www.anywhere.org/reverse.pdf"));
+				factory.newPrimitiveValueBuilder()
+				.buildString("http://www.anywhere.org/reverse-" + Long.toString(ID) + ".pdf"));
 		entity.getProperties().add(property);
 
 		property = factory.newEnumProperty("AEnumFromOtherPackage",
@@ -109,7 +167,7 @@ public class CreateUpdateEntitiesIT {
 		Assert.assertTrue(responseCreate.getStatusCode() == HttpStatusCode.CREATED.getStatusCode());
 		final ClientEntity bodyCreate = responseCreate.getBody();
 		responseCreate.close();
-		Assert.assertNotNull(bodyCreate);
+		return bodyCreate;
 	}
 
 	private void replaceProperty(final ClientEntity entity, final String propertyName, final String newValue) {

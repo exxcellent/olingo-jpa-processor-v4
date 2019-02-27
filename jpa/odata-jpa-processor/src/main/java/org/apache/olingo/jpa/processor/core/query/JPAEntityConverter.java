@@ -3,6 +3,7 @@ package org.apache.olingo.jpa.processor.core.query;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -10,7 +11,6 @@ import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.Entity;
-import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
@@ -84,7 +84,7 @@ public class JPAEntityConverter extends AbstractObjectConverter {
 			final Collection<TupleElementFacade<Object>> elements = convertJPAStructuredType(jpaEntity,
 					getJpaEntityType(), /* persistenceType, */ "");
 			final Tuple tuple = new TupleFacade<Object>(elements);
-			return convertRow2ODataEntity(tuple, new EntityCollection());
+			return convertRow2ODataEntity(tuple, new LinkedHashMap<String, Entity>());
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
 					HttpStatusCode.INTERNAL_SERVER_ERROR, e);

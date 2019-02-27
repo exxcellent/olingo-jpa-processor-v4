@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,10 +30,11 @@ class JPATupleResultConverter extends JPATupleAbstractConverter {
 	 */
 	public EntityCollection convertQueryResult() throws ODataApplicationException {
 		final EntityCollection odataEntityCollection = new EntityCollection();
+		final LinkedHashMap<String, Entity> mapEntities = new LinkedHashMap<String, Entity>();
 
 		final JPAEntityType jpaEntityType = getJpaEntityType();
 		for (final Tuple row : getJpaQueryResult().getDirectMappingsResult(JPAQueryResult.ROOT_RESULT)) {
-			final Entity odataEntity = convertRow2ODataEntity(row, odataEntityCollection);
+			final Entity odataEntity = convertRow2ODataEntity(row, mapEntities);
 			try {
 				if (jpaEntityType.hasStream()) {
 					odataEntity.setMediaContentType(determineContentType(jpaEntityType, row));
@@ -42,6 +44,7 @@ class JPATupleResultConverter extends JPATupleAbstractConverter {
 						e);
 			}
 		}
+		odataEntityCollection.getEntities().addAll(mapEntities.values());
 		return odataEntityCollection;
 	}
 
