@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.servlet.example;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.logging.Logger;
 
 import javax.persistence.Entity;
 
@@ -27,6 +28,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Person;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -37,6 +39,8 @@ import org.junit.Test;
  *
  */
 public class CreateUpdateEntitiesIT {
+
+	private final Logger log = Logger.getLogger(CreateUpdateEntitiesIT.class.getName());
 
 	private ODataEndpointTestDefinition endpoint;
 
@@ -73,6 +77,7 @@ public class CreateUpdateEntitiesIT {
 		Assert.assertNotNull(bodyCreate);
 	}
 
+	@Ignore("Activate only on demand")
 	@Test
 	public void testMassCreation() throws Exception {
 		// create
@@ -82,12 +87,8 @@ public class CreateUpdateEntitiesIT {
 		for (int i = 0; i < number; i++) {
 			final ClientEntity bodyCreate = createDatatypeConversionEntity(idOffset + i);
 			Assert.assertNotNull(bodyCreate);
-			if (i % 1000 == 0) {
-				System.out.print('.');
-			}
 		}
-		System.out.println();
-		System.out.println((System.currentTimeMillis() - start) / 1000 + " sec to create " + number + " entities");
+		log.info((System.currentTimeMillis() - start) / 1000 + " sec to create " + number + " entities");
 
 		// count
 		URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("DatatypeConversionEntities").count();
@@ -114,9 +115,9 @@ public class CreateUpdateEntitiesIT {
 		responseSelectAll.close();
 		//		System.out.println("Read " + body.getEntities().size() + " entities in "
 		//				+ (System.currentTimeMillis() - start) / 1000 + " sec");
-		System.out.println("Read " + iCount + " entities in " + size + " bytes in "
-				+ (System.currentTimeMillis() - start) / 1000 + " sec");
-
+		final long duration = (System.currentTimeMillis() - start) / 1000;
+		log.info("Read " + iCount + " entities in " + size + " bytes in " + duration + " sec");
+		Assert.assertTrue("Loading 10000 entries takes more than 4 seconds", duration < 4);
 	}
 
 	private ClientEntity createDatatypeConversionEntity(final int ID) {

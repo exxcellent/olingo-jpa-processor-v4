@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.persistence.Tuple;
@@ -105,12 +106,14 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
 		}
 
 		final EntityCollection odataEntityCollection = new EntityCollection();
+		final LinkedHashMap<String, Entity> mapEntities = new LinkedHashMap<String, Entity>();
 		if (subResult != null) {
 			for (final Tuple row : subResult) {
-				convertRow2ODataEntity(row, odataEntityCollection);
+				convertRow2ODataEntity(row, mapEntities);
 			}
 		}
 		// TODO odataEntityCollection.setId(createId());
+		odataEntityCollection.getEntities().addAll(mapEntities.values());
 		return odataEntityCollection;
 	}
 

@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,6 @@ import javax.persistence.TupleElement;
 
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
-import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
@@ -71,18 +71,21 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 	}
 
 	/**
-	 * The given row is converted into a OData entity and added to the
-	 * {@link EntityCollection#getEntities() list of entities} of entity
-	 * collection.<br/>
+	 * The given row is converted into a OData entity and added to the map of
+	 * already processed entities.<br/>
 	 * If the <code>row</code> is defining a entity that is already part of entity
 	 * collection (that happens if the {@link JPAQueryResult} is built from joined
 	 * tables) then the entity values are merged into the exiting entity and hat
 	 * already processed entity is returned; otherwise a new entity is created.
+	 *
+	 * @param alreadyProcessedEntities The map containing all already converted
+	 *                                 entities. The key in the map is the
+	 *                                 stringified entity id.
 	 */
-	protected final Entity convertRow2ODataEntity(final Tuple row, final EntityCollection odataEntityCollection)
-			throws ODataApplicationException {
-
-		final List<Entity> odataResults = odataEntityCollection.getEntities();
+	protected final Entity convertRow2ODataEntity(final Tuple row,
+			final LinkedHashMap<String, Entity> alreadyProcessedEntities)
+					throws ODataApplicationException {
+		//FIXME the 'already processed entities' should be handled as internal state, not exposed outside!
 
 		final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
 		Entity odataEntity = new Entity();
@@ -114,25 +117,16 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 		}
 		odataEntity.getNavigationLinks().addAll(createExpand(row, odataEntity.getId()));
 
-		final Entity odataExisting = findExistingEntity(odataEntity.getId(), odataEntityCollection);
+		final String entityIdString = odataEntity.getId().toString();
+		final Entity odataExisting = alreadyProcessedEntities.get(entityIdString);
 		if (odataExisting != null) {
 			mergeEntity(odataEntity, odataExisting);
 			odataEntity = odataExisting;
 		} else {
-			odataResults.add(odataEntity);
+			alreadyProcessedEntities.put(entityIdString, odataEntity);
 		}
 
 		return odataEntity;
-	}
-
-	private Entity findExistingEntity(final URI idUri, final EntityCollection odataEntityCollection) {
-		final List<Entity> odataResults = odataEntityCollection.getEntities();
-		for (final Entity entity : odataResults) {
-			if (entity.getId().equals(idUri)) {
-				return entity;
-			}
-		}
-		return null;
 	}
 
 	private void mergeEntity(final Entity from, final Entity to) throws ODataApplicationException {
