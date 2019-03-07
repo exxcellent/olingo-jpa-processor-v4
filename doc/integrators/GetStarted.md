@@ -1,3 +1,6 @@
+[Overview](TableOfContent.md)
+
+---
 # Concept
 There are some assumptions to enable this JPA adapter library for your project:
 * You have an already existing JPA entity model + _persistence.xml_ so the library can access an EntityManager for the related persistence unit.

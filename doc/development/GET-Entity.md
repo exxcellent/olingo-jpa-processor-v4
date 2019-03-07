@@ -1,3 +1,6 @@
+[Overview](TableOfContent.md)
+
+---
 # Read entity or entity collection
 A typical OData/REST call to load data for one or more reources (like _.../Persons('1')_ or _.../Persons_) will load data from the database and convert them directly into OData entities without materialization as JPA entities (Java instances).
 

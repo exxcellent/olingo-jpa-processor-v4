@@ -12,7 +12,7 @@ Developers using this library have to write only a few lines of code to get a se
 
 # Documentation
 ## For integrators
-More informations how to integrate the library into your Java project read [doc/integrators](doc/integrators/TableOfContent.md).
+More informations how to integrate the library into your Java project read ["Get Started"](doc/integrators/GetStarted.md).
 
 ## For developers
 More informations can be found under [doc/development](doc/development/Project-Structure.md).

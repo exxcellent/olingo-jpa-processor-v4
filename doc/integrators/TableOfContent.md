@@ -1,5 +1,5 @@
 # Table of conent
-1. Integrate OData-JPA bridge [into project](Intro.md)  
+1. [Integrate](GetStarted.md) OData-JPA bridge into project  
 1. Start OData-JPA bridge as [standalone servlet](AsWar.md)  
     * [Servlet security](ServletSecurity.md)
 1. Extend the OData-JPA bridge  

@@ -1,3 +1,6 @@
+[Overview](TableOfContent.md)
+
+---
 # Bound actions
 That are method calls bound to an entity class. On OData side are bound actions operations with the entity as first parameter. On Java side a bound action is a method called on the entity instance. Dependency injection is supported for field and method parameter.
 

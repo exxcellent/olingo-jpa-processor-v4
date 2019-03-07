@@ -1,9 +1,12 @@
+[Overview](TableOfContent.md)
+
+---
 # Example WAR
 * The following explanation is based on the existing example project, that can be take from the Maven repository as _org.apache.olingo.jpa.examples:olingo-generic-servlet-example_
 
 ## 1. Define WAR module
 * Create a Maven module with packaging _war_.
-* Add the dependencies as listed in [Dependency handling](Intro.md)
+* Add the dependencies as listed in [Dependency handling](GetStarted.md)
 
 ## 2. Define servlet
 * For details look into `org.apache.olingo.jpa.servlet.example.ODataServlet`
