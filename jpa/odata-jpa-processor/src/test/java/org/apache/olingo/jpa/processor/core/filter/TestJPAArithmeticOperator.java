@@ -11,7 +11,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
@@ -39,7 +39,7 @@ public class TestJPAArithmeticOperator {
 		final JPAMemberOperator left = mock(JPAMemberOperator.class);
 		final JPALiteralOperator right = mock(JPALiteralOperator.class);
 
-		when(right.get()).thenReturn(Integer.valueOf(5));
+		when(right.getLiteralValue()).thenReturn(Integer.valueOf(5));
 		when(left.get()).thenAnswer(new Answer<Path<Integer>>() {
 			@Override
 			public Path<Integer> answer(final InvocationOnMock invocation) throws Throwable {
@@ -56,7 +56,7 @@ public class TestJPAArithmeticOperator {
 		final JPAMemberOperator right = mock(JPAMemberOperator.class);
 		final JPALiteralOperator left = mock(JPALiteralOperator.class);
 
-		when(left.get()).thenReturn(Integer.valueOf(5));
+		when(left.getLiteralValue()).thenReturn(Integer.valueOf(5));
 		when(right.get()).thenAnswer(new Answer<Path<Integer>>() {
 			@Override
 			public Path<Integer> answer(final InvocationOnMock invocation) throws Throwable {
@@ -77,8 +77,13 @@ public class TestJPAArithmeticOperator {
 
 		final Expression<Number> result = mock(Expression.class);
 
-		when(left.get()).thenReturn(leftValue);
-		when(right.get()).thenReturn(Integer.valueOf(10));
+		when(left.get()).thenAnswer(new Answer<Expression<Number>>() {
+			@Override
+			public Expression<Number> answer(final InvocationOnMock invocation) throws Throwable {
+				return cb.literal(leftValue);
+			}
+		});
+		when(right.getLiteralValue()).thenReturn(Integer.valueOf(10));
 
 		when(cb.literal(leftValue)).thenAnswer(new Answer<Expression<Number>>() {
 			@Override
@@ -123,9 +128,9 @@ public class TestJPAArithmeticOperator {
 	public void testMemberLiteralGetRightAsNumber_Right() throws ODataApplicationException {
 		final JPAMemberOperator left = mock(JPAMemberOperator.class);
 		final JPALiteralOperator right = mock(JPALiteralOperator.class);
-		final JPAAttribute attribute = mock(JPAAttribute.class);
+		final JPASimpleAttribute attribute = mock(JPASimpleAttribute.class);
 
-		when(right.get(attribute)).thenReturn(new BigDecimal("5.1"));
+		when(right.getLiteralValue(attribute)).thenReturn(new BigDecimal("5.1"));
 		when(left.determineAttribute()).thenReturn(attribute);
 
 		final JPAArithmeticOperator cut = new JPAArithmeticOperatorImp(converter, BinaryOperatorKind.ADD, left, right);
@@ -136,9 +141,9 @@ public class TestJPAArithmeticOperator {
 	public void testLiteralMemberGetRightAsNumber_Left() throws ODataApplicationException {
 		final JPAMemberOperator right = mock(JPAMemberOperator.class);
 		final JPALiteralOperator left = mock(JPALiteralOperator.class);
-		final JPAAttribute attribute = mock(JPAAttribute.class);
+		final JPASimpleAttribute attribute = mock(JPASimpleAttribute.class);
 
-		when(left.get(attribute)).thenReturn(new BigDecimal("5.1"));
+		when(left.getLiteralValue(attribute)).thenReturn(new BigDecimal("5.1"));
 		when(right.determineAttribute()).thenReturn(attribute);
 
 		final JPAArithmeticOperator cut = new JPAArithmeticOperatorImp(converter, BinaryOperatorKind.ADD, left, right);
@@ -150,8 +155,8 @@ public class TestJPAArithmeticOperator {
 		final JPALiteralOperator right = mock(JPALiteralOperator.class);
 		final JPALiteralOperator left = mock(JPALiteralOperator.class);
 
-		when(left.get()).thenReturn(new BigDecimal("5.1"));
-		when(right.get()).thenReturn(new BigDecimal("10.1"));
+		when(left.getLiteralValue()).thenReturn(new BigDecimal("5.1"));
+		when(right.getLiteralValue()).thenReturn(new BigDecimal("10.1"));
 
 		final JPAArithmeticOperator cut = new JPAArithmeticOperatorImp(converter, BinaryOperatorKind.ADD, left, right);
 		assertEquals(new BigDecimal("10.1"), cut.getRightAsNumber(cb));
@@ -161,7 +166,7 @@ public class TestJPAArithmeticOperator {
 	public void testGetMemberMemberGetRightAsNumber_Exeption() throws ODataApplicationException {
 		final JPAMemberOperator right = mock(JPAMemberOperator.class);
 		final JPAMemberOperator left = mock(JPAMemberOperator.class);
-		final JPAAttribute attribute = mock(JPAAttribute.class);
+		final JPASimpleAttribute attribute = mock(JPASimpleAttribute.class);
 
 		when(left.determineAttribute()).thenReturn(attribute);
 		when(right.determineAttribute()).thenReturn(attribute);

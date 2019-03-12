@@ -88,8 +88,8 @@ class ActionParameter implements JPAOperationParameter {
 		final FullQualifiedName fqn = owner.extractGenericTypeQualifiedName(javaParameter.getParameterizedType());
 		final CsdlParameter parameter = new CsdlParameter();
 		parameter.setName(name);
-		parameter.setNullable(!javaParameter.isAnnotationPresent(NotNull.class));
-		parameter.setCollection(Collection.class.isAssignableFrom(javaParameter.getType()));
+		parameter.setNullable(isNullable());
+		parameter.setCollection(isCollection());
 		parameter.setType(fqn);
 		return parameter;
 	}
@@ -102,6 +102,25 @@ class ActionParameter implements JPAOperationParameter {
 	@Override
 	public Class<?> getType() {
 		return javaParameter.getType();
+	}
+
+	@Override
+	public boolean isNullable() {
+		return !javaParameter.isAnnotationPresent(NotNull.class);
+	}
+
+	@Override
+	public boolean isCollection() {
+		return Collection.class.isAssignableFrom(javaParameter.getType());
+	}
+
+	@Override
+	public boolean isPrimitive() {
+		try {
+			return TypeMapping.convertToEdmSimpleType(getType()) != null;
+		} catch (final ODataJPAModelException e) {
+			return false;
+		}
 	}
 
 	@Override

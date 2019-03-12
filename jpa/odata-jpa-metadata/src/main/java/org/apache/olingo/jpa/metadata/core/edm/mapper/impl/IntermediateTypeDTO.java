@@ -138,6 +138,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 		}).collect(Collectors.toList());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public CsdlEntityType getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
@@ -221,7 +222,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 	}
 
 	private void lazyBuildCompletePathMap() throws ODataJPAModelException {
-		ArrayList<JPAAttribute> pathList;
+		ArrayList<JPAAttribute<?>> pathList;
 
 		lazyBuildEdmItem();
 		if (simpleAttributePathMap.size() == 0) {
@@ -230,11 +231,11 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 				if (property.isComplex()) {
 					complexAttributePathMap.put(property.getExternalName(),
 							new JPAPathImpl(property.getExternalName(), null, property));
-					final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType) property
+					final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType<?>) property
 							.getStructuredType()).getComplexAttributePathMap();
 					for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
 						externalName = entry.getKey();
-						pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
+						pathList = new ArrayList<JPAAttribute<?>>(entry.getValue().getPathElements());
 						pathList.add(0, property);
 						complexAttributePathMap.put(nameBuilder.buildPath(property.getExternalName(), externalName),
 								new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName), null,
@@ -242,12 +243,12 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 					}
 
 					// add the (simple) properties of complex type as path to this type
-					final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType) property
+					final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType<?>) property
 							.getStructuredType()).getSimpleAttributePathMap();
 					JPAPathImpl newPath;
 					for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
 						externalName = entry.getKey();
-						pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
+						pathList = new ArrayList<JPAAttribute<?>>(entry.getValue().getPathElements());
 						pathList.add(0, property);
 						if (property.isKey()) {
 							newPath = new JPAPathImpl(externalName, determineDBFieldName(property, entry.getValue()),
@@ -265,7 +266,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 			}
 		}
 		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-		final IntermediateStructuredType baseType = (IntermediateStructuredType) getBaseType();
+		final IntermediateStructuredType<?> baseType = (IntermediateStructuredType<?>) getBaseType();
 		if (baseType != null) {
 			simpleAttributePathMap.putAll(baseType.getSimpleAttributePathMap());
 			complexAttributePathMap.putAll(baseType.getComplexAttributePathMap());

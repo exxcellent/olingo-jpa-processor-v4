@@ -25,7 +25,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Oliver Grande
  *
  */
-class IntermediateComplexType extends IntermediateStructuredType {
+class IntermediateComplexType extends IntermediateStructuredType<CsdlComplexType> {
 	private CsdlComplexType edmComplexType;
 	private InitializationState initStateEdm = InitializationState.NotInitialized;
 
@@ -75,10 +75,15 @@ class IntermediateComplexType extends IntermediateStructuredType {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public CsdlComplexType getEdmItem() throws ODataJPAModelException {
+	CsdlComplexType getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
 		return edmComplexType;
 	}
 
+	@Override
+	CsdlComplexType getEdmStructuralType() throws ODataJPAModelException {
+		return getEdmItem();
+	}
 }

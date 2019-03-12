@@ -2,13 +2,9 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
 import java.util.List;
 
-import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 public interface JPAEntityType extends JPAStructuredType {
-
-	@Override
-	public CsdlEntityType getEdmItem() throws ODataJPAModelException;
 
 	/**
 	 *

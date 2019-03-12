@@ -62,6 +62,16 @@ class ActionResultParameter implements JPAOperationResultParameter {
 	}
 
 	@Override
+	public boolean isNullable() {
+		try {
+			lazyBuildEdmItem();
+			return returnType.isNullable();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
 	public Integer getScale() {
 		try {
 			lazyBuildEdmItem();
@@ -78,6 +88,15 @@ class ActionResultParameter implements JPAOperationResultParameter {
 			return returnType.isCollection();
 		} catch (final ODataJPAModelException e) {
 			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public boolean isPrimitive() {
+		try {
+			return TypeMapping.convertToEdmSimpleType(getType()) != null;
+		} catch (final ODataJPAModelException e) {
+			return false;
 		}
 	}
 

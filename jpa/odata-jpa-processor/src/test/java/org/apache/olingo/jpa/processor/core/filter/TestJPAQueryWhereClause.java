@@ -21,7 +21,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Test
 	public void testFilterNullValue() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=AlternativeCode eq null");
+				"AdministrativeDivisions?$filter=AlternativeCode eq null");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
 		assertTrue(orgs.size() > 0);
@@ -32,7 +32,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneEquals() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID eq '3'");
+				"Organizations?$filter=ID eq '3'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -44,7 +44,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneDescriptionEquals() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=Country eq 'DEU'");
+				"Organizations?$filter=Country eq 'DEU'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -57,7 +57,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneDescriptionEqualsFieldNotSelected() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=LocationName eq 'Deutschland'&$select=ID");
+				"Organizations?$filter=LocationName eq 'Deutschland'&$select=ID");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -69,7 +69,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneEqualsTwoProperties() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=DivisionCode eq CountryCode");
+				"AdministrativeDivisions?$filter=DivisionCode eq CountryCode");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -80,7 +80,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneEqualsInvert() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter='3' eq ID");
+				"Organizations?$filter='3' eq ID");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -92,7 +92,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneNotEqual() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID ne '3'");
+				"Organizations?$filter=ID ne '3'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -103,7 +103,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneGreaterEqualsString() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID ge '5'");
+				"Organizations?$filter=ID ge '5'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -114,7 +114,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneLowerThanTwoProperties() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=DivisionCode lt CountryCode");
+				"AdministrativeDivisions?$filter=DivisionCode lt CountryCode");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -125,7 +125,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneGreaterThanString() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID gt '5'");
+				"Organizations?$filter=ID gt '5'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -136,7 +136,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneLowerThanString() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID lt '5'");
+				"Organizations?$filter=ID lt '5'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -147,7 +147,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneLowerEqualsString() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID le '5'");
+				"Organizations?$filter=ID le '5'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -158,7 +158,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneGreaterEqualsNumber() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Area ge 119330610");
+				"AdministrativeDivisions?$filter=Area ge 119330610");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -169,7 +169,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneAndEquals() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and CodeID eq 'NUTS2'");
+				"AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and CodeID eq 'NUTS2'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -180,7 +180,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneOrEquals() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=ID eq '5' or ID eq '10'");
+				"Organizations?$filter=ID eq '5' or ID eq '10'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -191,7 +191,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterOneNotLower() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=not (Area lt 50000000)");
+				"AdministrativeDivisions?$filter=not (Area lt 50000000)");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -202,7 +202,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterTwoAndEquals() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and CodeID eq 'NUTS2' and DivisionCode eq 'BE25'");
+				"AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and CodeID eq 'NUTS2' and DivisionCode eq 'BE25'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -214,7 +214,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterAndOrEqualsParenthesis() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and (DivisionCode eq 'BE25' or  DivisionCode eq 'BE24')&$orderby=DivisionCode desc");
+				"AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and (DivisionCode eq 'BE25' or  DivisionCode eq 'BE24')&$orderby=DivisionCode desc");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -226,7 +226,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterAndOrEqualsNoParenthesis() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and DivisionCode eq 'BE25' or  CodeID eq '3166-1'&$orderby=DivisionCode desc");
+				"AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and DivisionCode eq 'BE25' or  CodeID eq '3166-1'&$orderby=DivisionCode desc");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -238,7 +238,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterAddGreater() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Area add 7000000 ge 50000000");
+				"AdministrativeDivisions?$filter=Area add 7000000 ge 50000000");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -249,7 +249,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterSubGreater() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Area sub 7000000 ge 60000000");
+				"AdministrativeDivisions?$filter=Area sub 7000000 ge 60000000");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -262,7 +262,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 		assumeTrue("Hibernate cannot compare a Short (from 6000) as Number", getJPAProvider() != JPAProvider.Hibernate);
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Area gt 0 and Area div Population ge 6000");
+				"AdministrativeDivisions?$filter=Area gt 0 and Area div Population ge 6000");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -273,7 +273,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterMulGreater() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Area mul Population gt 0");
+				"AdministrativeDivisions?$filter=Area mul Population gt 0");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -284,7 +284,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterMod() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Area gt 0 and Area mod 3578335 eq 0");
+				"AdministrativeDivisions?$filter=Area gt 0 and Area mod 3578335 eq 0");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -295,7 +295,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterLength() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=length(Name) eq 10");
+				"AdministrativeDivisionDescriptions?$filter=length(Name) eq 10");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -306,7 +306,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNow() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Persons?$filter=AdministrativeInformation/Created/At lt now()");
+				"Persons?$filter=AdministrativeInformation/Created/At lt now()");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -317,7 +317,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterContains() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=contains(CodeID,'166')");
+				"AdministrativeDivisions?$filter=contains(CodeID,'166')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -328,7 +328,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterEndswith() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=endswith(CodeID,'166-1')");
+				"AdministrativeDivisions?$filter=endswith(CodeID,'166-1')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -339,7 +339,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterStartswith() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=startswith(DivisionCode,'DE-')");
+				"AdministrativeDivisions?$filter=startswith(DivisionCode,'DE-')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -350,7 +350,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterIndexOf() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=indexof(DivisionCode,'3') eq 4");
+				"AdministrativeDivisions?$filter=indexof(DivisionCode,'3') eq 4");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -361,7 +361,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterSubstringStartIndex() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and length(Name) gt 6 and substring(Name,6) eq 'Dakota'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and length(Name) gt 6 and substring(Name,6) eq 'Dakota'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -372,7 +372,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterSubstringStartEndIndex() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,0,5) eq 'North'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,0,5) eq 'North'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -384,7 +384,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterSubstringLengthCalculated() throws IOException, ODataException {
 		// substring(CompanyName, 1 add 4, 2 mul 3)
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,0,1 add 4) eq 'North'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,0,1 add 4) eq 'North'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -398,7 +398,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Test
 	public void testFilterSubstringStartCalculated() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,2 mul 3) eq 'Dakota'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,2 mul 3) eq 'Dakota'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -410,7 +410,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterToLower() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and tolower(Name) eq 'brandenburg'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and tolower(Name) eq 'brandenburg'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -422,7 +422,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterToUpper() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and toupper(Name) eq 'HESSEN'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and toupper(Name) eq 'HESSEN'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -434,7 +434,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterToUpperInvers() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=toupper('nuts1') eq CodeID");
+				"AdministrativeDivisions?$filter=toupper('nuts1') eq CodeID");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -446,7 +446,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterTrim() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and trim(Name) eq 'Sachsen'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and trim(Name) eq 'Sachsen'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -458,7 +458,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterConcat() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Persons?$filter=concat(concat(LastName,','),FirstName) eq 'Mustermann,Max'");
+				"Persons?$filter=concat(concat(LastName,','),FirstName) eq 'Mustermann,Max'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -470,7 +470,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterBoolean1() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Countries?$filter=contains(Code,'H') and startswith(Name, 'S') and not endswith(Name, 'xyz')");
+				"Countries?$filter=contains(Code,'H') and startswith(Name, 'S') and not endswith(Name, 'xyz')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -481,7 +481,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterBoolean2() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Countries?$filter=length(Code) gt 1 and startswith( substring(Name,0,3), 'S')&$top=3");
+				"Countries?$filter=length(Code) gt 1 and startswith( substring(Name,0,3), 'S')&$top=3");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
@@ -492,7 +492,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToManyValueAny() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=Roles/any(d:d/RoleCategory eq 'A')");
+				"Organizations?$filter=Roles/any(d:d/RoleCategory eq 'A')");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -503,7 +503,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToManyValueAnyMultiParameter() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$select=ID&$filter=Roles/any(d:d/RoleCategory eq 'A' and d/BusinessPartnerID eq '1')");
+				"Organizations?$select=ID&$filter=Roles/any(d:d/RoleCategory eq 'A' and d/BusinessPartnerID eq '1')");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -514,7 +514,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToManyValueAnyNoRestriction() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Persons?$filter=Roles/any()");
+				"Persons?$filter=Roles/any()");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -525,7 +525,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToManyValueAll() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$select=ID&$filter=Roles/all(d:d/RoleCategory eq 'A')");
+				"Organizations?$select=ID&$filter=Roles/all(d:d/RoleCategory eq 'A')");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -537,7 +537,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 		// https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
 		// Example 43: return all Categories with less than 10 products
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$select=ID&$filter=Roles/$count eq 2");
+				"Organizations?$select=ID&$filter=Roles/$count eq 2");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -548,7 +548,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Test
 	public void testFilterCountNavigationPropertyMultipleHops() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$select=ID&$filter=AdministrativeInformation/Created/User/Roles/$count ge 2");
+				"Organizations?$select=ID&$filter=AdministrativeInformation/Created/User/Roles/$count ge 2");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -559,7 +559,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToOneValue() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1'");
+				"AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -570,7 +570,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToOneValueAndEquals() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE34'");
+				"AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE34'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -581,7 +581,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToOneValueTwoHops() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=Parent/Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE212'");
+				"AdministrativeDivisions?$filter=Parent/Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE212'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -592,7 +592,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterNavigationPropertyToOneValueViaComplexType() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=AdministrativeInformation/Created/By eq '99'");
+				"Organizations?$filter=AdministrativeInformation/Created/By eq '99'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
 		assertEquals(8, orgs.size());
@@ -602,7 +602,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testEmptyFilterResultNavigationPropertyToOneValueViaComplexType() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=AdministrativeInformation/Created/By eq 'NonExistingUserId'");
+				"Organizations?$filter=AdministrativeInformation/Created/By eq 'NonExistingUserId'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode values = helper.getValues();
 
@@ -612,10 +612,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Ignore("RegionName currently not available in PostalAdress")
 	@Test
 	public void testFilterNavigationPropertyDescriptionViaComplexTypeWOSubselectSelectAll() throws IOException,
-	        ODataException {
+	ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=Address/RegionName eq 'Kalifornien'");
+				"Organizations?$filter=Address/RegionName eq 'Kalifornien'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -625,10 +625,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Ignore("RegionName currently not available in PostalAdress")
 	@Test
 	public void testFilterNavigationPropertyDescriptionViaComplexTypeWOSubselectSelectId() throws IOException,
-	        ODataException {
+	ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=Address/RegionName eq 'Kalifornien'&$select=ID");
+				"Organizations?$filter=Address/RegionName eq 'Kalifornien'&$select=ID");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -638,10 +638,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Ignore("TODO")
 	@Test
 	public void testFilterNavigationPropertyDescriptionToOneValueViaComplexTypeWSubselect1() throws IOException,
-	        ODataException {
+	ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=AdministrativeInformation/Created/User/LocationName eq 'Schweiz'");
+				"Organizations?$filter=AdministrativeInformation/Created/User/LocationName eq 'Schweiz'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -651,10 +651,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Ignore("TODO")
 	@Test
 	public void testFilterNavigationPropertyDescriptionToOneValueViaComplexTypeWSubselect2() throws IOException,
-	        ODataException {
+	ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "Organizations?$filter=AdministrativeInformation/Created/User/LocationName eq 'Schweiz'&$select=ID");
+				"Organizations?$filter=AdministrativeInformation/Created/User/LocationName eq 'Schweiz'&$select=ID");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
@@ -665,7 +665,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterSubstringStartEndIndexToLower() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and tolower(substring(Name,0,5)) eq 'north'");
+				"AdministrativeDivisionDescriptions?$filter=Language eq 'de' and tolower(substring(Name,0,5)) eq 'north'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -690,7 +690,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	@Test
 	public void testNavigationOneToOneWithoutMappedAttribute() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "PersonImages('99')/PersonReferenceWithoutMappedAttribute");
+				"PersonImages('99')/PersonReferenceWithoutMappedAttribute");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertNotNull(helper.getValue());
 	}
@@ -699,7 +699,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 	public void testFilterContainsOnInteger() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "DatatypeConversionEntities?$filter=contains(cast(AIntegerYear, Edm.String), '90')");
+				"DatatypeConversionEntities?$filter=contains(cast(AIntegerYear, Edm.String), '90')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode entities = helper.getValues();
@@ -711,7 +711,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 		// cast should fail with our current implementation
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "DatatypeConversionEntities?$filter=cast(AIntegerYear, Edm.Binary) gt 90");
+				"DatatypeConversionEntities?$filter=cast(AIntegerYear, Edm.Binary) gt 90");
 		helper.execute(HttpStatusCode.BAD_REQUEST.getStatusCode());
 	}
 
@@ -720,7 +720,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 		// find 'EuroSTat'
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "AdministrativeDivisions?$filter=contains(toupper(CodePublisher), 'ST')");
+				"AdministrativeDivisions?$filter=contains(toupper(CodePublisher), 'ST')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode entities = helper.getValues();
@@ -729,10 +729,8 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testFilterDayOfTime2LocalTime() throws IOException, ODataException {
-
-		// cast should fail with our current implementation
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "DatatypeConversionEntities?$filter=ATime1 eq 22:21:20");
+				"DatatypeConversionEntities?$filter=ATime1 eq 22:21:20");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode entities = helper.getValues();
 		assertEquals(1, entities.size());
@@ -740,10 +738,37 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testFilterDate2LocalDate() throws IOException, ODataException {
-
-		// cast should fail with our current implementation
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-		        "DatatypeConversionEntities?$filter=ADate2 eq 1600-12-01");
+				"DatatypeConversionEntities?$filter=ADate2 eq 1600-12-01");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode entities = helper.getValues();
+		assertEquals(1, entities.size());
+	}
+
+	@Test
+	public void testFilterTimestamp2SqlTimestampWithContainsAndCast() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities?$filter=contains(cast(ATimestamp1SqlTimestamp, Edm.String), '09:21:00')");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode entities = helper.getValues();
+		assertEquals(1, entities.size());
+	}
+
+	@Test
+	public void testFilterTimestamp2SqlTimestampWithDateConversion() throws IOException, ODataException {
+		// '2010-01-01' will be expanded to '2010-01-01 00:00:00.0' (a complete
+		// timestamp)
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities?$filter=date(ATimestamp1SqlTimestamp) ge 2010-01-01");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode entities = helper.getValues();
+		assertEquals(2, entities.size());
+	}
+
+	@Test
+	public void testFilterBooleanAttribute() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities?$filter=ABoolean eq true");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode entities = helper.getValues();
 		assertEquals(1, entities.size());

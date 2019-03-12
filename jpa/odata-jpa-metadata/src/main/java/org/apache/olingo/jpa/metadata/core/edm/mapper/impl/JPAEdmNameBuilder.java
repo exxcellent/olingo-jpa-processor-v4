@@ -5,7 +5,6 @@ import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
@@ -85,14 +84,14 @@ public final class JPAEdmNameBuilder {
 	 * EDM EntitySet Name - RULES
 	 * ************************************************************************
 	 */
-	final public String buildEntitySetName(final CsdlEntityType entityType) {
-		return buildEntitySetName(entityType.getName());
-	}
-
 	final public String buildEntitySetName(final FullQualifiedName entityTypeFQName) {
 		return buildEntitySetName(entityTypeFQName.getName());
 	}
 
+	/**
+	 *
+	 * @param entityTypeName The external name of entity type.
+	 */
 	final public String buildEntitySetName(final String entityTypeName) {
 		if (entityTypeName.charAt(entityTypeName.length() - 1) == 'y'
 				&& entityTypeName.charAt(entityTypeName.length() - 2) != 'a'
@@ -169,7 +168,7 @@ public final class JPAEdmNameBuilder {
 	 */
 	// TODO respect subtype name
 	final public String buildNaviPropertyBindingName(final JPAAssociationPath associationPath,
-			final JPAAttribute parent) {
+			final JPAAttribute<?> parent) {
 		final StringBuffer name = new StringBuffer();
 
 		name.append(parent.getExternalName());

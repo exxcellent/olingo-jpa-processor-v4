@@ -59,8 +59,9 @@ public class JPAFunctionOperator implements JPAExpression<Expression<?>> {
 			final UriParameter p = findUriParameter(parameters.get(i));
 
 			if (p.getText() != null) {
-				final JPALiteralOperator operator = new JPALiteralOperator(visitor.getOdata(), new ParameterLiteral(p.getText()));
-				jpaParameter[i] = cb.literal(operator.get(parameters.get(i)));
+				final JPALiteralOperator operator = new JPALiteralOperator(visitor.getOdata(),
+						visitor.getCriteriaBuilder(), new ParameterLiteral(p.getText()));
+				jpaParameter[i] = cb.literal(operator.getLiteralValue(parameters.get(i)));
 			} else {
 				try {
 					jpaParameter[i] = (Expression<?>) p.getExpression().accept(visitor).get();

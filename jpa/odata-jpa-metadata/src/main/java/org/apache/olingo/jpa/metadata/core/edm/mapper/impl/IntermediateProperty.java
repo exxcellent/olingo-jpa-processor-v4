@@ -254,6 +254,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	CsdlProperty getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
@@ -352,6 +353,42 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	@Override
 	public CsdlProperty getProperty() throws ODataJPAModelException {
 		return getEdmItem();
+	}
+
+	@Override
+	public Integer getMaxLength() {
+		try {
+			return getProperty().getMaxLength();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public Integer getPrecision() {
+		try {
+			return getProperty().getPrecision();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public Integer getScale() {
+		try {
+			return getProperty().getScale();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public boolean isNullable() {
+		try {
+			return getProperty().isNullable();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override

@@ -47,7 +47,7 @@ class JPAArithmeticOperatorImp implements JPAArithmeticOperator {
 	public Expression<Number> getLeft(final CriteriaBuilder cb) throws ODataApplicationException {
 		if (left instanceof JPALiteralOperator) {
 			if (right instanceof JPALiteralOperator) {
-				return cb.literal((Number) left.get());
+				return (Expression<Number>) left.get();
 			} else {
 				return (Expression<Number>) right.get();
 			}
@@ -60,9 +60,9 @@ class JPAArithmeticOperatorImp implements JPAArithmeticOperator {
 		// Determine attribute in order to determine type of literal attribute and correctly convert it
 		if (left instanceof JPALiteralOperator) {
 			if (right instanceof JPALiteralOperator) {
-				return (Number) right.get();
+				return (Number) ((JPALiteralOperator) right).getLiteralValue();
 			} else if (right instanceof JPAMemberOperator) {
-				return (Number) ((JPALiteralOperator) left).get(((JPAMemberOperator) right).determineAttribute());
+				return (Number) ((JPALiteralOperator) left).getLiteralValue(((JPAMemberOperator) right).determineAttribute());
 			} else {
 				throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR_TYPE,
 						HttpStatusCode.NOT_IMPLEMENTED);
@@ -70,7 +70,7 @@ class JPAArithmeticOperatorImp implements JPAArithmeticOperator {
 
 		} else if (left instanceof JPAMemberOperator) {
 			if (right instanceof JPALiteralOperator) {
-				return (Number) ((JPALiteralOperator) right).get(((JPAMemberOperator) left).determineAttribute());
+				return (Number) ((JPALiteralOperator) right).getLiteralValue(((JPAMemberOperator) left).determineAttribute());
 			} else {
 				throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR_TYPE,
 						HttpStatusCode.NOT_IMPLEMENTED);
@@ -78,7 +78,7 @@ class JPAArithmeticOperatorImp implements JPAArithmeticOperator {
 
 		} else if (left instanceof JPAFunctionOperator) {
 			if (right instanceof JPALiteralOperator) {
-				return (Number) ((JPALiteralOperator) right).get(((JPAFunctionOperator) left).getReturnType());
+				return (Number) ((JPALiteralOperator) right).getLiteralValue(((JPAFunctionOperator) left).getReturnType());
 			} else {
 				throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR_TYPE,
 						HttpStatusCode.NOT_IMPLEMENTED);

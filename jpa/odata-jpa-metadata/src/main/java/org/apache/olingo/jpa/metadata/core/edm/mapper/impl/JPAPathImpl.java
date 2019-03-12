@@ -11,12 +11,12 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 class JPAPathImpl implements JPAAttributePath {
 	final private String alias;
-	final private List<JPAAttribute> pathElements;
+	final private List<JPAAttribute<?>> pathElements;
 	final private String dbFieldName;
 	final private boolean ignore;
 
-	JPAPathImpl(final String alias, final String dbFieldName, final JPAAttribute element) {
-		final List<JPAAttribute> pathElementsBuffer = new ArrayList<JPAAttribute>();
+	JPAPathImpl(final String alias, final String dbFieldName, final JPAAttribute<?> element) {
+		final List<JPAAttribute<?>> pathElementsBuffer = new ArrayList<JPAAttribute<?>>();
 
 		this.alias = alias;
 		pathElementsBuffer.add(element);
@@ -25,7 +25,7 @@ class JPAPathImpl implements JPAAttributePath {
 		this.ignore = element.ignore();
 	}
 
-	JPAPathImpl(final String selection, final String dbFieldName, final List<JPAAttribute> attribute)
+	JPAPathImpl(final String selection, final String dbFieldName, final List<JPAAttribute<?>> attribute)
 			throws ODataJPAModelException {
 		this.alias = selection;
 		this.pathElements = Collections.unmodifiableList(attribute);
@@ -73,12 +73,12 @@ class JPAPathImpl implements JPAAttributePath {
 	}
 
 	@Override
-	public JPAAttribute getLeaf() {
+	public JPAAttribute<?> getLeaf() {
 		return pathElements.get(pathElements.size() - 1);
 	}
 
 	@Override
-	public List<JPAAttribute> getPathElements() {
+	public List<JPAAttribute<?>> getPathElements() {
 		return pathElements;
 	}
 

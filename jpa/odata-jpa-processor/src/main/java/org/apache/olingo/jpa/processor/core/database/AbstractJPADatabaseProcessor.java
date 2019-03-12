@@ -195,21 +195,21 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 		case CONTAINS:
 			final StringBuffer contains = new StringBuffer();
 			contains.append('%');
-			contains.append((String) ((JPALiteralOperator) parameters.get(1)).get());
+			contains.append((String) ((JPALiteralOperator) parameters.get(1)).getLiteralValue());
 			contains.append('%');
 			return cb.like((Expression<String>) (parameters.get(0).get()), contains.toString());
 		case ENDSWITH:
 			final StringBuffer ends = new StringBuffer();
 			ends.append('%');
-			ends.append((String) ((JPALiteralOperator) parameters.get(1)).get());
+			ends.append((String) ((JPALiteralOperator) parameters.get(1)).getLiteralValue());
 			return cb.like((Expression<String>) (parameters.get(0).get()), ends.toString());
 		case STARTSWITH:
 			final StringBuffer starts = new StringBuffer();
-			starts.append((String) ((JPALiteralOperator) parameters.get(1)).get());
+			starts.append((String) ((JPALiteralOperator) parameters.get(1)).getLiteralValue());
 			starts.append('%');
 			return cb.like((Expression<String>) (parameters.get(0).get()), starts.toString());
 		case INDEXOF:
-			final String searchString = ((String) ((JPALiteralOperator) parameters.get(1)).get());
+			final String searchString = ((String) ((JPALiteralOperator) parameters.get(1)).getLiteralValue());
 			return cb.locate((Expression<String>) (parameters.get(0).get()), searchString);
 		case SUBSTRING:
 			// OData defines start position in SUBSTRING as 0 (see
@@ -235,12 +235,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 			}
 			return cb.lower(tolower);
 		case TOUPPER:
-			final Expression<String> toupper;
-			if (parameters.get(0) instanceof JPALiteralOperator) {
-				toupper = cb.literal((String) parameters.get(0).get());
-			} else {
-				toupper = (Expression<String>) (parameters.get(0).get());
-			}
+			final Expression<String> toupper = (Expression<String>) (parameters.get(0).get());
 			return cb.upper(toupper);
 		case TRIM:
 			return cb.trim((Expression<String>) (parameters.get(0).get()));
@@ -265,10 +260,50 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 			// Second Date-Time functions
 		case NOW:
 			return cb.currentTimestamp();
+		case TIME:
+			// extract time part from a timestamp
+			if (parameters.size() != 1) {
+				throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
+						HttpStatusCode.BAD_REQUEST, methodCall.name());
+			}
+			return time((Expression<?>) parameters.get(0).get());
+		case DATE:
+			// extract date part from a timestamp
+			if (parameters.size() != 1) {
+				throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FILTER,
+						HttpStatusCode.BAD_REQUEST, methodCall.name());
+			}
+			return date((Expression<?>) parameters.get(0).get());
 		default:
 			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
 					HttpStatusCode.NOT_IMPLEMENTED, methodCall.name());
 		}
+	}
+
+	/**
+	 *
+	 * @param value The expression to cast into a TIME value.
+	 * @return the criteria API expression casting/converting the given expression
+	 *         value into a TIME.
+	 * @throws ODataApplicationException
+	 * @see {@link MethodKind#TIME}
+	 */
+	protected Expression<?> time(final Expression<?> value) throws ODataApplicationException {
+		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
+				HttpStatusCode.NOT_IMPLEMENTED, MethodKind.TIME.name());
+	}
+
+	/**
+	 *
+	 * @param value The expression to cast into a DATE value.
+	 * @return the criteria API expression casting/converting the given expression
+	 *         value into a DATE.
+	 * @throws ODataApplicationException
+	 * @see {@link MethodKind#DATE}
+	 */
+	protected Expression<?> date(final Expression<?> value) throws ODataApplicationException {
+		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
+				HttpStatusCode.NOT_IMPLEMENTED, MethodKind.DATE.name());
 	}
 
 	/**
@@ -279,6 +314,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 	 * @return The criteria API expression to cast the given <i>value</i> into the
 	 *         requested type.
 	 * @throws ODataApplicationException
+	 * @see {@link MethodKind#CAST}
 	 */
 	protected Expression<?> cast(final Expression<?> value, final EdmType type) throws ODataApplicationException {
 		throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
@@ -329,6 +365,9 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 			} else {
 				return (Expression<Integer>) parameter.get();
 			}
+		} else if (parameter instanceof JPALiteralOperator) {
+			return cb.literal(Integer
+					.valueOf(Integer.parseInt(((JPALiteralOperator) parameter).getLiteralValue().toString()) + offset));
 		} else {
 			return cb.literal(Integer.valueOf(Integer.parseInt(parameter.get().toString()) + offset));
 		}

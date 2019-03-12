@@ -10,12 +10,12 @@ public interface JPASelector extends Comparable<JPASelector> {
 	/**
 	 * The last path element must be instance of {@link JPAAttribute}.
 	 */
-	List<JPAAttribute> getPathElements();
+	List<JPAAttribute<?>> getPathElements();
 
 	/**
 	 *
 	 * @return The last {@link #getPathElements() path element}.
 	 */
-	JPAAttribute getLeaf();
+	JPAAttribute<?> getLeaf();
 
 }

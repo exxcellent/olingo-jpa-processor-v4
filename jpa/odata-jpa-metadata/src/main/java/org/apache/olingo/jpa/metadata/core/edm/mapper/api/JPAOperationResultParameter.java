@@ -4,14 +4,6 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 
 public interface JPAOperationResultParameter extends JPATypedElement {
 
-	public Integer getMaxLength();
-
-	public Integer getPrecision();
-
-	public Integer getScale();
-
 	public FullQualifiedName getTypeFQN();
-
-	public boolean isCollection();
 
 }

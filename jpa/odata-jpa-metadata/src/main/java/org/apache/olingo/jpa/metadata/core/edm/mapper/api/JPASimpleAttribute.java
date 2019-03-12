@@ -1,6 +1,8 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
-public interface JPASimpleAttribute extends JPAAttribute {
+import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+
+public interface JPASimpleAttribute extends JPAAttribute<CsdlProperty>, JPATypedElement {
 	/**
 	 *
 	 * @return The column name in data base.

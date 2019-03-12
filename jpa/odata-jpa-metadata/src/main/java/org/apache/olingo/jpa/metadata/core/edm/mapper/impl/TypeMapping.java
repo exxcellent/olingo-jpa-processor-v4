@@ -25,7 +25,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.geo.Geospatial.Dimension;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -89,11 +89,6 @@ public final class TypeMapping {
 		// ODATA -> JPA mapping is handled by separate logic to manage 1:n problem for
 		// ambiguous data type mappings
 
-	}
-
-	// TODO
-	private static Class<?> convertToJPAType(final JPAAttribute attribute) {
-		throw new UnsupportedOperationException();
 	}
 
 	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> type) throws ODataJPAModelException {
@@ -185,11 +180,11 @@ public final class TypeMapping {
 		return converterAnnotation.odataType();
 	}
 
-	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPAAttribute attribute)
+	public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPATypedElement attribute)
 			throws ODataJPAModelException {
 		return convertToEdmSimpleType(attribute.getType(),
 				IntermediateProperty.class.isInstance(attribute)
-						? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
+				? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
 						: null);
 	}
 

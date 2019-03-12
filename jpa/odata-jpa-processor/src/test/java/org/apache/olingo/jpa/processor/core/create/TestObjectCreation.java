@@ -21,7 +21,7 @@ public class TestObjectCreation extends TestBase {
 		final StringBuffer requestBody = new StringBuffer("{");
 		requestBody.append("\"ID\": " + Integer.toString((int) System.currentTimeMillis())).append(", ");
 		requestBody.append("\"AStringMappedEnum\": \"BCE\"").append(", ");
-		requestBody.append("\"ABoolean\": true");
+		requestBody.append("\"AIntBoolean\": true");
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DatatypeConversionEntities",

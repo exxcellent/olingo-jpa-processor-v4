@@ -4,10 +4,10 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
@@ -20,7 +20,7 @@ public class JPAMemberOperator implements JPAExpression<Path<?>> {
 	private final JPAEntityType jpaEntityType;
 	private final Root<?> root;
 
-	JPAMemberOperator(final JPAEntityType jpaEntityType, final JPAAbstractQuery parent,
+	JPAMemberOperator(final JPAEntityType jpaEntityType, final JPAAbstractQuery<?> parent,
 			final Member member) {
 		super();
 		this.member = member;
@@ -28,8 +28,8 @@ public class JPAMemberOperator implements JPAExpression<Path<?>> {
 		this.root = parent.getRoot();
 	}
 
-	public JPAAttribute determineAttribute() throws ODataApplicationException {
-		return determineAttributePath().getLeaf();
+	public JPASimpleAttribute determineAttribute() throws ODataApplicationException {
+		return (JPASimpleAttribute) determineAttributePath().getLeaf();
 	}
 
 	@Override

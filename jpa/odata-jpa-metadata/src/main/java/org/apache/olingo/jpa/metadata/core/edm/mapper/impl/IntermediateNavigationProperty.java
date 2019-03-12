@@ -63,14 +63,14 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	private final Attribute<?, ?> jpaAttribute;
 	private CsdlNavigationProperty edmNaviProperty;
 	private CsdlOnDelete edmOnDelete;
-	private final IntermediateStructuredType sourceType;
-	private IntermediateStructuredType targetType;
+	private final IntermediateStructuredType<?> sourceType;
+	private IntermediateStructuredType<?> targetType;
 	private final IntermediateServiceDocument serviceDocument;
 	private final JPAAttributeAccessor accessor;
 	private JoinConfiguration joinConfiguration = null;
 	private InitializationState initStateEdm = InitializationState.NotInitialized;
 
-	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType parent,
+	IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType<?> parent,
 			final Attribute<?, ?> jpaAttribute,
 			final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, jpaAttribute.getName());
@@ -100,7 +100,6 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		return accessor;
 	}
 
-	@Override
 	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
 		if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
 			return ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(annotationClass);
@@ -128,7 +127,6 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		return targetType;
 	}
 
-	@Override
 	public Class<?> getType() {
 		return jpaAttribute.getJavaType();
 	}
@@ -154,7 +152,6 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		return AttributeMapping.RELATIONSHIP;
 	}
 
-	@Override
 	public boolean isPrimitive() {
 		// navigation properties are targeting always a non primitive object
 		return false;
@@ -288,8 +285,8 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	}
 
 	private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> sourceJpaAttribute,
-			final String mappedBy, final IntermediateStructuredType sourceType,
-			final IntermediateStructuredType targetType)
+			final String mappedBy, final IntermediateStructuredType<?> sourceType,
+			final IntermediateStructuredType<?> targetType)
 					throws ODataJPAModelException {
 		final String relationshipLabel = sourceType.getInternalName().concat("#").concat(sourceJpaAttribute.getName());
 		final AnnotatedElement annotatedElement = (AnnotatedElement) sourceJpaAttribute.getJavaMember();
@@ -326,8 +323,8 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	}
 
 	private static void handleJoinColumnsMappedByOfTarget(final JoinConfiguration joinConfiguration,
-			final Attribute<?, ?> oppositeJpaAttribute, final IntermediateStructuredType oppositeType,
-			final IntermediateStructuredType originalRelationshipStartingType) throws ODataJPAModelException {
+			final Attribute<?, ?> oppositeJpaAttribute, final IntermediateStructuredType<?> oppositeType,
+			final IntermediateStructuredType<?> originalRelationshipStartingType) throws ODataJPAModelException {
 
 		// take all informations from the other end of relationship (switch source and
 		// target)
@@ -524,6 +521,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		return new Pair<String, String>(left, right);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	CsdlNavigationProperty getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
@@ -567,7 +565,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 	 * set
 	 */
 	private static Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(
-			final String relationshipName, final IntermediateStructuredType targetType)
+			final String relationshipName, final IntermediateStructuredType<?> targetType)
 					throws ODataJPAModelException {
 		final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
 		final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());

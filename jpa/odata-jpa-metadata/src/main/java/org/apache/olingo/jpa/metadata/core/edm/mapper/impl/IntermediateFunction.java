@@ -81,6 +81,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	CsdlFunction getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
@@ -210,14 +211,33 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		}
 
 		@Override
+		public boolean isNullable() {
+			return jpaParameter.isNullable();
+		}
+
+		@Override
 		public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
 			return TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName();
+		}
+
+		@Override
+		public boolean isCollection() {
+			return jpaParameter.isCollection();
 		}
 
 		@Override
 		public ParameterKind getParameterKind() {
 			// TODO support @Inject also for functions
 			return ParameterKind.OData;
+		}
+
+		@Override
+		public boolean isPrimitive() {
+			try {
+				return TypeMapping.convertToEdmSimpleType(jpaParameter.type()) != null;
+			} catch (final ODataJPAModelException e) {
+				return false;
+			}
 		}
 	}
 
@@ -255,6 +275,11 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 		}
 
 		@Override
+		public boolean isNullable() {
+			return jpaReturnType.isNullable();
+		}
+
+		@Override
 		public FullQualifiedName getTypeFQN() {
 			return edmFunction.getReturnType().getTypeFQN();
 		}
@@ -264,5 +289,13 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 			return jpaReturnType.isCollection();
 		}
 
+		@Override
+		public boolean isPrimitive() {
+			try {
+				return TypeMapping.convertToEdmSimpleType(jpaReturnType.type()) != null;
+			} catch (final ODataJPAModelException e) {
+				return false;
+			}
+		}
 	}
 }

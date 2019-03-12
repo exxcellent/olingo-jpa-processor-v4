@@ -35,7 +35,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Oliver Grande
  *
  */
-class IntermediateEntityType extends IntermediateStructuredType implements JPAEntityType {
+class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> implements JPAEntityType {
 
 	private CsdlEntityType edmEntityType;
 	private boolean hasEtag = false;
@@ -65,7 +65,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 
 		final List<JPAAttributePath> result = new ArrayList<JPAAttributePath>();
 		for (final String internalName : this.declaredPropertiesList.keySet()) {
-			final JPAAttribute attribute = this.declaredPropertiesList.get(internalName);
+			final JPAAttribute<?> attribute = this.declaredPropertiesList.get(internalName);
 			if (attribute instanceof IntermediateEmbeddedIdProperty) {
 				result.add(complexAttributePathMap.get(attribute.getExternalName()));
 			} else if (attribute.isKey()) {
@@ -251,7 +251,7 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 							.get(internalName)
 							.getStructuredType())
 							.getAttributes();
-					for (final JPAAttribute idAttribute : idAttributes) {
+					for (final JPAAttribute<?> idAttribute : idAttributes) {
 						final CsdlPropertyRef key = new CsdlPropertyRef();
 						key.setName(idAttribute.getExternalName());
 						keyList.add(key);
@@ -266,10 +266,16 @@ class IntermediateEntityType extends IntermediateStructuredType implements JPAEn
 		return returnNullIfEmpty(keyList);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public CsdlEntityType getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
 		return edmEntityType;
+	}
+
+	@Override
+	CsdlEntityType getEdmStructuralType() throws ODataJPAModelException {
+		return getEdmItem();
 	}
 
 	private <T> List<?> resolveEmbeddedId(final IntermediateEmbeddedIdProperty embeddedId) throws ODataJPAModelException {

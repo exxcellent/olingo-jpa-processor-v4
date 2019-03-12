@@ -93,5 +93,5 @@ abstract class IntermediateModelElement implements JPAElement {
 		return list == null || list.isEmpty() ? null : list;
 	}
 
-	abstract CsdlAbstractEdmItem getEdmItem() throws ODataJPAModelException;
+	abstract <CDSLType extends CsdlAbstractEdmItem> CDSLType getEdmItem() throws ODataJPAModelException;
 }

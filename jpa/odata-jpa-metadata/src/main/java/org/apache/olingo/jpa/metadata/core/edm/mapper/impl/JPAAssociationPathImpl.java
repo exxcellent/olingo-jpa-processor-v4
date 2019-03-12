@@ -18,7 +18,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 public class JPAAssociationPathImpl implements JPAAssociationPath {
 	final private String alias;
-	final private List<JPAAttribute> pathElements;
+	final private List<JPAAttribute<?>> pathElements;
 	final private IntermediateStructuredType sourceType;
 	final private IntermediateStructuredType targetType;
 	private final List<IntermediateJoinColumn> sourceJoinColumns;
@@ -33,11 +33,11 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 	 * the an already existing path from a nested complex type and the owning
 	 * attribute in the top level structured type.
 	 */
-	JPAAssociationPathImpl(final JPAEdmNameBuilder namebuilder, final JPAAttribute attribute,
+	JPAAssociationPathImpl(final JPAEdmNameBuilder namebuilder, final JPAAttribute<?> attribute,
 			final JPAAssociationPath associationPath, final IntermediateStructuredType source,
 			final List<IntermediateJoinColumn> joinColumns) {
 
-		final List<JPAAttribute> pathElementsBuffer = new ArrayList<JPAAttribute>();
+		final List<JPAAttribute<?>> pathElementsBuffer = new ArrayList<JPAAttribute<?>>();
 		pathElementsBuffer.add(attribute);
 		pathElementsBuffer.addAll(associationPath.getPathElements());
 
@@ -176,7 +176,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 		return attributes.get(0);
 	}
 
-	private JPASelector findJoinConditionPath(final IntermediateStructuredType type,
+	private JPASelector findJoinConditionPath(final IntermediateStructuredType<?> type,
 			final String joinColumnName)
 					throws ODataJPAModelException {
 		final JPASelector selector = type.getPathByDBField(joinColumnName);
@@ -229,12 +229,12 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 	}
 
 	@Override
-	public JPAAttribute getLeaf() {
+	public JPAAttribute<?> getLeaf() {
 		return pathElements.get(pathElements.size() - 1);
 	}
 
 	@Override
-	public List<JPAAttribute> getPathElements() {
+	public List<JPAAttribute<?>> getPathElements() {
 		return pathElements;
 	}
 

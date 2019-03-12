@@ -2,7 +2,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
 import java.util.List;
 
-import org.apache.olingo.commons.api.edm.provider.CsdlStructuralType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -20,8 +19,6 @@ public interface JPAStructuredType extends JPAElement {
 	 * @return TRUE if element should be ignored.
 	 */
 	public boolean ignore();
-
-	public CsdlStructuralType getEdmItem() throws ODataJPAModelException;
 
 	/**
 	 * Searches in the navigation properties that are available for this type via

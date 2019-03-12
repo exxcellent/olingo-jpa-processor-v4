@@ -3,7 +3,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import javax.persistence.metamodel.Attribute;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -12,7 +11,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * properties of the owning entity.
  *
  */
-public class IntermediateEmbeddedIdProperty extends IntermediateProperty implements JPAAttribute {
+public class IntermediateEmbeddedIdProperty extends IntermediateProperty {
 
 	IntermediateEmbeddedIdProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
 			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {

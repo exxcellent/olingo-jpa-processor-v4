@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.criteria.Expression;
 
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
@@ -41,4 +42,15 @@ class ODataBuiltinFunctionCallImp implements ODataBuiltinFunctionCall {
 		return parameters.size();
 	}
 
+	@Override
+	public EdmPrimitiveTypeKind getResultType() {
+		switch (methodCall) {
+		case DATE:
+			return EdmPrimitiveTypeKind.Date;
+		case TIME:
+			return EdmPrimitiveTypeKind.TimeOfDay;
+		default:
+			return null;
+		}
+	}
 }

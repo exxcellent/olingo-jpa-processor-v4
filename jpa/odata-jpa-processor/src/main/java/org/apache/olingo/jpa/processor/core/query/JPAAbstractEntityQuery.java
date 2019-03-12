@@ -179,7 +179,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 
 		final List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
 		try {
-			final List<? extends JPAAttribute> jpaKeyList = jpaEntity.getKeyAttributes(true);
+			final List<? extends JPAAttribute<?>> jpaKeyList = jpaEntity.getKeyAttributes(true);
 
 			for (final String selectItem : selectList) {
 				final JPASelector selectItemPath = jpaEntity.getPath(selectItem);
@@ -193,7 +193,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 				}
 			}
 			Collections.sort(jpaPathList);
-			for (final JPAAttribute key : jpaKeyList) {
+			for (final JPAAttribute<?> key : jpaKeyList) {
 				final JPASelector keyPath = jpaEntity.getPath(key.getExternalName());
 				final int insertAt = Collections.binarySearch(jpaPathList, keyPath);
 				if (insertAt < 0) {
@@ -352,7 +352,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 						if (uriResource instanceof UriResourcePrimitiveProperty) {
 							final EdmProperty edmProperty = ((UriResourcePrimitiveProperty) uriResource).getProperty();
 							try {
-								final JPAAttribute attribute = type.getPath(edmProperty.getName()).getLeaf();
+								final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
 								p = p.get(attribute.getInternalName());
 							} catch (final ODataJPAModelException e) {
 								throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
@@ -365,7 +365,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 						} else if (uriResource instanceof UriResourceComplexProperty) {
 							final EdmProperty edmProperty = ((UriResourceComplexProperty) uriResource).getProperty();
 							try {
-								final JPAAttribute attribute = type.getPath(edmProperty.getName()).getLeaf();
+								final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
 								p = p.get(attribute.getInternalName());
 								type = attribute.getStructuredType();
 							} catch (final ODataJPAModelException e) {
@@ -534,8 +534,9 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
 		}
 		Path<?> p = getRoot();
-		for (final JPAAttribute jpaPathElement : jpaPath.getPathElements()) {
+		for (final JPAAttribute<?> jpaPathElement : jpaPath.getPathElements()) {
 			if (jpaPathElement.isCollection()) {
+				// TODO check that
 				p = From.class.cast(getRoot()).join(jpaPathElement.getInternalName(), JoinType.LEFT);
 			} else {
 				p = p.get(jpaPathElement.getInternalName());

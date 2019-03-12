@@ -138,7 +138,7 @@ public class CreateUpdateEntitiesIT {
 		property = factory.newPrimitiveProperty("ADate3", factory.newPrimitiveValueBuilder().buildString("0610-01-01"));
 		entity.getProperties().add(property);
 
-		property = factory.newPrimitiveProperty("ATimestamp1",
+		property = factory.newPrimitiveProperty("ATimestamp1SqlTimestamp",
 				factory.newPrimitiveValueBuilder().buildString("2016-01-20T09:21:23+01:00"));
 		entity.getProperties().add(property);
 
@@ -161,6 +161,10 @@ public class CreateUpdateEntitiesIT {
 
 		property = factory.newEnumProperty("AEnumFromOtherPackage",
 				factory.newEnumValue("org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum", "Three"));
+		entity.getProperties().add(property);
+
+		property = factory.newPrimitiveProperty("AIntBoolean",
+				factory.newPrimitiveValueBuilder().buildBoolean(Boolean.TRUE));
 		entity.getProperties().add(property);
 
 		final ODataEntityCreateResponse<ClientEntity> responseCreate = endpoint.createEntity(uriBuilder, entity);

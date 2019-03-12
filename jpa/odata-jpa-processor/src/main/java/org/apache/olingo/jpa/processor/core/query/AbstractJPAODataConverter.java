@@ -208,6 +208,7 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 		return null;
 	}
 
+	@SuppressWarnings("null")
 	private boolean isSameComplexValue(final ComplexValue one, final ComplexValue second, final boolean recursive) {
 		final List<Property> propertiesOne = one.getValue();
 		final List<Property> propertiesSecond = second.getValue();
@@ -343,7 +344,7 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 			return null;
 		}
 		// take only the first, we are working recursive through the path
-		final JPAAttribute attribute = path.getPathElements().get(0);
+		final JPAAttribute<?> attribute = path.getPathElements().get(0);
 		if (attribute != null && attribute.ignore()) {
 			return null;
 		}
@@ -402,11 +403,11 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 			return complexTypeProperty;
 		} else if (attribute != null && attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
 			// leaf element is the property in the @EmbeddedId type
-			final JPAAttribute attributeComplexProperty = path.getLeaf();
+			final JPASimpleAttribute attributeComplexProperty = (JPASimpleAttribute) path.getLeaf();
 			return convertJPA2ODataProperty(attributeComplexProperty, attributeComplexProperty.getExternalName(), value, properties);
 		} else {
 			// ...$select=Name1,Address/Region
-			return convertJPA2ODataProperty(attribute, externalName, value, properties);
+			return convertJPA2ODataProperty((JPASimpleAttribute) attribute, externalName, value, properties);
 		}
 	}
 

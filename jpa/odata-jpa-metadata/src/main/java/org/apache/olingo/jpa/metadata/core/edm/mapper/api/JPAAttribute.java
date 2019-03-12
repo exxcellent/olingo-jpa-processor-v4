@@ -3,7 +3,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-public interface JPAAttribute extends JPAElement, JPATypedElement {
+public interface JPAAttribute<CDSLType extends CsdlAbstractEdmItem> extends JPAElement/* , JPATypedElement */ {
 
 	/**
 	 *
@@ -33,24 +33,16 @@ public interface JPAAttribute extends JPAElement, JPATypedElement {
 	 */
 	public boolean isComplex();
 
+	public boolean isCollection();
+
 	public boolean isKey();
 
 	public boolean isAssociation();
 
 	public boolean isSearchable();
 
-	public boolean isCollection();
-
 	public boolean ignore();
 
-	/**
-	 *
-	 * @return TRUE if the property/attribute is of any JAVA simple type (not
-	 *         {@link #isComplex()} and not {@link #isAssociation()}), maybe in a
-	 *         collection.
-	 */
-	public boolean isPrimitive();
-
-	public CsdlAbstractEdmItem getProperty() throws ODataJPAModelException;
+	public CDSLType getProperty() throws ODataJPAModelException;
 
 }

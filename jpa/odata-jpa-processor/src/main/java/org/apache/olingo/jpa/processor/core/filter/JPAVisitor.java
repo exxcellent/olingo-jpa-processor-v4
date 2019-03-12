@@ -110,7 +110,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 					HttpStatusCode.NOT_IMPLEMENTED, "Multiple Enumeration values");
 		}
 		final Literal literal = new LiteralImpl(enumValues.get(0), type);
-		return new JPALiteralOperator(this.jpaComplier.getOdata(), literal);
+		return new JPALiteralOperator(getOdata(), getCriteriaBuilder(), literal);
 	}
 
 	@Override
@@ -133,7 +133,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 	@Override
 	public JPAExpressionElement<?> visitLiteral(final Literal literal)
 			throws ExpressionVisitException, ODataApplicationException {
-		return new JPALiteralOperator(this.jpaComplier.getOdata(), literal);
+		return new JPALiteralOperator(getOdata(), getCriteriaBuilder(), literal);
 	}
 
 	@Override

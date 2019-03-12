@@ -46,7 +46,10 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
 	@Column(name = "\"ATimestamp1\"")
 	@Temporal(TemporalType.TIMESTAMP)
-	private java.util.Date aTimestamp1;
+	private java.util.Date aTimestamp1UtilDate;
+
+	@Column(name = "\"ATimestamp1\"", insertable = false, updatable = false)
+	private java.sql.Timestamp aTimestamp1SqlTimestamp;
 
 	@Column(name = "\"ATimestamp2\"")
 	private java.time.LocalDateTime aTimestamp2;
@@ -85,12 +88,16 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Column(name = "\"UUID\"")
 	private UUID uuid;
 
-	@Column(name = "\"ABoolean\"", columnDefinition = "smallint")
+	@Column(name = "\"AIntBoolean\"", columnDefinition = "smallint")
+	private Boolean aIntBoolean;
+
+	@Column(name = "\"ABoolean\"")
 	private boolean aBoolean;
+
 
 	@EdmAction()
 	public static boolean unboundActionCheckAllValueSettings(
-	        @EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
+			@EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
 		if (jpaEnity == null) {
 			throw new IllegalStateException("Entity not given");
 		}
@@ -115,8 +122,8 @@ public class DatatypeConversionEntity extends AbstractEntity {
 		if (jpaEnity.uuid == null) {
 			throw new IllegalStateException("uuid not set");
 		}
-		if (!jpaEnity.aBoolean) {
-			throw new IllegalStateException("aBoolean not set");
+		if (jpaEnity.aIntBoolean == null) {
+			throw new IllegalStateException("aIntBoolean not set");
 		}
 		return true;
 	}

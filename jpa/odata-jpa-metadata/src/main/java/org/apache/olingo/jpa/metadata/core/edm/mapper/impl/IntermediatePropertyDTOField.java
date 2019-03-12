@@ -8,7 +8,6 @@ import javax.validation.constraints.Size;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
@@ -86,6 +85,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	CsdlProperty getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();
@@ -135,6 +135,42 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	}
 
 	@Override
+	public Integer getMaxLength() {
+		try {
+			return getProperty().getMaxLength();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public Integer getPrecision() {
+		try {
+			return getProperty().getPrecision();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public Integer getScale() {
+		try {
+			return getProperty().getScale();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public boolean isNullable() {
+		try {
+			return getProperty().isNullable();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
 	public boolean isCollection() {
 		if (Collection.class.isAssignableFrom(field.getType())) {
 			return true;
@@ -148,7 +184,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	}
 
 	@Override
-	public CsdlAbstractEdmItem getProperty() throws ODataJPAModelException {
+	public CsdlProperty getProperty() throws ODataJPAModelException {
 		return getEdmItem();
 	}
 

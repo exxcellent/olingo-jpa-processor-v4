@@ -11,6 +11,24 @@ public interface JPATypedElement {
 	 */
 	public Class<?> getType();
 
+	public Integer getMaxLength();
+
+	public Integer getPrecision();
+
+	public Integer getScale();
+
+	public boolean isNullable();
+
+	public boolean isCollection();
+
+	/**
+	 *
+	 * @return TRUE if the property/attribute is of any JAVA simple type (not
+	 *         {@link #isComplex()} and not {@link #isAssociation()}), maybe in a
+	 *         collection.
+	 */
+	public boolean isPrimitive();
+
 	/**
 	 * Wrapper to get annotation from the underlying property representation (field
 	 * , method,...).

@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
-import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -25,7 +24,7 @@ class IntermediateEntitySet extends IntermediateModelElement implements CustomET
 			throws ODataJPAModelException {
 		super(nameBuilder, JPANameBuilder.buildEntitySetName(nameBuilder, et));
 		entityType = et;
-		setExternalName(nameBuilder.buildEntitySetName(et.getEdmItem()));
+		setExternalName(nameBuilder.buildEntitySetName(et.getExternalName()));
 	}
 
 	public JPAEntityType getEntityType() {
@@ -36,10 +35,9 @@ class IntermediateEntitySet extends IntermediateModelElement implements CustomET
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
 		if (edmEntitySet == null) {
 			edmEntitySet = new CsdlEntitySet();
-			final CsdlEntityType edmEt = entityType.getEdmItem();
 
 			edmEntitySet.setName(getExternalName());
-			edmEntitySet.setType(nameBuilder.buildFQN(edmEt.getName()));
+			edmEntitySet.setType(nameBuilder.buildFQN(entityType.getExternalName()));
 
 			// Create navigation Property Binding
 			// V4: An entity set or a singleton SHOULD contain an edm:NavigationPropertyBinding element for each navigation
@@ -66,6 +64,7 @@ class IntermediateEntitySet extends IntermediateModelElement implements CustomET
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	CsdlEntitySet getEdmItem() throws ODataJPAModelException {
 		lazyBuildEdmItem();

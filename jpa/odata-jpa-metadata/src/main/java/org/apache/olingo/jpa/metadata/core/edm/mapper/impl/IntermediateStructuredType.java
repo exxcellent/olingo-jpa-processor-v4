@@ -28,6 +28,7 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
+import org.apache.olingo.commons.api.edm.provider.CsdlStructuralType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -37,7 +38,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-abstract class IntermediateStructuredType extends IntermediateModelElement implements JPAStructuredType {
+abstract class IntermediateStructuredType<CsdlType extends CsdlStructuralType> extends IntermediateModelElement
+implements JPAStructuredType {
 	protected final static Logger LOG = Logger.getLogger(IntermediateStructuredType.class.getName());
 
 	protected final Map<String, IntermediateProperty> declaredPropertiesList;
@@ -63,13 +65,15 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 
 	}
 
+	abstract CsdlType getEdmStructuralType() throws ODataJPAModelException;
+
 	ManagedType<?> getJpaManagedType() {
 		return jpaManagedType;
 	}
 
 	@Override
 	public JPAAssociationAttribute getAssociationByPath(final JPAAssociationPath path) throws ODataJPAModelException {
-		for (final JPAAttribute attribute : this.getAssociations()) {
+		for (final JPAAttribute<?> attribute : this.getAssociations()) {
 			if (attribute.getExternalName().equals(path.getAlias())) {
 				return (JPAAssociationAttribute) attribute;
 			}
@@ -78,7 +82,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 	}
 
 	JPAAssociationAttribute getAssociation(final String internalName) throws ODataJPAModelException {
-		for (final JPAAttribute attribute : this.getAssociations()) {
+		for (final JPAAttribute<?> attribute : this.getAssociations()) {
 			if (attribute.getInternalName().equals(internalName)) {
 				return (JPAAssociationAttribute) attribute;
 			}
@@ -327,7 +331,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 			}
 		}
 		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-		final IntermediateStructuredType baseType = (IntermediateStructuredType) getBaseType();
+		final IntermediateStructuredType<?> baseType = (IntermediateStructuredType<?>) getBaseType();
 		if (baseType != null) {
 			jpaAttributes.addAll(baseType.getAssociations());
 		}
@@ -377,7 +381,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		}
 		if (getBaseType() != null) {
 			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-			return ((IntermediateStructuredType) getBaseType()).getPropertyByDBField(dbFieldName);
+			return ((IntermediateStructuredType<?>) getBaseType()).getPropertyByDBField(dbFieldName);
 		}
 		return null;
 	}
@@ -393,7 +397,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		IntermediateProperty result = declaredPropertiesList.get(internalName);
 		if (result == null && getBaseType() != null) {
 			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-			result = ((IntermediateStructuredType) getBaseType()).getProperty(internalName);
+			result = ((IntermediateStructuredType<?>) getBaseType()).getProperty(internalName);
 		}
 		return result;
 	}
@@ -547,7 +551,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 				if (attributePath.getPathElements().size() == 1) {
 					// Only direct attributes
 					final IntermediateProperty property = (IntermediateProperty) attributePath.getLeaf();
-					final IntermediateStructuredType nestedComplexType = (IntermediateStructuredType) property
+					final IntermediateStructuredType<?> nestedComplexType = (IntermediateStructuredType<?>) property
 							.getStructuredType();
 					// the 'nested complex type' is in the DB handled by same table (of me), so we
 					// have to build association paths
@@ -569,17 +573,17 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		if (!simpleAttributePathMap.isEmpty()) {
 			return;
 		}
-		ArrayList<JPAAttribute> pathList;
+		ArrayList<JPAAttribute<?>> pathList;
 		String externalName;
 		for (final IntermediateProperty property : declaredPropertiesList.values()) {
 			if (property.isComplex()) {
 				complexAttributePathMap.put(property.getExternalName(),
 						new JPAPathImpl(property.getExternalName(), null, property));
-				final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType) property
+				final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType<?>) property
 						.getStructuredType()).getComplexAttributePathMap();
 				for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
 					externalName = entry.getKey();
-					pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
+					pathList = new ArrayList<JPAAttribute<?>>(entry.getValue().getPathElements());
 					pathList.add(0, property);
 					complexAttributePathMap.put(nameBuilder.buildPath(property.getExternalName(), externalName),
 							new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(),
@@ -587,12 +591,12 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 				}
 
 				// add the (simple) properties of complex type as path to this type
-				final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType) property
+				final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType<?>) property
 						.getStructuredType()).getSimpleAttributePathMap();
 				JPAPathImpl newPath;
 				for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
 					externalName = entry.getKey();
-					pathList = new ArrayList<JPAAttribute>(entry.getValue().getPathElements());
+					pathList = new ArrayList<JPAAttribute<?>>(entry.getValue().getPathElements());
 					pathList.add(0, property);
 					if (property.isKey()) {
 						newPath = new JPAPathImpl(externalName, determineDBFieldName(property, entry.getValue()),
@@ -609,7 +613,7 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 			}
 		}
 		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-		final IntermediateStructuredType baseType = (IntermediateStructuredType) getBaseType();
+		final IntermediateStructuredType<?> baseType = (IntermediateStructuredType<?>) getBaseType();
 		if (baseType != null) {
 			simpleAttributePathMap.putAll(baseType.getSimpleAttributePathMap());
 			complexAttributePathMap.putAll(baseType.getComplexAttributePathMap());
@@ -632,7 +636,8 @@ abstract class IntermediateStructuredType extends IntermediateModelElement imple
 		}
 		if (this.getBaseType() != null) {
 			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-			final IntermediateProperty superResult = ((IntermediateStructuredType) getBaseType()).getStreamProperty();
+			final IntermediateProperty superResult = ((IntermediateStructuredType<?>) getBaseType())
+					.getStreamProperty();
 			if (superResult != null) {
 				count += 1;
 				result = superResult;

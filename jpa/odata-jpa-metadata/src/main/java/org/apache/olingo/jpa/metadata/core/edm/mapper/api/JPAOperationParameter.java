@@ -24,12 +24,6 @@ public interface JPAOperationParameter extends JPATypedElement {
 
 	public String getName();
 
-	public Integer getMaxLength();
-
-	public Integer getPrecision();
-
-	public Integer getScale();
-
 	public FullQualifiedName getTypeFQN() throws ODataJPAModelException;
 
 	public ParameterKind getParameterKind();
