@@ -40,11 +40,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class IntegrationTestHelper {
 
 	private static class TestErrorProcessor extends DefaultProcessor implements ErrorProcessor {
+
 		Logger LOG = Logger.getLogger(ErrorProcessor.class.getName());
 
 		@Override
 		public void processError(final ODataRequest request, final ODataResponse response,
-				final ODataServerError serverError, final ContentType responseFormat) {
+		        final ODataServerError serverError, final ContentType responseFormat) {
 			LOG.log(Level.SEVERE, serverError.getMessage(), serverError.getException());
 			super.processError(request, response, serverError, responseFormat);
 		}
@@ -67,14 +68,14 @@ public class IntegrationTestHelper {
 	 *      StringBuffer, HttpMethod)
 	 */
 	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath)
-			throws IOException, ODataException {
+	        throws IOException, ODataException {
 		this(persistenceAdapter, urlPath, null, HttpMethod.GET);
 	}
 
 	public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
-			final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
-					throws IOException,
-					ODataException {
+	        final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
+	        throws IOException,
+	        ODataException {
 		super();
 		this.req = new HttpServletRequestDouble(uriPrefix + urlPath, requestBody);
 		this.req.setMethod(requestMethod);
@@ -95,21 +96,13 @@ public class IntegrationTestHelper {
 
 	public void execute(final int status) throws ODataException {
 		final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
+
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-					final HttpServletResponse response, final EntityManager em) {
+			        final HttpServletResponse response, final EntityManager em) {
 				final Collection<Processor> processors = super.collectProcessors(request, response, em);
 				processors.add(new TestErrorProcessor());
 				return processors;
-			}
-
-			@Override
-			protected void prepareDependencyInjection(final DependencyInjector dpi) {
-				super.prepareDependencyInjection(dpi);
-				if (req.getUserPrincipal() != null) {
-					// convenience setting for our tests to make the user injectable
-					dpi.registerDependencyMapping(Principal.class, req.getUserPrincipal());
-				}
 			}
 		};
 		if (securityInceptor != null) {

@@ -68,19 +68,19 @@ public class JPAODataGetHandler {
 	}
 
 	public void process(final HttpServletRequest request, final HttpServletResponse response) {
-		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(context, securityInceptor);
-		context.getEdmProvider().setRequestLocales(request.getLocales());
-		context.initDebugger(request.getParameter(DebugSupport.ODATA_DEBUG_QUERY_PARAMETER));
-		handler.register(context.getDebugSupport());
-
 		final DependencyInjector dpi = new DependencyInjector();
 		dpi.registerDependencyMapping(HttpServletRequest.class, request);
 		dpi.registerDependencyMapping(HttpServletResponse.class, response);
 		prepareDependencyInjection(dpi);
 		context.initDependencyInjection(dpi);
 
+		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(context, securityInceptor);
+		context.getEdmProvider().setRequestLocales(request.getLocales());
+		context.initDebugger(request.getParameter(DebugSupport.ODATA_DEBUG_QUERY_PARAMETER));
+		handler.register(context.getDebugSupport());
+
 		final Collection<Processor> processors = collectProcessors(request, response, handler.getEntityManager());
-		for(final Processor p: processors) {
+		for (final Processor p : processors) {
 			handler.register(p);
 		}
 		handler.process(request, response);
@@ -121,8 +121,9 @@ public class JPAODataGetHandler {
 	 *
 	 * @return The collection of processors to use to handle the request.
 	 */
-	//TODO replace EntityManager by JPAAdapter
-	protected Collection<Processor> collectProcessors(final HttpServletRequest request, final HttpServletResponse response, final EntityManager em) {
+	// TODO replace EntityManager by JPAAdapter
+	protected Collection<Processor> collectProcessors(final HttpServletRequest request, final HttpServletResponse response,
+	        final EntityManager em) {
 		final Collection<Processor> processors = new LinkedList<>();
 		processors.add(new JPAEntityProcessor(context, em));
 		processors.add(new JPAODataRequestProcessor(context, em));
@@ -132,6 +133,7 @@ public class JPAODataGetHandler {
 	}
 
 	private static class JPAODataContextImpl implements JPAODataContext {
+
 		private final JPAEdmProvider jpaEdm;
 		private final AbstractJPADatabaseProcessor databaseProcessor;
 		private final JPAAdapter mappingAdapter;
@@ -224,7 +226,16 @@ public class JPAODataGetHandler {
 			debugSupport.setDebugger(debugger);
 		}
 
-		JPAAdapter getMappingAdapter() {
+		/**
+		 *
+		 * @return The JPAAdapter, with refreshed preparation from {@link #getDependencyInjector() dependency injector}.
+		 */
+		JPAAdapter refreshMappingAdapter() {
+			try {
+				getDependencyInjector().injectFields(mappingAdapter);
+			} catch (final ODataApplicationException e) {
+				throw new RuntimeException(e);
+			}
 			return mappingAdapter;
 		}
 
@@ -285,7 +296,7 @@ public class JPAODataGetHandler {
 
 		public JPAODataHttpHandlerImpl(final JPAODataContextImpl context, final SecurityInceptor securityInceptor) {
 			super(context.getOdata(), context.getServiceMetaData());
-			this.em = context.getMappingAdapter().createEntityManager();
+			this.em = context.refreshMappingAdapter().createEntityManager();
 			this.securityInceptor = securityInceptor;
 		}
 
@@ -295,7 +306,6 @@ public class JPAODataGetHandler {
 
 		@Override
 		public ODataResponse process(final ODataRequest request) {
-			final JPAAdapter mappingAdapter = context.getMappingAdapter();
 			context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
 
 			try {
@@ -308,6 +318,7 @@ public class JPAODataGetHandler {
 				return wrapIntoErrorResponse(request, e);
 			}
 
+			final JPAAdapter mappingAdapter = context.refreshMappingAdapter();
 			try {
 				mappingAdapter.beginTransaction(em);
 				final ODataResponse odataResponse = super.process(request);
@@ -355,7 +366,7 @@ public class JPAODataGetHandler {
 			final ODataResponse errorResponse = new ODataResponse();
 			final ServerCoreDebugger debugger = new ServerCoreDebugger(context.getOdata());
 			final ODataHandlerImpl handler = new ODataHandlerImpl(context.getOdata(), context.getServiceMetaData(),
-					debugger);
+			        debugger);
 			handler.handleException(request, errorResponse, serverError, ex);
 			return errorResponse;
 		}
@@ -366,9 +377,12 @@ public class JPAODataGetHandler {
 			}
 			context.getDependencyInjector().injectFields(securityInceptor);
 			final UriInfo uriInfo = new Parser(context.getServiceMetaData().getEdm(), context.getOdata())
-					.parseUri(request.getRawODataPath(),
-							request.getRawQueryPath(), null, request.getRawBaseUri());
+			        .parseUri(request.getRawODataPath(),
+			                request.getRawQueryPath(), null, request.getRawBaseUri());
 			securityInceptor.authorize(request, uriInfo);
+			// prepare the principal for DPI in case of a happened authentication
+			final HttpServletRequest httpRequest = context.getDependencyInjector().getDependencyValue(HttpServletRequest.class);
+			context.getDependencyInjector().registerDependencyMapping(java.security.Principal.class, httpRequest.getUserPrincipal());
 		}
 	}
 

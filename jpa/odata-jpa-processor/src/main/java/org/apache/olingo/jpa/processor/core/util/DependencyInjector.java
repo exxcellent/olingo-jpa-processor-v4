@@ -50,6 +50,7 @@ public final class DependencyInjector {
 	}
 
 	private static class InjectionOccurrence {
+
 		private final Field field;
 		private final Object matchingObject;
 
@@ -69,8 +70,8 @@ public final class DependencyInjector {
 	 *            {@link #registerDependencyMapping(Class, Object)}.
 	 * @return The value for registered type.
 	 */
-	public Object getDependencyValue(final Class<?> type) {
-		return valueMapping.get(type);
+	public <T> T getDependencyValue(final Class<T> type) {
+		return (T) valueMapping.get(type);
 	}
 
 	/**
@@ -119,7 +120,7 @@ public final class DependencyInjector {
 				o.field.set(target, o.matchingObject);
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-						HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+				        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 			} finally {
 				// reset
 				if (!accessible) {
@@ -136,11 +137,11 @@ public final class DependencyInjector {
 	 * @return TRUE if given field has a annotation assumed to be a injection marker
 	 */
 	private static boolean isAnnotatedForInjection(final Field field) {
-		//olingo-jpa-processor specific 'Inject' annotation
-		if(field.isAnnotationPresent(Inject.class)) {
+		// olingo-jpa-processor specific 'Inject' annotation
+		if (field.isAnnotationPresent(Inject.class)) {
 			return true;
 		}
-		//support for javax.inject.Inject, avoiding direct dependencies
+		// support for javax.inject.Inject, avoiding direct dependencies
 		if (injectAnnotation != null && field.isAnnotationPresent(injectAnnotation)) {
 			return true;
 		}
