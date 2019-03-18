@@ -25,6 +25,8 @@ public class TestJPASelect extends TestBase {
 
 		final ObjectNode p = helper.getValue();
 		assertEquals(99, p.get("ID").asLong());
+		assertEquals(2, ((ArrayNode) p.get("PhoneNumbers")).size());
+		assertNotNull(((ArrayNode) p.get("PhoneNumbers")).get(0).get("PhoneNumber"));
 	}
 
 	/**
@@ -43,7 +45,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectEmbeddedId() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"AdministrativeDivisionDescriptions?$select=CodePublisher,DivisionCode&$filter=CodeID eq 'NUTS3'");
+		        "AdministrativeDivisionDescriptions?$select=CodePublisher,DivisionCode&$filter=CodeID eq 'NUTS3'");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode adds = helper.getValues();
@@ -56,7 +58,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipTargets() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipSourceEntities(1)/Targets");
+		        "RelationshipSourceEntities(1)/Targets");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();
@@ -66,7 +68,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipSource() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipTargetEntities(3)/SOURCE");
+		        "RelationshipTargetEntities(3)/SOURCE");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode source = helper.getValue();
@@ -77,7 +79,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipM2NLeftNavigation() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipSourceEntities(1)/LeftM2Ns");
+		        "RelationshipSourceEntities(1)/LeftM2Ns");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();
@@ -87,7 +89,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipM2NRightNavigation() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipTargetEntities(5)/RightM2Ns");
+		        "RelationshipTargetEntities(5)/RightM2Ns");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();
@@ -97,7 +99,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipOne2Many() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipTargetEntities(5)/One2ManyTest");
+		        "RelationshipTargetEntities(5)/One2ManyTest");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();
@@ -107,7 +109,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipSecondM2NLeftNavigation() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipEntities(2)/SecondLeftM2Ns");
+		        "RelationshipEntities(2)/SecondLeftM2Ns");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();
@@ -117,7 +119,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipSecondM2NRightNavigation() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipEntities(4)/SecondRightM2Ns");
+		        "RelationshipEntities(4)/SecondRightM2Ns");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();
@@ -127,7 +129,7 @@ public class TestJPASelect extends TestBase {
 	@Test
 	public void testSelectRelationshipM2NBusinessPartnerRoles() throws IOException, ODataException {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"BusinessPartners('5')/Locations");
+		        "BusinessPartners('5')/Locations");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode targets = helper.getValues();

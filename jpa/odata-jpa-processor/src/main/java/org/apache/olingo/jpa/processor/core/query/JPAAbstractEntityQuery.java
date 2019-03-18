@@ -67,8 +67,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	private final Locale locale;
 
 	public JPAAbstractEntityQuery(final OData odata, final JPAODataSessionContextAccess context,
-			final JPAEntityType jpaEntityType, final EntityManager em, final Map<String, List<String>> requestHeaders,
-			final UriInfoResource uriResource) throws ODataApplicationException {
+	        final JPAEntityType jpaEntityType, final EntityManager em, final Map<String, List<String>> requestHeaders,
+	        final UriInfoResource uriResource) throws ODataApplicationException {
 
 		super(context.getEdmProvider().getServiceDocument(), jpaEntityType, em, context.getDebugger());
 		this.odata = odata;
@@ -76,7 +76,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 		this.requestHeaders = requestHeaders;
 		this.uriResource = uriResource;
 		this.filter = new JPAEntityFilterProcessor(odata, sd, em, jpaEntityType, context.getDatabaseProcessor(),
-				uriResource, this);
+		        uriResource, this);
 		this.context = context;
 	}
 
@@ -91,9 +91,9 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	/**
 	 * Applies the $skip and $top options of the OData request to the query. The values are defined as follows:
 	 * <ul>
-	 * <li> The $top system query option specifies a non-negative integer n that limits the number of items returned from
+	 * <li>The $top system query option specifies a non-negative integer n that limits the number of items returned from
 	 * a collection.
-	 * <li> The $skip system query option specifies a non-negative integer n that excludes the first n items of the
+	 * <li>The $skip system query option specifies a non-negative integer n that excludes the first n items of the
 	 * queried collection from the result.
 	 * </ul>
 	 * For details see:
@@ -109,7 +109,6 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 		 * appear in the request.
 		 * If no unique ordering is imposed through an $orderby query option, the service MUST impose a stable ordering
 		 * across requests that include $skip.
-		 *
 		 * URL example: http://localhost:8080/BuPa/BuPa.svc/Organizations?$count=true&$skip=5
 		 */
 
@@ -120,7 +119,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 				tq.setMaxResults(topNumber);
 			} else {
 				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-						HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
+				        HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
 			}
 		}
 
@@ -131,7 +130,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 				tq.setFirstResult(skipNumber);
 			} else {
 				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-						HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
+				        HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
 			}
 		}
 	}
@@ -146,7 +145,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	private List<JPASelector> buildPathValue(final JPAEntityType jpaEntity, final String select)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 
 		List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
 		String selectString;
@@ -168,14 +167,14 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	private List<JPASelector> buildPathList(final JPAEntityType jpaEntity, final String select)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 
 		final String[] selectList = select.split(SELECT_ITEM_SEPERATOR); // OData separator for $select
 		return buildPathList(jpaEntity, selectList);
 	}
 
 	private List<JPASelector> buildPathList(final JPAEntityType jpaEntity, final String[] selectList)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 
 		final List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
 		try {
@@ -198,8 +197,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 				final int insertAt = Collections.binarySearch(jpaPathList, keyPath);
 				if (insertAt < 0) {
 					LOG.log(Level.WARNING,
-							"OData-JPA bridge doesn't support $select without including of all key attributes, will add '"
-									+ keyPath.getAlias() + "' as part of result");
+					        "OData-JPA bridge doesn't support $select without including of all key attributes, will add '"
+					                + keyPath.getAlias() + "' as part of result");
 					jpaPathList.add((insertAt * -1) - 1, keyPath);
 				}
 			}
@@ -210,7 +209,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	protected final List<JPASelector> buildSelectionPathList(final UriInfoResource uriResource)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		List<JPASelector> jpaPathList = null;
 		// TODO It is also possible to request all actions or functions available for each returned entity:
 		// http://host/service/Products?$select=DemoService.*
@@ -253,7 +252,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			}
 		} catch (final ODataJPAModelException e1) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e1);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e1);
 		}
 
 		// TODO select that fields only if $expand option is given
@@ -261,7 +260,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 		// Add also fields that are required for $expand (for the key building to merge
 		// results from sub queries)
 		final Map<JPAExpandItemWrapper, JPAAssociationPath> associationPathList = Util.determineAssoziations(sd,
-				uriResource.getUriResourceParts(), uriResource.getExpandOption());
+		        uriResource.getUriResourceParts(), uriResource.getExpandOption());
 		if (!associationPathList.isEmpty()) {
 			Collections.sort(jpaPathList);
 			for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> entry : associationPathList.entrySet()) {
@@ -270,8 +269,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 						if (JPAAssociationPath.class.isInstance(leftSelector) && LOG.isLoggable(Level.FINEST)) {
 							// we have to expand a relationship without mapped join columns...
 							LOG.log(Level.FINEST, "The $expand must join the association target of '"
-									+ JPAAssociationPath.class.cast(leftSelector).getAlias()
-									+ "', because the join column is not mapped as attribute... but we need the key attribute values from the other side!");
+							        + JPAAssociationPath.class.cast(leftSelector).getAlias()
+							        + "', because the join column is not mapped as attribute... but we need the key attribute values from the other side!");
 						}
 						final int insertIndex = Collections.binarySearch(jpaPathList, leftSelector);
 						if (insertIndex < 0) {
@@ -295,7 +294,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 * @throws ODataApplicationException
 	 */
 	protected Map<String, From<?, ?>> createFromClause(final List<JPAAssociationAttribute> orderByTarget)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
 		final Root<?> root = getRoot();
 		// 1. Create root
@@ -317,13 +316,14 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 * <a
 	 * href=
 	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398305"
-	 * >OData Version 4.0 Part 1 - 11.2.5.2 System Query Option $orderby</a> <p>
+	 * >OData Version 4.0 Part 1 - 11.2.5.2 System Query Option $orderby</a>
+	 * <p>
 	 *
 	 * @throws ODataJPAModelException
 	 *
 	 */
 	protected List<Order> createOrderByList(final Map<String, From<?, ?>> joinTables, final OrderByOption orderByOption)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		// .../Organizations?$orderby=Address/Country --> one item, two resourcePaths
 		// [...ComplexProperty,...PrimitiveProperty]
 		// .../Organizations?$orderby=Roles/$count --> one item, two resourcePaths [...NavigationProperty,...Count]
@@ -376,8 +376,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 							From<?, ?> join;
 							try {
 								join = joinTables
-										.get(jpaEntityType.getAssociationPath(edmNaviProperty.getName()).getLeaf()
-												.getInternalName());
+								        .get(jpaEntityType.getAssociationPath(edmNaviProperty.getName()).getLeaf()
+								                .getInternalName());
 							} catch (final ODataJPAModelException e) {
 								throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 							}
@@ -401,7 +401,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 * <a
 	 * href=
 	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398297"
-	 * >OData Version 4.0 Part 1 - 11.2.4.1 System Query Option $select</a> <p>
+	 * >OData Version 4.0 Part 1 - 11.2.4.1 System Query Option $select</a>
+	 * <p>
 	 * See also:
 	 * <a
 	 * href=
@@ -413,7 +414,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 * @throws ODataApplicationException
 	 */
 	protected final List<Selection<?>> createSelectClause(final List<JPASelector> jpaPathList)
-			throws ODataJPAQueryException {
+	        throws ODataJPAQueryException {
 
 		final List<Selection<?>> selections = new LinkedList<Selection<?>>();
 
@@ -430,7 +431,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 					// key' from the tuples in the result set
 					final List<JPASimpleAttribute> keys = asso.getTargetType().getKeyAttributes(true);
 					final Join<?, ?> join = getRoot()
-							.join(asso.getSourceType().getAssociationByPath(asso).getInternalName());
+					        .join(asso.getSourceType().getAssociationByPath(asso).getInternalName());
 					for (final JPASimpleAttribute jpaAttribute : keys) {
 						final Path<?> p = join.get(jpaAttribute.getInternalName());
 						p.alias(buildTargetJoinAlias(asso, jpaAttribute));
@@ -460,12 +461,12 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 *         the result set after loading
 	 */
 	static final String buildTargetJoinAlias(final JPAAssociationPath association,
-			final JPASimpleAttribute targetAttribute) {
+	        final JPASimpleAttribute targetAttribute) {
 		return association.getAlias().concat("_").concat(targetAttribute.getInternalName());
 	}
 
 	protected javax.persistence.criteria.Expression<Boolean> createWhereFromKeyPredicates()
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		javax.persistence.criteria.Expression<Boolean> whereCondition = null;
 
 		final List<UriResource> resources = uriResource.getUriResourceParts();
@@ -498,23 +499,23 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			whereCondition = addWhereClause(whereCondition, filter.compile());
 		} catch (final ExpressionVisitException e) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_FILTER_ERROR,
-					HttpStatusCode.BAD_REQUEST, e);
+			        HttpStatusCode.BAD_REQUEST, e);
 		}
 
 		if (uriResource.getSearchOption() != null && uriResource.getSearchOption().getSearchExpression() != null) {
 			whereCondition = addWhereClause(whereCondition,
-					context.getDatabaseProcessor().createSearchWhereClause(cb, this.getQuery(), getRoot(),
-							jpaEntityType,
-							uriResource
-							.getSearchOption()));
+			        context.getDatabaseProcessor().createSearchWhereClause(cb, this.getQuery(), getRoot(),
+			                jpaEntityType,
+			                uriResource
+			                        .getSearchOption()));
 		}
 
 		return whereCondition;
 	}
 
 	protected JPAAssociationPath determineAssoziation(final UriResourcePartTyped naviStart,
-			final StringBuffer associationName)
-					throws ODataApplicationException {
+	        final StringBuffer associationName)
+	        throws ODataApplicationException {
 
 		JPAEntityType naviStartType;
 		try {
@@ -534,15 +535,38 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
 		}
 		Path<?> p = getRoot();
+		Join<?, ?> existingJoin;
 		for (final JPAAttribute<?> jpaPathElement : jpaPath.getPathElements()) {
 			if (jpaPathElement.isCollection()) {
-				// TODO check that
-				p = From.class.cast(getRoot()).join(jpaPathElement.getInternalName(), JoinType.LEFT);
+				// we can cast, because 'p' is the Root<> or another Join<>
+				existingJoin = findAlreadyDefinedJoin((From<?, ?>) p, jpaPathElement);
+				if (existingJoin != null) {
+					p = existingJoin;
+				} else {
+					p = From.class.cast(getRoot()).join(jpaPathElement.getInternalName(), JoinType.LEFT);
+				}
 			} else {
 				p = p.get(jpaPathElement.getInternalName());
 			}
 		}
 		return p;
+	}
+
+	/**
+	 * Find an already created {@link Join} expression for the given attribute. The given attribute must be:
+	 * <ul>
+	 * <li>an attribute annotated with @ElementCollection</li>
+	 * <li>the first path element in a {@link JPASelector}</li>
+	 * </ul>
+	 *
+	 * @return The already existing {@link Join} or <code>null</code>.
+	 */
+	private Join<?, ?> findAlreadyDefinedJoin(final From<?, ?> parentCriteriaPath, final JPAAttribute<?> jpaPathElement) {
+		for (final Join<?, ?> join : parentCriteriaPath.getJoins()) {
+			if (jpaPathElement.getInternalName().equals(join.getAttribute().getName()))
+				return join;
+		}
+		return null;
 	}
 
 	boolean hasNavigation(final List<UriResource> uriResourceParts) {
@@ -557,8 +581,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	private javax.persistence.criteria.Expression<Boolean> addWhereClause(
-			javax.persistence.criteria.Expression<Boolean> whereCondition,
-			final javax.persistence.criteria.Expression<Boolean> additioanlExpression) {
+	        javax.persistence.criteria.Expression<Boolean> whereCondition,
+	        final javax.persistence.criteria.Expression<Boolean> additioanlExpression) {
 
 		if (additioanlExpression != null) {
 			if (whereCondition == null) {
@@ -571,17 +595,20 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	/**
-	 * Generate sub-queries in order to select the target of a navigation to a different entity<p>
+	 * Generate sub-queries in order to select the target of a navigation to a different entity
+	 * <p>
 	 * In case of multiple navigation steps a inner navigation has a dependency in both directions, to the upper and to
-	 * the lower query:<p>
+	 * the lower query:
+	 * <p>
 	 * <code>SELECT * FROM upper WHERE EXISTS( <p>
 	 * SELECT ... FROM inner WHERE upper = inner<p>
 	 * AND EXISTS( SELECT ... FROM lower<p>
-	 * WHERE inner = lower))</code><p>
+	 * WHERE inner = lower))</code>
+	 * <p>
 	 * This is solved by a three steps approach
 	 */
 	private javax.persistence.criteria.Expression<Boolean> buildNavigationSubQueries()
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 
 		final List<UriResource> resourceParts = uriResource.getUriResourceParts();
 
@@ -599,11 +626,11 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 		for (final JPANavigationProptertyInfo naviInfo : naviPathList) {
 			if (naviInfo.getAssociationPath() == null) {
 				LOG.log(Level.SEVERE, "Association for navigation path to '"
-						+ naviInfo.getUriResiource().getType().getName() + "' not found. Cannot resolve target entity");
+				        + naviInfo.getUriResiource().getType().getName() + "' not found. Cannot resolve target entity");
 				continue;
 			}
 			final JPANavigationQuery navQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent, em,
-					naviInfo.getAssociationPath());
+			        naviInfo.getAssociationPath());
 			queryList.add(navQuery);
 			parent = navQuery;
 		}
@@ -638,14 +665,14 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 					for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
 						if (uriResource instanceof UriResourceNavigation) {
 							final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource)
-									.getProperty();
+							        .getProperty();
 							try {
 								naviAttributes.add((JPAAssociationAttribute) jpaEntityType
-										.getAssociationPath(edmNaviProperty.getName()).getLeaf());
+								        .getAssociationPath(edmNaviProperty.getName()).getLeaf());
 							} catch (final ODataJPAModelException e) {
 								throw new ODataJPAQueryException(
-										ODataJPAQueryException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-										HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+								        ODataJPAQueryException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+								        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 							}
 						}
 					}

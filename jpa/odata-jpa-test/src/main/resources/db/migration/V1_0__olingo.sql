@@ -53,14 +53,15 @@ insert into "org.apache.olingo.jpa::BusinessPartner" values ('97', 0, '1', '',''
 -- used for @ElementCollection test
 CREATE TABLE "org.apache.olingo.jpa::Phone" (
 	"PartnerID" VARCHAR(32) NOT NULL ,
-	"PhoneNumber" VARCHAR(128)
+	"PhoneNumber" VARCHAR(128),
+	"PreSelection" VARCHAR(64)
 );
 
-insert into "org.apache.olingo.jpa::Phone" values ('99','+49 1235 8888'); 	
-insert into "org.apache.olingo.jpa::Phone" values ('99','01235 8888'); 	
-insert into "org.apache.olingo.jpa::Phone" values ('98','+42 01235 8888-44444'); 	
-insert into "org.apache.olingo.jpa::Phone" values ('98','+42 01265 8888-44444/15'); 	
-insert into "org.apache.olingo.jpa::Phone" values ('97','+42/1234/987654321'); 	
+insert into "org.apache.olingo.jpa::Phone" values ('99','1235 8888', '+49'); 	
+insert into "org.apache.olingo.jpa::Phone" values ('99','01235 8888', null); 	
+insert into "org.apache.olingo.jpa::Phone" values ('98','1235 8888-44444', '+42'); 	
+insert into "org.apache.olingo.jpa::Phone" values ('98','1265 8888-44444/15', '+42'); 	
+insert into "org.apache.olingo.jpa::Phone" values ('97','+42/1234/987654321', null); 	
 
 CREATE TABLE "org.apache.olingo.jpa::PersonImage" (
 	"PID" VARCHAR(32) NOT NULL , -- standard behaviour to navigate to a Person
