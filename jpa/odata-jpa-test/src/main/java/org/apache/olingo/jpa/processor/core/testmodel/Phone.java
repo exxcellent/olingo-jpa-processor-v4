@@ -7,10 +7,17 @@ import javax.validation.constraints.Size;
 @Embeddable
 public class Phone {
 
-	@Column(name = "\"PhoneNumber\"", length = 128)
-	private String phoneNumber;
+	/**
+	 * International area code of complete phone number: +49/1234/55667788-0 ->
+	 * '+49'
+	 */
+	@Size(max = 32)
+	@Column(name = "\"InternationalAreaCode\"", length = 32)
+	private String internationalAreaCode;
 
-	@Size(max = 64)
-	@Column(name = "\"PreSelection\"", length = 64)
-	private String preSelection;
+	/**
+	 * Main part of complete phone number: +49/1234/55667788-0 -> '1234/55667788-0'
+	 */
+	@Column(name = "\"PhoneNumber\"", length = 128, nullable = false)
+	private String phoneNumber;
 }

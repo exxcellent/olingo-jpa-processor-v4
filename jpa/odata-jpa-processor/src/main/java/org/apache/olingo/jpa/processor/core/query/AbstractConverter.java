@@ -239,7 +239,9 @@ public abstract class AbstractConverter {
 			if (property.getValueType() == null) {
 				// new created property
 				final List<Object> list = new LinkedList<>();
-				list.add(input);
+				if (input != null) {
+					list.add(input);
+				}
 				property.setValue(valueType, list);
 			} else {
 				// add value to existing property

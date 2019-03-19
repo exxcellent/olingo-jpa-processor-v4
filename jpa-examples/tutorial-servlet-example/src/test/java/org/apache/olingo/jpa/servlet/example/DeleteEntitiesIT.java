@@ -27,18 +27,7 @@ public class DeleteEntitiesIT {
 	}
 
 	@Test
-	public void test1() {
-		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("NoExistingResource").appendKeySegment("-3");
-		try {
-			final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder,
-					"Try to delete non existing resource");
-		} catch(final ODataClientErrorException ex) {
-			Assert.assertTrue(ex.getStatusLine().getStatusCode() == HttpStatusCode.NOT_FOUND.getStatusCode());
-		}
-	}
-
-	@Test
-	public void test2() {
+	public void testDeleteNonExistingPerson() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("9555559");
 		try {
 			final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder,
@@ -49,7 +38,7 @@ public class DeleteEntitiesIT {
 	}
 
 	@Test
-	public void test3() throws Exception {
+	public void testDeleteAnyExistingPerson() throws Exception {
 		final int countBefore = countPersons();
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("98");
 		final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder, "Delete person with ID 98");
@@ -57,6 +46,17 @@ public class DeleteEntitiesIT {
 		response.close();
 		final int countAfter = countPersons();
 		Assert.assertEquals(countBefore, countAfter+1);
+	}
+
+	@Test
+	public void testDeletePersonWithoutPhones() throws Exception {
+		final int countBefore = countPersons();
+		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("96");
+		final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder, "Delete person with ID 96");
+		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.NO_CONTENT.getStatusCode());
+		response.close();
+		final int countAfter = countPersons();
+		Assert.assertEquals(countBefore, countAfter + 1);
 	}
 
 	private int countPersons() throws Exception {

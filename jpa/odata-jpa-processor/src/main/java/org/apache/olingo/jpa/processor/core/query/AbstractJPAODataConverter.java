@@ -350,6 +350,10 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 		}
 		if (attribute != null && !attribute.isKey() && attribute.getAttributeMapping() == AttributeMapping.AS_COMPLEX_TYPE) {
 			// complex type should never be a 'key'... todo: check that anytime!
+			if (value == null && path.getPathElements().size() > 1) {
+				// do not create a owning complex type for null values
+				return null;
+			}
 			String bufferKey;
 			if (prefix.isEmpty()) {
 				bufferKey = attribute.getExternalName();
@@ -360,7 +364,7 @@ public abstract class AbstractJPAODataConverter extends AbstractConverter {
 			Property complexTypeProperty = null;
 			if (attribute.isCollection()) {
 				// Remark: One result set row is representing always one entity with maximal ONE
-				// of any nested types (JOINED via LEFT JOIN)
+				// of any nested types (LEFT JOIN's)
 				// So we can assume, that only ONE complex type value will assigned to that
 				// entity instance we create
 				// here...

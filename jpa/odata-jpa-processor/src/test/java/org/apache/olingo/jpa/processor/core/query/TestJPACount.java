@@ -21,7 +21,7 @@ public class TestJPACount extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons/$count");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertEquals(3, Integer.parseInt(helper.getRawResult()));
+		assertEquals(4, Integer.parseInt(helper.getRawResult()));
 	}
 
 	// TODO '$orderby' is ignored

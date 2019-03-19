@@ -310,7 +310,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode orgs = helper.getValues();
-		assertEquals(3, orgs.size());
+		assertEquals(4, orgs.size());
 	}
 
 	@Test

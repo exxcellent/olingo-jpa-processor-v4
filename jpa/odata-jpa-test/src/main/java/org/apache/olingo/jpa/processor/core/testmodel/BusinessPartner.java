@@ -130,7 +130,7 @@ public abstract class BusinessPartner {
 
 	@ElementCollection
 	@CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
-	@Column(name = "\"PhoneNumber\"", length = 128, insertable = false)
+	@Column(name = "\"PhoneNumber\"", length = 128, insertable = false, updatable = false)
 	private final Set<String> phoneNumbersAsString = new HashSet<>();
 
 	/**

@@ -4,13 +4,16 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -65,6 +68,13 @@ public class Person extends BusinessPartner {
 	@OneToOne(mappedBy = "personReferenceWithoutMappedAttribute")
 	// Do not set a @JoinColum, we need a successful auto detection
 	private PersonImage image3;
+
+	// This collection is defined to be used as always empty, so we should use it
+	// with persons having no Phone entry
+	@ElementCollection
+	@CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\"", referencedColumnName = "\"ID\"", updatable = false, insertable = false))
+	private final Collection<Phone> partnerTelephoneConnections = new LinkedList<>();
+
 
 	/**
 	 * Bound oData action.
