@@ -12,6 +12,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+
 @Inheritance
 @DiscriminatorColumn(name = "\"Type\"")
 @Entity(name = "RelationshipEntity")
@@ -29,5 +31,10 @@ public abstract class AbstractRelationshipEntity extends AbstractEntity {
 			@JoinColumn(referencedColumnName = "\"ID\"", name = "\"RIGHT_ID\"") }, inverseJoinColumns = {
 					@JoinColumn(name = "\"LEFT_ID\"", referencedColumnName = "\"ID\"") })
 	protected Collection<AbstractRelationshipEntity> secondRightM2Ns;
+
+	@EdmAction(name = "actionInAbstractEntity")
+	public void actionInAbstractEntity() {
+		// do nothing
+	}
 
 }

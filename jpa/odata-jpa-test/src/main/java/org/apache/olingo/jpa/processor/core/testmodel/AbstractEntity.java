@@ -4,10 +4,12 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+
 /**
  * Super class without own persistence.
  *
- * @author rzozmann
+ * @author Ralf Zozmann
  *
  */
 @MappedSuperclass
@@ -19,4 +21,10 @@ public abstract class AbstractEntity {
 	public Integer getID() {
 		return ID;
 	}
+
+	@EdmAction(name = "actionInMappedSuperclass")
+	public void actionInMappedSuperclass() {
+		// do nothing
+	}
+
 }

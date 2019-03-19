@@ -40,7 +40,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 	IntermediateFunction(final JPAEdmNameBuilder nameBuilder, final EdmFunction jpaFunction,
 			final Class<?> definingPOJO, final AbstractJPASchema schema)
 					throws ODataJPAModelException {
-		super(nameBuilder, JPANameBuilder.buildFunctionName(jpaFunction));
+		super(nameBuilder, JPANameBuilder.buildFunctionInternalName(jpaFunction));
 		this.setExternalName(jpaFunction.name());
 		this.jpaUserDefinedFunction = jpaFunction;
 		this.jpaDefiningPOJO = definingPOJO;

@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
@@ -31,6 +34,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 class IntermediateMetamodelSchema extends AbstractJPASchema {
+
+	private final static Logger LOGGER = Logger.getLogger(IntermediateMetamodelSchema.class.getName());
+
 	final private IntermediateServiceDocument serviceDocument;
 	final private Metamodel jpaMetamodel;
 	final private Map<String, IntermediateComplexType> complexTypeListInternalKey;
@@ -94,21 +100,21 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 			targetClass = jpaAttribute.getJavaType();
 		}
 		IntermediateStructuredType type = complexTypeListInternalKey
-				.get(JPANameBuilder.buildStructuredTypeName(targetClass));
+				.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
 		if (type == null) {
-			type = entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeName(targetClass));
+			type = entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
 		}
 		return type;
 	}
 
 	@Override
 	JPAEntityType getEntityType(final Class<?> targetClass) {
-		return entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeName(targetClass));
+		return entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
 	}
 
 	@Override
 	IntermediateComplexType getComplexType(final Class<?> targetClass) {
-		return complexTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeName(targetClass));
+		return complexTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
 	}
 
 	@Override
@@ -152,12 +158,16 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
 	@Override
 	JPAAction getAction(final String externalName) {
-		for (final String internalName : actionListInternalKey.keySet()) {
-			if (actionListInternalKey.get(internalName).getExternalName().equals(externalName)) {
-				if (!actionListInternalKey.get(internalName).ignore()) {
-					return actionListInternalKey.get(internalName);
-				}
+		for (final Entry<String, IntermediateAction> entry : actionListInternalKey.entrySet()) {
+			if (!entry.getValue().getExternalName().equals(externalName)) {
+				continue;
 			}
+			if (entry.getValue().ignore()) {
+				LOGGER.log(Level.WARNING, "Attempted call to ignored action '"
+						+ entry.getValue().getJavaMethod().getName() + "'... Reject!");
+				return null;
+			}
+			return entry.getValue();
 		}
 		return null;
 	}
@@ -200,11 +210,10 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	}
 
 	private Map<String, IntermediateAction> buildActionList() throws ODataJPAModelException {
-		final HashMap<String, IntermediateAction> actionList = new HashMap<String, IntermediateAction>();
+		final Map<String, IntermediateAction> actionList = new HashMap<String, IntermediateAction>();
 		// 1. Option: Create Action from Entity Annotations
 		final IntermediateActionFactory factory = new IntermediateActionFactory();
 		for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
-
 			actionList.putAll(factory.create(getNameBuilder(), entity.getJavaType(), serviceDocument));
 		}
 		return actionList;

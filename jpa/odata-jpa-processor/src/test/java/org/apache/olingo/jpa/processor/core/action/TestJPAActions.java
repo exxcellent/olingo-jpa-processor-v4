@@ -112,7 +112,6 @@ public class TestJPAActions extends TestBase {
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
 		assertEquals(testId, object.get("ID").asText());
-
 	}
 
 	@Test
@@ -170,6 +169,64 @@ public class TestJPAActions extends TestBase {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"throwODataApplicationException", null, HttpMethod.POST);
 		helper.execute(911);
+	}
+
+	@Test
+	public void testActionInAbstractEntity() throws IOException, ODataException, NoSuchMethodException {
+		assumeTrue("Hibernate cannot handle an abstract entity class as resource",
+				getJPAProvider() != JPAProvider.Hibernate);
+
+		// the action must be present in all concrete/abstract entity classes
+
+		final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity",
+				null, HttpMethod.POST);
+		helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+
+		final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
+				HttpMethod.POST);
+		helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+
+		final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
+				HttpMethod.POST);
+		helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+
+		// must fail
+		final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
+				HttpMethod.POST);
+		helper4.execute(HttpStatusCode.BAD_REQUEST.getStatusCode());
+
+	}
+
+	@Test
+	public void testActionInMappedSuperclass() throws IOException, ODataException, NoSuchMethodException {
+		assumeTrue("Hibernate cannot handle an abstract entity class as resource",
+				getJPAProvider() != JPAProvider.Hibernate);
+
+		// the action must be present in all concrete/abstract entity classes
+
+		final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass",
+				null, HttpMethod.POST);
+		helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+
+		final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
+				HttpMethod.POST);
+		helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+
+		final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
+				HttpMethod.POST);
+		helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+
+		final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
+				"DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
+				HttpMethod.POST);
+		helper4.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
 }

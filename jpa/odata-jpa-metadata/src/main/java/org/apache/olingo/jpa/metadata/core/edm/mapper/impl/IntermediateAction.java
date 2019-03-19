@@ -33,16 +33,18 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
 
 	private CsdlAction edmAction = null;
 	private final IntermediateServiceDocument isd;
-	final Method javaMethod;
+	private final Class<?> javaEntityClass;
+	private final Method javaMethod;
 	private final List<ActionParameter> parameterList;
 	private final ActionResultParameter resultParameter;
 	boolean isBound = true;
 
-	IntermediateAction(final JPAEdmNameBuilder nameBuilder, final Method actionMethod,
+	IntermediateAction(final JPAEdmNameBuilder nameBuilder, final Class<?> jpaEntityClass, final Method actionMethod,
 			final IntermediateServiceDocument isd)
 					throws ODataJPAModelException, IllegalArgumentException {
-		super(nameBuilder, JPANameBuilder.buildActionName(actionMethod));
+		super(nameBuilder, JPANameBuilder.buildActionInternalName(jpaEntityClass, actionMethod));
 		this.javaMethod = actionMethod;
+		this.javaEntityClass = jpaEntityClass;
 		if (Modifier.isStatic(actionMethod.getModifiers())) {
 			if (!Modifier.isPublic(actionMethod.getModifiers())) {
 				throw new IllegalArgumentException(
@@ -146,7 +148,7 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
 		if (isBound) {
 			// if an action is 'bound' then the first parameter in list must be the entity
 			// type where the action is bound to; we generate that on demand
-			final FullQualifiedName fqn = extractGenericTypeQualifiedName(javaMethod.getDeclaringClass());
+			final FullQualifiedName fqn = extractGenericTypeQualifiedName(javaEntityClass);
 			final CsdlParameter parameter = new CsdlParameter();
 			parameter.setName(BOUND_ACTION_ENTITY_PARAMETER_NAME);
 			parameter.setNullable(false);// TODO mark as 'nullable' to work with Deserializer missing the 'bound resource parameter'?

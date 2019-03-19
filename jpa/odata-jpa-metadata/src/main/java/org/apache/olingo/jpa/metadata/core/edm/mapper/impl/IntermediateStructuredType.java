@@ -54,7 +54,7 @@ implements JPAStructuredType {
 	IntermediateStructuredType(final JPAEdmNameBuilder nameBuilder, final ManagedType<?> jpaManagedType,
 			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
-		super(nameBuilder, JPANameBuilder.buildStructuredTypeName(jpaManagedType.getJavaType()));
+		super(nameBuilder, JPANameBuilder.buildStructuredTypeInternalName(jpaManagedType.getJavaType()));
 		this.declaredPropertiesList = new HashMap<String, IntermediateProperty>();
 		this.simpleAttributePathMap = new HashMap<String, JPAPathImpl>();
 		this.complexAttributePathMap = new HashMap<String, JPAPathImpl>();
@@ -438,7 +438,7 @@ implements JPAStructuredType {
 		for (final Attribute<?, ?> jpaAttribute : determineJPAAttributes()) {
 			if (jpaAttribute.getPersistentAttributeType() != null
 					&& jpaAttribute.getJavaMember() instanceof AnnotatedElement
-					&& !mappedByIdentifier.equals(JPANameBuilder.buildAssociationName(jpaAttribute))) {
+					&& !mappedByIdentifier.equals(JPANameBuilder.buildAssociationInternalName(jpaAttribute))) {
 				if (jpaAttribute.isCollection()) {
 					targetClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
 				} else {

@@ -39,7 +39,8 @@ public class TestIntermediateAction extends TestMappingRoot {
 			throw new IllegalStateException("Couldn't find a JAVA method without @" + EdmAction.class.getSimpleName()
 					+ " annotation for testing");
 		}
-		new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME), notAnnotatedMethod, helper.serviceDocument);
+		new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME), Person.class, notAnnotatedMethod,
+				helper.serviceDocument);
 		org.junit.Assert.fail("Action constructor has not thrown an exception");
 	}
 
@@ -48,7 +49,7 @@ public class TestIntermediateAction extends TestMappingRoot {
 		final Method method = helper.getActionMethod(helper.getEntityType("Person"), "ClearPersonsCustomStrings");
 		assertNotNull(method);
 		final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-				method, helper.serviceDocument);
+				Person.class, method, helper.serviceDocument);
 		assertNotNull(action);
 		// a bound action must have different parameters in CSDL and on JPA side
 		assertEquals(0, action.getParameters().size());
@@ -62,7 +63,7 @@ public class TestIntermediateAction extends TestMappingRoot {
 		final Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction1");
 		assertNotNull(method);
 		final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-				method, helper.serviceDocument);
+				Person.class, method, helper.serviceDocument);
 		assertFalse(action.getEdmItem().getReturnType().isNullable());
 	}
 
@@ -72,7 +73,7 @@ public class TestIntermediateAction extends TestMappingRoot {
 		final Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction2");
 		assertNotNull(method);
 		final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-				method, helper.serviceDocument);
+				Person.class, method, helper.serviceDocument);
 		assertNotNull(action);
 		// a unbound action must have same parameters in CSDL and on JPA side
 		assertEquals(1, action.getParameters().size());

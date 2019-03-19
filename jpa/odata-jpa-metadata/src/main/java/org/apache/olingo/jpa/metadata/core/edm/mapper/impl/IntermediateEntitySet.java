@@ -22,7 +22,7 @@ class IntermediateEntitySet extends IntermediateModelElement implements CustomET
 
 	IntermediateEntitySet(final JPAEdmNameBuilder nameBuilder, final JPAEntityType et)
 			throws ODataJPAModelException {
-		super(nameBuilder, JPANameBuilder.buildEntitySetName(nameBuilder, et));
+		super(nameBuilder, JPANameBuilder.buildEntitySetInternalName(nameBuilder, et));
 		entityType = et;
 		setExternalName(nameBuilder.buildEntitySetName(et.getExternalName()));
 	}
