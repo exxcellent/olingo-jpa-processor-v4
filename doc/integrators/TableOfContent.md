@@ -2,8 +2,9 @@
 1. [Integrate](GetStarted.md) OData-JPA bridge into project  
 1. Start OData-JPA bridge as [standalone servlet](AsWar.md)  
     * [Servlet security](ServletSecurity.md)
+    * [Dependency Injection](DependencyInjection.md)
 1. Extend the OData-JPA bridge  
-    * Use [DTO's](DTOConcept.md) instead of JPA mapped entities  
+    * Use [DTO's](DTOConcept.md) instead of JPA mapped entities      
     * Call Java methods as OData [action](Actions.md)  
 
 ---

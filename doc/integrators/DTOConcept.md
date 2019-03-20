@@ -51,13 +51,7 @@ At runtime the processor will detect calls to an DTO resource and delegate proce
 A DTO instance is automatically transformed from/into a OData entity instance like a normal JPA entity. The DTO is accessible like other OData entities with a appropriate URI.
 
 # 2. Dependency injection
-For DTO's a limited support for dependency injection is available (see [JSR-330](https://jcp.org/en/jsr/detail?id=330) for annotations). Currently only single objects without ambiguous type can be handled.
-Supported is the injection of some DTO call related context objects via field injection (using @Inject). Automatically available are:
-* HttpServletRequest and HttpServletResponse (if called via `JPAODataGetHandler` in a servlet)
-* JPAAdapter and EntityManager (covering the current transaction)
-* JPAEdmProvider
-	
-The injection support can be extended by custom injections (see example servlet for details).
+For DTO's a limited support for dependency injection is available (see [JSR-330](https://jcp.org/en/jsr/detail?id=330) for annotations). Supported is the injection of some DTO call related context objects via field injection (using @Inject). Available types are listed in [Dependency Injection](DependencyInjection.md).
 
 ```
 public static class MyAddressFactory implements ODataDTOHandler<Address> {
