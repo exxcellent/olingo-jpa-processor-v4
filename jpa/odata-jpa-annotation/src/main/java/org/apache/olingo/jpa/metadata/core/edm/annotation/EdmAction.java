@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406398005">
  * edm:Action.</a><br/>
  * By default bound actions are treated as Entity methods, whereas unbound actions are called without context.
- * 
+ *
  * @author Ralf Zozmann
  *
  */
@@ -19,7 +19,8 @@ import java.lang.annotation.Target;
 public @interface EdmAction {
 
 	/**
-	 * Defines the name of the action in the service document
+	 * Defines the name of the action in the service document. If name is not given
+	 * the method name is used as action name.
 	 */
 	String name() default "";
 }

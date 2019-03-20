@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import javax.persistence.Column;
@@ -126,5 +128,13 @@ public class DatatypeConversionEntity extends AbstractEntity {
 			throw new IllegalStateException("aIntBoolean not set");
 		}
 		return true;
+	}
+
+	@EdmAction
+	public static Collection<String> unboundActionWithStringCollectionResult() {
+		final Collection<String> result = new LinkedList<>();
+		result.add("one");
+		result.add("two");
+		return result;
 	}
 }

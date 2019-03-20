@@ -21,6 +21,7 @@ import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Parameter;
 import org.apache.olingo.commons.api.data.Property;
+import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
@@ -47,6 +48,7 @@ import org.apache.olingo.server.api.deserializer.DeserializerException;
 import org.apache.olingo.server.api.deserializer.DeserializerResult;
 import org.apache.olingo.server.api.deserializer.ODataDeserializer;
 import org.apache.olingo.server.api.processor.ActionEntityProcessor;
+import org.apache.olingo.server.api.processor.ActionPrimitiveCollectionProcessor;
 import org.apache.olingo.server.api.processor.ActionPrimitiveProcessor;
 import org.apache.olingo.server.api.processor.ActionVoidProcessor;
 import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
@@ -64,7 +66,8 @@ import org.apache.olingo.server.api.uri.UriResourceAction;
  *
  */
 public class JPAODataActionProcessor extends AbstractProcessor
-implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor {
+implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionPrimitiveCollectionProcessor,
+ActionEntityProcessor {
 
 	private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
 	private final JPAServiceDebugger debugger;
@@ -110,6 +113,19 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 	public void processActionPrimitive(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
 			final ContentType requestFormat, final ContentType responseFormat)
 					throws ODataApplicationException, ODataLibraryException {
+		processActionPrimitiveWithResult(request, response, uriInfo, requestFormat, responseFormat, false);
+	}
+
+	@Override
+	public void processActionPrimitiveCollection(final ODataRequest request, final ODataResponse response,
+			final UriInfo uriInfo, final ContentType requestFormat, final ContentType responseFormat)
+					throws ODataApplicationException, ODataLibraryException {
+		processActionPrimitiveWithResult(request, response, uriInfo, requestFormat, responseFormat, true);
+	}
+
+	private void processActionPrimitiveWithResult(final ODataRequest request, final ODataResponse response,
+			final UriInfo uriInfo, final ContentType requestFormat, final ContentType responseFormat,
+			final boolean resultIsCollection) throws ODataApplicationException, ODataLibraryException {
 		final List<Object> results = processActionCall(request, uriInfo, requestFormat);
 		if (results.isEmpty()) {
 			response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -120,11 +136,18 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 			// the action must (currently) be the last
 			final UriResourceAction uriResourceAction = (UriResourceAction) resourceParts.get(resourceParts.size() - 1);
 			final EdmPrimitiveType type = (EdmPrimitiveType) uriResourceAction.getAction().getReturnType().getType();
-			final Property property = convert2Primitive(type, results);
+			final Property property = convert2Primitive(type, resultIsCollection, results);
 			final ContextURL contextUrl = ContextURL.with().type(type).build();
 			final PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();
 			final ODataSerializer serializer = getOData().createSerializer(responseFormat);
-			final SerializerResult serializerResult = serializer.primitive(getServiceMetadata(), type, property, options);
+
+			final SerializerResult serializerResult;
+			if (resultIsCollection) {
+				serializerResult = serializer.primitiveCollection(getServiceMetadata(), type, property, options);
+			} else {
+				serializerResult = serializer.primitive(getServiceMetadata(), type, property, options);
+			}
+
 			response.setContent(serializerResult.getContent());
 			response.setStatusCode(HttpStatusCode.OK.getStatusCode());
 			response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
@@ -139,6 +162,11 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
+	/**
+	 *
+	 * @return List with optional result values. Every entity (for bound actions) is
+	 *         called for the action and may have a result.
+	 */
 	private List<Object> processActionCall(final ODataRequest request, final UriInfo uriInfo, final ContentType requestFormat)
 			throws ODataApplicationException, DeserializerException {
 		final int handle = debugger.startRuntimeMeasurement("JPAODataActionProcessor", "processActionCall");
@@ -234,6 +262,34 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionEntityProcessor 
 		}
 		debugger.stopRuntimeMeasurement(handle);
 		return results;
+	}
+
+	/**
+	 * Helper method to convert a list containing one instance of primitive value
+	 * into a single OData property
+	 */
+	private Property convert2Primitive(final EdmPrimitiveType type, final boolean resultContainsCollections,
+			final List<Object> results)
+					throws ODataJPAProcessorException {
+		if (results.isEmpty()) {
+			// should never happen, because we have checked that before
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
+		}
+		if (resultContainsCollections) {
+			// one or more actions with collections as result
+			final LinkedList<Object> transformed = new LinkedList<Object>();
+			for (final Object v : results) {
+				transformed.addAll((List<?>) v);
+			}
+			return new Property(type.getName(), null, ValueType.COLLECTION_PRIMITIVE, transformed);
+		} else if (results.size() > 1) {
+			// more than one primitive (multiple action results with single result)
+			return new Property(type.getName(), null, ValueType.COLLECTION_PRIMITIVE, results);
+		} else {
+			// single action call with single result
+			return new Property(type.getName(), null, ValueType.PRIMITIVE, results.get(0));
+		}
 	}
 
 }

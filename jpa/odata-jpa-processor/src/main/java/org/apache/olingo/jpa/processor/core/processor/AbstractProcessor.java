@@ -7,8 +7,6 @@ import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
-import org.apache.olingo.commons.api.data.ValueType;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -120,18 +118,6 @@ abstract class AbstractProcessor implements Processor {
 			propertiesMerged.add(pFrom);
 		}
 		return odataEntityMerged;
-	}
-
-	/**
-	 * Helper method to convert a list containing one instance of primitive value
-	 * into a single OData property
-	 */
-	protected Property convert2Primitive(final EdmPrimitiveType type, final List<Object> results) throws ODataJPAProcessorException {
-		if(results.size() != 1) {
-			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR);
-		}
-		return new Property(type.getName(), null, ValueType.PRIMITIVE, results.get(0));
 	}
 
 	/**

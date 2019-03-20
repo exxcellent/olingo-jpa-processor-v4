@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestJPAActions extends TestBase {
@@ -227,6 +229,17 @@ public class TestJPAActions extends TestBase {
 				"DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
 				HttpMethod.POST);
 		helper4.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
+	@Test
+	public void testUboundActionWithCollectionResult() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"unboundActionWithStringCollectionResult", null, HttpMethod.POST);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode objects = helper.getValues();
+		assertTrue(objects.size() == 2);
 	}
 
 }
