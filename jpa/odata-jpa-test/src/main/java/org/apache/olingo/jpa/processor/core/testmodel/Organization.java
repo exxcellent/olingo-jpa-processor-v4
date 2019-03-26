@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction.ReturnType;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
@@ -38,5 +39,12 @@ public class Organization extends BusinessPartner {
 
 	public void setName2(final String name2) {
 		this.name2 = name2;
+	}
+
+	@EdmAction
+	public void addPhoneToOrganizationAndSave() {
+		final Phone phone = new Phone();
+		phone.setPhoneNumber("00-00-00-00");
+		this.addPhone(phone);
 	}
 }

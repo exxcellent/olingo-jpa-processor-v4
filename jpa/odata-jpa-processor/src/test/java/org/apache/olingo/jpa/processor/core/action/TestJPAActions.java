@@ -242,4 +242,12 @@ public class TestJPAActions extends TestBase {
 		assertTrue(objects.size() == 2);
 	}
 
+	@Test
+	public void testActionSavingToDatabase() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations('10')/" + Constant.PUNIT_NAME + ".addPhoneToOrganizationAndSave", null, HttpMethod.POST);
+		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
 }

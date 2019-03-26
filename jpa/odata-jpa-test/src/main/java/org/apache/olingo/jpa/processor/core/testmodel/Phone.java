@@ -20,4 +20,12 @@ public class Phone {
 	 */
 	@Column(name = "\"PhoneNumber\"", length = 128, nullable = false)
 	private String phoneNumber;
+
+	public void setInternationalAreaCode(final String internationalAreaCode) {
+		this.internationalAreaCode = internationalAreaCode;
+	}
+
+	public void setPhoneNumber(final String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
 }

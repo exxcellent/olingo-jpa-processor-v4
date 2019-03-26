@@ -141,6 +141,10 @@ public abstract class BusinessPartner {
 	@CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
 	private final Set<Phone> phoneNumbers = new HashSet<>();
 
+	protected void addPhone(final Phone phone) {
+		phoneNumbers.add(phone);
+	}
+
 	public void setID(final String iD) {
 		ID = iD;
 	}
