@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +46,7 @@ public class IntegrationTestHelper {
 
 		@Override
 		public void processError(final ODataRequest request, final ODataResponse response,
-		        final ODataServerError serverError, final ContentType responseFormat) {
+				final ODataServerError serverError, final ContentType responseFormat) {
 			LOG.log(Level.SEVERE, serverError.getMessage(), serverError.getException());
 			super.processError(request, response, serverError, responseFormat);
 		}
@@ -68,14 +69,14 @@ public class IntegrationTestHelper {
 	 *      StringBuffer, HttpMethod)
 	 */
 	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath)
-	        throws IOException, ODataException {
+			throws IOException, ODataException {
 		this(persistenceAdapter, urlPath, null, HttpMethod.GET);
 	}
 
 	public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
-	        final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
-	        throws IOException,
-	        ODataException {
+			final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
+					throws IOException,
+					ODataException {
 		super();
 		this.req = new HttpServletRequestDouble(uriPrefix + urlPath, requestBody);
 		this.req.setMethod(requestMethod);
@@ -99,7 +100,7 @@ public class IntegrationTestHelper {
 
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-			        final HttpServletResponse response, final EntityManager em) {
+					final HttpServletResponse response, final EntityManager em) {
 				final Collection<Processor> processors = super.collectProcessors(request, response, em);
 				processors.add(new TestErrorProcessor());
 				return processors;
@@ -158,6 +159,25 @@ public class IntegrationTestHelper {
 		}
 		br.close();
 		return result;
+	}
+
+	/**
+	 * Helper method to remove NullNode's from mapper result, because some assert's
+	 * are not aware of a NullNode instead of <code>null</code>.
+	 */
+	private static void stripNulls(final JsonNode node) {
+		if (node == null) {
+			return;
+		}
+		final Iterator<JsonNode> it = node.iterator();
+		while (it.hasNext()) {
+			final JsonNode child = it.next();
+			if (child.isNull()) {
+				it.remove();
+			} else {
+				stripNulls(child);
+			}
+		}
 	}
 
 	public ArrayNode getValues() throws JsonProcessingException, IOException {

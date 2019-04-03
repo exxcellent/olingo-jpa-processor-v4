@@ -32,7 +32,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAQueryFromClause extends TestBase {
-	private JPAAbstractEntityQuery cut;
+	private JPAEntityQuery cut;
+	private Root<?> root;
 	private JPAEntityType jpaEntityType;
 
 	@Before
@@ -44,6 +45,7 @@ public class TestJPAQueryFromClause extends TestBase {
 		createHeaders();
 		cut = new JPAEntityQuery(null, new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
 				persistenceAdapter.createEntityManager(), headers, null);
+		root = cut.getRoot();
 	}
 
 	@Test
@@ -55,7 +57,7 @@ public class TestJPAQueryFromClause extends TestBase {
 	@Test
 	public void checkFromListOrderByContainsOne() throws ODataJPAModelException, ODataApplicationException {
 		final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
-		final JPAAttribute exp = helper.getJPAAssociation("Organizations", "roles");
+		final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
 		orderBy.add((JPAAssociationAttribute) exp);
 
 		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
@@ -65,7 +67,7 @@ public class TestJPAQueryFromClause extends TestBase {
 	@Test
 	public void checkFromListOrderByOuterJoinOne() throws ODataJPAModelException, ODataApplicationException {
 		final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
-		final JPAAttribute exp = helper.getJPAAssociation("Organizations", "roles");
+		final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
 		orderBy.add((JPAAssociationAttribute) exp);
 
 		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
@@ -84,7 +86,7 @@ public class TestJPAQueryFromClause extends TestBase {
 	@Test
 	public void checkFromListOrderByOuterJoinOnConditionOne() throws ODataJPAModelException, ODataApplicationException {
 		final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
-		final JPAAttribute exp = helper.getJPAAssociation("Organizations", "roles");
+		final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
 		orderBy.add((JPAAssociationAttribute) exp);
 
 		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);

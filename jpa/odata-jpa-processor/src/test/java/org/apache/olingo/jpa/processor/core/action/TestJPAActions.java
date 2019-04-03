@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import javax.persistence.Id;
 
@@ -18,7 +19,9 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.test.Constant;
+import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
+import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfoHandler;
@@ -28,6 +31,7 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestJPAActions extends TestBase {
@@ -43,6 +47,8 @@ public class TestJPAActions extends TestBase {
 		 */
 		@EdmAction
 		public static Organization createOrganization(@EdmActionParameter(name = "demoId") final String id,
+				@EdmActionParameter(name = "withElementCollection") final boolean withElementCollection,
+				@EdmActionParameter(name = "withAssociation") final boolean withAssociation,
 				@Inject final JPAAdapter adapter) {
 			if (adapter == null) {
 				throw new IllegalStateException("JPAAdapter not onjected");
@@ -56,10 +62,27 @@ public class TestJPAActions extends TestBase {
 			org.setCountry("DEU");
 			org.setCustomString1("custom 1");
 			org.setType("1");
-			final PostalAddressData address = new PostalAddressData();
+			final PostalAddressData address = org.getAddress();
 			address.setCityName("Berlin");
 			address.setPOBox("1234567");
 			org.setAddress(address);
+			// leave 'communicationData' untouched to transfer empty complex type (but not
+			// null)
+			assert org.getCommunicationData() != null;
+			if (withElementCollection) {
+				final Phone phone = new Phone();
+				phone.setInternationalAreaCode("+42");
+				phone.setPhoneNumber("987654321");
+				org.addPhone(phone);
+				org.getPhoneNumbersAsString().add("67676767676");
+				org.getPhoneNumbersAsString().add("123-567-999");
+			}
+			if (withAssociation) {
+				final BusinessPartnerRole role = new BusinessPartnerRole();
+				role.setBusinessPartnerID(org.getID());
+				role.setRoleCategory("TEST");
+				org.setRoles(Collections.singletonList(role));
+			}
 			return org;
 		}
 
@@ -100,13 +123,16 @@ public class TestJPAActions extends TestBase {
 	}
 
 	@Test
-	public void testUnboundEntityAction() throws IOException, ODataException, NoSuchMethodException {
+	public void testUnboundEntityActionWithoutComplexTypesAndAssociations()
+			throws IOException, ODataException, NoSuchMethodException {
 
 		persistenceAdapter.registerDTO(ActionDTO.class);
 
 		final StringBuffer requestBody = new StringBuffer("{");
 		final String testId = "3";
-		requestBody.append("\"demoId\": \"" + testId + "\"");
+		requestBody.append("\"demoId\": \"" + testId + "\",");
+		requestBody.append("\"withElementCollection\": false,");
+		requestBody.append("\"withAssociation\": false");
 		requestBody.append("}");
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"createOrganization", requestBody, HttpMethod.POST);
@@ -114,6 +140,36 @@ public class TestJPAActions extends TestBase {
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
 		assertEquals(testId, object.get("ID").asText());
+		assertTrue(object.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
+		assertNotNull(object.get("PhoneNumbersAsString"));
+		assertNotNull(object.get("PhoneNumbers"));
+		assertTrue(((ArrayNode) object.get("PhoneNumbers")).size() == 0);
+		assertTrue(((ArrayNode) object.get("PhoneNumbersAsString")).size() == 0);
+	}
+
+	@Test
+	public void testUnboundEntityActionWithComplexTypesAndAssociations()
+			throws IOException, ODataException, NoSuchMethodException {
+
+		persistenceAdapter.registerDTO(ActionDTO.class);
+
+		final StringBuffer requestBody = new StringBuffer("{");
+		final String testId = "5";
+		requestBody.append("\"demoId\": \"" + testId + "\",");
+		requestBody.append("\"withElementCollection\": true,");
+		requestBody.append("\"withAssociation\": true");
+		requestBody.append("}");
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"createOrganization", requestBody, HttpMethod.POST);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ObjectNode object = helper.getValue();
+		assertNotNull(object);
+		assertEquals(testId, object.get("ID").asText());
+		assertTrue(object.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
+		assertNotNull(object.get("PhoneNumbersAsString"));
+		assertNotNull(object.get("PhoneNumbers"));
+		assertTrue(((ArrayNode) object.get("PhoneNumbers")).size() == 1);
+		assertTrue(((ArrayNode) object.get("PhoneNumbersAsString")).size() == 2);
 	}
 
 	@Test

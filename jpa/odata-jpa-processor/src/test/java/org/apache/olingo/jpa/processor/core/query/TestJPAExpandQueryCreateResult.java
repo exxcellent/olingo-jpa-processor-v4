@@ -28,26 +28,29 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAExpandQueryCreateResult extends TestBase {
+	private JPAODataSessionContextAccess context;
 	private JPAExpandQuery cut;
+	private JPAAssociationPath exp;
+	private EdmEntityType targetEntity;
 
 	@Before
 	public void setup() throws ODataException {
 		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
 		createHeaders();
-		final EdmEntityType targetEntity = new EdmEntityTypeDouble(nameBuilder, "BusinessPartnerRole");
-		final JPAODataSessionContextAccess context = new JPAODataContextAccessDouble(
+		targetEntity = new EdmEntityTypeDouble(nameBuilder, "BusinessPartnerRole");
+		context = new JPAODataContextAccessDouble(
 				new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter);
+		exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		cut = new JPAExpandQuery(
 				null, context, persistenceAdapter.createEntityManager(),
 				new ExpandItemDouble(targetEntity).getResourcePath(),
-				helper.getJPAAssociationPath("Organizations", "Roles"), helper.sd.getEntityType(targetEntity),
+				exp, helper.sd.getEntityType(targetEntity),
 				new HashMap<String, List<String>>());
 		// new EdmEntitySetDouble(nameBuilder, "Organisations"), null, new HashMap<String, List<String>>());
 	}
 
 	@Test
 	public void checkConvertOneResult() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		final List<Tuple> result = new ArrayList<Tuple>();
 		final HashMap<String, Object> oneResult = new HashMap<String, Object>();
 		oneResult.put("BusinessPartnerID", "1");
@@ -55,7 +58,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		final Tuple t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 0, Long.MAX_VALUE);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 0, Long.MAX_VALUE);
 
 		assertNotNull(act.get("1"));
 		assertEquals(1, act.get("1").size());
@@ -64,7 +67,6 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Test
 	public void checkConvertTwoResultOneParent() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		final List<Tuple> result = new ArrayList<Tuple>();
 		HashMap<String, Object> oneResult;
 		Tuple t;
@@ -80,7 +82,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 0, Long.MAX_VALUE);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 0, Long.MAX_VALUE);
 
 		assertEquals(1, act.size());
 		assertNotNull(act.get("2"));
@@ -90,7 +92,6 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Test
 	public void checkConvertTwoResultOneParentTop1() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		final List<Tuple> result = new ArrayList<Tuple>();
 		HashMap<String, Object> oneResult;
 		Tuple t;
@@ -106,7 +107,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 0, 1);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 0, 1);
 
 		assertEquals(1, act.size());
 		assertNotNull(act.get("2"));
@@ -116,7 +117,6 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Test
 	public void checkConvertTwoResultOneParentSkip1() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		final List<Tuple> result = new ArrayList<Tuple>();
 		HashMap<String, Object> oneResult;
 		Tuple t;
@@ -132,7 +132,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 1, 1000);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 1, 1000);
 
 		assertEquals(1, act.size());
 		assertNotNull(act.get("2"));
@@ -142,7 +142,6 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Test
 	public void checkConvertTwoResultTwoParent() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		final List<Tuple> result = new ArrayList<Tuple>();
 		HashMap<String, Object> oneResult;
 		Tuple t;
@@ -158,7 +157,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 0, Long.MAX_VALUE);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 0, Long.MAX_VALUE);
 
 		assertEquals(2, act.size());
 		assertNotNull(act.get("1"));
@@ -169,7 +168,10 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Test
 	public void checkConvertOneResultCompundKey() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("AdministrativeDivisions", "Parent");
+		exp = helper.getJPAAssociationPath("AdministrativeDivisions", "Parent");
+		cut = new JPAExpandQuery(null, context, persistenceAdapter.createEntityManager(),
+				new ExpandItemDouble(targetEntity).getResourcePath(), exp, helper.sd.getEntityType(targetEntity),
+				new HashMap<String, List<String>>());
 		final List<Tuple> result = new ArrayList<Tuple>();
 		final HashMap<String, Object> oneResult = new HashMap<String, Object>();
 		oneResult.put("CodePublisher", "NUTS");
@@ -180,7 +182,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		final Tuple t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 0, Long.MAX_VALUE);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 0, Long.MAX_VALUE);
 
 		assertNotNull(act.get("NUTS/2/BE25"));
 		assertEquals(1, act.get("NUTS/2/BE25").size());
@@ -189,7 +191,11 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 
 	@Test
 	public void checkConvertTwoResultsCompundKey() throws ODataJPAModelException, ODataApplicationException {
-		final JPAAssociationPath exp = helper.getJPAAssociationPath("AdministrativeDivisions", "Parent");
+		exp = helper.getJPAAssociationPath("AdministrativeDivisions", "Parent");
+		cut = new JPAExpandQuery(null, context, persistenceAdapter.createEntityManager(),
+				new ExpandItemDouble(targetEntity).getResourcePath(), exp, helper.sd.getEntityType(targetEntity),
+				new HashMap<String, List<String>>());
+
 		final List<Tuple> result = new ArrayList<Tuple>();
 		HashMap<String, Object> oneResult;
 		Tuple t;
@@ -212,7 +218,7 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 		t = new TupleDouble(oneResult);
 		result.add(t);
 
-		final Map<String, List<Tuple>> act = cut.convertResult(result, exp, 0, Long.MAX_VALUE);
+		final Map<String, List<Tuple>> act = cut.convertResult(result, 0, Long.MAX_VALUE);
 
 		assertEquals(2, act.size());
 		assertNotNull(act.get("NUTS/2/BE25"));

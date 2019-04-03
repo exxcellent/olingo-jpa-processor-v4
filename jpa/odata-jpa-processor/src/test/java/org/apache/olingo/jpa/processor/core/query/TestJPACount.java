@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -24,8 +25,8 @@ public class TestJPACount extends TestBase {
 		assertEquals(4, Integer.parseInt(helper.getRawResult()));
 	}
 
-	// TODO '$orderby' is ignored
-	@Ignore("Currently not working/supported")
+	// TODO
+	@Ignore("$count for expands doesn't work properly")
 	@Test
 	public void testFilteredCount() throws IOException, ODataException {
 
@@ -33,11 +34,13 @@ public class TestJPACount extends TestBase {
 				"Persons?$expand=Roles($count=true)&$orderby=Country asc");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode persons = helper.getValues();
-		assertEquals(3, persons.size());
+		assertEquals(4, persons.size());
 		final ObjectNode person = (ObjectNode) persons.get(2);
 		// all persons have DEU or CHE, so CHE should be the last entry (as defined in
 		// $orderby)
-		assertEquals("CHE", person.get("Country").asText());
+		assertEquals("DEU", person.get("Country").asText());
+		assertEquals(2, person.get("Roles@odata.count").asInt());
+		assertTrue(((ArrayNode) person.get("Roles")).size() == 0);// must be empty of null?
 	}
 
 	@Test

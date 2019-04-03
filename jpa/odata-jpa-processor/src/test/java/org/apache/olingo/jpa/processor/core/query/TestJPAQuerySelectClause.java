@@ -54,7 +54,7 @@ import org.junit.Test;
 @Ignore
 public class TestJPAQuerySelectClause extends TestBase {
 
-	private JPAAbstractEntityQuery cut;
+	private JPAAbstractEntityQuery<?> cut;
 	private JPAEntityType jpaEntityType;
 	private HashMap<String, From<?, ?>> joinTables;
 	private Root<?> root;

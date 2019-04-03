@@ -25,10 +25,9 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
 	public JPAEntityCountQuery(final OData odata, final EdmEntitySet entitySet, final JPAODataSessionContextAccess context,
 			final UriInfo uriInfo, final EntityManager em, final Map<String, List<String>> requestHeaders)
 					throws ODataApplicationException, ODataJPAModelException {
-		super(odata, context, context.getEdmProvider().getServiceDocument().getEntitySetType(entitySet.getName()), em,
-				requestHeaders, uriInfo);
-		cq = cb.createQuery(Long.class);
-		root = cq.from(jpaEntityType.getTypeClass());
+		super(odata, entitySet, context, uriInfo, em, requestHeaders);
+		cq = getCriteriaBuilder().createQuery(Long.class);
+		root = cq.from(getJPAEntityType().getTypeClass());
 	}
 
 	@Override
@@ -71,13 +70,13 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
 		final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
 		/* final Map<String, From<?, ?>> resultsetAffectingTables = */ createFromClause(orderByNaviAttributes);
 
-		cq.select(cb.count(root));
+		cq.select(getCriteriaBuilder().count(root));
 
 		final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
 		if (whereClause != null) {
 			cq.where(whereClause);
 		}
-		final Long count = em.createQuery(cq).getSingleResult();
+		final Long count = getEntityManager().createQuery(cq).getSingleResult();
 		final EntityCollection odataEntityCollection = new EntityCollection();
 		odataEntityCollection.setCount(Integer.valueOf(count.intValue()));
 		return odataEntityCollection;

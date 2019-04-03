@@ -145,7 +145,6 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testFilterOneLowerEqualsString() throws IOException, ODataException {
-
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations?$filter=ID le '5'");
 		helper.execute(HttpStatusCode.OK.getStatusCode());

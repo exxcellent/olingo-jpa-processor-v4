@@ -18,10 +18,12 @@ import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
+import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -39,11 +41,10 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 			final UriInfo uriInfo, final EntityManager em, final Map<String, List<String>> requestHeaders,
 			final ServiceMetadata serviceMetadata)
 					throws ODataApplicationException, ODataJPAModelException {
-		super(odata, context, context.getEdmProvider().getServiceDocument().getEntitySetType(entitySet.getName()), em,
-				requestHeaders, uriInfo);
+		super(odata, entitySet, context, uriInfo, em, requestHeaders);
 		this.serviceMetadata = serviceMetadata;
-		this.cq = cb.createTupleQuery();
-		this.root = cq.from(jpaEntityType.getTypeClass());
+		this.cq = getCriteriaBuilder().createTupleQuery();
+		this.root = cq.from(getJPAEntityType().getTypeClass());
 	}
 
 	@Override
@@ -62,13 +63,18 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 	 *
 	 */
 	public EntityCollection execute(final boolean processExpandOption) throws ODataApplicationException {
+		final UriInfoResource uriResource = getUriInfoResource();
 		// Pre-process URI parameter, so they can be used at different places
 		// TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
 		final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
 		final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(orderByNaviAttributes);
 
-		final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(this.uriResource);
+		final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(uriResource);
+		final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = separateElementCollectionPaths(
+				selectionPathDirectMappings);
+
+		// use selection for reduced list
 		cq.multiselect(createSelectClause(selectionPathDirectMappings));
 
 		final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
@@ -82,34 +88,40 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 			cq.groupBy(createGroupBy(selectionPathDirectMappings));
 		}
 
-		final TypedQuery<Tuple> tq = em.createQuery(cq);
+		final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
 		addTopSkip(tq);
 
 		final HashMap<String, List<Tuple>> resultTuples = new HashMap<String, List<Tuple>>(1);
 		final List<Tuple> intermediateResult = tq.getResultList();
-		resultTuples.put(JPAQueryResult.ROOT_RESULT, intermediateResult);
+		resultTuples.put(JPAQueryEntityResult.ROOT_RESULT, intermediateResult);
 
-		final JPAQueryResult queryResult = new JPAQueryResult(resultTuples,
-				Long.valueOf(intermediateResult.size()), jpaEntityType);
+		final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(resultTuples,
+				Long.valueOf(intermediateResult.size()), getJPAEntityType());
+
+		// load not yet processed @ElementCollection attribute content
+		queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
+
 		if (processExpandOption) {
-			queryResult.putChildren(readExpandEntities(null, uriResource));
+			queryResult.putExpandResults(readExpandEntities(null, uriResource));
 		}
 		return convertToEntityCollection(queryResult);
 	}
 
-	private EntityCollection convertToEntityCollection(final JPAQueryResult result) throws ODataApplicationException {
+	private EntityCollection convertToEntityCollection(final JPAQueryEntityResult result) throws ODataApplicationException {
 		// Convert tuple result into an OData Result
 		EntityCollection entityCollection;
 		try {
-			entityCollection = new JPATupleResultConverter(sd, result, getOData().createUriHelper(), serviceMetadata)
-					.convertQueryResult();
+			entityCollection = new JPATuple2EntityConverter(getContext().getEdmProvider().getServiceDocument(),
+					result.getEntityType(), getOData().createUriHelper(),
+					serviceMetadata)
+					.convertQueryResult(result);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
 					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 
 		// Count results if requested
-		final CountOption countOption = uriResource.getCountOption();
+		final CountOption countOption = getUriInfoResource().getCountOption();
 		if (countOption != null && countOption.getValue()) {
 			entityCollection.setCount(Integer.valueOf(entityCollection.getEntities().size()));
 		}
@@ -140,23 +152,25 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 	 * @return
 	 * @throws ODataApplicationException
 	 */
-	private Map<JPAAssociationPath, JPAQueryResult> readExpandEntities(
+	private Map<JPAAssociationPath, JPAQueryEntityResult> readExpandEntities(
 			final List<JPANavigationProptertyInfo> parentHops, final UriInfoResource uriResourceInfo)
 					throws ODataApplicationException {
 
-		final Map<JPAAssociationPath, JPAQueryResult> allExpResults = new HashMap<JPAAssociationPath, JPAQueryResult>();
+		final Map<JPAAssociationPath, JPAQueryEntityResult> allExpResults = new HashMap<JPAAssociationPath, JPAQueryEntityResult>();
 		// x/a?$expand=b/c($expand=d,e/f)
 
-		final List<JPAExpandItemInfo> itemInfoList = new JPAExpandItemInfoFactory().buildExpandItemInfo(sd,
+		final List<JPAExpandItemInfo> itemInfoList = JPAExpandItemInfoFactory.buildExpandItemInfo(
+				getContext().getEdmProvider().getServiceDocument(),
 				uriResourceInfo.getUriResourceParts(), uriResourceInfo.getExpandOption(), parentHops);
 
 		// an expand query is a query selecting the target entity using a id-join for
 		// the owning entity
 		for (final JPAExpandItemInfo item : itemInfoList) {
-			final JPAExpandQuery expandQuery = new JPAExpandQuery(getOData(), context, em, item, getRequestHeaders());
-			final JPAQueryResult expandResult = expandQuery.execute();
+			final JPAExpandQuery expandQuery = new JPAExpandQuery(getOData(), getContext(), getEntityManager(), item,
+					getRequestHeaders());
+			final JPAQueryEntityResult expandResult = expandQuery.execute();
 
-			expandResult.putChildren(readExpandEntities( item.getHops(), item.getUriInfo()));
+			expandResult.putExpandResults(readExpandEntities( item.getHops(), item.getUriInfo()));
 			allExpResults.put(item.getExpandAssociation(), expandResult);
 		}
 

@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
+
 public interface JPAExtention {
   /**
    * Process a expand query, which contains a $skip and/or a $top option.<p>
@@ -9,5 +11,5 @@ public interface JPAExtention {
    * the first/least/max row per group in SQL</a>
    * @return query result
    */
-  JPAQueryResult executeExpandTopSkipQuery();
+  JPAQueryEntityResult executeExpandTopSkipQuery();
 }

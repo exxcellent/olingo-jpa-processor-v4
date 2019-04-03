@@ -24,7 +24,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityCountQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAInstanceResultConverter;
@@ -104,7 +104,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 			final DeserializerResult deserializerResult = deserializer.entity(request.getBody(), edmType);
 			Entity odataEntity = deserializerResult.getEntity();
 
-			final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, odata.createUriHelper(), sd, serviceMetadata, em.getMetamodel());
+			final EntityConverter entityConverter = new EntityConverter(persistenceType, odata.createUriHelper(), sd, serviceMetadata, em.getMetamodel());
 			final Object persistenceJPAEntity = entityConverter.convertOData2JPAEntity(odataEntity);
 			em.persist(persistenceJPAEntity);
 
@@ -202,7 +202,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 					throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
 							HttpStatusCode.INTERNAL_SERVER_ERROR);
 				}
-				final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, odata.createUriHelper(), sd, serviceMetadata, em.getMetamodel());
+				final EntityConverter entityConverter = new EntityConverter(persistenceType, odata.createUriHelper(), sd, serviceMetadata, em.getMetamodel());
 				final Object persistenceModifiedEntity = entityConverter.convertOData2JPAEntity(odataEntityMerged);
 				// FIXME we cannot use em.merge(), because relationships are removed...
 				final Object persistenceMergedEntity = em.merge(persistenceModifiedEntity);
@@ -369,8 +369,6 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 			((UriInfoImpl) uriInfo).setSystemQueryOption(countOption);
 		}
 
-		// TODO replace by simple COUNT() call without entity loading (and any outer
-		// join)
 		final EntityCollection entityCollection = retrieveEntityData(request, uriInfo);
 		final JPASerializer serializer = new JPASerializeCount(getOData());
 		// serialize all entries
