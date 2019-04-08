@@ -46,15 +46,59 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 	}
 
 	/**
-	 * Applies the $skip and $top options of the OData request to the query. The values are defined as follows:
+	 * Limits in the query will result in LIMIT, SKIP, OFFSET/FETCH or other
+	 * database specific expression used for pagination of SQL result set. This will
+	 * affect also all dependent queries for $expand's or @ElementCollection loading
+	 * related queries.
+	 *
+	 * @return TRUE if the resulting query will have limits reflecting the presence
+	 *         of $skip or $top in request.
+	 * @throws ODataJPAQueryException
+	 */
+	public boolean hasQueryLimits() throws ODataJPAQueryException {
+		return (determineSkipValue() != null || determineTopValue() != null);
+	}
+
+	private Integer determineSkipValue() throws ODataJPAQueryException {
+		final UriInfoResource uriResource = getUriInfoResource();
+		final SkipOption skipOption = uriResource.getSkipOption();
+		if (skipOption == null) {
+			return null;
+		}
+		final int skipNumber = skipOption.getValue();
+		if (skipNumber >= 0) {
+			return Integer.valueOf(skipNumber);
+		} else {
+			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
+					HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
+		}
+	}
+
+	private Integer determineTopValue() throws ODataJPAQueryException {
+		final UriInfoResource uriResource = getUriInfoResource();
+		final TopOption topOption = uriResource.getTopOption();
+		if (topOption == null) {
+			return null;
+		}
+		final int topNumber = topOption.getValue();
+		if (topNumber >= 0) {
+			return Integer.valueOf(topNumber);
+		} else {
+			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
+					HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
+		}
+	}
+
+	/**
+	 * Applies the $skip and $top options of the OData request to the query. The
+	 * values are defined as follows:
 	 * <ul>
-	 * <li>The $top system query option specifies a non-negative integer n that limits the number of items returned from
-	 * a collection.
-	 * <li>The $skip system query option specifies a non-negative integer n that excludes the first n items of the
-	 * queried collection from the result.
+	 * <li>The $top system query option specifies a non-negative integer n that
+	 * limits the number of items returned from a collection.
+	 * <li>The $skip system query option specifies a non-negative integer n that
+	 * excludes the first n items of the queried collection from the result.
 	 * </ul>
-	 * For details see:
-	 * <a href=
+	 * For details see: <a href=
 	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398306"
 	 * >OData Version 4.0 Part 1 - 11.2.5.3 System Query Option $top</a>
 	 *
@@ -69,27 +113,14 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 		 * URL example: http://localhost:8080/BuPa/BuPa.svc/Organizations?$count=true&$skip=5
 		 */
 
-		final UriInfoResource uriResource = getUriInfoResource();
-		final TopOption topOption = uriResource.getTopOption();
-		if (topOption != null) {
-			final int topNumber = topOption.getValue();
-			if (topNumber >= 0) {
-				tq.setMaxResults(topNumber);
-			} else {
-				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-						HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
-			}
+		final Integer topValue = determineTopValue();
+		if (topValue != null) {
+			tq.setMaxResults(topValue.intValue());
 		}
 
-		final SkipOption skipOption = uriResource.getSkipOption();
-		if (skipOption != null) {
-			final int skipNumber = skipOption.getValue();
-			if (skipNumber >= 0) {
-				tq.setFirstResult(skipNumber);
-			} else {
-				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-						HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
-			}
+		final Integer skipValue = determineSkipValue();
+		if (skipValue != null) {
+			tq.setFirstResult(skipValue.intValue());
 		}
 	}
 

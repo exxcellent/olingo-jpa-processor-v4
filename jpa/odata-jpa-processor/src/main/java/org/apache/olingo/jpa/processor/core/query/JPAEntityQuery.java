@@ -67,6 +67,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 		// Pre-process URI parameter, so they can be used at different places
 		// TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
+		final boolean hasLimits = hasQueryLimits();
 		final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
 		final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(orderByNaviAttributes);
 
@@ -82,6 +83,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 			cq.where(whereClause);
 		}
 
+		// TODO force orderBy if 'hasLimits'
 		cq.orderBy(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
 
 		if (!orderByNaviAttributes.isEmpty()) {
@@ -89,7 +91,9 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 		}
 
 		final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
-		addTopSkip(tq);
+		if (hasLimits) {
+			addTopSkip(tq);
+		}
 
 		final HashMap<String, List<Tuple>> resultTuples = new HashMap<String, List<Tuple>>(1);
 		final List<Tuple> intermediateResult = tq.getResultList();

@@ -52,7 +52,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
  *
  */
 class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
-	private final JPAAssociationPath assoziation;
+	private final JPAAssociationPath association;
 	private final JPAExpandItemInfo item;
 	private final CriteriaQuery<Tuple> cq;
 	private final Root<?> root;
@@ -62,10 +62,10 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 	 */
 	@Deprecated
 	JPAExpandQuery(final OData odata, final JPAODataSessionContextAccess context, final EntityManager em,
-			final UriInfoResource uriInfo, final JPAAssociationPath assoziation, final JPAEntityType entityType,
+			final UriInfoResource uriInfo, final JPAAssociationPath association, final JPAEntityType entityType,
 			final Map<String, List<String>> requestHeaders) throws ODataApplicationException {
 		super(odata, context, entityType, em, requestHeaders, uriInfo);
-		this.assoziation = assoziation;
+		this.association = association;
 		this.item = null;
 		this.cq = getCriteriaBuilder().createTupleQuery();
 		this.root = cq.from(getJPAEntityType().getTypeClass());
@@ -75,7 +75,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 			final JPAExpandItemInfo item, final Map<String, List<String>> requestHeaders) throws ODataApplicationException {
 
 		super(odata, context, item.getEntityType(), em, requestHeaders, item.getUriInfo());
-		this.assoziation = item.getExpandAssociation();
+		this.association = item.getExpandAssociation();
 		this.item = item;
 		this.cq = getCriteriaBuilder().createTupleQuery();
 		this.root = cq.from(getJPAEntityType().getTypeClass());
@@ -117,7 +117,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		cq.multiselect(createSelectClause(selectionPathDirectMappings));
 		cq.where(createWhere());
 
-		final List<Order> orderBy = createOrderByJoinCondition(assoziation);
+		final List<Order> orderBy = createOrderByJoinCondition(association);
 		orderBy.addAll(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
 		cq.orderBy(orderBy);
 		// TODO group by also at $expand
@@ -158,7 +158,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 			try {
 				// build key using target side + target side join columns, resulting key must be
 				// identical for source side + source side join columns
-				actuallKey = buildTargetResultKey(row, assoziation.getRightPaths());
+				actuallKey = buildTargetResultKey(row, association.getRightPaths());
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 			} catch (final IllegalArgumentException e) {
@@ -244,7 +244,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		}
 
 		if (whereCondition == null) {
-			whereCondition = cb.exists(buildSubQueries());// parentQuery.asSubQuery(this, assoziation));
+			whereCondition = cb.exists(buildSubQueries());// parentQuery.asSubQuery(this, association));
 		} else {
 			whereCondition = cb.and(whereCondition, cb.exists(buildSubQueries()));
 		}

@@ -60,6 +60,7 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 			for (final JPAAttribute<?> jpaPathElement : rightSelector.getPathElements()) {
 				p = p.get(jpaPathElement.getInternalName());
 			}
+			// TODO loop useless, because only the latest 'select' come into effect?
 			subQuery.select((Expression<T>) p);
 		}
 
