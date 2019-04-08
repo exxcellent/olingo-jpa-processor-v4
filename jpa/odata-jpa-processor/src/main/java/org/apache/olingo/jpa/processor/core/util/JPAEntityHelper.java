@@ -24,7 +24,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter.
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.ValueConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -146,7 +146,7 @@ public class JPAEntityHelper {
 				final Entity entity = p.asEntity();
 				final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
 
-				final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, uriHelper, sd, serviceMetadata,
+				final EntityConverter entityConverter = new EntityConverter(persistenceType, uriHelper, sd, serviceMetadata,
 						em.getMetamodel());
 				final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity);
 				args[i] = jpaEntity;

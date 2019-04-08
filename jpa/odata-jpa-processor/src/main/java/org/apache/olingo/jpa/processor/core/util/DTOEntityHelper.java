@@ -15,7 +15,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.DTOConverter;
+import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -84,10 +84,10 @@ public class DTOEntityHelper {
 			final JPAEntityType jpaEntityType = provider.getServiceDocument()
 					.getEntitySetType(targetEdmEntitySet.getName());
 
-			final DTOConverter converter = new DTOConverter(jpaEntityType, odata.createUriHelper(),
+			final EntityConverter converter = new EntityConverter(jpaEntityType, odata.createUriHelper(),
 					provider.getServiceDocument(), serviceMetadata);
 			for(final Object o: result) {
-				final Entity entity = converter.convertDTO2ODataEntity(o);
+				final Entity entity = converter.convertJPA2ODataEntity(o);
 				odataEntityCollection.getEntities().add(entity);
 			}
 			return odataEntityCollection;
@@ -107,9 +107,9 @@ public class DTOEntityHelper {
 			final ODataDTOHandler<Object> handler = (ODataDTOHandler<Object>) buildHandlerInstance(targetEdmEntitySet);
 			final JPAEntityType jpaEntityType = provider.getServiceDocument()
 					.getEntitySetType(targetEdmEntitySet.getName());
-			final DTOConverter converter = new DTOConverter(jpaEntityType, odata.createUriHelper(),
+			final EntityConverter converter = new EntityConverter(jpaEntityType, odata.createUriHelper(),
 					provider.getServiceDocument(), serviceMetadata);
-			final Object dto = converter.convertODataEntity2DTO(odataEntity);
+			final Object dto = converter.convertOData2JPAEntity(odataEntity);
 			handler.write(uriInfo, dto);
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,

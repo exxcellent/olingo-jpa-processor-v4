@@ -12,7 +12,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityConverter;
+import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataRequest;
@@ -75,7 +75,7 @@ abstract class AbstractProcessor implements Processor {
 			final Object theOnlyResult = results.get(0);
 			// the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
 			final EntityType<?> persistenceType = em.getMetamodel().entity(theOnlyResult.getClass());
-			final JPAEntityConverter entityConverter = new JPAEntityConverter(persistenceType, uriHelper, sd,
+			final EntityConverter entityConverter = new EntityConverter(persistenceType, uriHelper, sd,
 					serviceMetadata, em.getMetamodel());
 			return entityConverter.convertJPA2ODataEntity(theOnlyResult);
 		} catch(final ODataJPAModelException ex) {

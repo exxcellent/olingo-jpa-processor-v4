@@ -12,16 +12,13 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
-import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
-import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -33,50 +30,40 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 
 	protected final static Logger LOG = Logger.getLogger(JPAAbstractQuery.class.getName());
 
-	private static final int CONTAINY_ONLY_LANGU = 1;
-	private static final int CONTAINS_LANGU_COUNTRY = 2;
 	protected static final String SELECT_ITEM_SEPERATOR = ",";
 	protected static final String SELECT_ALL = "*";
-	protected final EntityManager em;
-	protected final CriteriaBuilder cb;
-	protected final JPAEntityType jpaEntityType;
-	protected final IntermediateServiceDocument sd;
 
-	public JPAAbstractQuery(final IntermediateServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em)
+	private static final int CONTAINY_ONLY_LANGU = 1;
+	private static final int CONTAINS_LANGU_COUNTRY = 2;
+
+	private final EntityManager em;
+	private final CriteriaBuilder cb;
+	private final JPAEntityType jpaEntityType;
+
+	protected JPAAbstractQuery(final JPAEntityType jpaEntityType, final EntityManager em)
 			throws ODataApplicationException {
 		super();
 		this.em = em;
 		this.cb = em.getCriteriaBuilder();
-		this.sd = sd;
 		this.jpaEntityType = jpaEntityType;
 	}
 
-	public JPAAbstractQuery(final IntermediateServiceDocument sd, final EdmEntityType edmEntityType, final EntityManager em)
-			throws ODataApplicationException {
-		super();
-		this.em = em;
-		this.cb = em.getCriteriaBuilder();
-		this.sd = sd;
-		this.jpaEntityType = sd.getEntityType(edmEntityType);
-	}
-
-	public JPAAbstractQuery(final IntermediateServiceDocument sd, final JPAEntityType jpaEntityType, final EntityManager em,
-			final JPAServiceDebugger debugger) {
-		super();
-		this.em = em;
-		this.cb = em.getCriteriaBuilder();
-		this.sd = sd;
-		this.jpaEntityType = jpaEntityType;
-	}
-
-	public JPAEntityType getJPAEntityType() {
+	public final JPAEntityType getJPAEntityType() {
 		return jpaEntityType;
+	}
+
+	protected final EntityManager getEntityManager() {
+		return em;
+	}
+
+	protected final CriteriaBuilder getCriteriaBuilder() {
+		return cb;
 	}
 
 	private Path<?> buildPath(final From<?, ?> from, final UriParameter keyPredicate) throws ODataJPAModelException {
 		Path<?> path = from;
 		final JPASelector selector = jpaEntityType.getPath(keyPredicate.getName());
-		for (final JPAAttribute attribute : selector.getPathElements()) {
+		for (final JPAAttribute<?> attribute : selector.getPathElements()) {
 			path = path.get(attribute.getInternalName());
 		}
 		if (path == from) {
@@ -100,8 +87,6 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 			try {
 				final Path<?> path = buildPath(root, keyPredicate);
 				equalCondition = cb.equal(path, eliminateApostrophe(keyPredicate.getText()));
-				//				equalCondition = cb.equal(root.get(jpaEntityType.getPath(keyPredicate.getName()).getLeaf()
-				//						.getInternalName()), eliminateApostrophe(keyPredicate.getText()));
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 			}

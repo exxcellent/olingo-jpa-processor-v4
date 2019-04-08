@@ -12,6 +12,7 @@ import javax.persistence.Tuple;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.util.ServiceMetadataDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -25,15 +26,15 @@ import org.junit.Test;
 public class TestJPATupleResultConverterCompoundKey extends TestBase {
 	public static final int NO_POSTAL_ADDRESS_FIELDS = 8;
 	public static final int NO_ADMIN_INFO_FIELDS = 2;
-	private JPATupleResultConverter cut;
-	private List<Tuple> jpaQueryResult;
+	private JPATuple2EntityConverter cut;
+	private List<Tuple> tupleResult;
 	private UriHelperDouble uriHelper;
 	private Map<String, String> keyPredicates;
 
 	@Before
 	public void setup() throws ODataException {
 		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
-		jpaQueryResult = new ArrayList<Tuple>();
+		tupleResult = new ArrayList<Tuple>();
 		uriHelper = new UriHelperDouble();
 		keyPredicates = new HashMap<String, String>();
 	}
@@ -43,12 +44,13 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 		// .../BusinessPartnerRoles(BusinessPartnerID='3',RoleCategory='C')
 
 		final HashMap<String, List<Tuple>> resultContainer = new HashMap<String, List<Tuple>>(1);
-		resultContainer.put("root", jpaQueryResult);
+		resultContainer.put("root", tupleResult);
 
-		cut = new JPATupleResultConverter(
+		final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(resultContainer, Long.valueOf(0),
+				helper.getJPAEntityType("BusinessPartnerRoles"));
+		cut = new JPATuple2EntityConverter(
 				helper.sd,
-				new JPAQueryResult(resultContainer, Long.parseLong("0"),
-						helper.getJPAEntityType("BusinessPartnerRoles")),
+				queryResult.getEntityType(),
 				uriHelper,
 				new ServiceMetadataDouble(nameBuilder, "BusinessPartnerRole"));
 
@@ -57,12 +59,12 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 		result = new HashMap<String, Object>();
 		result.put("BusinessPartnerID", new String("3"));
 		result.put("RoleCategory", new String("C"));
-		jpaQueryResult.add(new TupleDouble(result));
+		tupleResult.add(new TupleDouble(result));
 
 		uriHelper.setKeyPredicates(keyPredicates, "BusinessPartnerID");
 		keyPredicates.put("3", "BusinessPartnerID='3',RoleCategory='C'");
 
-		final EntityCollection act = cut.convertQueryResult();
+		final EntityCollection act = cut.convertQueryResult(queryResult);
 		assertEquals(1, act.getEntities().size());
 		assertEquals("3", act.getEntities().get(0).getProperty("BusinessPartnerID").getValue().toString());
 		assertEquals("C", act.getEntities().get(0).getProperty("RoleCategory").getValue().toString());
@@ -76,13 +78,13 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 		// .../AdministrativeDivisionDescriptions(CodePublisher='ISO', CodeID='3166-1', DivisionCode='DEU',Language='en')
 
 		final HashMap<String, List<Tuple>> resultContainer = new HashMap<String, List<Tuple>>(1);
-		resultContainer.put("root", jpaQueryResult);
+		resultContainer.put("root", tupleResult);
 
-		cut = new JPATupleResultConverter(
+		final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(resultContainer, Long.parseLong("1"),
+				helper.getJPAEntityType("AdministrativeDivisionDescriptions"));
+		cut = new JPATuple2EntityConverter(
 				helper.sd,
-				new JPAQueryResult(resultContainer, Long.parseLong("1"),
-						helper.getJPAEntityType(
-								"AdministrativeDivisionDescriptions")),
+				queryResult.getEntityType(),
 				uriHelper,
 				new ServiceMetadataDouble());
 
@@ -93,11 +95,11 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 		result.put("CodeID", new String("3166-1"));
 		result.put("DivisionCode", new String("DEU"));
 		result.put("Language", new String("en"));
-		jpaQueryResult.add(new TupleDouble(result));
+		tupleResult.add(new TupleDouble(result));
 		uriHelper.setKeyPredicates(keyPredicates, "DivisionCode");
 		keyPredicates.put("DEU", "CodePublisher='ISO',CodeID='3166-1',DivisionCode='DEU',Language='en'");
 
-		final EntityCollection act = cut.convertQueryResult();
+		final EntityCollection act = cut.convertQueryResult(queryResult);
 		assertEquals(1, act.getEntities().size());
 		assertEquals("ISO", act.getEntities().get(0).getProperty("CodePublisher").getValue().toString());
 		assertEquals("en", act.getEntities().get(0).getProperty("Language").getValue().toString());

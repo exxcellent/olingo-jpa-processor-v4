@@ -108,9 +108,11 @@ public abstract class BusinessPartner {
 					@JoinColumn(referencedColumnName = "\"LanguageISO\"", name = "\"LanguageISO\"") })
 	private Collection<AdministrativeDivisionDescription> locations;
 
+	// Embedded type should never be null
 	@Embedded
 	protected CommunicationData communicationData = new CommunicationData();
 
+	// Embedded type should never be null
 	@Embedded
 	private PostalAddressData address = new PostalAddressData();
 
@@ -141,12 +143,20 @@ public abstract class BusinessPartner {
 	@CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
 	private final Set<Phone> phoneNumbers = new HashSet<>();
 
-	protected void addPhone(final Phone phone) {
+	public void addPhone(final Phone phone) {
 		phoneNumbers.add(phone);
+	}
+
+	public Set<String> getPhoneNumbersAsString() {
+		return phoneNumbersAsString;
 	}
 
 	public void setID(final String iD) {
 		ID = iD;
+	}
+
+	public String getID() {
+		return ID;
 	}
 
 	public void seteTag(final long eTag) {
@@ -185,12 +195,24 @@ public abstract class BusinessPartner {
 		this.communicationData = communicationData;
 	}
 
+	public CommunicationData getCommunicationData() {
+		return communicationData;
+	}
+
 	public void setAddress(final PostalAddressData address) {
 		this.address = address;
 	}
 
+	public PostalAddressData getAddress() {
+		return address;
+	}
+
 	public void setAdministrativeInformation(final AdministrativeInformation administrativeInformation) {
 		this.administrativeInformation = administrativeInformation;
+	}
+
+	public AdministrativeInformation getAdministrativeInformation() {
+		return administrativeInformation;
 	}
 
 	public void setRoles(final Collection<BusinessPartnerRole> roles) {

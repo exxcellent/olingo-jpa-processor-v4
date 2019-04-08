@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
@@ -40,15 +40,15 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
 					throws ODataApplicationException {
 
-		super(sd, (EdmEntityType) ((UriResourcePartTyped) uriResourceItem).getType(), em);
+		super(sd.getEntityType(((UriResourcePartTyped) uriResourceItem).getType()), em);
 		this.keyPredicates = determineKeyPredicates(uriResourceItem);
 		this.association = association;
 		if (association == null) {
 			throw new IllegalArgumentException("association required");
 		}
 		this.parentQuery = parent;
-		this.subQuery = parent.getQuery().subquery(this.jpaEntityType.getKeyType());
-		this.queryRoot = subQuery.from(this.jpaEntityType.getTypeClass());
+		this.subQuery = parent.getQuery().subquery(getJPAEntityType().getKeyType());
+		this.queryRoot = subQuery.from(getJPAEntityType().getTypeClass());
 	}
 
 	protected JPAAssociationPath getAssociation() {
@@ -74,6 +74,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	public final <T extends Object> Subquery<T> getSubQueryExists(final Subquery<?> childQuery)
 			throws ODataApplicationException {
 		final Subquery<T> subQuery = (Subquery<T>) this.subQuery;
+		final CriteriaBuilder cb = getCriteriaBuilder();
 
 		try {
 			createSelectClause(subQuery);
@@ -114,6 +115,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 
 	protected Expression<Boolean> createSubqueryWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException {
+		final CriteriaBuilder cb = getCriteriaBuilder();
 		Expression<Boolean> whereCondition = null;
 
 		final JPAAssociationPath association = getAssociation();

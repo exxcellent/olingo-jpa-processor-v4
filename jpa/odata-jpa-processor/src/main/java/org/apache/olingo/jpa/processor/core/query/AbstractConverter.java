@@ -240,7 +240,11 @@ public abstract class AbstractConverter {
 				// new created property
 				final List<Object> list = new LinkedList<>();
 				if (input != null) {
-					list.add(input);
+					if (input instanceof Collection<?>) {
+						addCollectionValuesIfUnique(list, (Collection) input);
+					} else {
+						addSingleValueIfUnique(list, input);
+					}
 				}
 				property.setValue(valueType, list);
 			} else {

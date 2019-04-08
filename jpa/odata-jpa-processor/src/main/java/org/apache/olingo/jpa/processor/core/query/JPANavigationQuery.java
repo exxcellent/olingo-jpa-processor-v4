@@ -49,9 +49,10 @@ public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 		}
 		for (final JPASelector leftSelector : conditionItems) {
 			Path<?> p = getRoot();
-			for (final JPAAttribute jpaPathElement : leftSelector.getPathElements()) {
+			for (final JPAAttribute<?> jpaPathElement : leftSelector.getPathElements()) {
 				p = p.get(jpaPathElement.getInternalName());
 			}
+			// TODO loop useless, because only the latest 'select' come into effect?
 			subQuery.select((Expression<T>) p);
 		}
 	}

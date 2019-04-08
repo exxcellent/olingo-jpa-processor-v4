@@ -45,7 +45,7 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association,
 			final VisitableExpression expression) throws ODataApplicationException {
 		super(sd, uriResourceItem, parent, em, association);
-		this.filter = new JPANavigationFilterProcessor(odata, sd, em, jpaEntityType,
+		this.filter = new JPANavigationFilterProcessor(odata, sd, em, getJPAEntityType(),
 				getContext().getDatabaseProcessor(), null, this, expression);
 	}
 
@@ -57,9 +57,10 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 		final List<JPASelector> conditionItems = getAssociation().getRightPaths();
 		for (final JPASelector rightSelector : conditionItems) {
 			Path<?> p = getRoot();
-			for (final JPAAttribute jpaPathElement : rightSelector.getPathElements()) {
+			for (final JPAAttribute<?> jpaPathElement : rightSelector.getPathElements()) {
 				p = p.get(jpaPathElement.getInternalName());
 			}
+			// TODO loop useless, because only the latest 'select' come into effect?
 			subQuery.select((Expression<T>) p);
 		}
 
@@ -73,7 +74,7 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 		if (filter != null && getAggregationType(this.filter.getExpressionMember()) == null) {
 			try {
 				if (filter.getExpressionMember() != null) {
-					whereCondition = cb.and(whereCondition, filter.compile());
+					whereCondition = getCriteriaBuilder().and(whereCondition, filter.compile());
 				}
 			} catch (final ExpressionVisitException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);

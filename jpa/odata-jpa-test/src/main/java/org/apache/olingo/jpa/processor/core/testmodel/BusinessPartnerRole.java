@@ -28,8 +28,16 @@ public class BusinessPartnerRole {
 	@JoinColumn(name = "\"BusinessPartnerID\"", insertable = false, updatable = false)
 	private BusinessPartner businessPartner;
 
+	public void setBusinessPartnerID(final String businessPartnerID) {
+		this.businessPartnerID = businessPartnerID;
+	}
+
 	public String getBusinessPartnerID() {
 		return businessPartnerID;
+	}
+
+	public void setRoleCategory(final String roleCategory) {
+		this.roleCategory = roleCategory;
 	}
 
 	public String getRoleCategory() {

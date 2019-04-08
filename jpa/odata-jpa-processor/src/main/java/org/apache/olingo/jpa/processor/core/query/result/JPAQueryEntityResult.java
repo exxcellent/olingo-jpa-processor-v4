@@ -1,13 +1,15 @@
-package org.apache.olingo.jpa.processor.core.query;
+package org.apache.olingo.jpa.processor.core.query.result;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.Tuple;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -19,15 +21,16 @@ import org.apache.olingo.server.api.ODataApplicationException;
  * @author Oliver Grande
  *
  */
-public final class JPAQueryResult {
+public final class JPAQueryEntityResult {
 
 	public final static String ROOT_RESULT = "root";
-	private final Map<JPAAssociationPath, JPAQueryResult> resultRelationshipTargets = new HashMap<JPAAssociationPath, JPAQueryResult>();;
+	private final Map<JPAAssociationPath, JPAQueryEntityResult> resultRelationshipTargets = new HashMap<>();
+	private final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> resultElementCollectionTargets = new HashMap<>();
 	private final Map<String, List<Tuple>> resultValues;
 	private final Long count;
 	private final JPAEntityType jpaEntityType;
 
-	public JPAQueryResult(final Map<String, List<Tuple>> result, final Long count,
+	public JPAQueryEntityResult(final Map<String, List<Tuple>> result, final Long count,
 			final JPAEntityType jpaEntityType) {
 		super();
 		assertNotNull(result);
@@ -43,8 +46,9 @@ public final class JPAQueryResult {
 		}
 	}
 
-	void putChildren(final Map<JPAAssociationPath, JPAQueryResult> childResults)
+	public void putExpandResults(final Map<JPAAssociationPath, JPAQueryEntityResult> childResults)
 			throws ODataApplicationException {
+		// check already present entries
 		for (final JPAAssociationPath child : childResults.keySet()) {
 			if (resultRelationshipTargets.get(child) != null) {
 				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_EXPAND_ERROR,
@@ -54,6 +58,19 @@ public final class JPAQueryResult {
 		resultRelationshipTargets.putAll(childResults);
 	}
 
+	public void putElementCollectionResults(
+			final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> collectionResults)
+			throws ODataApplicationException {
+		// check already present entries
+		for (final Entry<JPAAttribute<?>, JPAQueryElementCollectionResult> entry : collectionResults.entrySet()) {
+			if (resultElementCollectionTargets.containsKey(entry.getKey())) {
+				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+						HttpStatusCode.INTERNAL_SERVER_ERROR);
+			}
+		}
+		resultElementCollectionTargets.putAll(collectionResults);
+	}
+
 	/**
 	 * @see #ROOT_RESULT for 'root' entries
 	 */
@@ -61,8 +78,12 @@ public final class JPAQueryResult {
 		return resultValues.get(key);
 	}
 
-	public Map<JPAAssociationPath, JPAQueryResult> getExpandChildren() {
+	public Map<JPAAssociationPath, JPAQueryEntityResult> getExpandChildren() {
 		return resultRelationshipTargets;
+	}
+
+	public Map<JPAAttribute<?>, JPAQueryElementCollectionResult> getElementCollections() {
+		return resultElementCollectionTargets;
 	}
 
 	public boolean hasCount() {
