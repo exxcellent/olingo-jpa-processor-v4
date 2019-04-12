@@ -3,8 +3,11 @@ package org.apache.olingo.jpa.processor.core.testmodel.dto;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
@@ -27,6 +30,7 @@ public class EnvironmentInfo {
 
 	@EdmIgnore
 	private final Object ignoredSerializableField = new Serializable() {
+
 		private static final long serialVersionUID = 1L;
 	};
 
@@ -36,6 +40,8 @@ public class EnvironmentInfo {
 	private long id = System.currentTimeMillis();
 
 	private final Collection<String> envNames = new ArrayList<>();
+
+	private final Collection<SystemRequirement> systemRequirements = new ArrayList<>();
 
 	public EnvironmentInfo() {
 		// default constructor for JPA
@@ -99,6 +105,23 @@ public class EnvironmentInfo {
 	@EdmAction
 	public static void throwODataApplicationException() throws ODataApplicationException {
 		throw new ODataApplicationException("Proprietary status code 911 thrown", 911, Locale.getDefault());
+	}
+
+	@EdmAction
+	public static Collection<EnvironmentInfo> fillDTOWithNestedComplexType() {
+		final Collection<String> propNames = System.getProperties().keySet().stream().map(Object::toString)
+		        .collect(Collectors.toList());
+		final EnvironmentInfo info1 = new EnvironmentInfo("java1", propNames);
+		info1.systemRequirements.add(new SystemRequirement("re1", "description 1"));
+		info1.systemRequirements.add(new SystemRequirement("re2", "description 2"));
+		info1.systemRequirements.add(new SystemRequirement("re3", "description 3"));
+		final EnvironmentInfo info2 = new EnvironmentInfo("java2", Collections.singletonList("none"));
+		return Arrays.asList(info1, info2);
+	}
+
+	@EdmAction
+	public static Collection<Integer> actionWithPrimitiveCollectionResult() {
+		return Arrays.asList(Integer.valueOf(1), Integer.valueOf(2));
 	}
 
 }

@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 
 import javax.validation.constraints.NotNull;
@@ -16,6 +17,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
 	private final IntermediateAction owner;
 
 	private CsdlReturnType returnType = null;
+
 	public ActionResultParameter(final IntermediateAction owner) {
 		this.owner = owner;
 	}
@@ -28,6 +30,9 @@ class ActionResultParameter implements JPAOperationResultParameter {
 
 	@Override
 	public Class<?> getType() {
+		if (isCollection()) {
+			return (Class<?>) ((ParameterizedType) owner.getJavaMethod().getGenericReturnType()).getActualTypeArguments()[0];
+		}
 		return owner.getJavaMethod().getReturnType();
 	}
 
@@ -83,12 +88,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
 
 	@Override
 	public boolean isCollection() {
-		try {
-			lazyBuildEdmItem();
-			return returnType.isCollection();
-		} catch (final ODataJPAModelException e) {
-			throw new IllegalStateException(e);
-		}
+		return Collection.class.isAssignableFrom(owner.getJavaMethod().getReturnType());
 	}
 
 	@Override
@@ -114,7 +114,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
 
 		returnType = new CsdlReturnType();
 		returnType.setType(fqn);
-		returnType.setCollection(Collection.class.isAssignableFrom(javaMethod.getReturnType()));
+		returnType.setCollection(isCollection());
 		returnType.setNullable(!owner.getJavaMethod().isAnnotationPresent(NotNull.class));
 		// TODO length, precision, scale
 	}

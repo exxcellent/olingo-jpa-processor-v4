@@ -32,7 +32,7 @@ public class DTOEntityHelper {
 	private final UriInfo uriInfo;
 
 	public DTOEntityHelper(final JPAODataSessionContextAccess context, final ServiceMetadata serviceMetadata,
-			final UriInfo uriInfo) {
+	        final UriInfo uriInfo) {
 		this.context = context;
 		this.odata = context.getOdata();
 		this.provider = context.getEdmProvider();
@@ -41,30 +41,47 @@ public class DTOEntityHelper {
 	}
 
 	private Class<? extends ODataDTOHandler<?>> determineDTOHandlerClass(final EdmEntitySet targetEdmEntitySet)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
+		final ODataDTO dtoAnnotation = determineODataDTOAnnotation(targetEdmEntitySet);
+		if (dtoAnnotation == null) {
+			return null;
+		}
+		final Class<? extends ODataDTOHandler<?>> handler = dtoAnnotation.handler();
+		if (handler == null || ODataDTO.DEFAULT.class.equals(handler)) {
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+			        "ODataDTOHandler not defined");
+		}
+		return handler;
+	}
+
+	private ODataDTO determineODataDTOAnnotation(final EdmEntitySet targetEdmEntitySet) throws ODataJPAModelException {
 		final JPAEntityType jpaEntityType = provider.getServiceDocument()
-				.getEntitySetType(targetEdmEntitySet.getName());
-		if(jpaEntityType == null) {
+		        .getEntitySetType(targetEdmEntitySet.getName());
+		if (jpaEntityType == null) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE);
 		}
 		final Class<?> javaType = jpaEntityType.getTypeClass();
 		if (javaType == null) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-					"Java type not available");
+			        "Java type not available");
 		}
-		final ODataDTO dtoAnnotation = javaType.getAnnotation(ODataDTO.class);
-		if (dtoAnnotation == null) {
-			return null;
-		}
-		final Class<? extends ODataDTOHandler<?>> handler = dtoAnnotation.handler();
-		if (handler == null) {
-			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-					"ODataDTOHandler not defined");
-		}
-		return handler;
+		return javaType.getAnnotation(ODataDTO.class);
 	}
 
 	public boolean isTargetingDTO(final EdmEntitySet targetEdmEntitySet) {
+		try {
+			return (determineODataDTOAnnotation(targetEdmEntitySet) != null);
+		} catch (final ODataJPAModelException e) {
+			log.log(Level.SEVERE, "Couldn't get informations about DTO state of " + targetEdmEntitySet.getName(), e);
+			return false;
+		}
+	}
+
+	/**
+	 *
+	 * @return TRUE if <i>targetEdmEntitySet</i> is {@link ODataDTO DTO} and has a handler taken from {@link ODataDTO#handler() @ODataDTO}.
+	 */
+	public boolean isTargetingDTOWithHandler(final EdmEntitySet targetEdmEntitySet) {
 		try {
 			return (determineDTOHandlerClass(targetEdmEntitySet) != null);
 		} catch (final ODataJPAModelException e) {
@@ -77,52 +94,52 @@ public class DTOEntityHelper {
 		try {
 			final EntityCollection odataEntityCollection = new EntityCollection();
 			final ODataDTOHandler<?> handler = buildHandlerInstance(targetEdmEntitySet);
-			final Collection<?> result=  handler.read(uriInfo);
-			if(result == null) {
+			final Collection<?> result = handler.read(uriInfo);
+			if (result == null) {
 				return odataEntityCollection;
 			}
 			final JPAEntityType jpaEntityType = provider.getServiceDocument()
-					.getEntitySetType(targetEdmEntitySet.getName());
+			        .getEntitySetType(targetEdmEntitySet.getName());
 
 			final EntityConverter converter = new EntityConverter(jpaEntityType, odata.createUriHelper(),
-					provider.getServiceDocument(), serviceMetadata);
-			for(final Object o: result) {
+			        provider.getServiceDocument(), serviceMetadata);
+			for (final Object o : result) {
 				final Entity entity = converter.convertJPA2ODataEntity(o);
 				odataEntityCollection.getEntities().add(entity);
 			}
 			return odataEntityCollection;
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 	}
 
 	public void updateEntity(final EdmEntitySet targetEdmEntitySet, final Entity odataEntity)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		try {
 			@SuppressWarnings("unchecked")
 			final ODataDTOHandler<Object> handler = (ODataDTOHandler<Object>) buildHandlerInstance(targetEdmEntitySet);
 			final JPAEntityType jpaEntityType = provider.getServiceDocument()
-					.getEntitySetType(targetEdmEntitySet.getName());
+			        .getEntitySetType(targetEdmEntitySet.getName());
 			final EntityConverter converter = new EntityConverter(jpaEntityType, odata.createUriHelper(),
-					provider.getServiceDocument(), serviceMetadata);
+			        provider.getServiceDocument(), serviceMetadata);
 			final Object dto = converter.convertOData2JPAEntity(odataEntity);
 			handler.write(uriInfo, dto);
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 
 	}
 
 	private ODataDTOHandler<?> buildHandlerInstance(final EdmEntitySet targetEdmEntitySet)
-			throws ODataJPAModelException, InstantiationException, IllegalAccessException, ODataApplicationException {
+	        throws ODataJPAModelException, InstantiationException, IllegalAccessException, ODataApplicationException {
 		final Class<? extends ODataDTOHandler<?>> classHandler = determineDTOHandlerClass(targetEdmEntitySet);
 		final ODataDTOHandler<?> handler = classHandler.newInstance();
 		context.getDependencyInjector().injectFields(handler);

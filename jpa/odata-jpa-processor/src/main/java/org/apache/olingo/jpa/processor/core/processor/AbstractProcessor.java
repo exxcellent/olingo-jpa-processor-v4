@@ -3,22 +3,15 @@ package org.apache.olingo.jpa.processor.core.processor;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
-import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
-import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.server.api.OData;
-import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.processor.Processor;
-import org.apache.olingo.server.api.uri.UriHelper;
 
 /**
  *
@@ -31,10 +24,8 @@ abstract class AbstractProcessor implements Processor {
 	protected final JPAODataSessionContextAccess context;
 	protected final EntityManager em;
 
-	private UriHelper uriHelper = null;
 	private ServiceMetadata serviceMetadata = null;
 	private OData odata = null;
-
 
 	public AbstractProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
 		this.context = context;
@@ -46,7 +37,6 @@ abstract class AbstractProcessor implements Processor {
 	public final void init(final OData odata, final ServiceMetadata serviceMetadata) {
 		this.odata = odata;
 		this.serviceMetadata = serviceMetadata;
-		this.uriHelper = odata.createUriHelper();
 	}
 
 	/**
@@ -61,27 +51,6 @@ abstract class AbstractProcessor implements Processor {
 	 */
 	protected ServiceMetadata getServiceMetadata() {
 		return serviceMetadata;
-	}
-
-	/**
-	 * Helper method to convert a list containing one JPA instance of entity into a single OData entity
-	 */
-	protected Entity convert2Entity(final List<Object> results) throws ODataApplicationException {
-		if(results.size() != 1) {
-			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR);
-		}
-		try {
-			final Object theOnlyResult = results.get(0);
-			// the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
-			final EntityType<?> persistenceType = em.getMetamodel().entity(theOnlyResult.getClass());
-			final EntityConverter entityConverter = new EntityConverter(persistenceType, uriHelper, sd,
-					serviceMetadata, em.getMetamodel());
-			return entityConverter.convertJPA2ODataEntity(theOnlyResult);
-		} catch(final ODataJPAModelException ex) {
-			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, ex);
-		}
 	}
 
 	/**
@@ -125,7 +94,7 @@ abstract class AbstractProcessor implements Processor {
 	 */
 	protected static boolean hasPreference(final ODataRequest request, final String headerName, final String headerValue) {
 		final String value = request.getHeader(headerName);
-		if(value == null) {
+		if (value == null) {
 			return false;
 		}
 		return value.equalsIgnoreCase(headerValue);

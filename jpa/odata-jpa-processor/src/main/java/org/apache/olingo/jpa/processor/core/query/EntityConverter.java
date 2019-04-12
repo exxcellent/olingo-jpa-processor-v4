@@ -9,7 +9,6 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.data.ComplexValue;
@@ -42,21 +41,24 @@ import org.apache.olingo.server.api.uri.UriHelper;
  */
 public class EntityConverter extends JPATupleAbstractConverter {
 
-
 	public EntityConverter(final JPAEntityType jpaConversionTargetEntity, final UriHelper uriHelper,
-			final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
-					throws ODataApplicationException {
+	        final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
+	        throws ODataApplicationException {
 		super(jpaConversionTargetEntity, uriHelper, sd, serviceMetadata);
 	}
 
+	/**
+	 * @deprecated Not working for DTO's
+	 */
+	@Deprecated
 	public EntityConverter(final EntityType<?> persistenceType, final UriHelper uriHelper,
-			final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata, final Metamodel metamodel)
-					throws ODataApplicationException, ODataJPAModelException {
+	        final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
+	        throws ODataApplicationException, ODataJPAModelException {
 		super(determineJPAEntityType(sd, persistenceType), uriHelper, sd, serviceMetadata);
 	}
 
 	public final static JPAEntityType determineJPAEntityType(final IntermediateServiceDocument sd,
-			final EntityType<?> persistenceType) throws ODataJPAModelException {
+	        final EntityType<?> persistenceType) throws ODataJPAModelException {
 		FullQualifiedName fqn;
 		JPAEntityType jpaType;
 		for (final CsdlSchema schema : sd.getEdmSchemas()) {
@@ -69,7 +71,6 @@ public class EntityConverter extends JPATupleAbstractConverter {
 		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_RETURN_TYPE_ENTITY_NOT_FOUND);
 	}
 
-
 	/**
 	 * Convert a OData entity into a JPA entity.
 	 */
@@ -77,7 +78,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 		final JPAEntityType jpaEntityType = getJpaEntityType();
 		if (!jpaEntityType.getExternalFQN().getFullQualifiedNameAsString().equals(entity.getType())) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
-					HttpStatusCode.INTERNAL_SERVER_ERROR);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 		try {
 			final Object targetJPAInstance = newJPAInstance(jpaEntityType);
@@ -87,7 +88,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 			return targetJPAInstance;
 		} catch (ODataJPAModelException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 	}
 
@@ -101,7 +102,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 	}
 
 	private Entity convertJPA2ODataEntity(final JPAEntityType jpaType, final Object jpaEntity)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 
 		final Entity odataEntity = new Entity();
 		odataEntity.setType(jpaType.getExternalFQN().getFullQualifiedNameAsString());
@@ -128,7 +129,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 			odataEntity.getNavigationLinks().addAll(convertAssociations(jpaType, jpaEntity));
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 
 		odataEntity.setId(createId(odataEntity, jpaType, getUriHelper()));
@@ -137,7 +138,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 	}
 
 	private Collection<Link> convertAssociations(final JPAStructuredType jpaType, final Object jpaObject)
-			throws ODataJPAModelException, ODataApplicationException {
+	        throws ODataJPAModelException, ODataApplicationException {
 		final List<Link> entityExpandLinks = new LinkedList<Link>();
 		for (final JPAAssociationAttribute jpaAttribute : jpaType.getAssociations()) {
 			final JPAAssociationPath assoziation = jpaType.getDeclaredAssociation(jpaAttribute.getExternalName());
@@ -157,14 +158,14 @@ public class EntityConverter extends JPATupleAbstractConverter {
 				link.setInlineEntitySet(expandCollection);
 				for (final Object cEntry : ((Collection<?>) value)) {
 					final Entity expandEntity = convertJPA2ODataEntity((JPAEntityType) jpaAttribute.getStructuredType(),
-							cEntry);
+					        cEntry);
 					expandCollection.getEntities().add(expandEntity);
 				}
 				expandCollection.setCount(Integer.valueOf(expandCollection.getEntities().size()));
 				// TODO link.setHref(parentUri.toASCIIString());
 			} else {
 				final Entity expandEntity = convertJPA2ODataEntity((JPAEntityType) jpaAttribute.getStructuredType(),
-						value);
+				        value);
 				link.setInlineEntity(expandEntity);
 				// TODO link.setHref(expandCollection.getId().toASCIIString());
 			}
@@ -174,7 +175,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 	}
 
 	private Property convertJPAComplexAttribute2OData(final JPASimpleAttribute jpaAttribute, final Object value)
-			throws ODataJPAModelException, ODataApplicationException {
+	        throws ODataJPAModelException, ODataApplicationException {
 		final JPAStructuredType attributeType = jpaAttribute.getStructuredType();
 		if (jpaAttribute.isCollection()) {
 			final Collection<?> valuesToProcess = (value == null) ? Collections.emptyList() : (Collection<?>) value;
@@ -187,20 +188,20 @@ public class EntityConverter extends JPATupleAbstractConverter {
 				complexValue.getNavigationLinks().addAll(convertAssociations(attributeType, cValue));
 			}
 			return new Property(attributeType.getExternalFQN().getFullQualifiedNameAsString(),
-					jpaAttribute.getExternalName(), ValueType.COLLECTION_COMPLEX, convertedValues);
+			        jpaAttribute.getExternalName(), ValueType.COLLECTION_COMPLEX, convertedValues);
 		} else {
 			final ComplexValue complexValue = new ComplexValue();
 			final List<Property> cvProperties = complexValue.getValue();
 			convertComplexTypeValue2OData(attributeType, value, cvProperties);
 			complexValue.getNavigationLinks().addAll(convertAssociations(attributeType, value));
 			return new Property(attributeType.getExternalFQN().getFullQualifiedNameAsString(),
-					jpaAttribute.getExternalName(), ValueType.COMPLEX, complexValue);
+			        jpaAttribute.getExternalName(), ValueType.COMPLEX, complexValue);
 		}
 	}
 
 	private void convertComplexTypeValue2OData(final JPAStructuredType attributeType, final Object cValue,
-			final List<Property> cvProperties)
-					throws ODataJPAModelException, ODataApplicationException {
+	        final List<Property> cvProperties)
+	        throws ODataJPAModelException, ODataApplicationException {
 		if (cValue == null) {
 			return;
 		}
@@ -217,7 +218,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
 				// simple attribute (or collection)
 				final String alias = jpaAttribute.getExternalName();
 				convertJPAValue2ODataAttribute(value, alias, "", attributeType, complexValueBuffer, 0,
-						cvProperties);
+				        cvProperties);
 			}
 		}
 

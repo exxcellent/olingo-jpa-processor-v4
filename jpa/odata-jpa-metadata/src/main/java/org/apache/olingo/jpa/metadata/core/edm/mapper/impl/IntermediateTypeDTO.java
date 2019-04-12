@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,7 +16,6 @@ import javax.persistence.AttributeOverrides;
 import javax.persistence.Transient;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
-import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
@@ -38,15 +38,19 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityType {
+
 	private final Class<?> dtoType;
 	private final IntermediateServiceDocument serviceDocument;
 	private CsdlEntityType edmEntityType = null;
 	private final Map<String, IntermediatePropertyDTOField> declaredPropertiesList;
+	private final Map<String, IntermediateNavigationDTOProperty> declaredNaviPropertiesList;
 	private final Map<String, JPAPathImpl> simpleAttributePathMap;
 	private final Map<String, JPAPathImpl> complexAttributePathMap;
+	private final Map<String, JPAAssociationPathDTOImpl> associationPathMap;
+	private InitializationState initStateType = InitializationState.NotInitialized;
 
 	public IntermediateTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<?> dtoType,
-			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
+	        final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 		super(nameBuilder, dtoType.getName());
 
 		// DTO must have marker annotation
@@ -63,8 +67,10 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 		this.serviceDocument = serviceDocument;
 		this.setExternalName(nameBuilder.buildDTOTypeName(dtoType));
 		this.declaredPropertiesList = new HashMap<String, IntermediatePropertyDTOField>();
+		this.declaredNaviPropertiesList = new HashMap<String, IntermediateNavigationDTOProperty>();
 		this.simpleAttributePathMap = new HashMap<String, JPAPathImpl>();
 		this.complexAttributePathMap = new HashMap<String, JPAPathImpl>();
+		this.associationPathMap = new HashMap<String, JPAAssociationPathDTOImpl>();
 	}
 
 	boolean determineAbstract() {
@@ -74,40 +80,65 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 
 	protected void buildPropertyList() throws ODataJPAModelException {
 
-		IntermediatePropertyDTOField property;
 		for (final Field field : dtoType.getDeclaredFields()) {
-			if (field.isAnnotationPresent(EdmIgnore.class)) {
-				continue;
-			}
 			if (field.isAnnotationPresent(Transient.class)) {
 				continue;
 			}
 			if (field.isAnnotationPresent(Inject.class)) {
 				continue;
 			}
-			// currently only primitive types are supported
-			if (!TypeMapping.isPrimitiveType(field)) {
-				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-						field.getType().getName(), field.getName());
+			if (TypeMapping.isFieldTargetingDTO(field)) {
+				final IntermediateNavigationDTOProperty property = new IntermediateNavigationDTOProperty(nameBuilder, field,
+				        serviceDocument);
+				declaredNaviPropertiesList.put(property.internalName, property);
+				continue;
+			} else if (TypeMapping.isPrimitiveType(field)) {
+				final IntermediatePropertyDTOField property = new IntermediatePropertyDTOField(nameBuilder, field, serviceDocument);
+				declaredPropertiesList.put(property.internalName, property);
+				continue;
 			}
+			if (field.isAnnotationPresent(EdmIgnore.class)) {
+				// before we throw an exception we have to check for 'ignore'
+				continue;
+			}
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
+			        field.getType().getName(), field.getName());
 
-			property = new IntermediatePropertyDTOField(nameBuilder, field, serviceDocument);
-			declaredPropertiesList.put(property.internalName, property);
 		}
+	}
+
+	/**
+	 * Internal class/type method to initialize state of type.
+	 */
+	protected void initializeType() throws ODataJPAModelException {
+		switch (initStateType) {
+		case Initialized:
+			return;
+		case InProgress:
+			throw new IllegalStateException("Initialization already in progress, recursion problem!");
+		default:
+			break;
+		}
+
+		try {
+			initStateType = InitializationState.InProgress;
+			buildPropertyList();
+		} finally {
+			initStateType = InitializationState.Initialized;
+		}
+
 	}
 
 	@Override
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
+		initializeType();
 		if (edmEntityType != null) {
 			return;
 		}
-		buildPropertyList();
 		edmEntityType = new CsdlEntityType();
 		edmEntityType.setName(getExternalName());
 		edmEntityType.setProperties(extractEdmProperties(declaredPropertiesList));
-		// edmEntityType.setNavigationProperties(
-		// (List<CsdlNavigationProperty>)
-		// extractEdmProperties(declaredNaviPropertiesList));
+		edmEntityType.setNavigationProperties(extractEdmProperties(declaredNaviPropertiesList));
 		edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
 		edmEntityType.setAbstract(determineAbstract());
 		// edmEntityType.setBaseType(determineBaseType());
@@ -115,7 +146,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 	}
 
 	private List<CsdlPropertyRef> extractEdmKeyElements(final Map<String, IntermediatePropertyDTOField> propertyList)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 		final List<CsdlPropertyRef> keyList = new ArrayList<CsdlPropertyRef>();
 		for (final Entry<String, IntermediatePropertyDTOField> entry : propertyList.entrySet()) {
 			if (entry.getValue().isKey()) {
@@ -127,9 +158,10 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 		return returnNullIfEmpty(keyList);
 	}
 
-	private List<CsdlProperty> extractEdmProperties(final Map<String, IntermediatePropertyDTOField> declaredPropertiesList)
-			throws RuntimeException {
-		return declaredPropertiesList.entrySet().stream().map(x -> {
+	@SuppressWarnings("unchecked")
+	private <T> List<T> extractEdmProperties(final Map<String, ? extends IntermediateModelElement> declaredPropertiesList)
+	        throws RuntimeException {
+		return (List<T>) declaredPropertiesList.entrySet().stream().map(x -> {
 			try {
 				return x.getValue().getEdmItem();
 			} catch (final ODataJPAModelException e) {
@@ -153,7 +185,19 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 
 	@Override
 	public List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException {
-		return Collections.emptyList();
+		initializeType();
+		final List<JPAAssociationAttribute> jpaAttributes = new LinkedList<JPAAssociationAttribute>();
+		for (final String internalName : declaredNaviPropertiesList.keySet()) {
+			final IntermediateNavigationDTOProperty property = declaredNaviPropertiesList.get(internalName);
+			if (!property.ignore()) {
+				jpaAttributes.add(property);
+			}
+		}
+		final JPAStructuredType baseType = getBaseType();
+		if (baseType != null) {
+			jpaAttributes.addAll(baseType.getAssociations());
+		}
+		return jpaAttributes;
 	}
 
 	@Override
@@ -178,7 +222,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 
 	@Override
 	public List<JPASimpleAttribute> getAttributes() throws ODataJPAModelException {
-		lazyBuildEdmItem();
+		initializeType();
 		final List<JPASimpleAttribute> result = new ArrayList<JPASimpleAttribute>();
 		for (final String propertyKey : declaredPropertiesList.keySet()) {
 			final IntermediatePropertyDTOField attribute = declaredPropertiesList.get(propertyKey);
@@ -212,39 +256,49 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 
 	@Override
 	public JPAAssociationPath getDeclaredAssociation(final JPAAssociationPath associationPath)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public JPAAssociationPath getDeclaredAssociation(final String externalName) throws ODataJPAModelException {
-		throw new UnsupportedOperationException();
+		lazyBuildCompleteAssociationPathMap();
+		for (final String internalName : declaredNaviPropertiesList.keySet()) {
+			if (externalName.equals(declaredNaviPropertiesList.get(internalName).getExternalName())) {
+				return associationPathMap.get(externalName);
+			}
+		}
+		final JPAStructuredType baseType = getBaseType();
+		if (baseType != null) {
+			return baseType.getDeclaredAssociation(externalName);
+		}
+		return null;
 	}
 
 	private void lazyBuildCompletePathMap() throws ODataJPAModelException {
 		ArrayList<JPAAttribute<?>> pathList;
 
-		lazyBuildEdmItem();
+		initializeType();
 		if (simpleAttributePathMap.size() == 0) {
 			String externalName;
 			for (final IntermediatePropertyDTOField property : declaredPropertiesList.values()) {
 				if (property.isComplex()) {
 					complexAttributePathMap.put(property.getExternalName(),
-							new JPAPathImpl(property.getExternalName(), null, property));
+					        new JPAPathImpl(property.getExternalName(), null, property));
 					final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType<?>) property
-							.getStructuredType()).getComplexAttributePathMap();
+					        .getStructuredType()).getComplexAttributePathMap();
 					for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
 						externalName = entry.getKey();
 						pathList = new ArrayList<JPAAttribute<?>>(entry.getValue().getPathElements());
 						pathList.add(0, property);
 						complexAttributePathMap.put(nameBuilder.buildPath(property.getExternalName(), externalName),
-								new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName), null,
-										pathList));
+						        new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName), null,
+						                pathList));
 					}
 
 					// add the (simple) properties of complex type as path to this type
 					final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType<?>) property
-							.getStructuredType()).getSimpleAttributePathMap();
+					        .getStructuredType()).getSimpleAttributePathMap();
 					JPAPathImpl newPath;
 					for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
 						externalName = entry.getKey();
@@ -252,16 +306,16 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 						pathList.add(0, property);
 						if (property.isKey()) {
 							newPath = new JPAPathImpl(externalName, determineDBFieldName(property, entry.getValue()),
-									pathList);
+							        pathList);
 						} else {
 							newPath = new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName),
-									determineDBFieldName(property, entry.getValue()), pathList);
+							        determineDBFieldName(property, entry.getValue()), pathList);
 						}
 						simpleAttributePathMap.put(newPath.getAlias(), newPath);
 					}
 				} else {
 					simpleAttributePathMap.put(property.getExternalName(),
-							new JPAPathImpl(property.getExternalName(), property.getDBFieldName(), property));
+					        new JPAPathImpl(property.getExternalName(), property.getDBFieldName(), property));
 				}
 			}
 		}
@@ -272,6 +326,18 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 			complexAttributePathMap.putAll(baseType.getComplexAttributePathMap());
 		}
 
+	}
+
+	private void lazyBuildCompleteAssociationPathMap() throws ODataJPAModelException {
+		JPAAssociationPathDTOImpl associationPath;
+		lazyBuildCompletePathMap();
+		if (associationPathMap.size() == 0) {
+			for (final JPAAssociationAttribute navProperty : getAssociations()) {
+				associationPath = new JPAAssociationPathDTOImpl(this, navProperty);
+				associationPathMap.put(associationPath.getAlias(), associationPath);
+			}
+
+		}
 	}
 
 	private String determineDBFieldName(final IntermediatePropertyDTOField property, final JPAAttributePath jpaPath) {
