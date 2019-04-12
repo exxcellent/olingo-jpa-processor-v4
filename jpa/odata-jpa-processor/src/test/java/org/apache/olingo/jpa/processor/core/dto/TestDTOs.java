@@ -13,6 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
@@ -24,14 +25,15 @@ public class TestDTOs extends TestBase {
 	@Before
 	public void setup() throws ODataJPAModelException {
 		persistenceAdapter.registerDTO(EnvironmentInfo.class);
+		persistenceAdapter.registerDTO(SystemRequirement.class);
 	}
 
 	@Test(expected = ODataJPAModelException.class)
 	public void testNonDTOThrowsError() throws IOException, ODataException, SQLException {
 		// create own instance to avoid pollution of other tests
 		final TestGenericJPAPersistenceAdapter myPersistenceAdapter = new TestGenericJPAPersistenceAdapter(
-				Constant.PUNIT_NAME,
-				DataSourceHelper.DatabaseType.HSQLDB);
+		        Constant.PUNIT_NAME,
+		        DataSourceHelper.DatabaseType.HSQLDB);
 		myPersistenceAdapter.registerDTO(TestDTOs.class);
 		// must throw an exception on further processing
 		final IntegrationTestHelper helper = new IntegrationTestHelper(myPersistenceAdapter, "$metadata");
@@ -53,7 +55,7 @@ public class TestDTOs extends TestBase {
 	public void testGetDTO() throws IOException, ODataException, SQLException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"EnvironmentInfos");
+		        "EnvironmentInfos");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertTrue(helper.getValues().size() > 0);
 		assertEquals(System.getProperty("java.version"), helper.getValues().get(0).get("JavaVersion").asText());
@@ -76,8 +78,8 @@ public class TestDTOs extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"EnvironmentInfos(" + id + ")",
-				requestBody, HttpMethod.PUT);
+		        "EnvironmentInfos(" + id + ")",
+		        requestBody, HttpMethod.PUT);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertEquals(id, helper.getValue().get("Id").asText());
 	}

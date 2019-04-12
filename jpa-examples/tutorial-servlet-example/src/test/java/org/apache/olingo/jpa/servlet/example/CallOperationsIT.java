@@ -23,7 +23,7 @@ import org.apache.olingo.client.core.domain.ClientPropertyImpl;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.test.Constant;
-import org.apache.olingo.jpa.processor.core.testmodel.Organization;
+import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,10 +53,10 @@ public class CallOperationsIT {
 	public void test02ActionBound1() throws Exception {
 		// URIBuilder uriBuilder = endpoint.newUri().appendOperationCallSegment("ClearPersonsCustomStrings");
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99")
-				.appendOperationCallSegment(Constant.PUNIT_NAME + ".ClearPersonsCustomStrings");
+		        .appendOperationCallSegment(Constant.PUNIT_NAME + ".ClearPersonsCustomStrings");
 		final Map<String, ClientValue> functionParameters = new HashMap<>();
 		final ODataInvokeResponse<ClientInvokeResult> response = endpoint.callAction(uriBuilder, ClientInvokeResult.class,
-				functionParameters);
+		        functionParameters);
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.NO_CONTENT.getStatusCode());
 		response.close();
 	}
@@ -64,18 +64,18 @@ public class CallOperationsIT {
 	@Test
 	public void test03ActionBound2() throws Exception {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99")
-				.appendOperationCallSegment(Constant.PUNIT_NAME + ".DoNothingAction1");
+		        .appendOperationCallSegment(Constant.PUNIT_NAME + ".DoNothingAction1");
 		final Map<String, ClientValue> functionParameters = new HashMap<>();
 		functionParameters.put("affectedPersons",
-				new ClientCollectionValueImpl<ClientPrimitiveValue>(EdmPrimitiveTypeKind.String.getFullQualifiedName().getName())
-				.add(new ClientPrimitiveValueImpl.BuilderImpl().buildString("abc")));
+		        new ClientCollectionValueImpl<ClientPrimitiveValue>(EdmPrimitiveTypeKind.String.getFullQualifiedName().getName())
+		                .add(new ClientPrimitiveValueImpl.BuilderImpl().buildString("abc")));
 		functionParameters.put("minAny", new ClientPrimitiveValueImpl.BuilderImpl().buildInt32(Integer.valueOf(123)));
 		functionParameters.put("maxAny", new ClientPrimitiveValueImpl.BuilderImpl().buildInt32(Integer.valueOf(4000)));
 		final ODataInvokeResponse<ClientEntity> response = endpoint.callAction(uriBuilder, ClientEntity.class, functionParameters);
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
 		final ClientEntity body = response.getBody();
 		// the package name differs from oData namespace, so we can only compare the simple name
-		Assert.assertTrue(Organization.class.getSimpleName().equals(body.getTypeName().getName()));
+		Assert.assertTrue(BusinessPartner.class.getSimpleName().equals(body.getTypeName().getName()));
 		Assert.assertNotNull(body.getProperty("Country"));
 		response.close();
 	}
@@ -83,7 +83,7 @@ public class CallOperationsIT {
 	@Test
 	public void test01ActionBound3() throws Exception {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99")
-				.appendOperationCallSegment(Constant.PUNIT_NAME + ".SendBackTheInput");
+		        .appendOperationCallSegment(Constant.PUNIT_NAME + ".SendBackTheInput");
 		final Map<String, ClientValue> functionParameters = new HashMap<>();
 		final String teststring = "teststring";
 		functionParameters.put("input", new ClientPrimitiveValueImpl.BuilderImpl().buildString(teststring));
@@ -101,14 +101,13 @@ public class CallOperationsIT {
 		final Map<String, ClientValue> functionParameters = new HashMap<>();
 		functionParameters.put("Number", new ClientPrimitiveValueImpl.BuilderImpl().buildDecimal(BigDecimal.valueOf(123.456)));
 		final ODataInvokeResponse<ClientInvokeResult> response = endpoint.callFunction(uriBuilder, ClientInvokeResult.class,
-				functionParameters);
+		        functionParameters);
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
 		// String sCount = response.getBody().toCastValue(String.class);
 		// Assert.assertTrue(Integer.valueOf(sCount).intValue() > 0);
 		response.close();
 	}
 
-	@Ignore
 	@Test
 	public void test04DataConversionUnboundActionUnbound() throws Exception {
 		final URIBuilder uriBuilder = endpoint.newUri().appendOperationCallSegment("unboundActionCheckAllValueSettings");
@@ -116,26 +115,28 @@ public class CallOperationsIT {
 		final ClientComplexValue modifiedFristObject = new ClientComplexValueImpl(Constant.PUNIT_NAME + ".DatatypeConversionEntity");
 		actionParameters.put("jpaEnity", modifiedFristObject);
 
+		modifiedFristObject.add(new ClientPropertyImpl("ID", new ClientPrimitiveValueImpl.BuilderImpl().buildInt32(Integer.valueOf(123))));
+
 		String dateString = Integer.toString(LocalDate.now().getYear() - 1) + "-01-01";
 		modifiedFristObject.add(new ClientPropertyImpl("ADate1", new ClientPrimitiveValueImpl.BuilderImpl().buildString(dateString)));
-		dateString = Integer.toString(LocalDate.now().getYear()) + "-01-01";
-		modifiedFristObject.add(new ClientPropertyImpl("ADate11", new ClientPrimitiveValueImpl.BuilderImpl().buildString(dateString)));
 		dateString = Integer.toString(LocalDate.now().getYear() + 1) + "-01-01";
 		modifiedFristObject.add(new ClientPropertyImpl("ADate2", new ClientPrimitiveValueImpl.BuilderImpl().buildString(dateString)));
 		dateString = Integer.toString(LocalDate.now().getYear()) + "-01-31";
 		modifiedFristObject.add(new ClientPropertyImpl("ADate3", new ClientPrimitiveValueImpl.BuilderImpl().buildString(dateString)));
 		modifiedFristObject
-		.add(new ClientPropertyImpl("AUrl", new ClientPrimitiveValueImpl.BuilderImpl().buildString("http://www.anywhere.org")));
+		        .add(new ClientPropertyImpl("AUrl", new ClientPrimitiveValueImpl.BuilderImpl().buildString("http://www.anywhere.org")));
 		modifiedFristObject.add(
-				new ClientPropertyImpl("ADecimal", new ClientPrimitiveValueImpl.BuilderImpl().buildDecimal(BigDecimal.valueOf(123.456))));
+		        new ClientPropertyImpl("ADecimal", new ClientPrimitiveValueImpl.BuilderImpl().buildDecimal(BigDecimal.valueOf(123.456))));
 		modifiedFristObject
-		.add(new ClientPropertyImpl("AStringMappedEnum", new ClientPrimitiveValueImpl.BuilderImpl().buildString(IsoEra.CE.name())));
+		        .add(new ClientPropertyImpl("AStringMappedEnum", new ClientPrimitiveValueImpl.BuilderImpl().buildString(IsoEra.CE.name())));
 		modifiedFristObject.add(new ClientPropertyImpl("AOrdinalMappedEnum",
-				new ClientPrimitiveValueImpl.BuilderImpl().buildString(ChronoUnit.HOURS.name())));
+		        new ClientPrimitiveValueImpl.BuilderImpl().buildString(ChronoUnit.HOURS.name())));
 		modifiedFristObject.add(new ClientPropertyImpl("AEnumFromOtherPackage",
-				new ClientPrimitiveValueImpl.BuilderImpl().buildString(TestEnum.Two.name())));
+		        new ClientPrimitiveValueImpl.BuilderImpl().buildString(TestEnum.Two.name())));
 		modifiedFristObject.add(new ClientPropertyImpl("Uuid", new ClientPrimitiveValueImpl.BuilderImpl().buildGuid(UUID.randomUUID())));
 		modifiedFristObject.add(new ClientPropertyImpl("ABoolean", new ClientPrimitiveValueImpl.BuilderImpl().buildBoolean(Boolean.TRUE)));
+		modifiedFristObject
+		        .add(new ClientPropertyImpl("AIntBoolean", new ClientPrimitiveValueImpl.BuilderImpl().buildBoolean(Boolean.TRUE)));
 
 		final ODataInvokeResponse<ClientProperty> response = endpoint.callAction(uriBuilder, ClientProperty.class, actionParameters);
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());

@@ -33,6 +33,7 @@ import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdap
 import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
@@ -45,7 +46,7 @@ import org.apache.olingo.server.api.processor.Processor;
  */
 @WebServlet(name = "odata-servlet", loadOnStartup = 1, urlPatterns = { "/odata/*" })
 @ServletSecurity(httpMethodConstraints = { @HttpMethodConstraint(value = "GET", rolesAllowed = { "Reader" }),
-		@HttpMethodConstraint(value = "POST", rolesAllowed = { "Writer" }) })
+        @HttpMethodConstraint(value = "POST", rolesAllowed = { "Writer" }) })
 public class ODataServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -75,7 +76,7 @@ public class ODataServlet extends HttpServlet {
 
 	@Override
 	protected void service(final HttpServletRequest req, final HttpServletResponse resp)
-			throws ServletException, IOException {
+	        throws ServletException, IOException {
 		requestHandler.process(req, resp);
 	}
 
@@ -85,19 +86,21 @@ public class ODataServlet extends HttpServlet {
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
 
 		final AbstractJPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(
-				org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
-				elProperties,
-				new JPA_DERBYDatabaseProcessor());
+		        org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
+		        elProperties,
+		        new JPA_DERBYDatabaseProcessor());
 		mappingAdapter.registerDTO(EnvironmentInfo.class);
+		mappingAdapter.registerDTO(SystemRequirement.class);
 
 		final JPAODataServletHandler handler = new JPAODataServletHandler(mappingAdapter) {
+
 			/**
 			 * Use anonymous instance to add an error processor logging errors while
 			 * processing to the servlet container terminal...
 			 */
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-					final HttpServletResponse response, final EntityManager em) {
+			        final HttpServletResponse response, final EntityManager em) {
 				final Collection<Processor> processors = super.collectProcessors(request, response, em);
 				processors.add(new ExampleErrorProcessor());
 				return processors;
@@ -132,8 +135,8 @@ public class ODataServlet extends HttpServlet {
 			} else {
 				final StringBuilder buffer = new StringBuilder();
 				final List<CsdlEntityType> types = schema.getEntityTypes();
-				for (int i=0;i<types.size();i++) {
-					if(i>0) {
+				for (int i = 0; i < types.size(); i++) {
+					if (i > 0) {
 						buffer.append(", ");
 					}
 					buffer.append(types.get(i).getName());
@@ -146,24 +149,27 @@ public class ODataServlet extends HttpServlet {
 				log("  -");
 			} else {
 				for (final CsdlAction action : schema.getActions()) {
-					log("  "+action.getName() + "("
-							+ (action.getParameters() == null ? "" : String.join(", ", action.getParameters().stream()
-									.map(o -> o.getName() + ": " + (o.isCollection() ? "Collection<" : "") + o.getTypeFQN() + (o.isCollection() ? ">" : ""))
-									.collect(Collectors.toList())))
-							+ "): " + (action.getReturnType() != null ? (action.getReturnType().isCollection() ? "Collection<":"" ) +
-									action.getReturnType().getTypeFQN() + (action.getReturnType().isCollection() ? ">" : "" ) : "void"));
+					log("  " + action.getName() + "("
+					        + (action.getParameters() == null ? ""
+					                : String.join(", ", action.getParameters().stream()
+					                        .map(o -> o.getName() + ": " + (o.isCollection() ? "Collection<" : "") + o.getTypeFQN()
+					                                + (o.isCollection() ? ">" : ""))
+					                        .collect(Collectors.toList())))
+					        + "): " + (action.getReturnType() != null ? (action.getReturnType().isCollection() ? "Collection<" : "") +
+					                action.getReturnType().getTypeFQN() + (action.getReturnType().isCollection() ? ">" : "") : "void"));
 				}
 			}
 
 			log("Functions in schema " + schema.getNamespace() + ":");
-			if(schema.getFunctions() == null || schema.getFunctions().isEmpty()) {
+			if (schema.getFunctions() == null || schema.getFunctions().isEmpty()) {
 				log("-");
 			} else {
 				for (final CsdlFunction function : schema.getFunctions()) {
-					log("  "+function.getName() + "("
-							+ (function.getParameters() == null ? "" : String.join(", ", function.getParameters().stream()
-									.map(o -> o.getName()+": "+o.getTypeFQN()).collect(Collectors.toList())))
-							+ "): " + (function.getReturnType() != null ? function.getReturnType().getTypeFQN() : "void"));
+					log("  " + function.getName() + "("
+					        + (function.getParameters() == null ? ""
+					                : String.join(", ", function.getParameters().stream()
+					                        .map(o -> o.getName() + ": " + o.getTypeFQN()).collect(Collectors.toList())))
+					        + "): " + (function.getReturnType() != null ? function.getReturnType().getTypeFQN() : "void"));
 				}
 			}
 		}

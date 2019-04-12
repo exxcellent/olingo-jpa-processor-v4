@@ -9,6 +9,7 @@ import javax.validation.constraints.Size;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
@@ -18,21 +19,25 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 /**
  * A DTO is mapped as OData entity!
  *
- * @author rzozmann
+ * @author Ralf Zozmann
  *
  */
 class IntermediatePropertyDTOField extends IntermediateModelElement implements JPASimpleAttribute {
 
+	private final IntermediateServiceDocument serviceDocument;
 	private final Field field;
 	private final JPAAttributeAccessor accessor;
 	private CsdlProperty edmProperty = null;
 
 	public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
-			final IntermediateServiceDocument serviceDocument) {
+	        final IntermediateServiceDocument serviceDocument) {
 		super(nameBuilder, field.getName());
+		this.serviceDocument = serviceDocument;
 		this.field = field;
 		this.setExternalName(nameBuilder.buildPropertyName(field.getName()));
 		accessor = new FieldAttributeAccessor(field);
+		// do not wait with setting this important property
+		setIgnore(field.isAnnotationPresent(EdmIgnore.class));
 	}
 
 	@Override
@@ -50,12 +55,24 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	}
 
 	private FullQualifiedName createTypeName() throws ODataJPAModelException {
-		if (isCollection()) {
-			final Class<?> elementType = TypeMapping.extractElementTypeOfCollection(field);
-			return TypeMapping.convertToEdmSimpleType(elementType).getFullQualifiedName();
+		final Class<?> attributeType = getType();
+		if (isPrimitive()) {
+			if (isCollection()) {
+				return TypeMapping.convertToEdmSimpleType(attributeType).getFullQualifiedName();
+			} else {
+				// trigger exception if not possible
+				return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
+			}
+		} else if (TypeMapping.isFieldTargetingDTO(field)) {
+			final JPAStructuredType dtoType = getStructuredType();
+			if (dtoType == null) {
+				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+				        attributeType.getName() + " is not registered as Entity/DTO");
+			}
+			return dtoType.getExternalFQN();
 		} else {
-			// trigger exception if not possible
-			return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+			        "Java type not supported");
 		}
 	}
 
@@ -80,7 +97,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 		edmProperty.setSrid(IntermediateProperty.getSRID(field));
 		// edmProperty.setDefaultValue(determineDefaultValue());
 		if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-				|| edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
+		        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
 			edmProperty.setMaxLength(maxLength);
 		}
 	}
@@ -94,7 +111,8 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 
 	@Override
 	public JPAStructuredType getStructuredType() {
-		throw new UnsupportedOperationException();
+		final Class<?> attributeType = getType();
+		return serviceDocument.getEntityType(attributeType);
 	}
 
 	@Override

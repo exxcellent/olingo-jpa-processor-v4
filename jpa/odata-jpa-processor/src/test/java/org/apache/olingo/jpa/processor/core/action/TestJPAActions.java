@@ -25,6 +25,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfoHandler;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -47,9 +48,9 @@ public class TestJPAActions extends TestBase {
 		 */
 		@EdmAction
 		public static Organization createOrganization(@EdmActionParameter(name = "demoId") final String id,
-				@EdmActionParameter(name = "withElementCollection") final boolean withElementCollection,
-				@EdmActionParameter(name = "withAssociation") final boolean withAssociation,
-				@Inject final JPAAdapter adapter) {
+		        @EdmActionParameter(name = "withElementCollection") final boolean withElementCollection,
+		        @EdmActionParameter(name = "withAssociation") final boolean withAssociation,
+		        @Inject final JPAAdapter adapter) {
 			if (adapter == null) {
 				throw new IllegalStateException("JPAAdapter not onjected");
 			}
@@ -91,7 +92,7 @@ public class TestJPAActions extends TestBase {
 	@Test
 	public void testBoundPrimitiveActionWithEntityParameter() throws IOException, ODataException {
 		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
-				getJPAProvider() != JPAProvider.Hibernate);
+		        getJPAProvider() != JPAProvider.Hibernate);
 
 		final StringBuffer requestBody = new StringBuffer("{");
 		requestBody.append("\"dummy\": " + Integer.toString(3)).append(", ");
@@ -103,7 +104,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
+		        "Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();
@@ -115,16 +116,17 @@ public class TestJPAActions extends TestBase {
 	public void testUnboundVoidAction() throws IOException, ODataException, NoSuchMethodException {
 
 		persistenceAdapter.registerDTO(EnvironmentInfo.class);
+		persistenceAdapter.registerDTO(SystemRequirement.class);
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"unboundVoidAction", null, HttpMethod.POST);
+		        "unboundVoidAction", null, HttpMethod.POST);
 		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 	}
 
 	@Test
 	public void testUnboundEntityActionWithoutComplexTypesAndAssociations()
-			throws IOException, ODataException, NoSuchMethodException {
+	        throws IOException, ODataException, NoSuchMethodException {
 
 		persistenceAdapter.registerDTO(ActionDTO.class);
 
@@ -135,7 +137,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("\"withAssociation\": false");
 		requestBody.append("}");
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"createOrganization", requestBody, HttpMethod.POST);
+		        "createOrganization", requestBody, HttpMethod.POST);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
@@ -149,9 +151,10 @@ public class TestJPAActions extends TestBase {
 
 	@Test
 	public void testUnboundEntityActionWithComplexTypesAndAssociations()
-			throws IOException, ODataException, NoSuchMethodException {
+	        throws IOException, ODataException, NoSuchMethodException {
 
 		persistenceAdapter.registerDTO(ActionDTO.class);
+		persistenceAdapter.registerDTO(SystemRequirement.class);
 
 		final StringBuffer requestBody = new StringBuffer("{");
 		final String testId = "5";
@@ -160,7 +163,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("\"withAssociation\": true");
 		requestBody.append("}");
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"createOrganization", requestBody, HttpMethod.POST);
+		        "createOrganization", requestBody, HttpMethod.POST);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ObjectNode object = helper.getValue();
 		assertNotNull(object);
@@ -175,7 +178,7 @@ public class TestJPAActions extends TestBase {
 	@Test
 	public void testBoundPrimitiveActionWithEnumParameter() throws IOException, ODataException {
 		assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
-				getJPAProvider() != JPAProvider.Hibernate);
+		        getJPAProvider() != JPAProvider.Hibernate);
 
 		final StringBuffer requestBody = new StringBuffer("{");
 		final String testValue = TestEnum.Three.name();
@@ -183,7 +186,7 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
+		        "Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode object = helper.getValue();
@@ -195,9 +198,9 @@ public class TestJPAActions extends TestBase {
 	public void testBoundActionForEntityWithEmbeddedId() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"AdministrativeDivisionDescriptions(CodePublisher='Eurostat',CodeID='NUTS3',DivisionCode='BE212',Language='de')/"
-						+ Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId",
-						null, HttpMethod.POST);
+		        "AdministrativeDivisionDescriptions(CodePublisher='Eurostat',CodeID='NUTS3',DivisionCode='BE212',Language='de')/"
+		                + Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId",
+		        null, HttpMethod.POST);
 		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
@@ -215,46 +218,47 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("}");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"unboundActionCheckLoadingOfEmbeddedId", requestBody, HttpMethod.POST);
+		        "unboundActionCheckLoadingOfEmbeddedId", requestBody, HttpMethod.POST);
 		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
 	@Test
 	public void testActionThrowingCustomHttpStatusErrorCode()
-			throws IOException, ODataException, NoSuchMethodException {
+	        throws IOException, ODataException, NoSuchMethodException {
 
 		persistenceAdapter.registerDTO(EnvironmentInfo.class);
+		persistenceAdapter.registerDTO(SystemRequirement.class);
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"throwODataApplicationException", null, HttpMethod.POST);
+		        "throwODataApplicationException", null, HttpMethod.POST);
 		helper.execute(911);
 	}
 
 	@Test
 	public void testActionInAbstractEntity() throws IOException, ODataException, NoSuchMethodException {
 		assumeTrue("Hibernate cannot handle an abstract entity class as resource",
-				getJPAProvider() != JPAProvider.Hibernate);
+		        getJPAProvider() != JPAProvider.Hibernate);
 
 		// the action must be present in all concrete/abstract entity classes
 
 		final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity",
-				null, HttpMethod.POST);
+		        "RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity",
+		        null, HttpMethod.POST);
 		helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 		final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
-				HttpMethod.POST);
+		        "RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
+		        HttpMethod.POST);
 		helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 		final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
-				HttpMethod.POST);
+		        "RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
+		        HttpMethod.POST);
 		helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 		// must fail
 		final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
-				"DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
-				HttpMethod.POST);
+		        "DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
+		        HttpMethod.POST);
 		helper4.execute(HttpStatusCode.BAD_REQUEST.getStatusCode());
 
 	}
@@ -262,28 +266,28 @@ public class TestJPAActions extends TestBase {
 	@Test
 	public void testActionInMappedSuperclass() throws IOException, ODataException, NoSuchMethodException {
 		assumeTrue("Hibernate cannot handle an abstract entity class as resource",
-				getJPAProvider() != JPAProvider.Hibernate);
+		        getJPAProvider() != JPAProvider.Hibernate);
 
 		// the action must be present in all concrete/abstract entity classes
 
 		final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass",
-				null, HttpMethod.POST);
+		        "RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass",
+		        null, HttpMethod.POST);
 		helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 		final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
-				HttpMethod.POST);
+		        "RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
+		        HttpMethod.POST);
 		helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 		final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter,
-				"RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
-				HttpMethod.POST);
+		        "RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
+		        HttpMethod.POST);
 		helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
 		final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
-				"DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
-				HttpMethod.POST);
+		        "DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInMappedSuperclass", null,
+		        HttpMethod.POST);
 		helper4.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 	}
 
@@ -291,7 +295,7 @@ public class TestJPAActions extends TestBase {
 	public void testUboundActionWithCollectionResult() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"unboundActionWithStringCollectionResult", null, HttpMethod.POST);
+		        "unboundActionWithStringCollectionResult", null, HttpMethod.POST);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ArrayNode objects = helper.getValues();
@@ -302,8 +306,31 @@ public class TestJPAActions extends TestBase {
 	public void testActionSavingToDatabase() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('10')/" + Constant.PUNIT_NAME + ".addPhoneToOrganizationAndSave", null, HttpMethod.POST);
+		        "Organizations('10')/" + Constant.PUNIT_NAME + ".addPhoneToOrganizationAndSave", null, HttpMethod.POST);
 		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+	}
+
+	@Test
+	public void testActionWithPrimitiveCollectionResult() throws IOException, ODataException {
+
+		persistenceAdapter.registerDTO(EnvironmentInfo.class);
+		persistenceAdapter.registerDTO(SystemRequirement.class);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+		        "actionWithPrimitiveCollectionResult", null, HttpMethod.POST);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		assertTrue(helper.getValues().size() == 2);
+	}
+
+	@Test
+	public void testActionWithDTOResultCollection() throws IOException, ODataException {
+
+		persistenceAdapter.registerDTO(EnvironmentInfo.class);
+		persistenceAdapter.registerDTO(SystemRequirement.class);
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+		        "fillDTOWithNestedComplexType", null, HttpMethod.POST);
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		assertTrue(helper.getValues().size() == 2);
+		assertTrue(((ObjectNode) helper.getValues().get(0)).get("SystemRequirements").size() == 3);
 	}
 
 }

@@ -26,10 +26,12 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
 /**
- * <p>For details about Schema metadata see:
+ * <p>
+ * For details about Schema metadata see:
  * <a href=
  * "https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406397946"
  * >OData Version 4.0 Part 3 - 5 Schema </a>
+ * 
  * @author Oliver Grande
  *
  */
@@ -46,7 +48,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	private CsdlSchema edmSchema = null;
 
 	IntermediateMetamodelSchema(final IntermediateServiceDocument serviceDocument, final String namespace,
-			final Metamodel jpaMetamodel) throws ODataJPAModelException {
+	        final Metamodel jpaMetamodel) throws ODataJPAModelException {
 		super(namespace);
 		this.serviceDocument = serviceDocument;
 		this.jpaMetamodel = jpaMetamodel;
@@ -64,19 +66,19 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 		edmSchema = new CsdlSchema();
 		edmSchema.setNamespace(getNameBuilder().buildNamespace());
 		edmSchema.setComplexTypes(
-				(List<CsdlComplexType>) IntermediateModelElement.extractEdmModelElements(complexTypeListInternalKey));
+		        (List<CsdlComplexType>) IntermediateModelElement.extractEdmModelElements(complexTypeListInternalKey));
 		edmSchema.setEntityTypes(
-				(List<CsdlEntityType>) IntermediateModelElement.extractEdmModelElements(entityTypeListInternalKey));
+		        (List<CsdlEntityType>) IntermediateModelElement.extractEdmModelElements(entityTypeListInternalKey));
 		edmSchema.setFunctions(
-				(List<CsdlFunction>) IntermediateModelElement.extractEdmModelElements(functionListInternalKey));
+		        (List<CsdlFunction>) IntermediateModelElement.extractEdmModelElements(functionListInternalKey));
 		edmSchema
-		.setActions((List<CsdlAction>) IntermediateModelElement.extractEdmModelElements(actionListInternalKey));
+		        .setActions((List<CsdlAction>) IntermediateModelElement.extractEdmModelElements(actionListInternalKey));
 
-		//  edm:Annotations
-		//  edm:Annotation
+		// edm:Annotations
+		// edm:Annotation
 		// edm:EnumType --> Annotation @Enummerated (see IntermediateCustomSchema)
-		//  edm:Term
-		//  edm:TypeDefinition
+		// edm:Term
+		// edm:TypeDefinition
 		// MUST be the last thing that is done !!!!
 		// REMARK: the entity container is set outside (in
 		// IntermediateServiceDocument#getEdmSchemas()) for related schemas only
@@ -92,15 +94,15 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	 * {@link IntermediateStructuredType Structured types} including
 	 * {@link IntermediateEntityType}'s.
 	 */
-	IntermediateStructuredType getStructuredType(final Attribute<?, ?> jpaAttribute) {
+	IntermediateStructuredType<?> getStructuredType(final Attribute<?, ?> jpaAttribute) {
 		Class<?> targetClass = null;
 		if (jpaAttribute.isCollection()) {
 			targetClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
 		} else {
 			targetClass = jpaAttribute.getJavaType();
 		}
-		IntermediateStructuredType type = complexTypeListInternalKey
-				.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
+		IntermediateStructuredType<?> type = complexTypeListInternalKey
+		        .get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
 		if (type == null) {
 			type = entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
 		}
@@ -130,7 +132,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 	@Override
 	List<JPAEntityType> getEntityTypes() {
 		final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(
-				entityTypeListInternalKey.size());
+		        entityTypeListInternalKey.size());
 		entityTypes.addAll(entityTypeListInternalKey.values());
 		return entityTypes;
 	}
@@ -164,7 +166,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 			}
 			if (entry.getValue().ignore()) {
 				LOGGER.log(Level.WARNING, "Attempted call to ignored action '"
-						+ entry.getValue().getJavaMethod().getName() + "'... Reject!");
+				        + entry.getValue().getJavaMethod().getName() + "'... Reject!");
 				return null;
 			}
 			return entry.getValue();
@@ -182,7 +184,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
 		for (final EmbeddableType<?> embeddable : this.jpaMetamodel.getEmbeddables()) {
 			final IntermediateComplexType ct = new IntermediateComplexType(getNameBuilder(), embeddable,
-					serviceDocument);
+			        serviceDocument);
 			ctList.put(ct.internalName, ct);
 		}
 		return ctList;

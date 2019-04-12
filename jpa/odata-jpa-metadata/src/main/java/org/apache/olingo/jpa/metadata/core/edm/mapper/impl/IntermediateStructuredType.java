@@ -39,7 +39,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 abstract class IntermediateStructuredType<CsdlType extends CsdlStructuralType> extends IntermediateModelElement
-implements JPAStructuredType {
+        implements JPAStructuredType {
+
 	protected final static Logger LOG = Logger.getLogger(IntermediateStructuredType.class.getName());
 
 	protected final Map<String, IntermediateProperty> declaredPropertiesList;
@@ -52,7 +53,7 @@ implements JPAStructuredType {
 	private InitializationState initStateType = InitializationState.NotInitialized;
 
 	IntermediateStructuredType(final JPAEdmNameBuilder nameBuilder, final ManagedType<?> jpaManagedType,
-			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
+	        final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
 		super(nameBuilder, JPANameBuilder.buildStructuredTypeInternalName(jpaManagedType.getJavaType()));
 		this.declaredPropertiesList = new HashMap<String, IntermediateProperty>();
@@ -169,7 +170,7 @@ implements JPAStructuredType {
 
 	@Override
 	public JPAAssociationPath getDeclaredAssociation(final JPAAssociationPath associationPath)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 		lazyBuildCompleteAssociationPathMap();
 
 		if (associationPathMap.containsKey(associationPath.getAlias())) {
@@ -248,8 +249,8 @@ implements JPAStructuredType {
 				case BASIC:
 				case EMBEDDED:
 					if (jpaAttribute instanceof SingularAttribute<?, ?>
-					&& ((SingularAttribute<?, ?>) jpaAttribute).isId()
-					&& attributeType == PersistentAttributeType.EMBEDDED) {
+					        && ((SingularAttribute<?, ?>) jpaAttribute).isId()
+					        && attributeType == PersistentAttributeType.EMBEDDED) {
 						property = new IntermediateEmbeddedIdProperty(nameBuilder, jpaAttribute, serviceDocument);
 						declaredPropertiesList.put(property.internalName, property);
 					} else {
@@ -277,7 +278,7 @@ implements JPAStructuredType {
 					// fall through
 				default:
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
-							attributeType.name(), jpaAttribute.getDeclaringType().getJavaType().getName());
+					        attributeType.name(), jpaAttribute.getDeclaringType().getJavaType().getName());
 				}
 			}
 		} finally {
@@ -291,7 +292,7 @@ implements JPAStructuredType {
 		final JPAStructuredType baseEntity = getBaseType();
 		if (baseEntity != null && !baseEntity.isAbstract() && isAbstract()) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INHERITANCE_NOT_ALLOWED,
-					this.internalName, baseEntity.getInternalName());
+			        this.internalName, baseEntity.getInternalName());
 		}
 		return baseEntity != null ? nameBuilder.buildFQN(baseEntity.getExternalName()) : null;
 	}
@@ -330,8 +331,7 @@ implements JPAStructuredType {
 				jpaAttributes.add(property);
 			}
 		}
-		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
-		final IntermediateStructuredType<?> baseType = (IntermediateStructuredType<?>) getBaseType();
+		final JPAStructuredType baseType = getBaseType();
 		if (baseType != null) {
 			jpaAttributes.addAll(baseType.getAssociations());
 		}
@@ -341,7 +341,8 @@ implements JPAStructuredType {
 	/**
 	 * This does not resolve associations! It's only for simple attributes.
 	 *
-	 * @param dbFieldName The path to find based on db field name.
+	 * @param dbFieldName
+	 *            The path to find based on db field name.
 	 * @return The path or <code>null</code>
 	 * @throws ODataJPAModelException
 	 * @Deprecated Multiple attribute may use the same DB field, so the DB column
@@ -350,7 +351,7 @@ implements JPAStructuredType {
 	 */
 	@Deprecated
 	JPAAttributePath getPathByDBField(final String dbFieldName)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 		lazyBuildCompletePathMap();
 
 		// find any db field names
@@ -388,6 +389,7 @@ implements JPAStructuredType {
 
 	/**
 	 * Returns an property regardless if it should be ignored or not
+	 * 
 	 * @param internalName
 	 * @return
 	 * @throws ODataJPAModelException
@@ -403,16 +405,17 @@ implements JPAStructuredType {
 	}
 
 	String determineCorrespondingMappedByImplementingAssociationName(final JPAStructuredType sourceType,
-			final String sourceRelationshipName) {
+	        final String sourceRelationshipName) {
 		final Attribute<?, ?> jpaAttribute = findCorrespondingMappedByImplementingAttribute(sourceType.getTypeClass(),
-				sourceRelationshipName);
+		        sourceRelationshipName);
 		return jpaAttribute == null ? null : nameBuilder.buildNaviPropertyName(jpaAttribute);
 	}
 
 	/**
 	 *
-	 * @param relationshipAttributeName Normally the name of the attribute
-	 *                                  identified by 'mappedBy'.
+	 * @param relationshipAttributeName
+	 *            Normally the name of the attribute
+	 *            identified by 'mappedBy'.
 	 */
 	Attribute<?, ?> findJPARelationshipAttribute(final String relationshipAttributeName) {
 
@@ -432,13 +435,13 @@ implements JPAStructuredType {
 	 * @return The attribute defining the mapping for the given 'mappedBy' value.
 	 */
 	private Attribute<?, ?> findCorrespondingMappedByImplementingAttribute(final Class<?> relationshipEntityType,
-			final String mappedByIdentifier) {
+	        final String mappedByIdentifier) {
 		Class<?> targetClass = null;
 
 		for (final Attribute<?, ?> jpaAttribute : determineJPAAttributes()) {
 			if (jpaAttribute.getPersistentAttributeType() != null
-					&& jpaAttribute.getJavaMember() instanceof AnnotatedElement
-					&& !mappedByIdentifier.equals(JPANameBuilder.buildAssociationInternalName(jpaAttribute))) {
+			        && jpaAttribute.getJavaMember() instanceof AnnotatedElement
+			        && !mappedByIdentifier.equals(JPANameBuilder.buildAssociationInternalName(jpaAttribute))) {
 				if (jpaAttribute.isCollection()) {
 					targetClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
 				} else {
@@ -456,7 +459,7 @@ implements JPAStructuredType {
 					return jpaAttribute;
 				}
 				final ManyToMany m2m = ((AnnotatedElement) jpaAttribute.getJavaMember())
-						.getAnnotation(ManyToMany.class);
+				        .getAnnotation(ManyToMany.class);
 				if (m2m != null && m2m.mappedBy() != null && m2m.mappedBy().equals(mappedByIdentifier)) {
 					return jpaAttribute;
 				}
@@ -505,7 +508,7 @@ implements JPAStructuredType {
 	}
 
 	private List<IntermediateJoinColumn> determineJoinColumns(final IntermediateProperty property,
-			final JPAAssociationPath association) {
+	        final JPAAssociationPath association) {
 		final List<IntermediateJoinColumn> result = new ArrayList<IntermediateJoinColumn>();
 
 		final Attribute<?, ?> jpaAttribute = jpaManagedType.getAttribute(property.getInternalName());
@@ -552,14 +555,14 @@ implements JPAStructuredType {
 					// Only direct attributes
 					final IntermediateProperty property = (IntermediateProperty) attributePath.getLeaf();
 					final IntermediateStructuredType<?> nestedComplexType = (IntermediateStructuredType<?>) property
-							.getStructuredType();
+					        .getStructuredType();
 					// the 'nested complex type' is in the DB handled by same table (of me), so we
 					// have to build association paths
 					// for queries as if all of the 'nested complex type' properties are defined by
 					// this structured type
 					for (final JPAAssociationPath association : nestedComplexType.getAssociationPathList()) {
 						associationPath = new JPAAssociationPathImpl(nameBuilder, property, association, this,
-								determineJoinColumns(property, association));
+						        determineJoinColumns(property, association));
 						associationPathMap.put(associationPath.getAlias(), associationPath);
 					}
 				}
@@ -578,21 +581,21 @@ implements JPAStructuredType {
 		for (final IntermediateProperty property : declaredPropertiesList.values()) {
 			if (property.isComplex()) {
 				complexAttributePathMap.put(property.getExternalName(),
-						new JPAPathImpl(property.getExternalName(), null, property));
+				        new JPAPathImpl(property.getExternalName(), null, property));
 				final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((IntermediateStructuredType<?>) property
-						.getStructuredType()).getComplexAttributePathMap();
+				        .getStructuredType()).getComplexAttributePathMap();
 				for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
 					externalName = entry.getKey();
 					pathList = new ArrayList<JPAAttribute<?>>(entry.getValue().getPathElements());
 					pathList.add(0, property);
 					complexAttributePathMap.put(nameBuilder.buildPath(property.getExternalName(), externalName),
-							new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(),
-									externalName), null, pathList));
+					        new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(),
+					                externalName), null, pathList));
 				}
 
 				// add the (simple) properties of complex type as path to this type
 				final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((IntermediateStructuredType<?>) property
-						.getStructuredType()).getSimpleAttributePathMap();
+				        .getStructuredType()).getSimpleAttributePathMap();
 				JPAPathImpl newPath;
 				for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
 					externalName = entry.getKey();
@@ -600,16 +603,16 @@ implements JPAStructuredType {
 					pathList.add(0, property);
 					if (property.isKey()) {
 						newPath = new JPAPathImpl(externalName, determineDBFieldName(property, entry.getValue()),
-								pathList);
+						        pathList);
 					} else {
 						newPath = new JPAPathImpl(nameBuilder.buildPath(property.getExternalName(), externalName),
-								determineDBFieldName(property, entry.getValue()), pathList);
+						        determineDBFieldName(property, entry.getValue()), pathList);
 					}
 					simpleAttributePathMap.put(newPath.getAlias(), newPath);
 				}
 			} else {
 				simpleAttributePathMap.put(property.getExternalName(), new JPAPathImpl(property.getExternalName(), property
-						.getDBFieldName(), property));
+				        .getDBFieldName(), property));
 			}
 		}
 		// TODO: base class must be a JPA type, so we can cast... but has a bad smell
@@ -637,7 +640,7 @@ implements JPAStructuredType {
 		if (this.getBaseType() != null) {
 			// TODO: base class must be a JPA type, so we can cast... but has a bad smell
 			final IntermediateProperty superResult = ((IntermediateStructuredType<?>) getBaseType())
-					.getStreamProperty();
+			        .getStreamProperty();
 			if (superResult != null) {
 				count += 1;
 				result = superResult;
@@ -646,7 +649,7 @@ implements JPAStructuredType {
 		if (count > 1) {
 			// Only one stream property per entity is allowed. For %1$s %2$s have been found
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TO_MANY_STREAMS, internalName, Integer
-					.toString(count));
+			        .toString(count));
 		}
 		return result;
 	}

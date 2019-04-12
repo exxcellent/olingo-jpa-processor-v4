@@ -32,6 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * <a href=
  * "https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406397974"
  * >OData Version 4.0 Part 3 - 8 Entity Type</a>
+ * 
  * @author Oliver Grande
  *
  */
@@ -39,15 +40,14 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 
 	private CsdlEntityType edmEntityType;
 	private boolean hasEtag = false;
-	private InitializationState initStateEdm = InitializationState.NotInitialized;
 
 	IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
-			final IntermediateServiceDocument serviceDocument)
-					throws ODataJPAModelException {
+	        final IntermediateServiceDocument serviceDocument)
+	        throws ODataJPAModelException {
 		super(nameBuilder, et, serviceDocument);
 		this.setExternalName(nameBuilder.buildEntityTypeName(et));
 		final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaManagedType.getJavaType()).getAnnotation(
-				EdmIgnore.class);
+		        EdmIgnore.class);
 		if (jpaIgnore != null) {
 			this.setIgnore(true);
 		}
@@ -87,11 +87,10 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 			// attributes
 			if (idType == null) {
 				final IdClass idClassAnnotation = jpaManagedType.getJavaType().getAnnotation(IdClass.class);
-				if (idClassAnnotation != null)
-				{
+				if (idClassAnnotation != null) {
 					if (jpaManagedType.getClass().getName().startsWith("org.hibernate")) {
 						LOG.log(Level.WARNING, "invalid metamodel of Hibernate found for " + getInternalName()
-						+ ", no idType or invalid... use workaround");
+						        + ", no idType or invalid... use workaround");
 					}
 					return idClassAnnotation.value();
 				}
@@ -140,7 +139,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 		}
 
 		return (t == null) ? jpaManagedType.getJavaType().getName().toUpperCase(Locale.ENGLISH)
-				: t.name();
+		        : t.name();
 	}
 
 	@Override
@@ -169,16 +168,16 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 
 	@SuppressWarnings("unchecked")
 	protected <T> List<?> extractEdmProperties(final Map<String, ? extends IntermediateModelElement> mappingBuffer)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 		final List<T> extractionTarget = new LinkedList<T>();
 		for (final String externalName : mappingBuffer.keySet()) {
 			if (!((IntermediateModelElement) mappingBuffer.get(externalName)).ignore()
-					// Skip Streams
-					&& !(mappingBuffer.get(externalName) instanceof IntermediateProperty &&
-							((IntermediateProperty) mappingBuffer.get(externalName)).isStream())) {
+			        // Skip Streams
+			        && !(mappingBuffer.get(externalName) instanceof IntermediateProperty &&
+			                ((IntermediateProperty) mappingBuffer.get(externalName)).isStream())) {
 				if (mappingBuffer.get(externalName) instanceof IntermediateEmbeddedIdProperty) {
 					extractionTarget.addAll((Collection<? extends T>) resolveEmbeddedId(
-							(IntermediateEmbeddedIdProperty) mappingBuffer.get(externalName)));
+					        (IntermediateEmbeddedIdProperty) mappingBuffer.get(externalName)));
 				} else {
 					extractionTarget.add((T) ((IntermediateModelElement) mappingBuffer.get(externalName)).getEdmItem());
 				}
@@ -191,35 +190,20 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		switch (initStateEdm) {
-		case Initialized:
-			return;
-		case InProgress:
-			throw new IllegalStateException("Initialization already in progress, recursion problem!");
-		default:
-			break;
-		}
-
+		initializeType();
 		if (edmEntityType == null) {
-			try {
-				initStateEdm = InitializationState.InProgress;
-
-				initializeType();
-				edmEntityType = new CsdlEntityType();
-				edmEntityType.setName(getExternalName());
-				edmEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
-				edmEntityType.setNavigationProperties(
-						(List<CsdlNavigationProperty>) extractEdmProperties(
-								declaredNaviPropertiesList));
-				edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
-				edmEntityType.setAbstract(isAbstract());
-				edmEntityType.setBaseType(determineBaseType());
-				edmEntityType.setHasStream(determineHasStream());
-				determineHasEtag();
-				// TODO determine OpenType
-			} finally {
-				initStateEdm = InitializationState.Initialized;
-			}
+			edmEntityType = new CsdlEntityType();
+			edmEntityType.setName(getExternalName());
+			edmEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
+			edmEntityType.setNavigationProperties(
+			        (List<CsdlNavigationProperty>) extractEdmProperties(
+			                declaredNaviPropertiesList));
+			edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
+			edmEntityType.setAbstract(isAbstract());
+			edmEntityType.setBaseType(determineBaseType());
+			edmEntityType.setHasStream(determineHasStream());
+			determineHasEtag();
+			// TODO determine OpenType
 		}
 	}
 
@@ -241,16 +225,16 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 	 * @throws ODataJPAModelException
 	 */
 	List<CsdlPropertyRef> extractEdmKeyElements(final Map<String, IntermediateProperty> propertyList)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 		// TODO setAlias
 		final List<CsdlPropertyRef> keyList = new ArrayList<CsdlPropertyRef>();
 		for (final String internalName : propertyList.keySet()) {
 			if (propertyList.get(internalName).isKey()) {
 				if (propertyList.get(internalName).isComplex()) {
 					final List<JPASimpleAttribute> idAttributes = ((IntermediateComplexType) propertyList
-							.get(internalName)
-							.getStructuredType())
-							.getAttributes();
+					        .get(internalName)
+					        .getStructuredType())
+					                .getAttributes();
 					for (final JPAAttribute<?> idAttribute : idAttributes) {
 						final CsdlPropertyRef key = new CsdlPropertyRef();
 						key.setName(idAttribute.getExternalName());
