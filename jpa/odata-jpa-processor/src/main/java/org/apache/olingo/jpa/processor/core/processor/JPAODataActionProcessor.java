@@ -158,7 +158,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			} else {
 				// we have at least one entity
 				final EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl)
-				        .select(uriInfo.getSelectOption()).expand(uriInfo.getExpandOption()).build();
+				        .select(uriInfo.getSelectOption()).expand(resultExpand).build();
 				serializerResult = serializer.entity(getServiceMetadata(), type, entityCollection.getEntities().get(0), options);
 			}
 
