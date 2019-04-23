@@ -67,6 +67,7 @@ import org.apache.olingo.server.api.uri.UriResourceAction;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.core.uri.queryoption.ExpandItemImpl;
 import org.apache.olingo.server.core.uri.queryoption.ExpandOptionImpl;
+import org.apache.olingo.server.core.uri.queryoption.LevelsOptionImpl;
 
 /**
  *
@@ -136,6 +137,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 				resultExpand = new ExpandOptionImpl();
 				final ExpandItemImpl expand = new ExpandItemImpl();
 				expand.setIsStar(true);
+				expand.setSystemQueryOption(new LevelsOptionImpl().setMax());
 				((ExpandOptionImpl) resultExpand).addExpandItem(expand);
 			} else
 				resultExpand = uriInfo.getExpandOption();
