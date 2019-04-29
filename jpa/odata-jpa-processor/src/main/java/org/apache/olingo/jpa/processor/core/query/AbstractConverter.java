@@ -33,6 +33,7 @@ import org.apache.olingo.jpa.processor.core.mapping.converter.LocalDate2UtilCale
 import org.apache.olingo.jpa.processor.core.mapping.converter.LocalDateTime2SqlTimestampODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.LocalTime2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.SqlDate2UtilCalendarODataAttributeConverter;
+import org.apache.olingo.jpa.processor.core.mapping.converter.SqlTime2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.UtilDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
 
@@ -47,8 +48,8 @@ public abstract class AbstractConverter {
 
 		@SuppressWarnings("unchecked")
 		ConverterMapping(final Class<?> odataAttributeType, final Class<?> jpaAttributeType,
-				final boolean matchSubClassesForJPA,
-				@SuppressWarnings("rawtypes") final ODataAttributeConverter converterInstance) {
+		        final boolean matchSubClassesForJPA,
+		        @SuppressWarnings("rawtypes") final ODataAttributeConverter converterInstance) {
 			this.odataAttributeType = odataAttributeType;
 			this.jpaAttributeType = jpaAttributeType;
 			this.matchSubClasses4JPA = matchSubClassesForJPA;
@@ -75,17 +76,20 @@ public abstract class AbstractConverter {
 
 	static {
 		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class,
-				java.sql.Date.class, false,
-				new SqlDate2UtilCalendarODataAttributeConverter()));
-		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class, java.util.Date.class,
-				false, new UtilDate2UtilCalendarODataAttributeConverter()));
-		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS
-		.add(new ConverterMapping(java.util.Calendar.class, java.time.LocalDate.class, true,
-				new LocalDate2UtilCalendarODataAttributeConverter()));
+		        java.sql.Date.class, false,
+		        new SqlDate2UtilCalendarODataAttributeConverter()));
 		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class,
-				java.time.LocalTime.class, true, new LocalTime2UtilCalendarODataAttributeConverter()));
+		        java.sql.Time.class, false,
+		        new SqlTime2UtilCalendarODataAttributeConverter()));
+		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class, java.util.Date.class,
+		        false, new UtilDate2UtilCalendarODataAttributeConverter()));
+		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS
+		        .add(new ConverterMapping(java.util.Calendar.class, java.time.LocalDate.class, true,
+		                new LocalDate2UtilCalendarODataAttributeConverter()));
+		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class,
+		        java.time.LocalTime.class, true, new LocalTime2UtilCalendarODataAttributeConverter()));
 		DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.sql.Timestamp.class,
-				java.time.LocalDateTime.class, true, new LocalDateTime2SqlTimestampODataAttributeConverter()));
+		        java.time.LocalDateTime.class, true, new LocalDateTime2SqlTimestampODataAttributeConverter()));
 	}
 
 	protected final Logger log = Logger.getLogger(AbstractConverter.class.getName());
@@ -107,7 +111,7 @@ public abstract class AbstractConverter {
 	 */
 	@SuppressWarnings("unchecked")
 	protected final ODataAttributeConverter<Object, Object> determineODataAttributeConverter(final JPATypedElement jpaElement,
-			final Class<?> odataAttributeType) throws ODataJPAModelException {
+	        final Class<?> odataAttributeType) throws ODataJPAModelException {
 		final EdmAttributeConversion annoConverter = jpaElement.getAnnotation(EdmAttributeConversion.class);
 		if (annoConverter != null) {
 			try {
@@ -116,7 +120,7 @@ public abstract class AbstractConverter {
 				}
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_MAPPER_COULD_NOT_INSANTIATE,
-						e);
+				        e);
 			}
 		}
 		// look for default converter
@@ -125,8 +129,8 @@ public abstract class AbstractConverter {
 
 	@SuppressWarnings("unchecked")
 	private ODataAttributeConverter<Object, Object> determineDefaultODataAttributeConverter(
-			final Class<?> jpaAttributeType,
-			final Class<?> odataAttributeType) {
+	        final Class<?> jpaAttributeType,
+	        final Class<?> odataAttributeType) {
 		final String key = buildConverterKey(odataAttributeType, jpaAttributeType);
 		if (converterLookupCache.containsKey(key)) {
 			return converterLookupCache.get(key);
@@ -141,7 +145,7 @@ public abstract class AbstractConverter {
 		}
 		if (matchingConverters.size() > 1) {
 			log.log(Level.WARNING, "Multiple default converters are matching for " + odataAttributeType.getSimpleName() + "<->"
-					+ jpaAttributeType.getSimpleName() + ". Will NOT use any of them!");
+			        + jpaAttributeType.getSimpleName() + ". Will NOT use any of them!");
 			return null;
 		}
 		if (matchingConverters.isEmpty()) {
@@ -162,7 +166,7 @@ public abstract class AbstractConverter {
 	 * @return The value converted into an type provided from OData
 	 */
 	private Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
-			throws ODataJPAModelException {
+	        throws ODataJPAModelException {
 
 		// use a intermediate conversion to an supported JAVA type in the Olingo library
 		final EdmPrimitiveTypeKind kind = TypeMapping.convertToEdmSimpleType(attribute);
@@ -173,7 +177,7 @@ public abstract class AbstractConverter {
 			return jpaValue;
 		}
 		final ODataAttributeConverter<Object, Object> converter = determineODataAttributeConverter(attribute,
-				oadataType);
+		        oadataType);
 		if (converter != null) {
 			return converter.convertToOData(jpaValue);
 		}
@@ -183,8 +187,8 @@ public abstract class AbstractConverter {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected final Property convertJPA2ODataProperty(final JPATypedElement attribute, final String propertyName,
-			final Object input,
-			final List<Property> properties) throws ODataJPAModelException, IllegalArgumentException {
+	        final Object input,
+	        final List<Property> properties) throws ODataJPAModelException, IllegalArgumentException {
 		if (attribute == null) {
 			throw new IllegalArgumentException("JPA attribute required for property " + propertyName);
 		}
@@ -205,11 +209,11 @@ public abstract class AbstractConverter {
 			valueType = ValueType.PRIMITIVE;
 		} else {
 			throw new IllegalArgumentException(
-					"Given value is not of primitive type managable in this method: " + propertyName);
+			        "Given value is not of primitive type managable in this method: " + propertyName);
 		}
 		if (valueType == null) {
 			throw new IllegalArgumentException(
-					"Given value is not of primitive type managable in this method for property " + propertyName);
+			        "Given value is not of primitive type managable in this method for property " + propertyName);
 		}
 		Property property;
 		Object convertedValue;
@@ -305,22 +309,22 @@ public abstract class AbstractConverter {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public final Object convertOData2JPAValue(final JPATypedElement jpaElement, final Object sourceOdataValue)
-			throws ODataJPAModelException, ODataJPAProcessorException {
+	        throws ODataJPAModelException, ODataJPAProcessorException {
 		boolean isKey = false;
 		if (JPAAttribute.class.isInstance(jpaElement)) {
 			final JPAAttribute jpaAttribute = JPAAttribute.class.cast(jpaElement);
 			isKey = jpaAttribute.isKey();
 			if (sourceOdataValue == null && isKey) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-						HttpStatusCode.BAD_REQUEST);
+				        HttpStatusCode.BAD_REQUEST);
 			}
 		}
 		final boolean isGenerated = jpaElement.getAnnotation(GeneratedValue.class) != null;
 		// do not allow to set ID attributes if that attributes must be generated
 		if (isGenerated && isKey) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR,
-					new IllegalArgumentException("The id attribute must not be set, because is generated"));
+			        HttpStatusCode.INTERNAL_SERVER_ERROR,
+			        new IllegalArgumentException("The id attribute must not be set, because is generated"));
 		}
 
 		if (sourceOdataValue == null) {
@@ -355,7 +359,7 @@ public abstract class AbstractConverter {
 	 * @return The JPA attribute type compliant instance value.
 	 */
 	public final Object convertOData2JPAPropertyValue(final JPATypedElement jpaElement, final Valuable sourceOdataProperty)
-			throws ODataJPAModelException, ODataJPAProcessorException {
+	        throws ODataJPAModelException, ODataJPAProcessorException {
 		final Object odataPropertyValue = sourceOdataProperty != null ? sourceOdataProperty.getValue() : null;// assume primitive value
 		return convertOData2JPAValue(jpaElement, odataPropertyValue);
 	}
@@ -395,28 +399,28 @@ public abstract class AbstractConverter {
 	 * @throws ODataJPAModelException
 	 */
 	public final Object transferOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
-			final JPAAttribute<?> jpaAttribute, final Collection<Property> odataObjectProperties)
-					throws ODataApplicationException,
-					NoSuchFieldException, IllegalArgumentException, IllegalAccessException, ODataJPAModelException {
+	        final JPAAttribute<?> jpaAttribute, final Collection<Property> odataObjectProperties)
+	        throws ODataApplicationException,
+	        NoSuchFieldException, IllegalArgumentException, IllegalAccessException, ODataJPAModelException {
 
 		Property sourceOdataProperty;
 		switch (jpaAttribute.getAttributeMapping()) {
 		case SIMPLE:
 			sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());
 			return transferSimpleOData2JPAProperty(targetJPAObject, (JPASimpleAttribute) jpaAttribute,
-					sourceOdataProperty);
+			        sourceOdataProperty);
 		case AS_COMPLEX_TYPE:
 			sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());
 			return transferComplexOData2JPAProperty(targetJPAObject, jpaEntityType, jpaAttribute, sourceOdataProperty);
 		case EMBEDDED_ID:
 			return transferEmbeddedIdOData2JPAProperty(targetJPAObject, jpaEntityType, jpaAttribute,
-					odataObjectProperties);
+			        odataObjectProperties);
 		case RELATIONSHIP:
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
-					HttpStatusCode.INTERNAL_SERVER_ERROR);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR);
 		default:
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
-					HttpStatusCode.INTERNAL_SERVER_ERROR);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -427,15 +431,15 @@ public abstract class AbstractConverter {
 	 *            target object.
 	 */
 	private Object transferSimpleOData2JPAProperty(final Object targetJPAObject, final JPATypedElement jpaAttribute,
-			final Valuable sourceOdataProperty)
-					throws ODataJPAProcessorException, ODataJPAModelException {
+	        final Valuable sourceOdataProperty)
+	        throws ODataJPAProcessorException, ODataJPAModelException {
 		final Object jpaPropertyValue = convertOData2JPAPropertyValue(jpaAttribute,
-				sourceOdataProperty);
+		        sourceOdataProperty);
 		if (targetJPAObject != null && JPAAttribute.class.isInstance(jpaAttribute)) {
 			((JPAAttribute<?>) jpaAttribute).getAttributeAccessor().setPropertyValue(targetJPAObject, jpaPropertyValue);
 		} else if (targetJPAObject != null) {
 			log.log(Level.WARNING,
-					"transferSimpleOData2JPAProperty() with target JPA object, but not for an attribute, cannot assign value to JPA entity!");
+			        "transferSimpleOData2JPAProperty() with target JPA object, but not for an attribute, cannot assign value to JPA entity!");
 		}
 		return jpaPropertyValue;
 	}
@@ -449,10 +453,10 @@ public abstract class AbstractConverter {
 	 * @return The reused or new instance of embedded id.
 	 */
 	private Object transferEmbeddedIdOData2JPAProperty(final Object targetJPAObject,
-			final JPAStructuredType jpaEntityType,
-			final JPAAttribute<?> jpaAttribute, final Collection<Property> odataObjectProperties)
-					throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
-					IllegalAccessException {
+	        final JPAStructuredType jpaEntityType,
+	        final JPAAttribute<?> jpaAttribute, final Collection<Property> odataObjectProperties)
+	        throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
+	        IllegalAccessException {
 		Object embeddedIdFieldObject = null;
 		if (targetJPAObject != null) {
 			embeddedIdFieldObject = jpaAttribute.getAttributeAccessor().getPropertyValue(targetJPAObject);
@@ -465,12 +469,12 @@ public abstract class AbstractConverter {
 		}
 		for (final JPAAttribute<?> jpaEmbeddedIdAttribute : embeddedIdFieldType.getAttributes()) {
 			final Object conv = transferOData2JPAProperty(embeddedIdFieldObject, embeddedIdFieldType,
-					jpaEmbeddedIdAttribute, odataObjectProperties);
+			        jpaEmbeddedIdAttribute, odataObjectProperties);
 			if (conv == null) {
 				log.log(Level.SEVERE, "Missing key attribute value: " + jpaEntityType.getExternalName() + "/"
-						+ jpaAttribute.getExternalName() + "#" + jpaEmbeddedIdAttribute.getExternalName());
+				        + jpaAttribute.getExternalName() + "#" + jpaEmbeddedIdAttribute.getExternalName());
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-						HttpStatusCode.BAD_REQUEST);
+				        HttpStatusCode.BAD_REQUEST);
 			}
 		}
 		if (newInstance && targetJPAObject != null) {
@@ -480,15 +484,15 @@ public abstract class AbstractConverter {
 	}
 
 	private Object transferComplexOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
-			final JPAAttribute<?> jpaAttribute, final Property sourceOdataProperty)
-					throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
-					IllegalAccessException {
+	        final JPAAttribute<?> jpaAttribute, final Property sourceOdataProperty)
+	        throws ODataJPAModelException, ODataApplicationException, NoSuchFieldException, IllegalArgumentException,
+	        IllegalAccessException {
 		if (sourceOdataProperty == null) {
 			return null;
 		}
 		if (!sourceOdataProperty.isComplex()) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
-					HttpStatusCode.INTERNAL_SERVER_ERROR);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 		Object embeddedFieldObject = null;
 		if (targetJPAObject != null) {
@@ -496,7 +500,7 @@ public abstract class AbstractConverter {
 		}
 		if (embeddedFieldObject == null) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.EXPECTATION_FAILED);
+			        HttpStatusCode.EXPECTATION_FAILED);
 		}
 		final JPAStructuredType embeddedJPAType = jpaAttribute.getStructuredType();
 		if (sourceOdataProperty.isCollection()) {
@@ -505,16 +509,16 @@ public abstract class AbstractConverter {
 			final Collection<Object> collectionOfComplexTypes = (Collection<Object>) embeddedFieldObject;
 			if (!collectionOfComplexTypes.isEmpty()) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-						HttpStatusCode.EXPECTATION_FAILED);
+				        HttpStatusCode.EXPECTATION_FAILED);
 			}
 			for (final Object entry : sourceOdataProperty.asCollection()) {
 				final Object embeddedJPAInstance = newJPAInstance(embeddedJPAType);
 				final List<Property> listEmbeddedProperties = ((ComplexValue) entry).getValue();
 				for (final Property embeddedProperty : listEmbeddedProperties) {
 					final JPAAttribute<?> embeddedJPAAttribute = embeddedJPAType.getPath(embeddedProperty.getName())
-							.getLeaf();
+					        .getLeaf();
 					transferOData2JPAProperty(embeddedJPAInstance, embeddedJPAType, embeddedJPAAttribute,
-							listEmbeddedProperties);
+					        listEmbeddedProperties);
 				}
 				collectionOfComplexTypes.add(embeddedJPAInstance);
 			}
@@ -522,9 +526,9 @@ public abstract class AbstractConverter {
 			// single structured type attribute
 			for (final Property embeddedProperty : sourceOdataProperty.asComplex().getValue()) {
 				final JPAAttribute<?> embeddedJPAAttribute = embeddedJPAType.getPath(embeddedProperty.getName())
-						.getLeaf();
+				        .getLeaf();
 				transferOData2JPAProperty(embeddedFieldObject, embeddedJPAType, embeddedJPAAttribute,
-						Collections.singletonList(embeddedProperty));
+				        Collections.singletonList(embeddedProperty));
 			}
 		}
 		return embeddedFieldObject;
