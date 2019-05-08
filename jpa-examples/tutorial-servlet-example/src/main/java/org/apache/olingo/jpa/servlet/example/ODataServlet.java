@@ -25,7 +25,6 @@ import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataGetHandler;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
@@ -52,7 +51,7 @@ public class ODataServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String JNDI_DATASOURCE = "java:comp/env/jdbc/testDS";
 
-	private JPAODataGetHandler requestHandler = null;
+	private JPAODataServletHandler requestHandler = null;
 
 	@Override
 	public void init() throws ServletException {
@@ -80,7 +79,7 @@ public class ODataServlet extends HttpServlet {
 		requestHandler.process(req, resp);
 	}
 
-	private JPAODataGetHandler createHandler() throws ODataException, ServletException {
+	private JPAODataServletHandler createHandler() throws ODataException, ServletException {
 
 		final Map<Object, Object> elProperties = new HashMap<>();
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
