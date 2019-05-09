@@ -38,7 +38,7 @@ abstract class JPAAbstractRequestProcessor implements JPARequestProcessor {
     this.uriInfo = requestContext.getUriInfo();
     this.serializer = requestContext.getSerializer();
     this.odata = odata;
-    this.debugger = context.getDebugger();
+    this.debugger = context.getServiceDebugger();
   }
 
   protected final void createSuccessResonce(final ODataResponse response, final ContentType responseFormat,

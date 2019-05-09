@@ -98,7 +98,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 
 	public JPAODataActionProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
 		super(context, em);
-		this.debugger = context.getDebugger();
+		this.debugger = context.getServiceDebugger();
 	}
 
 	@Override

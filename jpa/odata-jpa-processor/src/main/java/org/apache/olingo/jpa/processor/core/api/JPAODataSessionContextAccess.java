@@ -13,7 +13,7 @@ public interface JPAODataSessionContextAccess {
 	public OData getOdata();
 	public JPAODataDatabaseProcessor getDatabaseProcessor();
 
-	public JPAServiceDebugger getDebugger();
+	public JPAServiceDebugger getServiceDebugger();
 
 	public DebugSupport getDebugSupport();
 

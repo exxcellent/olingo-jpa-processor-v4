@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
@@ -17,6 +19,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.debug.DebugSupport;
 import org.apache.olingo.server.api.debug.DefaultDebugSupport;
+import org.apache.olingo.server.core.debug.ServerCoreDebugger;
 
 class JPAODataContextImpl implements JPAODataContext {
 
@@ -26,7 +29,8 @@ class JPAODataContextImpl implements JPAODataContext {
 	private final OData odata;
 	private final ServiceMetadata serviceMetaData;
 	private final List<EdmxReference> references = new LinkedList<EdmxReference>();
-	private JPAServiceDebugger debugger;
+	private JPAServiceDebugger serviceDebugger;
+	private final ServerCoreDebugger serverDebugger;
 	private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
 	private DependencyInjector dpi = null;
 	private boolean disposed = false;
@@ -34,6 +38,7 @@ class JPAODataContextImpl implements JPAODataContext {
 	public JPAODataContextImpl(final JPAAdapter mappingAdapter) throws ODataException {
 		super();
 		this.odata = OData.newInstance();
+		serverDebugger = new ServerCoreDebugger(odata);
 		this.mappingAdapter = mappingAdapter;
 
 		jpaEdm = new JPAEdmProvider(mappingAdapter.getNamespace(), mappingAdapter.getMetamodel());
@@ -98,30 +103,26 @@ class JPAODataContextImpl implements JPAODataContext {
 	@Override
 	public void setDebugSupport(final DebugSupport jpaDebugSupport) {
 		this.debugSupport = new JPADebugSupportWrapper(jpaDebugSupport);
+		serverDebugger.setDebugSupportProcessor(debugSupport);
 	}
 
 	@Override
-	public JPAServiceDebugger getDebugger() {
-		return debugger;
+	public JPAServiceDebugger getServiceDebugger() {
+		return serviceDebugger;
 	}
 
-	void initDebugger(final String debugFormat) {
-		// see org.apache.olingo.server.core.debug.ServerCoreDebugger
-		boolean isDebugMode = false;
+	ServerCoreDebugger getServerDebugger() {
+		return serverDebugger;
+	}
 
-		if (debugSupport != null) {
-			// Should we read the parameter from the servlet here and ignore multiple parameters?
-			if (debugFormat != null) {
-				debugSupport.init(odata);
-				isDebugMode = debugSupport.isUserAuthorized();
-			}
-		}
-		if (isDebugMode) {
-			debugger = new JPACoreDebugger();
+	void initDebugger(final HttpServletRequest request) {
+		serverDebugger.resolveDebugMode(request);
+		if (serverDebugger.isDebugMode()) {
+			serviceDebugger = new JPACoreDebugger();
 		} else {
-			debugger = new JPAEmptyDebugger();
+			serviceDebugger = new JPAEmptyDebugger();
 		}
-		debugSupport.setDebugger(debugger);
+		debugSupport.setDebugger(serviceDebugger);
 	}
 
 	/**

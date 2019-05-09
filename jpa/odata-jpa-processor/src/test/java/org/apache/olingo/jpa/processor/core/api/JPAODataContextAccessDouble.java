@@ -46,7 +46,7 @@ public class JPAODataContextAccessDouble implements JPAODataSessionContextAccess
 	}
 
 	@Override
-	public JPAServiceDebugger getDebugger() {
+	public JPAServiceDebugger getServiceDebugger() {
 		return new JPAEmptyDebugger();
 	}
 

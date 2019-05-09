@@ -13,10 +13,10 @@ import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.processor.JPAEntityProcessor;
 import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
+import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.ODataResponse;
-import org.apache.olingo.server.api.debug.DebugSupport;
 import org.apache.olingo.server.api.processor.Processor;
 
 /**
@@ -30,7 +30,7 @@ public class JPAODataServletHandler {
 	static final Logger LOG = Logger.getLogger(JPAODataServletHandler.class.getName());
 
 	private final JPAODataContextImpl context;
-	private SecurityInceptor securityInceptor = null;
+	private SecurityInceptor securityInceptor = new AnnotationBasedSecurityInceptor();// having one as default
 
 	public JPAODataServletHandler(final JPAAdapter mappingAdapter) throws ODataException {
 		super();
@@ -50,7 +50,7 @@ public class JPAODataServletHandler {
 
 		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(this);
 		context.getEdmProvider().setRequestLocales(request.getLocales());
-		context.initDebugger(request.getParameter(DebugSupport.ODATA_DEBUG_QUERY_PARAMETER));
+		context.initDebugger(request);
 		handler.register(context.getDebugSupport());
 
 		final Collection<Processor> processors = collectProcessors(request, response, handler.getEntityManager());
