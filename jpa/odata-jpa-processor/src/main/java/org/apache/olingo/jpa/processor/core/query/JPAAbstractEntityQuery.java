@@ -28,20 +28,19 @@ import org.apache.olingo.server.api.uri.queryoption.SkipOption;
 import org.apache.olingo.server.api.uri.queryoption.TopOption;
 
 public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
-extends JPAAbstractCriteriaQuery<QueryType> {
-
+        extends JPAAbstractCriteriaQuery<QueryType> {
 
 	protected JPAAbstractEntityQuery(final OData odata, final EdmEntitySet entitySet,
-			final JPAODataSessionContextAccess context, final UriInfoResource uriInfo, final EntityManager em,
-			final Map<String, List<String>> requestHeaders)
-					throws ODataApplicationException, ODataJPAModelException {
+	        final JPAODataSessionContextAccess context, final UriInfoResource uriInfo, final EntityManager em,
+	        final Map<String, List<String>> requestHeaders)
+	        throws ODataApplicationException, ODataJPAModelException {
 
 		super(odata, context, entitySet, em, requestHeaders, uriInfo);
 	}
 
 	protected JPAAbstractEntityQuery(final OData odata, final JPAODataSessionContextAccess context,
-			final JPAEntityType jpaEntityType, final EntityManager em, final Map<String, List<String>> requestHeaders,
-			final UriInfoResource uriResource) throws ODataApplicationException {
+	        final JPAEntityType jpaEntityType, final EntityManager em, final Map<String, List<String>> requestHeaders,
+	        final UriInfoResource uriResource) throws ODataApplicationException {
 		super(odata, context, jpaEntityType, em, requestHeaders, uriResource);
 	}
 
@@ -70,7 +69,7 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 			return Integer.valueOf(skipNumber);
 		} else {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-					HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
+			        HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
 		}
 	}
 
@@ -85,7 +84,7 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 			return Integer.valueOf(topNumber);
 		} else {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-					HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
+			        HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
 		}
 	}
 
@@ -128,8 +127,9 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 	 * All @ElementCollection attributes must be loaded in a separate query for
 	 * every attribute (being a @ElementCollection).
 	 *
-	 * @param completeSelectorList The list to process (must be a modifiable list to
-	 *                             remove elements from it)
+	 * @param completeSelectorList
+	 *            The list to process (must be a modifiable list to
+	 *            remove elements from it)
 	 * @return The elements removed from <i>completeSelectorList</i>, because are
 	 *         for attributes being a
 	 *         {@link javax.persistence.ElementCollection @ElementCollection}. The
@@ -137,7 +137,7 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 	 *         from the same attribute (first element in path list).
 	 */
 	protected Map<JPAAttribute<?>, List<JPASelector>> separateElementCollectionPaths(
-			final List<JPASelector> completeSelectorList) {
+	        final List<JPASelector> completeSelectorList) {
 		final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = new HashMap<>();
 		List<JPASelector> elementCollectionList;
 		for (int i = completeSelectorList.size(); i > 0; i--) {
@@ -157,7 +157,7 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 	}
 
 	protected final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> readElementCollections(
-			final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap) throws ODataApplicationException {
+	        final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap) throws ODataApplicationException {
 		if (elementCollectionMap.isEmpty()) {
 			return Collections.emptyMap();
 		}
@@ -172,7 +172,7 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 			final JPAAttribute<?> attribute = entry.getKey();
 
 			final JPAElementCollectionQuery query = new JPAElementCollectionQuery(getOData(), jpaEntityType, attribute,
-					entry.getValue(), getContext(), getUriInfoResource(), getEntityManager(), Collections.emptyMap());
+			        entry.getValue(), getContext(), getUriInfoResource(), getEntityManager(), getRequestHeaders());
 			final JPAQueryElementCollectionResult result = query.execute();
 			allResults.put(attribute, result);
 		}
