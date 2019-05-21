@@ -49,8 +49,7 @@ public class JPAODataServletHandler {
 		context.initDependencyInjection(dpi);
 
 		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(this);
-		context.getEdmProvider().setRequestLocales(request.getLocales());
-		context.initDebugger(request);
+		context.initializeRequestContext(request);
 		handler.register(context.getDebugSupport());
 
 		final Collection<Processor> processors = collectProcessors(request, response, handler.getEntityManager());

@@ -6,83 +6,78 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ODataJPAMessageTextBuffer implements ODataJPAMessageBufferRead {
-  private static final String PATH_SEPERATOR = ".";
 
-  public static Locale DEFAULT_LOCALE = Locale.ENGLISH;
+	private static final String PATH_SEPERATOR = ".";
 
-  private String bundleName;
-  private ResourceBundle bundle;
-  private Locale locale = DEFAULT_LOCALE;
+	public static Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
-  public ODataJPAMessageTextBuffer(final String bundleName) {
-    super();
-    this.bundleName = bundleName;
-    getResourceBundle();
-  }
+	private String bundleName;
+	private ResourceBundle bundle;
+	private Locale locale = DEFAULT_LOCALE;
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAMessageBufferRead#getText(java.lang.Object,
-   * java.lang.String)
-   */
-  @Override
-  public String getText(final Object execption, final String ID) {
-    return bundle.getString(execption.getClass().getSimpleName() + PATH_SEPERATOR + ID);
-  }
+	public ODataJPAMessageTextBuffer(final String bundleName) {
+		super();
+		this.bundleName = bundleName;
+		getResourceBundle();
+	}
 
-  @Override
-  public String getText(final Object execption, final String ID, final String... parameters) {
-    final String message = getText(execption, ID);
-    final StringBuilder builder = new StringBuilder();
-    final Formatter f = new Formatter(builder, locale);
+	@Override
+	public String getText(final Object execption, final String ID) {
+		return bundle.getString(execption.getClass().getSimpleName() + PATH_SEPERATOR + ID);
+	}
 
-    f.format(message, (Object[]) parameters);
-    f.close();
-    return builder.toString();
-  }
+	@Override
+	public String getText(final Object execption, final String ID, final String... parameters) {
+		final String message = getText(execption, ID);
+		final StringBuilder builder = new StringBuilder();
+		final Formatter f = new Formatter(builder, locale);
 
-  public void setLocale(final Locale locale) {
-    if (locale == null) {
-      this.locale = DEFAULT_LOCALE;
-      getResourceBundle();
-    } else if (locale != this.locale) {
-      this.locale = locale;
-      getResourceBundle();
-    }
-  }
+		f.format(message, (Object[]) parameters);
+		f.close();
+		return builder.toString();
+	}
 
-  public void setLocales(final Enumeration<Locale> locales) {
-    if (locales == null || locales.hasMoreElements() == false) {
-      this.locale = DEFAULT_LOCALE;
-      getResourceBundle();
-    } else {
-      while (locales.hasMoreElements()) {
-        this.locale = locales.nextElement();
-        getResourceBundle();
-        if (bundle.getLocale().getLanguage().equals(this.locale.getLanguage())
-            && bundle.getLocale().getCountry().equals(this.locale.getCountry()))
-          break;
-      }
-    }
-  }
+	public void setLocale(final Locale locale) {
+		if (locale == null) {
+			this.locale = DEFAULT_LOCALE;
+			getResourceBundle();
+		} else if (locale != this.locale) {
+			this.locale = locale;
+			getResourceBundle();
+		}
+	}
 
-  String getBundleName() {
-    return bundleName;
-  }
+	public void setLocales(final Enumeration<Locale> locales) {
+		if (locales == null || locales.hasMoreElements() == false) {
+			this.locale = DEFAULT_LOCALE;
+			getResourceBundle();
+		} else {
+			while (locales.hasMoreElements()) {
+				this.locale = locales.nextElement();
+				getResourceBundle();
+				if (bundle.getLocale().getLanguage().equals(this.locale.getLanguage())
+				        && bundle.getLocale().getCountry().equals(this.locale.getCountry()))
+					break;
+			}
+		}
+	}
 
-  Locale getLocale() {
-    return locale;
-  }
+	String getBundleName() {
+		return bundleName;
+	}
 
-  void setBundleName(final String bundleName) {
-    if (!this.bundleName.equals(bundleName)) {
-      this.bundleName = bundleName;
-      getResourceBundle();
-    }
-  }
+	Locale getLocale() {
+		return locale;
+	}
 
-  private void getResourceBundle() {
-    bundle = ResourceBundle.getBundle(bundleName, locale);
-  }
+	void setBundleName(final String bundleName) {
+		if (!this.bundleName.equals(bundleName)) {
+			this.bundleName = bundleName;
+			getResourceBundle();
+		}
+	}
+
+	private void getResourceBundle() {
+		bundle = ResourceBundle.getBundle(bundleName, locale);
+	}
 }

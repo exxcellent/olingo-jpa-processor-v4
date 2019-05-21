@@ -9,9 +9,11 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessException;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.OData;
@@ -33,6 +35,7 @@ class JPAODataContextImpl implements JPAODataContext {
 	private final ServerCoreDebugger serverDebugger;
 	private JPADebugSupportWrapper debugSupport = new JPADebugSupportWrapper(new DefaultDebugSupport());
 	private DependencyInjector dpi = null;
+	private HttpServletRequest request = null;
 	private boolean disposed = false;
 
 	public JPAODataContextImpl(final JPAAdapter mappingAdapter) throws ODataException {
@@ -50,6 +53,8 @@ class JPAODataContextImpl implements JPAODataContext {
 
 	void dispose() {
 		mappingAdapter.dispose();
+		request = null;
+		dpi = null;
 		disposed = true;
 	}
 
@@ -115,7 +120,9 @@ class JPAODataContextImpl implements JPAODataContext {
 		return serverDebugger;
 	}
 
-	void initDebugger(final HttpServletRequest request) {
+	void initializeRequestContext(final HttpServletRequest request) {
+		if (disposed)
+			throw new IllegalStateException("Already disposed");
 		serverDebugger.resolveDebugMode(request);
 		if (serverDebugger.isDebugMode()) {
 			serviceDebugger = new JPACoreDebugger();
@@ -123,6 +130,16 @@ class JPAODataContextImpl implements JPAODataContext {
 			serviceDebugger = new JPAEmptyDebugger();
 		}
 		debugSupport.setDebugger(serviceDebugger);
+		this.request = request;
+		ODataJPAException.setLocales(request.getLocales());
+		ODataJPAProcessException.setLocales(request.getLocales());
+	}
+
+	@Override
+	public String getParameter(final String name) {
+		if (request == null)
+			throw new IllegalArgumentException("Not initialized with request");
+		return request.getHeader(name);
 	}
 
 	/**

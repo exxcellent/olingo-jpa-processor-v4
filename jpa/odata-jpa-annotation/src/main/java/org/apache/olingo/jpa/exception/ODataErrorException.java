@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.exception;
 
+import java.util.Locale;
+
 import org.apache.olingo.commons.api.ex.ODataError;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -14,8 +16,16 @@ public class ODataErrorException extends ODataApplicationException {
 
 	private final ODataError error;
 
+	/**
+	 * @deprecated Use {@link #ODataErrorException(ODataError, Locale)}
+	 */
+	@Deprecated
 	public ODataErrorException(final ODataError error) {
-		super(error.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), null);
+		this(error, null);
+	}
+
+	public ODataErrorException(final ODataError error, final Locale locale) {
+		super(error.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), locale);
 		this.error = error;
 	}
 

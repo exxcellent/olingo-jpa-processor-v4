@@ -1,8 +1,6 @@
 package org.apache.olingo.jpa.metadata.api;
 
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Locale;
 
 import javax.persistence.metamodel.Metamodel;
 
@@ -20,7 +18,6 @@ import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.AbstractJPASchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 
@@ -68,10 +65,10 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	@Override
 	public CsdlEntityContainerInfo getEntityContainerInfo(final FullQualifiedName entityContainerName)
-			throws ODataException {
+	        throws ODataException {
 		// This method is invoked when displaying the Service Document at e.g.
 		// .../DemoService.svc
-		if(entityContainerName == null) {
+		if (entityContainerName == null) {
 			return serviceDocument.getEntityContainerInfo();
 		}
 		return null;
@@ -79,7 +76,7 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	@Override
 	public CsdlEntitySet getEntitySet(final FullQualifiedName entityContainerFQN, final String entitySetName)
-			throws ODataException {
+	        throws ODataException {
 		// the name space (of entity container) is ignored, because Odata v4 does only
 		// support one entity container
 		return serviceDocument.getEntityContainer().getEntitySet(entitySetName);
@@ -98,8 +95,8 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	@Override
 	public CsdlFunctionImport getFunctionImport(final FullQualifiedName entityContainerFQN,
-			final String functionImportName)
-					throws ODataException {
+	        final String functionImportName)
+	        throws ODataException {
 		// the name space (of entity container) is ignored, because Odata v4 does only
 		// support one entity container
 		return serviceDocument.getEntityContainer().getFunctionImport(functionImportName);
@@ -127,7 +124,7 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	@Override
 	public CsdlActionImport getActionImport(final FullQualifiedName entityContainerFQN, final String actionImportName)
-			throws ODataException {
+	        throws ODataException {
 		// the name space (of entity container) is ignored, because Odata v4 does only
 		// support one entity container
 		return serviceDocument.getEntityContainer().getActionImport(actionImportName);
@@ -140,9 +137,5 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
 
 	public final IntermediateServiceDocument getServiceDocument() {
 		return serviceDocument;
-	}
-
-	public void setRequestLocales(final Enumeration<Locale> locales) {
-		ODataJPAException.setLocales(locales);
 	}
 }
