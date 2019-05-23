@@ -18,10 +18,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.result.JPAQueryElementCollectionResult;
-import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.queryoption.SkipOption;
@@ -30,18 +29,16 @@ import org.apache.olingo.server.api.uri.queryoption.TopOption;
 public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
         extends JPAAbstractCriteriaQuery<QueryType> {
 
-	protected JPAAbstractEntityQuery(final OData odata, final EdmEntitySet entitySet,
-	        final JPAODataSessionContextAccess context, final UriInfoResource uriInfo, final EntityManager em,
-	        final Map<String, List<String>> requestHeaders)
+	protected JPAAbstractEntityQuery(final EdmEntitySet entitySet, final JPAODataContext context, final UriInfoResource uriInfo,
+	        final EntityManager em)
 	        throws ODataApplicationException, ODataJPAModelException {
 
-		super(odata, context, entitySet, em, requestHeaders, uriInfo);
+		super(context, entitySet, em, uriInfo);
 	}
 
-	protected JPAAbstractEntityQuery(final OData odata, final JPAODataSessionContextAccess context,
-	        final JPAEntityType jpaEntityType, final EntityManager em, final Map<String, List<String>> requestHeaders,
+	protected JPAAbstractEntityQuery(final JPAODataContext context, final JPAEntityType jpaEntityType, final EntityManager em,
 	        final UriInfoResource uriResource) throws ODataApplicationException {
-		super(odata, context, jpaEntityType, em, requestHeaders, uriResource);
+		super(context, jpaEntityType, em, uriResource);
 	}
 
 	/**
@@ -54,7 +51,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 *         of $skip or $top in request.
 	 * @throws ODataJPAQueryException
 	 */
-	public boolean hasQueryLimits() throws ODataJPAQueryException {
+	public final boolean hasQueryLimits() throws ODataJPAQueryException {
 		return (determineSkipValue() != null || determineTopValue() != null);
 	}
 
@@ -103,7 +100,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 *
 	 * @throws ODataApplicationException
 	 */
-	protected void addTopSkip(final TypedQuery<Tuple> tq) throws ODataApplicationException {
+	protected final void addTopSkip(final TypedQuery<Tuple> tq) throws ODataApplicationException {
 		/*
 		 * Where $top and $skip are used together, $skip MUST be applied before $top, regardless of the order in which they
 		 * appear in the request.
@@ -136,7 +133,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 *         selector elements are sorted into a map for all selectors starting
 	 *         from the same attribute (first element in path list).
 	 */
-	protected Map<JPAAttribute<?>, List<JPASelector>> separateElementCollectionPaths(
+	protected final Map<JPAAttribute<?>, List<JPASelector>> separateElementCollectionPaths(
 	        final List<JPASelector> completeSelectorList) {
 		final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = new HashMap<>();
 		List<JPASelector> elementCollectionList;
@@ -171,8 +168,8 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 
 			final JPAAttribute<?> attribute = entry.getKey();
 
-			final JPAElementCollectionQuery query = new JPAElementCollectionQuery(getOData(), jpaEntityType, attribute,
-			        entry.getValue(), getContext(), getUriInfoResource(), getEntityManager(), getRequestHeaders());
+			final JPAElementCollectionQuery query = new JPAElementCollectionQuery(jpaEntityType, attribute,
+			        entry.getValue(), getContext(), getUriInfoResource(), getEntityManager());
 			final JPAQueryElementCollectionResult result = query.execute();
 			allResults.put(attribute, result);
 		}

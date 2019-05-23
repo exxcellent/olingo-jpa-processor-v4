@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
-import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.data.ComplexValue;
@@ -17,8 +16,6 @@ import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
-import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -43,30 +40,6 @@ public class EntityConverter extends JPATupleAbstractConverter {
 	        final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
 	        throws ODataJPAModelException {
 		super(jpaConversionTargetEntity, uriHelper, sd, serviceMetadata);
-	}
-
-	/**
-	 * @deprecated Not working for DTO's
-	 */
-	@Deprecated
-	public EntityConverter(final EntityType<?> persistenceType, final UriHelper uriHelper,
-	        final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
-	        throws ODataJPAModelException {
-		super(determineJPAEntityType(sd, persistenceType), uriHelper, sd, serviceMetadata);
-	}
-
-	public final static JPAEntityType determineJPAEntityType(final IntermediateServiceDocument sd,
-	        final EntityType<?> persistenceType) throws ODataJPAModelException {
-		FullQualifiedName fqn;
-		JPAEntityType jpaType;
-		for (final CsdlSchema schema : sd.getEdmSchemas()) {
-			fqn = new FullQualifiedName(schema.getNamespace(), persistenceType.getName());
-			jpaType = sd.getEntityType(fqn);
-			if (jpaType != null) {
-				return jpaType;
-			}
-		}
-		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, persistenceType.getName());
 	}
 
 	/**

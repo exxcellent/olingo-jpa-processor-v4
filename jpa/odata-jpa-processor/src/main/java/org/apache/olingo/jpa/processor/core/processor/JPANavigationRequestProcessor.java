@@ -7,8 +7,8 @@ import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
@@ -20,23 +20,25 @@ import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriResource;
+
 /**
  * @deprecated Only for legacy reasons existing
  *
  */
 @Deprecated
 class JPANavigationRequestProcessor extends JPAAbstractRequestProcessor implements JPARequestProcessor {
+
 	private final ServiceMetadata serviceMetadata;
 
 	public JPANavigationRequestProcessor(final OData odata, final ServiceMetadata serviceMetadata,
-			final JPAODataSessionContextAccess context, final JPAODataRequestContextAccess requestContext) {
+	        final JPAODataContext context, final JPAODataRequestContextAccess requestContext) {
 		super(odata, context, requestContext);
 		this.serviceMetadata = serviceMetadata;
 	}
 
 	@Override
 	public void retrieveData(final ODataRequest request, final ODataResponse response, final ContentType responseFormat)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 
 		final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
 		final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
@@ -44,11 +46,10 @@ class JPANavigationRequestProcessor extends JPAAbstractRequestProcessor implemen
 		// Create a JPQL Query and execute it
 		JPAEntityQuery query = null;
 		try {
-			query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
-					serviceMetadata);
+			query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, serviceMetadata);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 
 		final EntityCollection entityCollection = query.execute(true);

@@ -2,7 +2,6 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -18,7 +17,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -33,15 +32,12 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 	protected static final String SELECT_ITEM_SEPERATOR = ",";
 	protected static final String SELECT_ALL = "*";
 
-	private static final int CONTAINY_ONLY_LANGU = 1;
-	private static final int CONTAINS_LANGU_COUNTRY = 2;
-
 	private final EntityManager em;
 	private final CriteriaBuilder cb;
 	private final JPAEntityType jpaEntityType;
 
 	protected JPAAbstractQuery(final JPAEntityType jpaEntityType, final EntityManager em)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		super();
 		this.em = em;
 		this.cb = em.getCriteriaBuilder();
@@ -73,8 +69,8 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 	}
 
 	protected javax.persistence.criteria.Expression<Boolean> createWhereByKey(final From<?, ?> root,
-			final javax.persistence.criteria.Expression<Boolean> whereCondition, final List<UriParameter> keyPredicates)
-					throws ODataApplicationException {
+	        final javax.persistence.criteria.Expression<Boolean> whereCondition, final List<UriParameter> keyPredicates)
+	        throws ODataApplicationException {
 		// .../Organizations('3')
 		// .../BusinessPartnerRoles(BusinessPartnerID='6',RoleCategory='C')
 		if (keyPredicates == null) {
@@ -104,7 +100,7 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 	}
 
 	protected List<UriParameter> determineKeyPredicates(final UriResource uriResourceItem)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 
 		if (uriResourceItem instanceof UriResourceEntitySet) {
 			return ((UriResourceEntitySet) uriResourceItem).getKeyPredicates();
@@ -112,8 +108,8 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 			return ((UriResourceNavigation) uriResourceItem).getKeyPredicates();
 		} else {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
-					HttpStatusCode.BAD_REQUEST,
-					uriResourceItem.getKind().name());
+			        HttpStatusCode.BAD_REQUEST,
+			        uriResourceItem.getKind().name());
 		}
 	}
 
@@ -123,29 +119,6 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 
 	protected abstract Locale getLocale();
 
-	protected final Locale determineLocale(final Map<String, List<String>> headers) {
-		// TODO Make this replaceable so the default can be overwritten
-		// http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html (14.4 accept language header
-		// example: Accept-Language: da, en-gb;q=0.8, en;q=0.7)
-		final List<String> languageHeaders = headers.get("accept-language");
-		if (languageHeaders != null) {
-			final String languageHeader = languageHeaders.get(0);
-			if (languageHeader != null) {
-				final String[] localeList = languageHeader.split(SELECT_ITEM_SEPERATOR);
-				final String locale = localeList[0];
-				final String[] languCountry = locale.split("-");
-				if (languCountry.length == CONTAINS_LANGU_COUNTRY) {
-					return new Locale(languCountry[0], languCountry[1]);
-				} else if (languCountry.length == CONTAINY_ONLY_LANGU) {
-					return new Locale(languCountry[0]);
-				} else {
-					return Locale.ENGLISH;
-				}
-			}
-		}
-		return Locale.ENGLISH;
-	}
-
-	abstract JPAODataSessionContextAccess getContext();
+	abstract JPAODataContext getContext();
 
 }

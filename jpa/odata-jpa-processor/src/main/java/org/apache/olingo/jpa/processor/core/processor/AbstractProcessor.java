@@ -7,7 +7,7 @@ import javax.persistence.EntityManager;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -21,13 +21,13 @@ import org.apache.olingo.server.api.processor.Processor;
 abstract class AbstractProcessor implements Processor {
 
 	protected final IntermediateServiceDocument sd;
-	protected final JPAODataSessionContextAccess context;
+	protected final JPAODataContext context;
 	protected final EntityManager em;
 
 	private ServiceMetadata serviceMetadata = null;
 	private OData odata = null;
 
-	public AbstractProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
+	public AbstractProcessor(final JPAODataContext context, final EntityManager em) {
 		this.context = context;
 		this.em = em;
 		this.sd = context.getEdmProvider().getServiceDocument();

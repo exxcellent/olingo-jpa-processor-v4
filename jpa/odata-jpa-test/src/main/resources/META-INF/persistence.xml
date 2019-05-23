@@ -100,5 +100,27 @@
 	<persistence-unit name="DUMMY" transaction-type="RESOURCE_LOCAL"> 
 		<class>org.apache.olingo.jpa.processor.core.testmodel.DummyToBeIgnored</class>
 	</persistence-unit>
+
+	<persistence-unit name="DataAccessConditioner" transaction-type="RESOURCE_LOCAL"> 
+		<class>org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner.GenericBusinessPartner</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner.BusinessPartnerImage</class>
+		
+		<properties>
+			<!--  EclipselInk properties -->
+			<property name="eclipselink.logging.level.sql" value="FINEST" />
+			<property name="eclipselink.logging.parameters" value="true" />
+			<property name="eclipselink.logging.timestamp" value="true" />
+			<property name="eclipselink.weaving" value="false" />
+			<property name="eclipselink.persistence-context.flush-mode"	value="commit" />
+			<!-- Hibernate properties -->
+			<property name="hibernate.show_sql" value="true" />
+			<property name="hibernate.format_sql" value="false" />
+			<!-- property name="hibernate.globally_quoted_identifiers" value="false" /-->			
+			<!-- property name="hibernate.hbm2ddl.auto" value="validate" /-->
+			
+			<!-- shared properties -->
+			<property name="javax.persistence.validation.mode" value="NONE" />
+		</properties>
+	</persistence-unit>
 	
 </persistence>

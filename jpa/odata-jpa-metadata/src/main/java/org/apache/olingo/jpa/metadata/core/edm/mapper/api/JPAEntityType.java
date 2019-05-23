@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
 import java.util.List;
 
+import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 public interface JPAEntityType extends JPAStructuredType {
@@ -50,4 +51,10 @@ public interface JPAEntityType extends JPAStructuredType {
 	public boolean hasStream() throws ODataJPAModelException;
 
 	public List<JPAAttributePath> searchChildPath(JPASelector selectItemPath);
+
+	/**
+	 *
+	 * @return The data access handler or <code>null</code> if not defined.
+	 */
+	public DataAccessConditioner<?> getDataAccessConditioner();
 }

@@ -15,6 +15,8 @@ import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Parameter;
+import org.apache.olingo.commons.api.edm.FullQualifiedName;
+import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -154,8 +156,9 @@ public class JPAEntityHelper {
 			case ENTITY:
 				final Entity entity = p.asEntity();
 				final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
+				final JPAEntityType jpaType = determineJPAEntityType(sd, persistenceType);
 
-				final EntityConverter entityConverter = new EntityConverter(persistenceType, uriHelper, sd, serviceMetadata);
+				final EntityConverter entityConverter = new EntityConverter(jpaType, uriHelper, sd, serviceMetadata);
 				final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity);
 				args[i] = jpaEntity;
 				break;
@@ -165,6 +168,20 @@ public class JPAEntityHelper {
 			}
 		}
 		return args;
+	}
+
+	private final static JPAEntityType determineJPAEntityType(final IntermediateServiceDocument sd,
+	        final EntityType<?> persistenceType) throws ODataJPAModelException {
+		FullQualifiedName fqn;
+		JPAEntityType jpaType;
+		for (final CsdlSchema schema : sd.getEdmSchemas()) {
+			fqn = new FullQualifiedName(schema.getNamespace(), persistenceType.getName());
+			jpaType = sd.getEntityType(fqn);
+			if (jpaType != null) {
+				return jpaType;
+			}
+		}
+		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, persistenceType.getName());
 	}
 
 	/**

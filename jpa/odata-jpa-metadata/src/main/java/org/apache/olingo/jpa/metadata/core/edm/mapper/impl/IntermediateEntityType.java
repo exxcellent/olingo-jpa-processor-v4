@@ -20,6 +20,8 @@ import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
+import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
+import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -32,7 +34,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * <a href=
  * "https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406397974"
  * >OData Version 4.0 Part 3 - 8 Entity Type</a>
- * 
+ *
  * @author Oliver Grande
  *
  */
@@ -40,17 +42,39 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 
 	private CsdlEntityType edmEntityType;
 	private boolean hasEtag = false;
+	private final DataAccessConditioner<?> dac;
 
 	IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
 	        final IntermediateServiceDocument serviceDocument)
 	        throws ODataJPAModelException {
 		super(nameBuilder, et, serviceDocument);
 		this.setExternalName(nameBuilder.buildEntityTypeName(et));
-		final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaManagedType.getJavaType()).getAnnotation(
-		        EdmIgnore.class);
+		final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaManagedType.getJavaType()).getAnnotation(EdmIgnore.class);
 		if (jpaIgnore != null) {
 			this.setIgnore(true);
 		}
+		dac = buildDataAccessConditionerInstance(this.jpaManagedType.getJavaType());
+	}
+
+	private DataAccessConditioner<?> buildDataAccessConditionerInstance(final Class<?> entityClass) throws ODataJPAModelException {
+		final ODataEntity entityAnnotation = entityClass.getAnnotation(ODataEntity.class);
+		if (entityAnnotation == null) {
+			return null;
+		}
+		final Class<? extends DataAccessConditioner<?>> handlerClass = entityAnnotation.handlerDataAccessConditioner();
+		if (handlerClass == null || ODataEntity.DEFAULT.class.equals(handlerClass)) {
+			return null;
+		}
+		try {
+			return handlerClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INNER_EXCEPTION, e);
+		}
+	}
+
+	@Override
+	public DataAccessConditioner<?> getDataAccessConditioner() {
+		return dac;
 	}
 
 	@Override

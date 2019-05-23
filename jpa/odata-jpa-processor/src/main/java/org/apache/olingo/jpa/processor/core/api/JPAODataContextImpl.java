@@ -1,8 +1,10 @@
 package org.apache.olingo.jpa.processor.core.api;
 
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -140,6 +142,20 @@ class JPAODataContextImpl implements JPAODataContext {
 		if (request == null)
 			throw new IllegalArgumentException("Not initialized with request");
 		return request.getHeader(name);
+	}
+
+	@Override
+	public Enumeration<String> getParameters(final String name) {
+		if (request == null)
+			throw new IllegalArgumentException("Not initialized with request");
+		return request.getHeaders(name);
+	}
+
+	@Override
+	public Locale getLocale() {
+		if (request == null)
+			throw new IllegalArgumentException("Not initialized with request");
+		return request.getLocale();
 	}
 
 	/**

@@ -13,7 +13,7 @@ import org.apache.olingo.server.api.uri.UriInfoResource;
 /**
  * Annotation to mark a non JPA POJO as a OData entity.
  *
- * @author rzozmann
+ * @author Ralf Zozmann
  *
  */
 @Documented

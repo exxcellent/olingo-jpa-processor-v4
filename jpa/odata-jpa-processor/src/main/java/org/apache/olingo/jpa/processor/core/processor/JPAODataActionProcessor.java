@@ -33,7 +33,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
@@ -96,7 +96,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 	private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
 	private final JPAServiceDebugger debugger;
 
-	public JPAODataActionProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
+	public JPAODataActionProcessor(final JPAODataContext context, final EntityManager em) {
 		super(context, em);
 		this.debugger = context.getServiceDebugger();
 	}
@@ -281,8 +281,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			JPAEntityQuery query = null;
 			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 			try {
-				query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
-				        getServiceMetadata());
+				query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, getServiceMetadata());
 			} catch (final ODataJPAModelException e) {
 				debugger.stopRuntimeMeasurement(handle);
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,

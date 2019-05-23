@@ -17,7 +17,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -26,10 +26,12 @@ import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 
 /**
  * Creates a sub query for a navigation.
+ * 
  * @author Oliver Grande
  *
  */
 abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>> {
+
 	private final List<UriParameter> keyPredicates;
 	private final JPAAssociationPath association;
 	private final Root<?> queryRoot;
@@ -37,8 +39,8 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	private final JPAAbstractQuery<?> parentQuery;
 
 	public <T extends Object> JPAAbstractRelationshipQuery(final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
-					throws ODataApplicationException {
+	        final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
+	        throws ODataApplicationException {
 
 		super(sd.getEntityType(((UriResourcePartTyped) uriResourceItem).getType()), em);
 		this.keyPredicates = determineKeyPredicates(uriResourceItem);
@@ -72,7 +74,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 
 	@SuppressWarnings("unchecked")
 	public final <T extends Object> Subquery<T> getSubQueryExists(final Subquery<?> childQuery)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		final Subquery<T> subQuery = (Subquery<T>) this.subQuery;
 		final CriteriaBuilder cb = getCriteriaBuilder();
 
@@ -84,8 +86,8 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 				whereCondition = createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot);
 			} else {
 				whereCondition = cb.and(
-						createWhereByKey(queryRoot, null, this.keyPredicates),
-						createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot));
+				        createWhereByKey(queryRoot, null, this.keyPredicates),
+				        createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot));
 			}
 			if (childQuery != null) {
 				if (whereCondition != null) {
@@ -96,25 +98,25 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 			}
 			if (whereCondition == null) {
 				throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
-						HttpStatusCode.INTERNAL_SERVER_ERROR,
-						new IllegalStateException("Couldn't determine WHERE condition"), association.getAlias());
+				        HttpStatusCode.INTERNAL_SERVER_ERROR,
+				        new IllegalStateException("Couldn't determine WHERE condition"), association.getAlias());
 			}
 			subQuery.where(whereCondition);
 			handleAggregation(subQuery, queryRoot);
 			return subQuery;
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
-					HttpStatusCode.INTERNAL_SERVER_ERROR, e, association.getAlias());
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e, association.getAlias());
 		}
 	}
 
 	abstract protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
-			throws ODataApplicationException, ODataJPAModelException;
+	        throws ODataApplicationException, ODataJPAModelException;
 
 	abstract protected <T> void createSelectClause(final Subquery<T> subQuery) throws ODataJPAModelException;
 
 	protected Expression<Boolean> createSubqueryWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot)
-			throws ODataApplicationException, ODataJPAModelException {
+	        throws ODataApplicationException, ODataJPAModelException {
 		final CriteriaBuilder cb = getCriteriaBuilder();
 		Expression<Boolean> whereCondition = null;
 
@@ -124,7 +126,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 		if (joinTableInBetween) {
 			// trigger complete JOIN expression by JPA for our subselect
 			final Path<?> subPath = subRoot
-					.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+			        .join(association.getSourceType().getAssociationByPath(association).getInternalName());
 			whereCondition = cb.equal(parentFrom, subPath);
 		} else {
 			final List<JPASelector> navigationSourceSelectors = determineSourceSelectors();
@@ -138,11 +140,11 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 				final JPASelector targetSelector = navigationTargetSelectors.get(index);
 
 				if (JPAAssociationPath.class.isInstance(sourceSelector)
-						|| JPAAssociationPath.class.isInstance(targetSelector)) {
+				        || JPAAssociationPath.class.isInstance(targetSelector)) {
 					// the JPA framework will do the correct things for navigation of n:1 or 1:n
 					// property
 					subPath = subRoot
-							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
+					        .join(association.getSourceType().getAssociationByPath(association).getInternalName());
 					return cb.equal(parentFrom, subPath);
 				}
 				for (final JPAElement jpaPathElement : sourceSelector.getPathElements()) {
@@ -181,7 +183,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	}
 
 	@Override
-	final JPAODataSessionContextAccess getContext() {
+	final JPAODataContext getContext() {
 		return parentQuery.getContext();
 	}
 }

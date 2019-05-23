@@ -15,8 +15,8 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.util.EdmEntityTypeDouble;
 import org.apache.olingo.jpa.processor.core.util.ExpandItemDouble;
@@ -28,7 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAExpandQueryCreateResult extends TestBase {
-	private JPAODataSessionContextAccess context;
+
+	private JPAODataContext context;
 	private JPAExpandQuery cut;
 	private JPAAssociationPath exp;
 	private EdmEntityType targetEntity;
@@ -36,16 +37,14 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 	@Before
 	public void setup() throws ODataException {
 		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
-		createHeaders();
 		targetEntity = new EdmEntityTypeDouble(nameBuilder, "BusinessPartnerRole");
 		context = new JPAODataContextAccessDouble(
-				new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter);
+		        new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter, createHeaders());
 		exp = helper.getJPAAssociationPath("Organizations", "Roles");
 		cut = new JPAExpandQuery(
-				null, context, persistenceAdapter.createEntityManager(),
-				new ExpandItemDouble(targetEntity).getResourcePath(),
-				exp, helper.sd.getEntityType(targetEntity),
-				new HashMap<String, List<String>>());
+		        context, persistenceAdapter.createEntityManager(),
+		        new ExpandItemDouble(targetEntity).getResourcePath(),
+		        exp, helper.sd.getEntityType(targetEntity));
 		// new EdmEntitySetDouble(nameBuilder, "Organisations"), null, new HashMap<String, List<String>>());
 	}
 
@@ -169,9 +168,8 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 	@Test
 	public void checkConvertOneResultCompundKey() throws ODataJPAModelException, ODataApplicationException {
 		exp = helper.getJPAAssociationPath("AdministrativeDivisions", "Parent");
-		cut = new JPAExpandQuery(null, context, persistenceAdapter.createEntityManager(),
-				new ExpandItemDouble(targetEntity).getResourcePath(), exp, helper.sd.getEntityType(targetEntity),
-				new HashMap<String, List<String>>());
+		cut = new JPAExpandQuery(context, persistenceAdapter.createEntityManager(),
+		        new ExpandItemDouble(targetEntity).getResourcePath(), exp, helper.sd.getEntityType(targetEntity));
 		final List<Tuple> result = new ArrayList<Tuple>();
 		final HashMap<String, Object> oneResult = new HashMap<String, Object>();
 		oneResult.put("CodePublisher", "NUTS");
@@ -192,9 +190,8 @@ public class TestJPAExpandQueryCreateResult extends TestBase {
 	@Test
 	public void checkConvertTwoResultsCompundKey() throws ODataJPAModelException, ODataApplicationException {
 		exp = helper.getJPAAssociationPath("AdministrativeDivisions", "Parent");
-		cut = new JPAExpandQuery(null, context, persistenceAdapter.createEntityManager(),
-				new ExpandItemDouble(targetEntity).getResourcePath(), exp, helper.sd.getEntityType(targetEntity),
-				new HashMap<String, List<String>>());
+		cut = new JPAExpandQuery(context, persistenceAdapter.createEntityManager(),
+		        new ExpandItemDouble(targetEntity).getResourcePath(), exp, helper.sd.getEntityType(targetEntity));
 
 		final List<Tuple> result = new ArrayList<Tuple>();
 		HashMap<String, Object> oneResult;
