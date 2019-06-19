@@ -101,7 +101,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 		if (leftSelectors == null) {
 			determineJoinSelectors();
 		}
-		return leftSelectors;
+		return Collections.unmodifiableList(leftSelectors);
 	}
 
 	@Override
@@ -109,7 +109,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 		if (rightSelectors == null) {
 			determineJoinSelectors();
 		}
-		return rightSelectors;
+		return Collections.unmodifiableList(rightSelectors);
 	}
 
 	private void determineJoinSelectors() throws ODataJPAModelException {

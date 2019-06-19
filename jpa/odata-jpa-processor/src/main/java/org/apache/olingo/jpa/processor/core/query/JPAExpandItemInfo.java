@@ -12,15 +12,15 @@ import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 public class JPAExpandItemInfo {
   private final JPAExpandItemWrapper uriInfo;
   private final JPAAssociationPath expandAssociation;
-  private final List<JPANavigationProptertyInfo> hops;
+  private final List<JPANavigationPropertyInfo> hops;
 
   JPAExpandItemInfo(final JPAExpandItemWrapper uriInfo, final UriResourcePartTyped startResourceItem,
-      final JPAAssociationPath expandAssociation, final List<JPANavigationProptertyInfo> hops) {
+      final JPAAssociationPath expandAssociation, final List<JPANavigationPropertyInfo> hops) {
     super();
     this.uriInfo = uriInfo;
     this.expandAssociation = expandAssociation;
-    this.hops = new ArrayList<JPANavigationProptertyInfo>(hops);
-    this.hops.add(0, new JPANavigationProptertyInfo(startResourceItem, expandAssociation));
+    this.hops = new ArrayList<JPANavigationPropertyInfo>(hops);
+    this.hops.add(0, new JPANavigationPropertyInfo(startResourceItem, expandAssociation));
   }
 
   public UriInfoResource getUriInfo() {
@@ -31,7 +31,7 @@ public class JPAExpandItemInfo {
     return expandAssociation;
   }
 
-  public List<JPANavigationProptertyInfo> getHops() {
+  public List<JPANavigationPropertyInfo> getHops() {
     return Collections.unmodifiableList(hops);
   }
 

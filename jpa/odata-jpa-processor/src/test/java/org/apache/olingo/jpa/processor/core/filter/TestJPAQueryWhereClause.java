@@ -488,6 +488,20 @@ public class TestJPAQueryWhereClause extends TestBase {
 	}
 
 	@Test
+	public void testNavigationFilter() throws IOException, ODataException {
+		// skip test with EclipseLink
+		assumeTrue("EclipseLink will produce an invalid query", getJPAProvider() != JPAProvider.EclipseLink);
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities?$top=3&$filter=Targets/any(d:contains(d/Name, 'rel'))");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode relSources = helper.getValues();
+		assertTrue(relSources.size() == 2);
+		assertTrue(relSources.get(0).get("Targets") == null);
+	}
+
+	@Test
 	public void testFilterNavigationPropertyToManyValueAny() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,

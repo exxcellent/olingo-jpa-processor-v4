@@ -9,7 +9,7 @@ import javax.persistence.criteria.Subquery;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
-import org.apache.olingo.jpa.processor.core.query.JPANavigationProptertyInfo;
+import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -77,18 +77,18 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 	public Expression<Boolean> get() throws ODataApplicationException {
 		// return converter.cb.greaterThan(getExistsQuery().as("a"), converter.cb.literal('5'));
 		if (aggregationType != null) {
-			return (Expression<Boolean>) getExistsQuery().getRoots().toArray()[0];
+			return (Expression<Boolean>) buildFilterSubQueries().getRoots().toArray()[0];
 		}
-		return converter.getCriteriaBuilder().exists(getExistsQuery());
+		return converter.getCriteriaBuilder().exists(buildFilterSubQueries());
 	}
 
 	@Override
-	Subquery<?> getExistsQuery() throws ODataApplicationException {
+	Subquery<?> buildFilterSubQueries() throws ODataApplicationException {
 		final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(uriResourceParts);
 		allUriResourceParts.addAll(jpaMember.getMember().getResourcePath().getUriResourceParts());
 
 		// 1. Determine all relevant associations
-		final List<JPANavigationProptertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
+		final List<JPANavigationPropertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
 		JPAAbstractQuery<?> parent = root;
 		final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>();
 
@@ -96,7 +96,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 
 		// for (int i = 0; i < naviPathList.size(); i++) {
 		for (int i = naviPathList.size() - 1; i >= 0; i--) {
-			final JPANavigationProptertyInfo naviInfo = naviPathList.get(i);
+			final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
 			if (i == 0 && aggregationType == null) {
 				final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getLiteral(),
 						operator);

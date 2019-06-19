@@ -27,7 +27,6 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 
 class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<Tuple>> {
-
 	private final CriteriaQuery<Tuple> cq;
 	private final Root<?> root;
 	@SuppressWarnings("unused")
@@ -66,10 +65,11 @@ class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<T
 
 			// add the key columns to selection, to build the key to map results for element
 			// collection entries to owning entity
-			final List<? extends JPAAttribute<?>> jpaKeyList = getJPAEntityType().getKeyAttributes(true);
+			// TODO don't select path's multiple times
+			final List<? extends JPAAttribute<?>> jpaKeyList = getQueryResultType().getKeyAttributes(true);
 			final List<JPASelector> listKeyPaths = new ArrayList<JPASelector>(jpaKeyList.size());
 			for (final JPAAttribute<?> key : jpaKeyList) {
-				final JPASelector keyPath = getJPAEntityType().getPath(key.getExternalName());
+				final JPASelector keyPath = getQueryResultType().getPath(key.getExternalName());
 				listKeyPaths.add(keyPath);
 			}
 			joinSelections.addAll(createSelectClause(listKeyPaths));

@@ -26,13 +26,13 @@ class JPAExpandItemInfoFactory {
 	 */
 	static List<JPAExpandItemInfo> buildExpandItemInfo(final IntermediateServiceDocument sd,
 			final List<UriResource> startResourceList,
-			final ExpandOption expandOption, final List<JPANavigationProptertyInfo> grandParentHops)
+			final ExpandOption expandOption, final List<JPANavigationPropertyInfo> grandParentHops)
 					throws ODataApplicationException {
 
 		final List<JPAExpandItemInfo> itemList = new ArrayList<JPAExpandItemInfo>();
 
 		if (startResourceList != null && expandOption != null) {
-			final List<JPANavigationProptertyInfo> parentHops = determineParentHops(sd, startResourceList, grandParentHops);
+			final List<JPANavigationPropertyInfo> parentHops = determineParentHops(sd, startResourceList, grandParentHops);
 			final UriResource startResourceItem = determineStartResourceItem(startResourceList);
 			final Map<JPAExpandItemWrapper, JPAAssociationPath> expandPath = Util.determineAssoziations(sd, startResourceList,
 					expandOption);
@@ -55,10 +55,10 @@ class JPAExpandItemInfoFactory {
 		return startResourceItem;
 	}
 
-	private static List<JPANavigationProptertyInfo> determineParentHops(final IntermediateServiceDocument sd,
-			final List<UriResource> startResourceList, final List<JPANavigationProptertyInfo> grandParentHops)
+	private static List<JPANavigationPropertyInfo> determineParentHops(final IntermediateServiceDocument sd,
+			final List<UriResource> startResourceList, final List<JPANavigationPropertyInfo> grandParentHops)
 					throws ODataApplicationException {
-		List<JPANavigationProptertyInfo> parentHops = new ArrayList<JPANavigationProptertyInfo>();
+		List<JPANavigationPropertyInfo> parentHops = new ArrayList<JPANavigationPropertyInfo>();
 
 		if (grandParentHops != null) {
 			parentHops.addAll(grandParentHops);

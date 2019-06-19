@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -9,13 +11,18 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
@@ -40,15 +47,15 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 	private final CriteriaBuilder cb;
 	private final JPAEntityType jpaEntityType;
 
-	protected JPAAbstractQuery(final JPAEntityType jpaEntityType, final EntityManager em)
+	protected JPAAbstractQuery(final JPAEntityType jpaResultType, final EntityManager em)
 			throws ODataApplicationException {
 		super();
 		this.em = em;
 		this.cb = em.getCriteriaBuilder();
-		this.jpaEntityType = jpaEntityType;
+		this.jpaEntityType = jpaResultType;
 	}
 
-	public final JPAEntityType getJPAEntityType() {
+	public final JPAEntityType getQueryResultType() {
 		return jpaEntityType;
 	}
 
@@ -58,6 +65,98 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 
 	protected final CriteriaBuilder getCriteriaBuilder() {
 		return cb;
+	}
+
+	/**
+	 * @return A unique and reproducible alias name to access the attribute value in
+	 *         the result set after loading
+	 */
+	static final String buildTargetJoinAlias(final JPAAssociationPath association,
+			final JPASimpleAttribute targetAttribute) {
+		return association.getAlias().concat("_").concat(targetAttribute.getInternalName());
+	}
+
+	/**
+	 * The value of the $select query option is a comma-separated list of
+	 * <b>properties</b>, qualified action names, qualified function names, the
+	 * <b>star operator (*)</b>, or the star operator prefixed with the namespace or
+	 * alias of the schema in order to specify all operations defined in the schema.
+	 * See: <a href=
+	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398297"
+	 * >OData Version 4.0 Part 1 - 11.2.4.1 System Query Option $select</a>
+	 * <p>
+	 * See also: <a href=
+	 * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part2-url-conventions/odata-v4.0-errata02-os-part2-url-conventions-complete.html#_Toc406398163"
+	 * >OData Version 4.0 Part 2 - 5.1.3 System Query Option $select</a>
+	 *
+	 * @throws ODataApplicationException
+	 */
+	protected final List<Selection<?>> createSelectClause(final Collection<? extends JPASelector> jpaPathList)
+			throws ODataJPAQueryException {
+
+		final List<Selection<?>> selections = new LinkedList<Selection<?>>();
+
+		// Build select clause
+		for (final JPASelector jpaPath : jpaPathList) {
+			// TODO 2. move logic into 'convertToCriteriaPath()'?
+
+			// special join case for not mapped join columns
+			if (JPAAssociationPath.class.isInstance(jpaPath)) {
+				// happens for $expand queries without join columns mapped as attribute(s)
+				final JPAAssociationPath asso = ((JPAAssociationPath) jpaPath);
+				try {
+					// join all the key attributes from target side table so we can build a 'result
+					// key' from the tuples in the result set
+					// TODO don't select path's multiple times
+					final List<JPASimpleAttribute> keys = asso.getTargetType().getKeyAttributes(true);
+					final Join<?, ?> join = getRoot()
+							.join(asso.getSourceType().getAssociationByPath(asso).getInternalName());
+					for (final JPASimpleAttribute jpaAttribute : keys) {
+						final Path<?> p = join.get(jpaAttribute.getInternalName());
+						p.alias(buildTargetJoinAlias(asso, jpaAttribute));
+						selections.add(p);
+					}
+				} catch (final ODataJPAModelException e) {
+					throw new ODataJPAQueryException(e, HttpStatusCode.NOT_ACCEPTABLE);
+				}
+				continue;
+			}
+
+			// default case
+			final Path<?> p = convertToCriteriaPath(getRoot(), jpaPath);
+			if (p == null) {
+				continue;
+			}
+			// TODO 1. move 'alias' setting into 'convertToCriteriaPath()'?
+			p.alias(jpaPath.getAlias());
+			selections.add(p);
+		}
+
+		return selections;
+	}
+
+	protected static final Path<?> convertToCriteriaPath(final Root<?> root, final JPASelector jpaPath) {
+		if (JPAAssociationPath.class.isInstance(jpaPath)) {
+			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
+		}
+		Path<?> p = root;
+		Join<?, ?> existingJoin;
+		for (final JPAAttribute<?> jpaPathElement : jpaPath.getPathElements()) {
+			if (jpaPathElement.isCollection()) {
+				// we can cast, because 'p' is the Root<> or another Join<>
+				existingJoin = findAlreadyDefinedJoin((From<?, ?>) p, jpaPathElement);
+				if (existingJoin != null) {
+					p = existingJoin;
+				} else {
+					// @ElementCollection's are loaded in separate queries, so an INNER JOIN is ok
+					// to suppress results for not existing joined rows
+					p = root.join(jpaPathElement.getInternalName(), JoinType.INNER);
+				}
+			} else {
+				p = p.get(jpaPathElement.getInternalName());
+			}
+		}
+		return p;
 	}
 
 	private Path<?> buildPath(final From<?, ?> from, final UriParameter keyPredicate) throws ODataJPAModelException {
@@ -72,12 +171,12 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 		return path;
 	}
 
-	protected javax.persistence.criteria.Expression<Boolean> createWhereByKey(final From<?, ?> root,
+	protected final javax.persistence.criteria.Expression<Boolean> extendWhereByKey(final From<?, ?> root,
 			final javax.persistence.criteria.Expression<Boolean> whereCondition, final List<UriParameter> keyPredicates)
 					throws ODataApplicationException {
 		// .../Organizations('3')
 		// .../BusinessPartnerRoles(BusinessPartnerID='6',RoleCategory='C')
-		if (keyPredicates == null) {
+		if (keyPredicates == null || keyPredicates.isEmpty()) {
 			return whereCondition;
 		}
 		javax.persistence.criteria.Expression<Boolean> compundCondition = whereCondition;
@@ -147,5 +246,25 @@ public abstract class JPAAbstractQuery<QueryType extends AbstractQuery<?>> {
 	}
 
 	abstract JPAODataSessionContextAccess getContext();
+
+	/**
+	 * Find an already created {@link Join} expression for the given attribute. The
+	 * given attribute must be:
+	 * <ul>
+	 * <li>an attribute annotated with @ElementCollection</li>
+	 * <li>the first path element in a {@link JPASelector}</li>
+	 * </ul>
+	 *
+	 * @return The already existing {@link Join} or <code>null</code>.
+	 */
+	protected static final Join<?, ?> findAlreadyDefinedJoin(final From<?, ?> parentCriteriaPath,
+			final JPAAttribute<?> jpaPathElement) {
+		for (final Join<?, ?> join : parentCriteriaPath.getJoins()) {
+			if (jpaPathElement.getInternalName().equals(join.getAttribute().getName())) {
+				return join;
+			}
+		}
+		return null;
+	}
 
 }

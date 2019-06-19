@@ -33,6 +33,10 @@ public class PersonImage {
 		@AttributeOverride(name = "updated.at", column = @Column(name = "\"UpdatedAt\"")) })
 	private final AdministrativeInformation administrativeInformation = new AdministrativeInformation();
 
+	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+	@JoinColumn(name = "\"PID\"", insertable = false, updatable = false, nullable = true)
+	private Person owningPerson;
+
 	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	// Do not set 'referencedColumnName' in @JoinColumn! We want to test auto
 	// detect

@@ -6,15 +6,11 @@ import java.util.Locale;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
@@ -34,25 +30,29 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	private final JPAAssociationPath association;
 	private final Root<?> queryRoot;
 	private final Subquery<?> subQuery;
-	private final JPAAbstractQuery<?> parentQuery;
+	private final JPAAbstractQuery<?> parentCall;
 
 	public <T extends Object> JPAAbstractRelationshipQuery(final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
+			final JPAAbstractQuery<?> parent, final EntityManager em,
+			final JPAAssociationPath association)
 					throws ODataApplicationException {
 
 		super(sd.getEntityType(((UriResourcePartTyped) uriResourceItem).getType()), em);
 		this.keyPredicates = determineKeyPredicates(uriResourceItem);
 		this.association = association;
-		if (association == null) {
-			throw new IllegalArgumentException("association required");
-		}
-		this.parentQuery = parent;
-		this.subQuery = parent.getQuery().subquery(getJPAEntityType().getKeyType());
-		this.queryRoot = subQuery.from(getJPAEntityType().getTypeClass());
+		this.parentCall = parent;
+		this.subQuery = parent.getQuery().subquery(Integer.class);// we select always '1'
+		// TODO a FilterQuery has to select from the table of source entity, so we
+		// should determine the 'queryRoot' not here
+		this.queryRoot = subQuery.from(getQueryResultType().getTypeClass());
 	}
 
 	protected JPAAssociationPath getAssociation() {
 		return association;
+	}
+
+	protected JPAAbstractQuery<?> getParentQuery() {
+		return parentCall;
 	}
 
 	/**
@@ -61,7 +61,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	@SuppressWarnings("unchecked")
 	@Override
 	final public Root<?> getRoot() {
-		assert queryRoot != null;
+		//		assert queryRoot != null;
 		return queryRoot;
 	}
 
@@ -73,20 +73,15 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	@SuppressWarnings("unchecked")
 	public final <T extends Object> Subquery<T> getSubQueryExists(final Subquery<?> childQuery)
 			throws ODataApplicationException {
-		final Subquery<T> subQuery = (Subquery<T>) this.subQuery;
 		final CriteriaBuilder cb = getCriteriaBuilder();
 
 		try {
-			createSelectClause(subQuery);
+			// EXISTS subselect needs only a marker select for existence
+			((Subquery<T>) getQuery()).select((Expression<T>) getCriteriaBuilder().literal(Integer.valueOf(1)));
 
-			Expression<Boolean> whereCondition = null;
-			if (this.keyPredicates == null || this.keyPredicates.isEmpty()) {
-				whereCondition = createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot);
-			} else {
-				whereCondition = cb.and(
-						createWhereByKey(queryRoot, null, this.keyPredicates),
-						createSubqueryWhereByAssociation(parentQuery.getRoot(), queryRoot));
-			}
+			final Expression<Boolean> subqueryWhere = createSubqueryWhereByAssociation();
+
+			Expression<Boolean> whereCondition = extendWhereByKey(queryRoot, subqueryWhere, this.keyPredicates);
 			if (childQuery != null) {
 				if (whereCondition != null) {
 					whereCondition = cb.and(whereCondition, cb.exists(childQuery));
@@ -101,7 +96,7 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 			}
 			subQuery.where(whereCondition);
 			handleAggregation(subQuery, queryRoot);
-			return subQuery;
+			return (Subquery<T>) subQuery;
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
 					HttpStatusCode.INTERNAL_SERVER_ERROR, e, association.getAlias());
@@ -111,77 +106,16 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 	abstract protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException;
 
-	abstract protected <T> void createSelectClause(final Subquery<T> subQuery) throws ODataJPAModelException;
-
-	protected Expression<Boolean> createSubqueryWhereByAssociation(final From<?, ?> parentFrom, final Root<?> subRoot)
-			throws ODataApplicationException, ODataJPAModelException {
-		final CriteriaBuilder cb = getCriteriaBuilder();
-		Expression<Boolean> whereCondition = null;
-
-		final JPAAssociationPath association = getAssociation();
-		final boolean joinTableInBetween = association.hasJoinTableBetweenSourceAndTarget();
-
-		if (joinTableInBetween) {
-			// trigger complete JOIN expression by JPA for our subselect
-			final Path<?> subPath = subRoot
-					.join(association.getSourceType().getAssociationByPath(association).getInternalName());
-			whereCondition = cb.equal(parentFrom, subPath);
-		} else {
-			final List<JPASelector> navigationSourceSelectors = determineSourceSelectors();
-			final List<JPASelector> navigationTargetSelectors = determineTargetSelectors();
-			assert navigationSourceSelectors.size() == navigationTargetSelectors.size();
-			for (int index = 0; index < navigationSourceSelectors.size(); index++) {
-				Path<?> subPath = subRoot;
-				Path<?> parentPath = parentFrom;
-
-				final JPASelector sourceSelector = navigationSourceSelectors.get(index);
-				final JPASelector targetSelector = navigationTargetSelectors.get(index);
-
-				if (JPAAssociationPath.class.isInstance(sourceSelector)
-						|| JPAAssociationPath.class.isInstance(targetSelector)) {
-					// the JPA framework will do the correct things for navigation of n:1 or 1:n
-					// property
-					subPath = subRoot
-							.join(association.getSourceType().getAssociationByPath(association).getInternalName());
-					return cb.equal(parentFrom, subPath);
-				}
-				for (final JPAElement jpaPathElement : sourceSelector.getPathElements()) {
-					subPath = subPath.get(jpaPathElement.getInternalName());
-				}
-				for (final JPAElement jpaPathElement : targetSelector.getPathElements()) {
-					parentPath = parentPath.get(jpaPathElement.getInternalName());
-				}
-				final Expression<Boolean> equalCondition = cb.equal(parentPath, subPath);
-				if (whereCondition == null) {
-					whereCondition = equalCondition;
-				} else {
-					whereCondition = cb.and(whereCondition, equalCondition);
-				}
-			}
-		}
-
-		return whereCondition;
-	}
-
-	/**
-	 *
-	 * @return The selectors for the source side (the 'subRoot')
-	 */
-	abstract protected List<JPASelector> determineSourceSelectors() throws ODataJPAModelException;
-
-	/**
-	 *
-	 * @return The selectors for the target side (the 'parentFrom')
-	 */
-	abstract protected List<JPASelector> determineTargetSelectors() throws ODataJPAModelException;
+	abstract protected Expression<Boolean> createSubqueryWhereByAssociation()
+			throws ODataApplicationException, ODataJPAModelException;
 
 	@Override
 	final protected Locale getLocale() {
-		return parentQuery.getLocale();
+		return parentCall.getLocale();
 	}
 
 	@Override
 	final JPAODataSessionContextAccess getContext() {
-		return parentQuery.getContext();
+		return parentCall.getContext();
 	}
 }

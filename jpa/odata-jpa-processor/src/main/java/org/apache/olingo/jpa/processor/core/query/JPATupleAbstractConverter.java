@@ -172,15 +172,15 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 
 	/**
 	 * Build a unique entity identifier based on values in <i>row</i> in the columns
-	 * defined by <i>joinColumns</i>.
+	 * defined by <i>joinKeyColumns</i>.
 	 */
-	protected final String buildOwningEntityKey(final Tuple row, final Collection<JPASelector> joinColumns)
+	static final String buildOwningEntityKey(final Tuple row, final Collection<JPASelector> joinKeyColumns)
 			throws ODataApplicationException {
 		final StringBuilder buffer = new StringBuilder();
 		// we use all columns used in JOIN from left side (the owning entity) to build a
 		// identifying key accessing all nested relationship results
 		String alias;
-		for (final JPASelector item : joinColumns) {
+		for (final JPASelector item : joinKeyColumns) {
 			if (JPAAssociationPath.class.isInstance(item)) {
 				final JPAAssociationPath asso = ((JPAAssociationPath) item);
 				try {
@@ -189,7 +189,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 					// key' from the tuples in the result set
 					final List<JPASimpleAttribute> keys = asso.getTargetType().getKeyAttributes(true);
 					for (final JPASimpleAttribute jpaAttribute : keys) {
-						alias = JPAAbstractEntityQuery.buildTargetJoinAlias(asso, jpaAttribute);
+						alias = JPAAbstractQuery.buildTargetJoinAlias(asso, jpaAttribute);
 						buffer.append(JPASelector.PATH_SEPERATOR);
 						buffer.append(row.get(alias));
 					}

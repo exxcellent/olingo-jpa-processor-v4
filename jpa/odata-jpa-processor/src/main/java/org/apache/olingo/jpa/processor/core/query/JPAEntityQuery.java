@@ -44,7 +44,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 		super(odata, entitySet, context, uriInfo, em, requestHeaders);
 		this.serviceMetadata = serviceMetadata;
 		this.cq = getCriteriaBuilder().createTupleQuery();
-		this.root = cq.from(getJPAEntityType().getTypeClass());
+		this.root = cq.from(getQueryResultType().getTypeClass());
 	}
 
 	@Override
@@ -100,12 +100,13 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 		resultTuples.put(JPAQueryEntityResult.ROOT_RESULT, intermediateResult);
 
 		final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(resultTuples,
-				Long.valueOf(intermediateResult.size()), getJPAEntityType());
+				Long.valueOf(intermediateResult.size()), getQueryResultType());
 
 		// load not yet processed @ElementCollection attribute content
 		queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
 
-		if (processExpandOption) {
+		if (processExpandOption && !intermediateResult.isEmpty()) {
+			// generate expand queries only for non empty entity result list
 			queryResult.putExpandResults(readExpandEntities(null, uriResource));
 		}
 		return convertToEntityCollection(queryResult);
@@ -157,7 +158,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 	 * @throws ODataApplicationException
 	 */
 	private Map<JPAAssociationPath, JPAQueryEntityResult> readExpandEntities(
-			final List<JPANavigationProptertyInfo> parentHops, final UriInfoResource uriResourceInfo)
+			final List<JPANavigationPropertyInfo> parentHops, final UriInfoResource uriResourceInfo)
 					throws ODataApplicationException {
 
 		final Map<JPAAssociationPath, JPAQueryEntityResult> allExpResults = new HashMap<JPAAssociationPath, JPAQueryEntityResult>();
@@ -188,7 +189,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 				new ArrayList<javax.persistence.criteria.Expression<?>>();
 
 		for (final JPASelector jpaPath : selectionPathList) {
-			final Path<?> path = convertToCriteriaPath(jpaPath);
+			final Path<?> path = convertToCriteriaPath(getRoot(), jpaPath);
 			if (path == null) {
 				continue;
 			}

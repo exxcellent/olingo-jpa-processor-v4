@@ -163,7 +163,7 @@ extends JPAAbstractCriteriaQuery<QueryType> {
 		}
 
 		final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> allResults = new HashMap<>();
-		final JPAEntityType jpaEntityType = getJPAEntityType();
+		final JPAEntityType jpaEntityType = getQueryResultType();
 		// build queries with most elements also used for primary entity selection
 		// query, but with a few adaptions for the @ElementCollection selection
 		for (final Entry<JPAAttribute<?>, List<JPASelector>> entry : elementCollectionMap.entrySet()) {

@@ -165,6 +165,7 @@ public class IntegrationTestHelper {
 	 * Helper method to remove NullNode's from mapper result, because some assert's
 	 * are not aware of a NullNode instead of <code>null</code>.
 	 */
+	@SuppressWarnings("unused")
 	private static void stripNulls(final JsonNode node) {
 		if (node == null) {
 			return;

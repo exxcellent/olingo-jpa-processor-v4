@@ -26,7 +26,7 @@ public abstract class TestBase {
 	@Before
 	public void setupTest() throws ODataJPAModelException {
 		persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-				DataSourceHelper.DatabaseType.HSQLDB);
+				DataSourceHelper.DatabaseType.H2);
 	}
 
 	protected JPAProvider getJPAProvider() {

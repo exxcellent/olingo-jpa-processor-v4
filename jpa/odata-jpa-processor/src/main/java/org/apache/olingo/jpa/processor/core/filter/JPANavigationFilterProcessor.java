@@ -29,7 +29,6 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 	final IntermediateServiceDocument sd;
 	final List<UriResource> uriResourceParts;
 	final JPAAbstractQuery<?> parent;
-	final VisitableExpression expression;
 
 	public JPANavigationFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
 			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
@@ -43,7 +42,6 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 		this.sd = sd;
 		this.uriResourceParts = uriResourceParts;
 		this.parent = parent;
-		this.expression = expression;
 	}
 
 	@Override
@@ -51,7 +49,7 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 	public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
 
 		final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
-		final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
+		final Expression<Boolean> finalExpression = (Expression<Boolean>) getExpression().accept(visitor).get();
 
 		return finalExpression;
 	}
@@ -59,11 +57,6 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 	@Override
 	public JPAODataDatabaseProcessor getConverter() {
 		return converter;
-	}
-
-	@Override
-	public JPAEntityType getJpaEntityType() {
-		return jpaEntityType;
 	}
 
 	@Override
@@ -89,10 +82,6 @@ public class JPANavigationFilterProcessor extends JPAAbstractFilterProcessor {
 	@Override
 	public JPAAbstractQuery<?> getParent() {
 		return parent;
-	}
-
-	public VisitableExpression getExpressionMember() {
-		return expression;
 	}
 
 }
