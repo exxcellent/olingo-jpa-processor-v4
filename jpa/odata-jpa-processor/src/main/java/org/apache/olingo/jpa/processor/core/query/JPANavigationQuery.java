@@ -43,19 +43,9 @@ public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 		final CriteriaBuilder cb = getCriteriaBuilder();
 
 		final JPAAssociationPath association = getAssociation();
-		//		final boolean joinTableInBetween = association.hasJoinTableBetweenSourceAndTarget();
 		final Root<?> parentFrom = getParentQuery().getRoot();
 		final Root<?> subRoot = getRoot();
 
-		// TODO cleanup dead code after a time...
-		//		final JPAAssociationAttribute navAttribute = association.getSourceType().getAssociationByPath(association);
-		//
-		//		if (joinTableInBetween) {
-		//			// trigger complete JOIN expression by JPA for our subselect
-		//			final Path<?> subPath = subRoot.join(navAttribute.getInternalName());
-		//			return cb.equal(parentFrom, subPath);
-		//		}
-		//		// without join table...
 		From<?, ?> subFrom = subRoot;
 		for (final JPAAttribute<?> a : association.getPathElements()) {
 			subFrom = subFrom.join(a.getInternalName());

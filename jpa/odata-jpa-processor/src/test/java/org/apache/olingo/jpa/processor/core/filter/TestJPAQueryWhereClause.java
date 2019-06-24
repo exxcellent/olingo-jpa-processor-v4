@@ -1,7 +1,6 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -687,28 +686,6 @@ public class TestJPAQueryWhereClause extends TestBase {
 	}
 
 	@Test
-	public void testNavigationOneToOne1() throws IOException, ODataException {
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image1");
-		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertNotNull(helper.getValue());
-	}
-
-	@Test
-	public void testNavigationOneToOne2() throws IOException, ODataException {
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image2");
-		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertNotNull(helper.getValue());
-	}
-
-	@Test
-	public void testNavigationOneToOneWithoutMappedAttribute() throws IOException, ODataException {
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"PersonImages('99')/PersonReferenceWithoutMappedAttribute");
-		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertNotNull(helper.getValue());
-	}
-
-	@Test
 	public void testFilterContainsOnInteger() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
@@ -785,6 +762,17 @@ public class TestJPAQueryWhereClause extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode entities = helper.getValues();
 		assertEquals(1, entities.size());
+	}
+
+	@Test
+	public void testFilterNavigationThroughJoinTable() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations?$select=ID,Country&$filter=Locations/any(d:d/Name eq 'Texas')");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode orgs = helper.getValues();
+		assertEquals(1, orgs.size());
 	}
 
 }

@@ -30,12 +30,19 @@ public class TestJPAQueryNavigation extends TestBase {
 
 	@Test
 	public void testNavigationOneHopNormal() throws IOException, ODataException {
-
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image1");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-
 		final ObjectNode img = helper.getValue();
+		assertNotNull(img);
 		assertEquals(99, img.get("PID").asLong());
+	}
+
+	@Test
+	public void testNavigationOneToOneWithoutMappedAttribute() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"PersonImages('99')/PersonReferenceWithoutMappedAttribute");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		assertNotNull(helper.getValue());
 	}
 
 	@Test
@@ -45,6 +52,7 @@ public class TestJPAQueryNavigation extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode img = helper.getValue();
+		assertNotNull(img);
 		assertEquals(97, img.get("PID").asLong());
 	}
 
@@ -207,5 +215,16 @@ public class TestJPAQueryNavigation extends TestBase {
 		final ObjectNode ad = helper.getValue();
 		assertNotNull(ad);
 		assertEquals("3166-2", ad.get("CodeID").asText());
+	}
+
+	@Test
+	public void testNavigationThroughJoinTable() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations('2')/Locations");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode ads = helper.getValues();
+		assertNotNull(ads);
+		assertEquals(2, ads.size());
 	}
 }

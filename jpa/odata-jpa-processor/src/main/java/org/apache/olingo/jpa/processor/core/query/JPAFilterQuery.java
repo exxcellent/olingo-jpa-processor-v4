@@ -12,7 +12,6 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
@@ -56,70 +55,20 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 	private Expression<Boolean> createSubqueryWhereByAssociationPart()
 			throws ODataApplicationException, ODataJPAModelException {
 		final CriteriaBuilder cb = getCriteriaBuilder();
-		Expression<Boolean> whereCondition = null;
 
 		final JPAAssociationPath association = getAssociation();
-		final boolean joinTableInBetween = association.hasJoinTableBetweenSourceAndTarget();
 		final Root<?> parentFrom = getParentQuery().getRoot();
 		final Root<?> subRoot = getRoot();
 
-		// TODO complete cleanup as in JPANavigationQuery?!
-		final JPAAssociationAttribute navAttribute = association.getSourceType().getAssociationByPath(association);
-
-		if (joinTableInBetween) {
-			// trigger complete JOIN expression by JPA for our subselect
-			final Path<?> subPath = subRoot.join(navAttribute.getInternalName());
-			return cb.equal(parentFrom, subPath);
-		}
-		// without join table...
-
-		// the order of 'root' entity and 'subquery' entity is switched for $filter, so
-		// we have to select the right to get the correct selection columns
-		// 'parentFrom' represents the target of navigation (association), means: the
-		// right side
-		final List<JPASelector> navigationSourceSelectors = association.getRightPaths();
-		// 'subRoot' is the source of navigation; the left side
-		final List<JPASelector> navigationTargetSelectors = association.getLeftPaths();
-
-		assert navigationSourceSelectors.size() == navigationTargetSelectors.size();
-		Path<?> subPath;
-		Path<?> parentPath;
-		for (int index = 0; index < navigationSourceSelectors.size(); index++) {
-			subPath = subRoot;
-			parentPath = parentFrom;
-
-			final JPASelector sourceSelector = navigationSourceSelectors.get(index);
-			final JPASelector targetSelector = navigationTargetSelectors.get(index);
-
-			if (navAttribute == null) {
-				// handle normal attribute paths
-				for (final JPAAttribute<?> jpaPathElement : sourceSelector.getPathElements()) {
-					subPath = subPath.get(jpaPathElement.getInternalName());
-				}
-				for (final JPAElement jpaPathElement : targetSelector.getPathElements()) {
-					parentPath = parentPath.get(jpaPathElement.getInternalName());
-				}
-				final Expression<Boolean> equalCondition = cb.equal(parentPath, subPath);
-				if (whereCondition == null) {
-					whereCondition = equalCondition;
-				} else {
-					whereCondition = cb.and(whereCondition, equalCondition);
-				}
-			} else {
-				// we have to start navigation from source (using the parent query root) to join
-				// association target (subquery
-				// root)
-				final Root<?> correlatedRoot = getQuery().correlate(parentFrom);
-				From<?, ?> subFrom = correlatedRoot;
-				for (final JPAAttribute<?> a : association.getPathElements()) {
-					subFrom = subFrom.join(a.getInternalName());
-				}
-
-				return cb.equal(subFrom, subRoot);
-			}
+		// we have to start navigation from source (using the parent query root) to join
+		// association target (subquery root)
+		final Root<?> correlatedRoot = getQuery().correlate(parentFrom);
+		From<?, ?> subFrom = correlatedRoot;
+		for (final JPAAttribute<?> a : association.getPathElements()) {
+			subFrom = subFrom.join(a.getInternalName());
 		}
 
-		return whereCondition;
+		return cb.equal(subFrom, subRoot);
 	}
 
 	@Override
