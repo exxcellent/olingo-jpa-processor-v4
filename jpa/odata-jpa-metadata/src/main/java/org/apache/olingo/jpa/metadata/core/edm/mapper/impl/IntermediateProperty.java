@@ -63,14 +63,14 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	private final Member javaMember;
 
 	IntermediateProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
-			final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
+	        final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
 		super(nameBuilder, jpaAttribute.getName());
 		this.jpaAttribute = jpaAttribute;
 		this.serviceDocument = serviceDocument;
 
 		isComplex = (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED)
-				|| TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute);
+		        || TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute);
 		javaMember = determineJavaMemberOfAttribute(jpaAttribute);
 		accessor = new FieldAttributeAccessor((Field) javaMember);
 		buildProperty(nameBuilder);
@@ -155,7 +155,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			if (jpaAttribute.getJavaType().isEnum()) {
 				// register enum type
 				final IntermediateEnumType jpaEnumType = serviceDocument
-						.createEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
+				        .createEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
 				return jpaEnumType.getExternalFQN();
 			} else {
 				return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
@@ -201,11 +201,11 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 					edmProperty.setSrid(getSRID(javaMember));
 					edmProperty.setDefaultValue(determineDefaultValue());
 					if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-							|| edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
+					        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
 						edmProperty.setMaxLength(maxLength);
 					} else if (edmProperty.getType().equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName().toString())
-							|| edmProperty.getType().equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName().toString())
-							|| edmProperty.getType().equals(EdmPrimitiveTypeKind.TimeOfDay.getFullQualifiedName().toString())) {
+					        || edmProperty.getType().equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName().toString())
+					        || edmProperty.getType().equals(EdmPrimitiveTypeKind.TimeOfDay.getFullQualifiedName().toString())) {
 						// For a decimal property the value of this attribute specifies the maximum number of digits allowed in the
 						// properties value; it MUST be a positive integer. If no value is specified, the decimal property has
 						// unspecified precision.
@@ -217,7 +217,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 							edmProperty.setPrecision(Integer.valueOf(annotationColumn.precision()));
 						}
 						if (edmProperty.getType().equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName().toString())
-								&& annotationColumn.scale() > 0) {
+						        && annotationColumn.scale() > 0) {
 							edmProperty.setScale(Integer.valueOf(annotationColumn.scale()));
 						}
 					}
@@ -271,26 +271,30 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	 */
 	private static Member determineJavaMemberOfAttribute(final Attribute<?, ?> jpaAttribute) {
 		final Member member = jpaAttribute.getJavaMember();
+		if (member == null) {
+			throw new IllegalStateException("Cannot determine the member for '" + jpaAttribute.getName() + "' in "
+			        + jpaAttribute.getDeclaringType().getJavaType().getName() + ". Wrong inheritance used?");
+		}
 		if (member.getDeclaringClass() == jpaAttribute.getDeclaringType().getJavaType()
-				|| member.getDeclaringClass().isAssignableFrom(jpaAttribute.getDeclaringType().getJavaType())) {
+		        || member.getDeclaringClass().isAssignableFrom(jpaAttribute.getDeclaringType().getJavaType())) {
 			return member;
 		}
 		// workaround needed...
 		if (jpaAttribute.getClass().getName().startsWith("org.hibernate") && LOG.isLoggable(Level.INFO)) {
 			LOG.log(Level.INFO,
-					"invalid metamodel of Hibernate found for "
-							+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName()
-							+ "... use workaround");
+			        "invalid metamodel of Hibernate found for "
+			                + jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName()
+			                + "... use workaround");
 		}
 		if (Field.class.isInstance(member)) {
-			for(final Field field: jpaAttribute.getDeclaringType().getJavaType().getDeclaredFields()) {
+			for (final Field field : jpaAttribute.getDeclaringType().getJavaType().getDeclaredFields()) {
 				if (field.getName().equals(jpaAttribute.getName())) {
 					return field;
 				}
 			}
 			// fallback
 			LOG.log(Level.FINE, "Couldn't find matching (correct) field found for "
-					+ jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName());
+			        + jpaAttribute.getDeclaringType().getJavaType().getSimpleName() + "#" + jpaAttribute.getName());
 			return member;
 		} else {
 			throw new UnsupportedOperationException();
@@ -329,7 +333,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 			streamInfo = annotatedMember.getAnnotation(EdmMediaStream.class);
 			if (streamInfo != null) {
 				if ((streamInfo.contentType() == null || streamInfo.contentType().isEmpty())
-						&& (streamInfo.contentTypeAttribute() == null || streamInfo.contentTypeAttribute().isEmpty())) {
+				        && (streamInfo.contentTypeAttribute() == null || streamInfo.contentTypeAttribute().isEmpty())) {
 					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.ANNOTATION_STREAM_INCOMPLETE, internalName);
 				}
 			}
@@ -412,8 +416,8 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	@Override
 	public String toString() {
 		return "IntermediateProperty [jpaAttribute=" + jpaAttribute + ", serviceDocument=" + serviceDocument + ", edmProperty="
-				+ edmProperty + ", type=" + type + ", dbFieldName=" + dbFieldName + ", searchable=" + searchable + ", isVersion="
-				+ isVersion + ", streamInfo=" + streamInfo + ", internalName=" + internalName + "]";
+		        + edmProperty + ", type=" + type + ", dbFieldName=" + dbFieldName + ", searchable=" + searchable + ", isVersion="
+		        + isVersion + ", streamInfo=" + streamInfo + ", internalName=" + internalName + "]";
 	}
 
 }

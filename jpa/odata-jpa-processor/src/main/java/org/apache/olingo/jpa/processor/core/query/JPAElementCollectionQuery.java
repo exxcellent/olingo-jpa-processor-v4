@@ -20,9 +20,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.query.result.JPAQueryElementCollectionResult;
-import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 
@@ -33,12 +32,12 @@ class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<T
 	private final JPAAttribute<?> attribute;
 	private final List<JPASelector> paths;
 
-	JPAElementCollectionQuery(final OData odata, final JPAEntityType jpaEntityType,
-			final JPAAttribute<?> attribute, final List<JPASelector> paths,
-			final JPAODataSessionContextAccess context,
-			final UriInfoResource uriInfo, final EntityManager em, final Map<String, List<String>> requestHeaders)
-					throws ODataApplicationException {
-		super(odata, context, jpaEntityType, em, requestHeaders, uriInfo);
+	JPAElementCollectionQuery(final JPAEntityType jpaEntityType,
+	        final JPAAttribute<?> attribute, final List<JPASelector> paths,
+	        final JPAODataContext context,
+	        final UriInfoResource uriInfo, final EntityManager em)
+	        throws ODataApplicationException {
+		super(context, jpaEntityType, em, uriInfo);
 		cq = getCriteriaBuilder().createTupleQuery();
 		root = cq.from(jpaEntityType.getTypeClass());
 		this.attribute = attribute;
@@ -87,13 +86,13 @@ class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<T
 			return new JPAQueryElementCollectionResult(result, listKeyPaths);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(),
-					Locale.ENGLISH, e);
+			        Locale.ENGLISH, e);
 		}
 	}
 
 	private Map<String, List<Tuple>> convertResult(final List<Tuple> intermediateResult,
-			final List<JPASelector> listKeyPath)
-					throws ODataApplicationException {
+	        final List<JPASelector> listKeyPath)
+	        throws ODataApplicationException {
 
 		List<Tuple> subResult;
 		String actualKey;

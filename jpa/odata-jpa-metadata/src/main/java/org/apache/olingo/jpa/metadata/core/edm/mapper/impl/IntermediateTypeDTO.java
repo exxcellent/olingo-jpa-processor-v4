@@ -20,6 +20,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
+import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -168,6 +169,11 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 				throw new RuntimeException(e);
 			}
 		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public DataAccessConditioner<?> getDataAccessConditioner() {
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")

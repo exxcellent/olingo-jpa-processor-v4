@@ -12,101 +12,108 @@ import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.edm.geo.SRID;
 
 public class EdmPropertyDouble implements EdmProperty {
-  private final String name;
 
-  public EdmPropertyDouble(final String name) {
-    super();
-    this.name = name;
-  }
+	private final String name;
 
-  @Override
-  public String getName() {
+	public EdmPropertyDouble(final String name) {
+		super();
+		this.name = name;
+	}
 
-    return name;
-  }
+	@Override
+	public String getName() {
 
-  @Override
-  public EdmType getType() {
-    fail();
-    return null;
-  }
+		return name;
+	}
 
-  @Override
-  public boolean isCollection() {
-    fail();
-    return false;
-  }
+	@Override
+	public EdmType getType() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public EdmMapping getMapping() {
-    fail();
-    return null;
-  }
+	@Override
+	public EdmType getTypeWithAnnotations() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public EdmAnnotation getAnnotation(final EdmTerm term, final String qualifier) {
-    fail();
-    return null;
-  }
+	@Override
+	public boolean isCollection() {
+		fail();
+		return false;
+	}
 
-  @Override
-  public List<EdmAnnotation> getAnnotations() {
-    fail();
-    return null;
-  }
+	@Override
+	public EdmMapping getMapping() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public String getMimeType() {
-    fail();
-    return null;
-  }
+	@Override
+	public EdmAnnotation getAnnotation(final EdmTerm term, final String qualifier) {
+		fail();
+		return null;
+	}
 
-  @Override
-  public boolean isPrimitive() {
-    fail();
-    return false;
-  }
+	@Override
+	public List<EdmAnnotation> getAnnotations() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public boolean isNullable() {
-    fail();
-    return false;
-  }
+	@Override
+	public String getMimeType() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public Integer getMaxLength() {
-    fail();
-    return null;
-  }
+	@Override
+	public boolean isPrimitive() {
+		fail();
+		return false;
+	}
 
-  @Override
-  public Integer getPrecision() {
-    fail();
-    return null;
-  }
+	@Override
+	public boolean isNullable() {
+		fail();
+		return false;
+	}
 
-  @Override
-  public Integer getScale() {
-    fail();
-    return null;
-  }
+	@Override
+	public Integer getMaxLength() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public SRID getSrid() {
-    fail();
-    return null;
-  }
+	@Override
+	public Integer getPrecision() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public boolean isUnicode() {
-    fail();
-    return false;
-  }
+	@Override
+	public Integer getScale() {
+		fail();
+		return null;
+	}
 
-  @Override
-  public String getDefaultValue() {
-    fail();
-    return null;
-  }
+	@Override
+	public SRID getSrid() {
+		fail();
+		return null;
+	}
+
+	@Override
+	public boolean isUnicode() {
+		fail();
+		return false;
+	}
+
+	@Override
+	public String getDefaultValue() {
+		fail();
+		return null;
+	}
 
 }

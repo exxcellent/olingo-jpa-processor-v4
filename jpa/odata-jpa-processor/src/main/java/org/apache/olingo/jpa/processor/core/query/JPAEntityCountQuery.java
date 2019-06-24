@@ -1,7 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaQuery;
@@ -11,8 +10,7 @@ import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
-import org.apache.olingo.server.api.OData;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
@@ -22,22 +20,22 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
 	private final CriteriaQuery<Long> cq;
 	private final Root<?> root;
 
-	public JPAEntityCountQuery(final OData odata, final EdmEntitySet entitySet, final JPAODataSessionContextAccess context,
-			final UriInfo uriInfo, final EntityManager em, final Map<String, List<String>> requestHeaders)
-					throws ODataApplicationException, ODataJPAModelException {
-		super(odata, entitySet, context, uriInfo, em, requestHeaders);
+	public JPAEntityCountQuery(final EdmEntitySet entitySet, final JPAODataContext context,
+	        final UriInfo uriInfo, final EntityManager em)
+	        throws ODataApplicationException, ODataJPAModelException {
+		super(entitySet, context, uriInfo, em);
 		cq = getCriteriaBuilder().createQuery(Long.class);
 		root = cq.from(getQueryResultType().getTypeClass());
 	}
 
 	@Override
-	public CriteriaQuery<Long> getQuery() {
+	public final CriteriaQuery<Long> getQuery() {
 		return cq;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Root<?> getRoot() {
+	public final Root<?> getRoot() {
 		return root;
 	}
 
@@ -59,7 +57,7 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
 	 * @throws ExpressionVisitException
 	 * @see JPAEntityQuery#execute(boolean)
 	 */
-	public EntityCollection execute() throws ODataApplicationException {
+	public final EntityCollection execute() throws ODataApplicationException {
 		/*
 		 * URL example:
 		 * .../Organizations?$count=true

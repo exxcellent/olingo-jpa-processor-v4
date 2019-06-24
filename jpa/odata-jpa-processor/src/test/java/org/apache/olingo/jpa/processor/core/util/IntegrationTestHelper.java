@@ -46,7 +46,7 @@ public class IntegrationTestHelper {
 
 		@Override
 		public void processError(final ODataRequest request, final ODataResponse response,
-				final ODataServerError serverError, final ContentType responseFormat) {
+		        final ODataServerError serverError, final ContentType responseFormat) {
 			LOG.log(Level.SEVERE, serverError.getMessage(), serverError.getException());
 			super.processError(request, response, serverError, responseFormat);
 		}
@@ -55,32 +55,29 @@ public class IntegrationTestHelper {
 
 	// ----------------------------------------------------------------------------------
 	public final HttpServletRequestDouble req;
-	public final HttpServletResponseDouble resp;
+	public HttpServletResponseDouble resp = null;
 	private final JPAAdapter persistenceAdapter;
 	private static final String uriPrefix = "http://localhost:8080/Test/Olingo.svc/";
 	private boolean executed = false;
 	private SecurityInceptor securityInceptor = null;
 
 	/**
-	 * Does the same as <i>IntegrationTestHelper(persistenceAdapter.getEMF(),
-	 * persistenceAdapter, urlPath, null, HttpMethod.GET)</i>.
 	 *
-	 * @see #IntegrationTestHelper(TestGenericJPAPersistenceAdapter, String,
+	 * @see #IntegrationTestHelper(JPAAdapter, String,
 	 *      StringBuffer, HttpMethod)
 	 */
-	public IntegrationTestHelper(final TestGenericJPAPersistenceAdapter persistenceAdapter, final String urlPath)
-			throws IOException, ODataException {
+	public IntegrationTestHelper(final JPAAdapter persistenceAdapter, final String urlPath)
+	        throws IOException, ODataException {
 		this(persistenceAdapter, urlPath, null, HttpMethod.GET);
 	}
 
 	public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
-			final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
-					throws IOException,
-					ODataException {
+	        final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
+	        throws IOException,
+	        ODataException {
 		super();
 		this.req = new HttpServletRequestDouble(uriPrefix + urlPath, requestBody);
 		this.req.setMethod(requestMethod);
-		this.resp = new HttpServletResponseDouble();
 		this.persistenceAdapter = persistenceAdapter;
 		if (persistenceAdapter == null) {
 			throw new IllegalArgumentException("JPAAdapter required");
@@ -96,11 +93,12 @@ public class IntegrationTestHelper {
 	}
 
 	public void execute(final int status) throws ODataException {
+		this.resp = new HttpServletResponseDouble();
 		final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
 			@Override
 			protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-					final HttpServletResponse response, final EntityManager em) {
+			        final HttpServletResponse response, final EntityManager em) {
 				final Collection<Processor> processors = super.collectProcessors(request, response, em);
 				processors.add(new TestErrorProcessor());
 				return processors;

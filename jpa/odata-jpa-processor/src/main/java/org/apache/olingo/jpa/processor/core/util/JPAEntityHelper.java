@@ -15,7 +15,8 @@ import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Parameter;
-import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.edm.FullQualifiedName;
+import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -24,6 +25,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter.
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.ValueConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -46,7 +48,7 @@ public class JPAEntityHelper {
 	private final ValueConverter attributeConverter = new ValueConverter();;
 
 	public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata,
-	        final UriHelper uriHelper, final DependencyInjector dependencyInjector) throws ODataException {
+	        final UriHelper uriHelper, final DependencyInjector dependencyInjector) {
 		this.em = em;
 		this.sd = sd;
 		this.serviceMetadata = serviceMetadata;
@@ -55,7 +57,8 @@ public class JPAEntityHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final <R> R invokeUnboundActionMethod(final JPAAction jpaAction, final Map<String, Parameter> parameters) throws ODataException {
+	public final <R> R invokeUnboundActionMethod(final JPAAction jpaAction, final Map<String, Parameter> parameters)
+	        throws ODataJPAModelException, ODataApplicationException {
 		final Object[] args = buildArguments(jpaAction, parameters);
 		final IntermediateAction iA = (IntermediateAction) jpaAction;
 		final Method javaMethod = iA.getJavaMethod();
@@ -67,7 +70,7 @@ public class JPAEntityHelper {
 			return (R) result;
 		} catch (final InvocationTargetException e) {
 			if (ODataApplicationException.class.isInstance(e.getTargetException())) {
-				log.log(Level.SEVERE, "Action call throws " + ODataApplicationException.class.getSimpleName()
+				log.log(Level.FINE, "Action call throws " + ODataApplicationException.class.getSimpleName()
 				        + "... unrwap to send custom error status", e);
 				throw ODataApplicationException.class.cast(e.getTargetException());
 			}
@@ -88,7 +91,7 @@ public class JPAEntityHelper {
 	 */
 	@SuppressWarnings("unchecked")
 	public final <R> R invokeBoundActionMethod(final JPAEntityType jpaType, final Entity oDataEntity, final JPAAction jpaAction,
-	        final Map<String, Parameter> parameters) throws ODataException {
+	        final Map<String, Parameter> parameters) throws ODataJPAModelException, ODataJPAConversionException, ODataApplicationException {
 		final Object jpaEntity = loadJPAEntity(jpaType, oDataEntity);
 		if (jpaEntity == null) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.GENERAL);
@@ -102,12 +105,20 @@ public class JPAEntityHelper {
 				return null;
 			}
 			return (R) result;
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (final InvocationTargetException e) {
+			log.log(Level.FINE, "Invocation of bound action '" + jpaAction.getExternalName()
+			        + "' failed (will rethrow target exception): " + e.getMessage());
+			if (ODataApplicationException.class.isInstance(e.getTargetException()))
+				throw ODataApplicationException.class.cast(e.getTargetException());
+			else
+				throw new ODataJPAModelException(e);
+		} catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new ODataJPAModelException(e);
 		}
 	}
 
-	private Object[] buildArguments(final JPAAction jpaAction, final Map<String, Parameter> odataParameterValues) throws ODataException {
+	private Object[] buildArguments(final JPAAction jpaAction, final Map<String, Parameter> odataParameterValues)
+	        throws ODataJPAModelException, ODataJPAConversionException {
 
 		final List<JPAOperationParameter> actionParameters = jpaAction.getParameters();
 		final Object[] args = new Object[actionParameters.size()];
@@ -145,8 +156,9 @@ public class JPAEntityHelper {
 			case ENTITY:
 				final Entity entity = p.asEntity();
 				final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
+				final JPAEntityType jpaType = determineJPAEntityType(sd, persistenceType);
 
-				final EntityConverter entityConverter = new EntityConverter(persistenceType, uriHelper, sd, serviceMetadata);
+				final EntityConverter entityConverter = new EntityConverter(jpaType, uriHelper, sd, serviceMetadata);
 				final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity);
 				args[i] = jpaEntity;
 				break;
@@ -156,6 +168,20 @@ public class JPAEntityHelper {
 			}
 		}
 		return args;
+	}
+
+	private final static JPAEntityType determineJPAEntityType(final IntermediateServiceDocument sd,
+	        final EntityType<?> persistenceType) throws ODataJPAModelException {
+		FullQualifiedName fqn;
+		JPAEntityType jpaType;
+		for (final CsdlSchema schema : sd.getEdmSchemas()) {
+			fqn = new FullQualifiedName(schema.getNamespace(), persistenceType.getName());
+			jpaType = sd.getEntityType(fqn);
+			if (jpaType != null) {
+				return jpaType;
+			}
+		}
+		throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, persistenceType.getName());
 	}
 
 	/**

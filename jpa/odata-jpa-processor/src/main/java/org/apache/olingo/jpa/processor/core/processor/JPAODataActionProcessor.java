@@ -27,15 +27,15 @@ import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
@@ -67,6 +67,7 @@ import org.apache.olingo.server.api.uri.UriResourceAction;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.core.uri.queryoption.ExpandItemImpl;
 import org.apache.olingo.server.core.uri.queryoption.ExpandOptionImpl;
+import org.apache.olingo.server.core.uri.queryoption.LevelsOptionImpl;
 
 /**
  *
@@ -95,9 +96,9 @@ public class JPAODataActionProcessor extends AbstractProcessor
 	private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
 	private final JPAServiceDebugger debugger;
 
-	public JPAODataActionProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
+	public JPAODataActionProcessor(final JPAODataContext context, final EntityManager em) {
 		super(context, em);
-		this.debugger = context.getDebugger();
+		this.debugger = context.getServiceDebugger();
 	}
 
 	@Override
@@ -136,6 +137,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 				resultExpand = new ExpandOptionImpl();
 				final ExpandItemImpl expand = new ExpandItemImpl();
 				expand.setIsStar(true);
+				expand.setSystemQueryOption(new LevelsOptionImpl().setMax());
 				((ExpandOptionImpl) resultExpand).addExpandItem(expand);
 			} else
 				resultExpand = uriInfo.getExpandOption();
@@ -158,7 +160,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			} else {
 				// we have at least one entity
 				final EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl)
-				        .select(uriInfo.getSelectOption()).expand(uriInfo.getExpandOption()).build();
+				        .select(uriInfo.getSelectOption()).expand(resultExpand).build();
 				serializerResult = serializer.entity(getServiceMetadata(), type, entityCollection.getEntities().get(0), options);
 			}
 
@@ -279,8 +281,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			JPAEntityQuery query = null;
 			final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 			try {
-				query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em, request.getAllHeaders(),
-				        getServiceMetadata());
+				query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, getServiceMetadata());
 			} catch (final ODataJPAModelException e) {
 				debugger.stopRuntimeMeasurement(handle);
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
@@ -302,7 +303,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 							results.add(resultAction);
 						}
 					}
-				} catch (final ODataException e) {
+				} catch (final ODataJPAConversionException | ODataJPAModelException e) {
 					throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 				}
 			}
@@ -314,9 +315,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 				if (resultAction != null) {
 					results.add(resultAction);
 				}
-			} catch (final ODataApplicationException e) {
-				throw e;
-			} catch (final ODataException e) {
+			} catch (final ODataJPAConversionException | ODataJPAModelException e) {
 				throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 			}
 		}
@@ -344,21 +343,26 @@ public class JPAODataActionProcessor extends AbstractProcessor
 		final EntityCollection odataEntityCollection = new EntityCollection();
 		final UriHelper uriHelper = getOData().createUriHelper();
 
-		// the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
-		final EntityConverter entityConverter = new EntityConverter(acr.resultType, uriHelper, sd,
-		        getServiceMetadata());
+		try {
+			// the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
+			final EntityConverter entityConverter = new EntityConverter(acr.resultType, uriHelper, sd,
+			        getServiceMetadata());
 
-		Collection<Object> jpaEntities;
-		for (final Object resultEntry : acr.resultValues) {
-			// build a temporary list, also for single result entities
-			if (resultContainsCollections)
-				jpaEntities = (Collection<Object>) resultEntry;
-			else
-				jpaEntities = Collections.singletonList(resultEntry);
-			for (final Object japEntity : jpaEntities) {
-				final Entity entity = entityConverter.convertJPA2ODataEntity(japEntity);
-				odataEntityCollection.getEntities().add(entity);
+			Collection<Object> jpaEntities;
+			for (final Object resultEntry : acr.resultValues) {
+				// build a temporary list, also for single result entities
+				if (resultContainsCollections)
+					jpaEntities = (Collection<Object>) resultEntry;
+				else
+					jpaEntities = Collections.singletonList(resultEntry);
+				for (final Object japEntity : jpaEntities) {
+					final Entity entity = entityConverter.convertJPA2ODataEntity(japEntity);
+					odataEntityCollection.getEntities().add(entity);
+				}
 			}
+		} catch (final ODataJPAModelException e) {
+			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
+			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 		return odataEntityCollection;
 	}

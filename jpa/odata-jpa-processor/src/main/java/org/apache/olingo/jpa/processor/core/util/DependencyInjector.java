@@ -85,7 +85,7 @@ public final class DependencyInjector {
 	 */
 	public void registerDependencyMapping(final Class<?> type, final Object value) {
 		if (valueMapping.containsKey(type)) {
-			throw new IllegalArgumentException("Type already registered");
+			throw new IllegalArgumentException("Type already registered: " + type.getName());
 		}
 		if (value != null && !type.isInstance(value)) {
 			throw new IllegalArgumentException("Value doesn't match type");

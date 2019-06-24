@@ -11,6 +11,7 @@ import com.googlecode.flyway.core.Flyway;
 import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
 
 public class DataSourceHelper {
+
 	public enum DatabaseType {
 		H2, HSQLDB, DERBY, REMOTE;
 	}
@@ -23,8 +24,7 @@ public class DataSourceHelper {
 	private static final String HSQLDB_URL = "jdbc:hsqldb:mem:com.sample";
 	private static final String HSQLDB_DRIVER_CLASS_NAME = "org.hsqldb.jdbcDriver";
 
-	private static final String DERBY_URL =
-			"jdbc:derby:target/testdb;create=true;traceFile=derby_trace.log;trace_level=0xFFFFFFFF";
+	private static final String DERBY_URL = "jdbc:derby:target/testdb;create=true;traceFile=derby_trace.log;trace_level=0xFFFFFFFF";
 	private static final String DERBY_DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 
 	private static final String REMOTE_URL = "jdbc:$DBNAME$:$Host$:$Port$";
@@ -65,7 +65,7 @@ public class DataSourceHelper {
 			url = url.replace("$DBNAME$", hanaInfo.get("dbname").asText());
 			final String driver = hanaInfo.get("driver").asText();
 			ds = new DriverDataSource(driver, url, hanaInfo.get("username").asText(), hanaInfo.get(
-					"password").asText(), new String[0]);
+			        "password").asText(), new String[0]);
 			return ds;
 		default:
 			return null;

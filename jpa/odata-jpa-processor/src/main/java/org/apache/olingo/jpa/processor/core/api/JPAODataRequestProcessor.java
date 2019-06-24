@@ -18,12 +18,13 @@ import org.apache.olingo.server.api.processor.PrimitiveValueProcessor;
 import org.apache.olingo.server.api.uri.UriInfo;
 
 public class JPAODataRequestProcessor implements PrimitiveValueProcessor,
-ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntityProcessor */ {
+        ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntityProcessor */ {
+
 	private final EntityManager em;
-	private final JPAODataSessionContextAccess context;
+	private final JPAODataContext context;
 	private JPAProcessorFactory factory;
 
-	public JPAODataRequestProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
+	public JPAODataRequestProcessor(final JPAODataContext context, final EntityManager em) {
 		super();
 		this.em = em;
 		this.context = context;
@@ -36,72 +37,72 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Deprecated
 	public void countEntityCollection(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, ContentType.TEXT_PLAIN);
 		p.retrieveData(request, response, ContentType.TEXT_PLAIN);
 	}
 
 	@Deprecated
 	public void createEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_CREATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Deprecated
 	public void createMediaEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_CREATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void deleteComplex(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_DELETE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Deprecated
 	public void deleteEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_DELETE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void deletePrimitive(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_DELETE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void deletePrimitiveValue(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_DELETE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Deprecated
 	public void deleteMediaEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
-			throws ODataApplicationException, ODataLibraryException {
+	        throws ODataApplicationException, ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_DELETE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void readComplex(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	        final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, responseFormat);
 		p.retrieveData(request, response, responseFormat);
@@ -109,7 +110,7 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Deprecated
 	public void readEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	        final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, responseFormat);
 		p.retrieveData(request, response, responseFormat);
@@ -117,7 +118,7 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Deprecated
 	public void readEntityCollection(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	        final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, responseFormat);
 		p.retrieveData(request, response, responseFormat);
@@ -125,8 +126,8 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Override
 	public void readPrimitive(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType responseFormat)
-					throws ODataApplicationException, ODataLibraryException {
+	        final ContentType responseFormat)
+	        throws ODataApplicationException, ODataLibraryException {
 
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, responseFormat);
 		p.retrieveData(request, response, responseFormat);
@@ -134,7 +135,7 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Override
 	public void readPrimitiveValue(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+	        final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, responseFormat);
 		p.retrieveData(request, response, responseFormat);
@@ -142,8 +143,8 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Deprecated
 	public void readMediaEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType responseFormat)
-					throws ODataApplicationException, ODataLibraryException {
+	        final ContentType responseFormat)
+	        throws ODataApplicationException, ODataLibraryException {
 
 		final JPARequestProcessor p = factory.createProcessor(em, uriInfo, responseFormat);
 		p.retrieveData(request, response, responseFormat);
@@ -151,47 +152,47 @@ ComplexProcessor/* , CountEntityCollectionProcessor, EntityProcessor, MediaEntit
 
 	@Override
 	public void updateComplex(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_UPDATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Deprecated
 	public void updateEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_UPDATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void updatePrimitive(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_UPDATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void updatePrimitiveValue(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_UPDATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Deprecated
 	public void updateMediaEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-			final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-	ODataLibraryException {
+	        final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
+	        ODataLibraryException {
 
 		throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_UPDATE,
-				HttpStatusCode.NOT_IMPLEMENTED);
+		        HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 }

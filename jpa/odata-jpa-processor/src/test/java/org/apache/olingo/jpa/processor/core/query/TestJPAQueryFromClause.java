@@ -20,8 +20,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribut
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.util.EdmEntitySetDouble;
@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAQueryFromClause extends TestBase {
+
 	private JPAEntityQuery cut;
 	private Root<?> root;
 	private JPAEntityType jpaEntityType;
@@ -40,11 +41,10 @@ public class TestJPAQueryFromClause extends TestBase {
 	public void setup() throws ODataException {
 		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
 		jpaEntityType = helper.getJPAEntityType("Organizations");
-		final JPAODataSessionContextAccess context = new JPAODataContextAccessDouble(
-				new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter);
-		createHeaders();
-		cut = new JPAEntityQuery(null, new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
-				persistenceAdapter.createEntityManager(), headers, null);
+		final JPAODataContext context = new JPAODataContextAccessDouble(
+		        new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter, createHeaders());
+		cut = new JPAEntityQuery(new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
+		        persistenceAdapter.createEntityManager(), null);
 		root = cut.getRoot();
 	}
 
@@ -73,8 +73,7 @@ public class TestJPAQueryFromClause extends TestBase {
 		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
 
 		@SuppressWarnings("unchecked")
-		final
-		Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
+		final Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
 		final Set<Join<Organization, ?>> joins = root.getJoins();
 		assertEquals(1, joins.size());
 
@@ -92,8 +91,7 @@ public class TestJPAQueryFromClause extends TestBase {
 		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
 
 		@SuppressWarnings("unchecked")
-		final
-		Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
+		final Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
 		final Set<Join<Organization, ?>> joins = root.getJoins();
 		assertEquals(1, joins.size());
 

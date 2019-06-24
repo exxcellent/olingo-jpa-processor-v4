@@ -20,8 +20,8 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.JPAEntityCountQuery;
@@ -56,7 +56,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 
 	private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
 
-	public JPAEntityProcessor(final JPAODataSessionContextAccess context, final EntityManager em) {
+	public JPAEntityProcessor(final JPAODataContext context, final EntityManager em) {
 		super(context, em);
 	}
 
@@ -295,7 +295,6 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 		final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
 		final int lastPathSegmentIndex = resourceParts.size() - 1;
 		final UriResource lastPathSegment = resourceParts.get(lastPathSegmentIndex);
-		final OData odata = getOData();
 		if (lastPathSegment.getKind() == UriResourceKind.function) {
 			// entity dispatching is also called for functions (but not actions)
 			return retrieveFunctionData(request, uriInfo);
@@ -318,13 +317,11 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 			try {
 				if (uriInfo.getCountOption() != null && uriInfo.getCountOption().getValue()) {
 					// count entities
-					final JPAEntityCountQuery query = new JPAEntityCountQuery(odata, targetEdmEntitySet, context,
-					        uriInfo, em, request.getAllHeaders());
+					final JPAEntityCountQuery query = new JPAEntityCountQuery(targetEdmEntitySet, context, uriInfo, em);
 					return query.execute();
 				} else {
 					// load entities
-					final JPAEntityQuery query = new JPAEntityQuery(odata, targetEdmEntitySet, context, uriInfo, em,
-					        request.getAllHeaders(), serviceMetadata);
+					final JPAEntityQuery query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, serviceMetadata);
 					return query.execute(true);
 				}
 

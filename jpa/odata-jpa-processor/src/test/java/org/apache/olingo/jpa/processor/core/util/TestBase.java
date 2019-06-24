@@ -18,15 +18,21 @@ public abstract class TestBase {
 	}
 
 	protected TestHelper helper;
-	protected Map<String, List<String>> headers;
 	protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
 	protected TestGenericJPAPersistenceAdapter persistenceAdapter;
 
-
 	@Before
-	public void setupTest() throws ODataJPAModelException {
-		persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-				DataSourceHelper.DatabaseType.H2);
+	public final void setupTest() throws ODataJPAModelException {
+		persistenceAdapter = createPersistenceAdapter();
+	}
+
+	/**
+	 * Hook method for test sub classes to create an alternative persistence adapter for complete test class: example is using another
+	 * persistence unit.
+	 */
+	protected TestGenericJPAPersistenceAdapter createPersistenceAdapter() {
+		return persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
+		        DataSourceHelper.DatabaseType.H2);
 	}
 
 	protected JPAProvider getJPAProvider() {
@@ -45,10 +51,11 @@ public abstract class TestBase {
 		throw new UnsupportedOperationException("Current JPA provider not known");
 	}
 
-	protected void createHeaders() {
-		headers = new HashMap<String, List<String>>();
+	protected Map<String, List<String>> createHeaders() {
+		final Map<String, List<String>> headers = new HashMap<String, List<String>>();
 		final List<String> languageHeaders = new ArrayList<String>();
 		languageHeaders.add("de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4");
 		headers.put("accept-language", languageHeaders);
+		return headers;
 	}
 }

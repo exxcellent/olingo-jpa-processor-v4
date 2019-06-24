@@ -7,8 +7,8 @@ import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializer;
 import org.apache.olingo.server.api.OData;
@@ -18,34 +18,34 @@ import org.apache.olingo.server.api.uri.UriInfo;
 
 abstract class JPAAbstractRequestProcessor implements JPARequestProcessor {
 
-  // TODO eliminate transaction handling
-  protected final EntityManager em;
-  protected final IntermediateServiceDocument sd;
-  protected final JPAODataSessionContextAccess context;
-  protected final CriteriaBuilder cb;
-  protected final UriInfo uriInfo;
-  protected final JPASerializer serializer;
-  protected final OData odata;
-  protected final JPAServiceDebugger debugger;
+	// TODO eliminate transaction handling
+	protected final EntityManager em;
+	protected final IntermediateServiceDocument sd;
+	protected final JPAODataContext context;
+	protected final CriteriaBuilder cb;
+	protected final UriInfo uriInfo;
+	protected final JPASerializer serializer;
+	protected final OData odata;
+	protected final JPAServiceDebugger debugger;
 
-  public JPAAbstractRequestProcessor(final OData odata, final JPAODataSessionContextAccess context,
-      final JPAODataRequestContextAccess requestContext) {
+	public JPAAbstractRequestProcessor(final OData odata, final JPAODataContext context,
+	        final JPAODataRequestContextAccess requestContext) {
 
-    this.em = requestContext.getEntityManager();
-    this.cb = em.getCriteriaBuilder();
-    this.context = context;
-    this.sd = context.getEdmProvider().getServiceDocument();
-    this.uriInfo = requestContext.getUriInfo();
-    this.serializer = requestContext.getSerializer();
-    this.odata = odata;
-    this.debugger = context.getDebugger();
-  }
+		this.em = requestContext.getEntityManager();
+		this.cb = em.getCriteriaBuilder();
+		this.context = context;
+		this.sd = context.getEdmProvider().getServiceDocument();
+		this.uriInfo = requestContext.getUriInfo();
+		this.serializer = requestContext.getSerializer();
+		this.odata = odata;
+		this.debugger = context.getServiceDebugger();
+	}
 
-  protected final void createSuccessResonce(final ODataResponse response, final ContentType responseFormat,
-      final SerializerResult serializerResult) {
+	protected final void createSuccessResonce(final ODataResponse response, final ContentType responseFormat,
+	        final SerializerResult serializerResult) {
 
-    response.setContent(serializerResult.getContent());
-    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-  }
+		response.setContent(serializerResult.getContent());
+		response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+		response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+	}
 }

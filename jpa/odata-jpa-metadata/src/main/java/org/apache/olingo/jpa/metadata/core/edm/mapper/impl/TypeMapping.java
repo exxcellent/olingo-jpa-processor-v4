@@ -168,8 +168,7 @@ public final class TypeMapping {
 		        jpaType.getName(), (javaMember != null ? memberName : null));
 	}
 
-	private static EdmPrimitiveTypeKind determineSimpleTypeFromConverter(final AnnotatedElement javaMember)
-	        throws ODataJPAModelException {
+	private static EdmPrimitiveTypeKind determineSimpleTypeFromConverter(final AnnotatedElement javaMember) {
 		if (javaMember == null) {
 			return null;
 		}
