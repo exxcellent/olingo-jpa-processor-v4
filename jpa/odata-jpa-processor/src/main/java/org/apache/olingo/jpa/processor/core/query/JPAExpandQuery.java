@@ -67,7 +67,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 	private final Root<?> root;
 
 	public JPAExpandQuery(final JPAODataContext context, final EntityManager em,
-	        final JPAExpandItemInfo item) throws ODataApplicationException {
+			final JPAExpandItemInfo item) throws ODataApplicationException {
 
 		super(context, item.getEntityType(), em, item.getUriInfo());
 		this.association = item.getExpandAssociation();
@@ -88,8 +88,31 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 	}
 
 	/**
-	 * Process a expand query, which contains a $skip and/or a $top option.
-	 * <p>
+	 *
+	 * @param referenceList The list used as reference having entries that must be
+	 *                      not present in <i>filterList</i>.
+	 * @param filterList    The list to take only the entries not already present in
+	 *                      <i>referenceList</i>.
+	 * @return The collection containing the selectors not already present in
+	 *         <i>referenceList</i>.
+	 */
+	private Collection<JPASelector> determineUnselectedAttributes(final Collection<JPASelector> referenceList,
+			final List<JPASelector> filterList) {
+		final List<JPASelector> listNotDuplicated = new LinkedList<JPASelector>();
+		final Set<JPASelector> setReferences = new HashSet<>(referenceList);
+		JPASelector current;
+		for (int i = filterList.size(); i > 0; i--) {
+			current = filterList.get(i - 1);
+			if (setReferences.contains(current)) {
+				continue;
+			}
+			listNotDuplicated.add(current);
+		}
+		return listNotDuplicated;
+	}
+
+	/**
+	 * Process a expand query, which contains a $skip and/or a $top option.<p>
 	 * This is a tricky problem, as it can not be done easily with SQL. It could be that a database offers special
 	 * solutions.
 	 * There is an worth reading blog regards this topic:
@@ -100,6 +123,8 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 	 * @throws ODataApplicationException
 	 */
 	public JPAQueryEntityResult execute() throws ODataApplicationException {
+
+		try {
 			long skip = 0;
 			long top = Long.MAX_VALUE;
 			// TODO merge with implementation in JPAExpandQuery#execute()
@@ -116,7 +141,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 			// add the key columns of target entity to selection, to build the key to map
 			// results for entries to owning entity
 			final List<JPASelector> listAssociationJoinKeyPaths = association.getRightPaths();
-			final Collection<JPASelector> additionalJoinKeyColumns = filterDuplicates(selectionPathDirectMappings,
+			final Collection<JPASelector> additionalJoinKeyColumns = determineUnselectedAttributes(selectionPathDirectMappings,
 					listAssociationJoinKeyPaths);
 
 			// join with owning entity (target of association aka right side)
@@ -141,12 +166,16 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 				top = uriResource.getTopOption().getValue();
 			}
 
-			final Map<String, List<Tuple>> result = convertResult(intermediateResult, skip, top);
+			final Map<String, List<Tuple>> result = convertResult(intermediateResult, skip, top, listAssociationJoinKeyPaths);
 			final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(result, count(), getQueryResultType());
 			// load not yet processed @ElementCollection attribute content
 			queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
 
 			return queryResult;
+		} catch (final ODataJPAModelException e) {
+			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(),
+					Locale.ENGLISH, e);
+		}
 	}
 
 	private Long count() {
@@ -168,13 +197,13 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 			try {
 				// build key using target side + target side join columns, resulting key must be
 				// identical for source side + source side join columns
-				actuallKey = buildTargetResultKey(row, listJoinKeyPath);
+				actuallKey = JPATupleAbstractConverter.buildOwningEntityKey(row, listJoinKeyPath);
 			} catch (final ODataJPAModelException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
 			} catch (final IllegalArgumentException e) {
 				LOG.log(Level.SEVERE,
-				        "Problem converting database result for entity type " + item.getEntityType().getInternalName(),
-				        e);
+						"Problem converting database result for entity type " + item.getEntityType().getInternalName(),
+						e);
 				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 			}
 
@@ -195,25 +224,6 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		return convertedResult;
 	}
 
-	private String buildTargetResultKey(final Tuple row, final List<JPASelector> joinColumns) {
-		final StringBuffer buffer = new StringBuffer();
-		for (final JPASelector item : joinColumns) {
-			buffer.append(JPASelector.PATH_SEPERATOR);
-			if (JPAAssociationPath.class.isInstance(item)) {
-				// special case for relationships without join columns mapped as attribute -> we
-				// have to take all the key attributes from the joined source to build an
-				// 'result key'; see
-				final boolean b = true;// FIXME
-				throw new IllegalStateException("UPS");
-			} else {
-				// default simple case
-				buffer.append(row.get(item.getAlias()));
-			}
-		}
-		buffer.deleteCharAt(0);
-		return buffer.toString();
-	}
-
 	private List<Order> createOrderByJoinCondition(final JPAAssociationPath a) throws ODataApplicationException {
 		final List<Order> orders = new ArrayList<Order>();
 
@@ -230,7 +240,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 				}
 				if (path == null) {
 					throw new IllegalStateException("Invalid model; cannot build join for "
-					        + a.getSourceType().getExternalName() + "#" + a.getAlias());
+							+ a.getSourceType().getExternalName() + "#" + a.getAlias());
 				}
 				orders.add(getCriteriaBuilder().asc(path));
 			}
@@ -250,7 +260,7 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 			whereCondition = getFilter().compile();
 		} catch (final ExpressionVisitException e) {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_FILTER_ERROR,
-			        HttpStatusCode.BAD_REQUEST, e);
+					HttpStatusCode.BAD_REQUEST, e);
 		}
 
 		if (whereCondition == null) {
@@ -279,8 +289,8 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 
 		for (final JPANavigationPropertyInfo naviInfo : expandPathList) {
 			final JPANavigationQuery newQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent,
-			        getEntityManager(),
-			        naviInfo.getAssociationPath());
+					getEntityManager(),
+					naviInfo.getAssociationPath());
 			queryList.add(newQuery);
 			parent = newQuery;
 		}

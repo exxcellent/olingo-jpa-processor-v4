@@ -16,9 +16,13 @@ public class DataSourceHelper {
 		H2, HSQLDB, DERBY, REMOTE;
 	}
 
+	public static final int DB_H2 = 1;
+	public static final int DB_HSQLDB = 2;
+	public static final int DB_REMOTE = 3;
+	public static final int DB_DERBY = 4;
+
 	private static final String DB_SCHEMA = "OLINGO";
 
-	private static final String H2_URL = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
 	private static final String H2_DRIVER_CLASS_NAME = "org.h2.Driver";
 
 	private static final String HSQLDB_URL = "jdbc:hsqldb:mem:com.sample";
@@ -29,16 +33,25 @@ public class DataSourceHelper {
 
 	private static final String REMOTE_URL = "jdbc:$DBNAME$:$Host$:$Port$";
 
-	public static final int DB_H2 = 1;
-	public static final int DB_HSQLDB = 2;
-	public static final int DB_REMOTE = 3;
-	public static final int DB_DERBY = 4;
+	private static int dbCounter = 0;
+
+	/**
+	 * The next database connection will open a fresh database without content...
+	 * that means a migration + content fill is triggered
+	 */
+	public static void forceFreshCreatedDatabase() {
+		dbCounter++;
+	}
+
+	private static String build_H2_Url() {
+		return "jdbc:h2:mem:test" + Integer.toString(dbCounter) + ";DB_CLOSE_DELAY=-1";
+	}
 
 	public static DataSource createDataSource(final DatabaseType database) {
 		DriverDataSource ds = null;
 		switch (database) {
 		case H2:
-			ds = new DriverDataSource(H2_DRIVER_CLASS_NAME, H2_URL, null, null, new String[0]);
+			ds = new DriverDataSource(H2_DRIVER_CLASS_NAME, build_H2_Url(), null, null, new String[0]);
 			break;
 
 		case HSQLDB:
@@ -65,7 +78,7 @@ public class DataSourceHelper {
 			url = url.replace("$DBNAME$", hanaInfo.get("dbname").asText());
 			final String driver = hanaInfo.get("driver").asText();
 			ds = new DriverDataSource(driver, url, hanaInfo.get("username").asText(), hanaInfo.get(
-			        "password").asText(), new String[0]);
+					"password").asText(), new String[0]);
 			return ds;
 		default:
 			return null;

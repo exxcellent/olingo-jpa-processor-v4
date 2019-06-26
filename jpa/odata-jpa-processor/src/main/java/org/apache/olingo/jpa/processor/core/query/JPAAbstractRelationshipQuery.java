@@ -53,6 +53,10 @@ abstract class JPAAbstractRelationshipQuery extends JPAAbstractQuery<Subquery<?>
 		return association;
 	}
 
+	protected JPAAbstractQuery<?> getParentQuery() {
+		return parentCall;
+	}
+
 	/**
 	 * @return
 	 */

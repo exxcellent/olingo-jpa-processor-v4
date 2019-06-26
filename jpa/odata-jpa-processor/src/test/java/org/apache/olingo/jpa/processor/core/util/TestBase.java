@@ -10,6 +10,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 public abstract class TestBase {
 
@@ -20,6 +21,14 @@ public abstract class TestBase {
 	protected TestHelper helper;
 	protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
 	protected TestGenericJPAPersistenceAdapter persistenceAdapter;
+
+	/**
+	 * Execute every test class with a fresh created database
+	 */
+	@BeforeClass
+	public static void setupDatabase() {
+		DataSourceHelper.forceFreshCreatedDatabase();
+	}
 
 	@Before
 	public final void setupTest() throws ODataJPAModelException {
@@ -32,7 +41,7 @@ public abstract class TestBase {
 	 */
 	protected TestGenericJPAPersistenceAdapter createPersistenceAdapter() {
 		return persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-		        DataSourceHelper.DatabaseType.H2);
+				DataSourceHelper.DatabaseType.H2);
 	}
 
 	protected JPAProvider getJPAProvider() {

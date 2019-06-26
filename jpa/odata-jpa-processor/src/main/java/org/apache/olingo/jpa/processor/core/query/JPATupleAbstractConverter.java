@@ -54,7 +54,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	private final JPAEntityType jpaConversionTargetEntity;
 
 	public JPATupleAbstractConverter(final JPAEntityType jpaTargetEntity,
-	        final UriHelper uriHelper, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata) {
+			final UriHelper uriHelper, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata) {
 		super();
 
 		this.uriHelper = uriHelper;
@@ -94,7 +94,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	 *            stringified entity id.
 	 */
 	protected final Entity convertTuple2ODataEntity(final Tuple row, final JPAQueryEntityResult jpaQueryResult)
-	        throws ODataJPAModelException, ODataJPAConversionException {
+			throws ODataJPAModelException, ODataJPAConversionException {
 		final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
 		final Entity odataEntity = new Entity();
 		odataEntity.setType(jpaConversionTargetEntity.getExternalFQN().getFullQualifiedNameAsString());
@@ -102,7 +102,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 		// TODO store @Version to fill ETag Header
 		for (final TupleElement<?> element : row.getElements()) {
 			convertJPAValue2ODataAttribute(row.get(element.getAlias()), element.getAlias(), "",
-			        jpaConversionTargetEntity, complexValueBuffer, 0, properties);
+					jpaConversionTargetEntity, complexValueBuffer, 0, properties);
 		}
 
 		createElementCollections(odataEntity, row, jpaQueryResult);
@@ -133,10 +133,10 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	}
 
 	protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType, final UriHelper uriHelper)
-	        throws ODataJPAModelException {
+			throws ODataJPAModelException {
 
 		final EdmEntityType edmType = serviceMetadata.getEdm()
-		        .getEntityType(jpaEntityType.getExternalFQN());
+				.getEntityType(jpaEntityType.getExternalFQN());
 		try {
 			// TODO Clarify host-name and port as part of ID see
 			// http://docs.oasis-open.org/odata/odata-atom-format/v4.0/cs02/odata-atom-format-v4.0-cs02.html#_Toc372792702
@@ -160,8 +160,8 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	 * Build a unique entity identifier based on values in <i>row</i> in the columns
 	 * defined by <i>joinColumns</i>.
 	 */
-	protected final String buildOwningEntityKey(final Tuple row, final Collection<JPASelector> joinColumns)
-	        throws ODataJPAModelException {
+	protected static final String buildOwningEntityKey(final Tuple row, final Collection<JPASelector> joinColumns)
+			throws ODataJPAModelException {
 		final StringBuilder buffer = new StringBuilder();
 		// we use all columns used in JOIN from left side (the owning entity) to build a
 		// identifying key accessing all nested relationship results
@@ -201,13 +201,13 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	 * @throws ODataApplicationException
 	 */
 	private void createElementCollections(final Entity entity, final Tuple owningEntityRow,
-	        final JPAQueryEntityResult jpaQueryResult) throws ODataJPAModelException, ODataJPAConversionException {
+			final JPAQueryEntityResult jpaQueryResult) throws ODataJPAModelException, ODataJPAConversionException {
 		final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> elementCollections = jpaQueryResult
-		        .getElementCollections();
+				.getElementCollections();
 		for (final Entry<JPAAttribute<?>, JPAQueryElementCollectionResult> entry : elementCollections.entrySet()) {
 
 			final Set<String> setKeyColumnAliases = entry.getValue().getKeyColumns().stream().map(x -> x.getAlias())
-			        .collect(Collectors.toSet());
+					.collect(Collectors.toSet());
 			final String key = buildOwningEntityKey(owningEntityRow, entry.getValue().getKeyColumns());
 			final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
 			int index = -1;
@@ -219,15 +219,15 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 				index++;
 				for (final TupleElement<?> element : row.getElements()) {
 					if ((!entry.getKey().isComplex()
-					        || entry.getKey().getStructuredType().getPath(element.getAlias()) == null)
-					        && setKeyColumnAliases.contains(element.getAlias())) {
+							|| entry.getKey().getStructuredType().getPath(element.getAlias()) == null)
+							&& setKeyColumnAliases.contains(element.getAlias())) {
 						// ignore columns values only part of result set, because we had to select the
 						// key columns for joining
 						continue;
 					}
 					/* final Property property = */ convertJPAValue2ODataAttribute(row.get(element.getAlias()),
-					        element.getAlias(), "", jpaConversionTargetEntity, complexValueBuffer, index,
-					        entity.getProperties());
+							element.getAlias(), "", jpaConversionTargetEntity, complexValueBuffer, index,
+							entity.getProperties());
 				}
 
 			}
@@ -235,7 +235,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	}
 
 	private Collection<? extends Link> createExpand(final Tuple owningEntityRow, final JPAQueryEntityResult jpaQueryResult)
-	        throws ODataJPAModelException, ODataJPAConversionException {
+			throws ODataJPAModelException, ODataJPAConversionException {
 		final Map<JPAAssociationPath, JPAQueryEntityResult> children = jpaQueryResult.getExpandChildren();
 		if (children == null) {
 			return Collections.emptyList();
@@ -246,8 +246,8 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 				continue;
 			}
 			final JPATupleExpandResultConverter converter = new JPATupleExpandResultConverter(
-			        entry.getValue().getEntityType(), owningEntityRow, entry.getKey(), uriHelper,
-			        getIntermediateServiceDocument(), getServiceMetadata());
+					entry.getValue().getEntityType(), owningEntityRow, entry.getKey(), uriHelper,
+					getIntermediateServiceDocument(), getServiceMetadata());
 			final Link expand = converter.convertTuples2ExpandLink(entry.getValue());
 			// TODO Check how to convert Organizations('3')/AdministrativeInformation?$expand=Created/User
 			entityExpandLinks.add(expand);
@@ -268,10 +268,10 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 	 *            0..n (must be a valid index!)
 	 */
 	protected final Property convertJPAValue2ODataAttribute(final Object value, final String externalName,
-	        final String prefix,
-	        final JPAStructuredType jpaStructuredType, final Map<String, Object> complexValueBuffer,
-	        final int complexValueIndex,
-	        final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException {
+			final String prefix,
+			final JPAStructuredType jpaStructuredType, final Map<String, Object> complexValueBuffer,
+			final int complexValueIndex,
+			final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException {
 
 		final JPASelector path = jpaStructuredType.getPath(externalName);
 		if (path == null) {
@@ -280,8 +280,8 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 		if (JPAAssociationPath.class.isInstance(path)) {
 			if (log.isLoggable(Level.FINEST)) {
 				log.log(Level.FINEST, "Ignore property value targeting a relationship ("
-				        + jpaStructuredType.getExternalName() + "#" + externalName
-				        + ")... this happens for key column joins to select id's for target entities in a $expand scenario without columns mapped as attribute where we have to select the key columns to map the source entity to matching target (expanded) entities. Maybe this is no error...");
+						+ jpaStructuredType.getExternalName() + "#" + externalName
+						+ ")... this happens for key column joins to select id's for target entities in a $expand scenario without columns mapped as attribute where we have to select the key columns to map the source entity to matching target (expanded) entities. Maybe this is no error...");
 			}
 			return null;
 		}
@@ -291,7 +291,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 			return null;
 		}
 		if (attribute != null && !attribute.isKey()
-		        && attribute.getAttributeMapping() == AttributeMapping.AS_COMPLEX_TYPE) {
+				&& attribute.getAttributeMapping() == AttributeMapping.AS_COMPLEX_TYPE) {
 			// complex type should never be a 'key'... todo: check that anytime!
 			String bufferKey;
 			if (prefix == null || prefix.isEmpty()) {
@@ -308,8 +308,8 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 					listOfComplexValues = new LinkedList<>();
 					complexValueBuffer.put(bufferKey, listOfComplexValues);
 					complexTypeProperty = new Property(
-					        attribute.getStructuredType().getExternalFQN().getFullQualifiedNameAsString(),
-					        attribute.getExternalName(), ValueType.COLLECTION_COMPLEX, listOfComplexValues);
+							attribute.getStructuredType().getExternalFQN().getFullQualifiedNameAsString(),
+							attribute.getExternalName(), ValueType.COLLECTION_COMPLEX, listOfComplexValues);
 				}
 				if (listOfComplexValues.size() < complexValueIndex + 1) {
 					final ComplexValue complexValue = new ComplexValue();
@@ -326,8 +326,8 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 					complexValue = new ComplexValue();
 					complexValueBuffer.put(bufferKey, complexValue);
 					complexTypeProperty = new Property(
-					        attribute.getStructuredType().getExternalFQN().getFullQualifiedNameAsString(),
-					        attribute.getExternalName(), ValueType.COMPLEX, complexValue);
+							attribute.getStructuredType().getExternalFQN().getFullQualifiedNameAsString(),
+							attribute.getExternalName(), ValueType.COMPLEX, complexValue);
 				}
 				values = complexValue.getValue();
 			}
@@ -337,13 +337,13 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 			final int splitIndex = attribute.getExternalName().length() + JPASelector.PATH_SEPERATOR.length();
 			final String attributeName = externalName.substring(splitIndex);
 			final Property complexTypeNestedProperty = convertJPAValue2ODataAttribute(value, attributeName, bufferKey,
-			        attribute.getStructuredType(), complexValueBuffer, complexValueIndex, values);
+					attribute.getStructuredType(), complexValueBuffer, complexValueIndex, values);
 			return complexTypeNestedProperty;
 		} else if (attribute != null && attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
 			// leaf element is the property in the @EmbeddedId type
 			final JPASimpleAttribute attributeComplexProperty = (JPASimpleAttribute) path.getLeaf();
 			return convertJPA2ODataProperty(attributeComplexProperty, attributeComplexProperty.getExternalName(), value,
-			        properties);
+					properties);
 		} else {
 			// ...$select=Name1,Address/Region
 			return convertJPA2ODataProperty((JPASimpleAttribute) attribute, externalName, value, properties);
