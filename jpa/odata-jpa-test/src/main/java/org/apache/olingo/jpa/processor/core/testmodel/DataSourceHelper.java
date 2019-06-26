@@ -41,6 +41,12 @@ public class DataSourceHelper {
 	 */
 	public static void forceFreshCreatedDatabase() {
 		dbCounter++;
+		try {
+			// force short delay for some sensible runtime environments
+			Thread.sleep(100);
+		} catch (final InterruptedException e) {
+			// ignore
+		}
 	}
 
 	private static String build_H2_Url() {

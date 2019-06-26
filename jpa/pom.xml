@@ -41,6 +41,7 @@
 		<profile>
 			<id>use-eclipselink</id>
 			<activation>
+				<activeByDefault>true</activeByDefault>
 				<property><name>use-eclipselink</name></property>
 			</activation>
 			<dependencies>
@@ -82,7 +83,6 @@
 		<profile>
 			<id>use-hibernate</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
 				<property><name>use-hibernate</name></property>
 			</activation>
 			<dependencies>
