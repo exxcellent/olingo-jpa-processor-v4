@@ -186,102 +186,102 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 			break;
 		}
 
-		if (edmNaviProperty == null) {
-			try {
-				initStateEdm = InitializationState.InProgress;
-
-				targetType = serviceDocument.getStructuredType(jpaAttribute);
-				if (targetType == null) {
-					LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
-							+ getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
-					setIgnore(true);
-				}
-
-				String mappedBy = null;
-				edmNaviProperty = new CsdlNavigationProperty();
-				edmNaviProperty.setName(getExternalName());
-				if (targetType != null) {
-					edmNaviProperty.setType(nameBuilder.buildFQN(targetType.getExternalName()));
-				}
-				edmNaviProperty.setCollection(jpaAttribute.isCollection());
-
-				final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
-
-				switch (jpaAttribute.getPersistentAttributeType()) {
-				case ONE_TO_MANY:
-					final OneToMany o2m = annotatedElement.getAnnotation(OneToMany.class);
-					if (o2m != null) {
-						mappedBy = o2m.mappedBy();
-						edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(o2m.cascade()));
-					}
-					break;
-				case ONE_TO_ONE:
-					final OneToOne oto = annotatedElement.getAnnotation(OneToOne.class);
-					edmNaviProperty.setNullable(Boolean.valueOf(oto.optional()));
-					mappedBy = oto.mappedBy();
-					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(oto.cascade()));
-					break;
-				case MANY_TO_ONE:
-					final ManyToOne mto = annotatedElement.getAnnotation(ManyToOne.class);
-					edmNaviProperty.setNullable(Boolean.valueOf(mto.optional()));
-					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(mto.cascade()));
-					break;
-				case MANY_TO_MANY:
-					final ManyToMany m2m = annotatedElement.getAnnotation(ManyToMany.class);
-					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(m2m.cascade()));
-					mappedBy = m2m.mappedBy();
-					break;
-				default:
-					break;
-				}
-
-				this.joinConfiguration = buildJoinConfiguration(jpaAttribute, mappedBy, sourceType, targetType);
-
-				// Determine referential constraint
-				assignReferentialConstraints();
-
-				// TODO determine ContainsTarget
-
-				if (sourceType instanceof IntermediateEntityType && targetType != null) {
-					// Partner Attribute must not be defined at Complex Types.
-					// JPA bi-directional associations are defined at both sides, e.g.
-					// at the BusinessPartner and at the Roles. JPA only defines the
-					// "mappedBy" at the Parent.
-					String partnerName = null;
-					if (mappedBy != null && !mappedBy.isEmpty()) {
-						final JPAAssociationAttribute association = targetType.getAssociation(mappedBy);
-						if (association != null) {
-							partnerName = association.getExternalName();
-						}
-					} else {
-						// no 'mappedBy'... try alternative ways
-						partnerName = targetType.determineCorrespondingMappedByImplementingAssociationName(sourceType,
-								getInternalName());
-					}
-					if (partnerName != null) {
-						edmNaviProperty.setPartner(partnerName);
-					} else {
-						final String relationshipLabel = sourceType.getInternalName().concat("#")
-								.concat(getInternalName());
-						LOG.log(Level.FINER,
-								"Couldn't determine association partner for " + relationshipLabel + " -> "
-										+ targetType.getExternalName() + " (mapped by: "
-										+ mappedBy + ")");
-					}
-				}
-
-				if (joinConfiguration.sourceJoinColumns.isEmpty()) {
-					final String relationshipLabel = sourceType.getInternalName().concat("#").concat(getInternalName());
-					LOG.log(Level.SEVERE, "Navigation property (" + relationshipLabel
-							+ ") without columns to join found, navigation to target entity is not possible!");
-					setIgnore(true);
-				}
-
-			} finally {
-				initStateEdm = InitializationState.Initialized;
-			}
+		if (edmNaviProperty != null) {
+			return;
 		}
+		try {
+			initStateEdm = InitializationState.InProgress;
 
+			targetType = serviceDocument.getStructuredType(jpaAttribute);
+			if (targetType == null) {
+				LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
+						+ getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
+				setIgnore(true);
+			}
+
+			String mappedBy = null;
+			edmNaviProperty = new CsdlNavigationProperty();
+			edmNaviProperty.setName(getExternalName());
+			if (targetType != null) {
+				edmNaviProperty.setType(nameBuilder.buildFQN(targetType.getExternalName()));
+			}
+			edmNaviProperty.setCollection(jpaAttribute.isCollection());
+
+			final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
+
+			switch (jpaAttribute.getPersistentAttributeType()) {
+			case ONE_TO_MANY:
+				final OneToMany o2m = annotatedElement.getAnnotation(OneToMany.class);
+				if (o2m != null) {
+					mappedBy = o2m.mappedBy();
+					edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(o2m.cascade()));
+				}
+				break;
+			case ONE_TO_ONE:
+				final OneToOne oto = annotatedElement.getAnnotation(OneToOne.class);
+				edmNaviProperty.setNullable(Boolean.valueOf(oto.optional()));
+				mappedBy = oto.mappedBy();
+				edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(oto.cascade()));
+				break;
+			case MANY_TO_ONE:
+				final ManyToOne mto = annotatedElement.getAnnotation(ManyToOne.class);
+				edmNaviProperty.setNullable(Boolean.valueOf(mto.optional()));
+				edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(mto.cascade()));
+				break;
+			case MANY_TO_MANY:
+				final ManyToMany m2m = annotatedElement.getAnnotation(ManyToMany.class);
+				edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(m2m.cascade()));
+				mappedBy = m2m.mappedBy();
+				break;
+			default:
+				break;
+			}
+
+			this.joinConfiguration = buildJoinConfiguration(jpaAttribute, mappedBy, sourceType, targetType);
+
+			// Determine referential constraint
+			assignReferentialConstraints();
+
+			// TODO determine ContainsTarget
+
+			if (sourceType instanceof IntermediateEntityType && targetType != null) {
+				// Partner Attribute must not be defined at Complex Types.
+				// JPA bi-directional associations are defined at both sides, e.g.
+				// at the BusinessPartner and at the Roles. JPA only defines the
+				// "mappedBy" at the Parent.
+				String partnerName = null;
+				if (isNonEmptyString(mappedBy)) {
+					final JPAAssociationAttribute association = targetType.getAssociationByAttributeName(mappedBy);
+					if (association != null) {
+						partnerName = association.getExternalName();
+					}
+				} else {
+					// no 'mappedBy'... try alternative ways
+					partnerName = targetType.determineCorrespondingMappedByImplementingAssociationName(sourceType,
+							getInternalName());
+				}
+				if (partnerName != null) {
+					edmNaviProperty.setPartner(partnerName);
+				} else {
+					final String relationshipLabel = sourceType.getInternalName().concat("#")
+							.concat(getInternalName());
+					LOG.log(Level.FINER,
+							"Couldn't determine association partner for " + relationshipLabel + " -> "
+									+ targetType.getExternalName() + " (mapped by: "
+									+ mappedBy + ")");
+				}
+			}
+
+			if (joinConfiguration.sourceJoinColumns.isEmpty()) {
+				final String relationshipLabel = sourceType.getInternalName().concat("#").concat(getInternalName());
+				LOG.log(Level.SEVERE, "Navigation property (" + relationshipLabel
+						+ ") without columns to join found, navigation to target entity is not possible!");
+				setIgnore(true);
+			}
+
+		} finally {
+			initStateEdm = InitializationState.Initialized;
+		}
 	}
 
 	private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> sourceJpaAttribute,
@@ -295,17 +295,29 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 		final JoinColumns annoJoinColumns = annotatedElement.getAnnotation(JoinColumns.class);
 		final JoinColumn annoJoinColumn = annotatedElement.getAnnotation(JoinColumn.class);
 		if (annoJoinTable != null) {
+			if (isNonEmptyString(mappedBy)) {
+				LOG.log(Level.WARNING,
+						"Association with 'mappedBy' and @JoinTable declaration at same time found... @JoinTable wins!");
+			}
 			joinConfiguration.useJoinTable = true;
 			handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinTable.joinColumns(),
 					relationshipLabel);
 			handleTargetJoinColumnAnnotations(joinConfiguration, annoJoinTable.inverseJoinColumns(), relationshipLabel);
 		} else if (annoJoinColumns != null) {
+			if (isNonEmptyString(mappedBy)) {
+				LOG.log(Level.WARNING,
+						"Association with 'mappedBy' and @JoinColumns declaration at same time found... @JoinColumns wins!");
+			}
 			handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinColumns.value(),
 					relationshipLabel);
 		} else if (annoJoinColumn != null) {
+			if (isNonEmptyString(mappedBy)) {
+				LOG.log(Level.WARNING,
+						"Association with 'mappedBy' and @JoinColumn declaration at same time found... @JoinColumn wins!");
+			}
 			handleSourceJoinColumnAnnotations(joinConfiguration, new JoinColumn[] { annoJoinColumn },
 					relationshipLabel);
-		} else if (mappedBy != null && !mappedBy.isEmpty() && targetType != null) {
+		} else if (isNonEmptyString(mappedBy) && targetType != null) {
 			// find the join columns on opposite side and fill up with informations on our
 			// (source) side
 			final Attribute<?, ?> targetJpaAttribute = targetType.findJPARelationshipAttribute(mappedBy);
@@ -320,6 +332,13 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 			joinConfiguration.sourceJoinColumns.addAll(intermediateColumns);
 		}
 		return joinConfiguration;
+	}
+
+	private static boolean isNonEmptyString(final String string) {
+		if (string == null) {
+			return false;
+		}
+		return !string.isEmpty();
 	}
 
 	private static void handleJoinColumnsMappedByOfTarget(final JoinConfiguration joinConfiguration,

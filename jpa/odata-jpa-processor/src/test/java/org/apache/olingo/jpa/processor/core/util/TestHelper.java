@@ -14,6 +14,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -59,9 +60,10 @@ public class TestHelper {
 		return jpaEntity.getAssociationPath(attributeExtName);
 	}
 
-	public JPAAttribute getJPAAssociation(final String entitySetName, final String attributeIntName) throws ODataJPAModelException {
+	public JPAAssociationAttribute getJPAAssociation(final String entitySetName, final String attributeIntName)
+			throws ODataJPAModelException {
 		final JPAEntityType jpaEntity = sd.getEntitySetType(entitySetName);
-		for (final JPAAttribute attribute : jpaEntity.getAssociations()) {
+		for (final JPAAssociationAttribute attribute : jpaEntity.getAssociations()) {
 			if (attribute.getInternalName().equals(attributeIntName)) {
 				return attribute;
 			}
@@ -69,7 +71,8 @@ public class TestHelper {
 		return null;
 	}
 
-	public JPAAttribute getJPAAttribute(final String entitySetName, final String attributeIntName) throws ODataJPAModelException {
+	public JPAAttribute<?> getJPAAttribute(final String entitySetName, final String attributeIntName)
+			throws ODataJPAModelException {
 		final JPAEntityType jpaEntity = sd.getEntitySetType(entitySetName);
 		return jpaEntity.getAttribute(attributeIntName);
 	}

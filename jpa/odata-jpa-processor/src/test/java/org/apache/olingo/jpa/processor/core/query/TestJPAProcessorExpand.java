@@ -3,6 +3,8 @@ package org.apache.olingo.jpa.processor.core.query;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -357,6 +359,33 @@ public class TestJPAProcessorExpand extends TestBase {
 		assertEquals(1, children.size());
 		final ObjectNode firstChild = (ObjectNode) children.get(0);
 		assertEquals("BE252", firstChild.get("DivisionCode").asText());
+	}
+
+	@Test
+	public void testExpandWithFilteredNavigation() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities?$top=3&$expand=Targets($filter=contains(Name, 'rel'))");
+
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode relSources = helper.getValues();
+		assertTrue(relSources.size() == 2);
+		assertTrue(((ArrayNode) relSources.get(0).get("Targets")).size() > 0);
+	}
+
+	@Test
+	public void testExpandWithNavigationFilter() throws IOException, ODataException {
+
+		// skip test with EclipseLink
+		assumeTrue("EclipseLink will produce an invalid query", getJPAProvider() != JPAProvider.EclipseLink);
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"RelationshipSourceEntities?$top=3&$expand=Targets&$filter=Targets/any(d:contains(d/Name, 'rel'))");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode relSources = helper.getValues();
+		assertTrue(relSources.size() == 2);
+		assertTrue(((ArrayNode) relSources.get(0).get("Targets")).size() > 0);
 	}
 
 	@Test

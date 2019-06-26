@@ -25,7 +25,7 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
 	        throws ODataApplicationException, ODataJPAModelException {
 		super(entitySet, context, uriInfo, em);
 		cq = getCriteriaBuilder().createQuery(Long.class);
-		root = cq.from(getJPAEntityType().getTypeClass());
+		root = cq.from(getQueryResultType().getTypeClass());
 	}
 
 	@Override

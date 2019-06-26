@@ -30,12 +30,19 @@ public class TestJPAQueryNavigation extends TestBase {
 
 	@Test
 	public void testNavigationOneHopNormal() throws IOException, ODataException {
-
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('99')/Image1");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-
 		final ObjectNode img = helper.getValue();
+		assertNotNull(img);
 		assertEquals(99, img.get("PID").asLong());
+	}
+
+	@Test
+	public void testNavigationOneToOneWithoutMappedAttribute() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"PersonImages('99')/PersonReferenceWithoutMappedAttribute");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		assertNotNull(helper.getValue());
 	}
 
 	@Test
@@ -45,17 +52,8 @@ public class TestJPAQueryNavigation extends TestBase {
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode img = helper.getValue();
-		assertEquals(99, img.get("PID").asLong());
-	}
-
-	@Test
-	public void testNavigationOneHopWithoutJoinColumnButMappedBy() throws IOException, ODataException {
-
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Persons('98')/Image3");
-		helper.execute(HttpStatusCode.OK.getStatusCode());
-
-		final ObjectNode img = helper.getValue();
-		assertEquals(99, img.get("PID").asLong());
+		assertNotNull(img);
+		assertEquals(97, img.get("PID").asLong());
 	}
 
 	@Test
@@ -64,7 +62,7 @@ public class TestJPAQueryNavigation extends TestBase {
 				getJPAProvider() != JPAProvider.Hibernate);
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('98')/Image3/PersonWithDefaultIdMapping");
+				"Persons('98')/Image2/PersonWithDefaultIdMapping");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode img = helper.getValue();
@@ -166,7 +164,7 @@ public class TestJPAQueryNavigation extends TestBase {
 	}
 
 	@Test
-	public void testNavigationSelfToManyTwoHops() throws IOException, ODataException {
+	public void testNavigationSelfToManyTwoHopsOrdered() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')/Children(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')/Children?$orderby=DivisionCode desc");
@@ -187,11 +185,46 @@ public class TestJPAQueryNavigation extends TestBase {
 	}
 
 	@Test
+	public void testNavigationSelfToManyOneHopsWithResult() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations('3')/Address/AdministrativeDivision/Parent");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ObjectNode ad = helper.getValue();
+		assertNotNull(ad);
+		assertEquals("3166-1", ad.get("CodeID").asText());
+	}
+
+	@Test
 	public void testNavigationSelfToManyOneHopsNoResult() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Address/AdministrativeDivision/Children");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertNotNull(helper.getValues());
+		final ArrayNode ads = helper.getValues();
+		assertNotNull(ads);
+		assertEquals(0, ads.size());
+	}
+
+	@Test
+	public void testNavigationSelfToManyTwoHops() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations('3')/Address/AdministrativeDivision");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ObjectNode ad = helper.getValue();
+		assertNotNull(ad);
+		assertEquals("3166-2", ad.get("CodeID").asText());
+	}
+
+	@Test
+	public void testNavigationThroughJoinTable() throws IOException, ODataException {
+
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"Organizations('2')/Locations");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+		final ArrayNode ads = helper.getValues();
+		assertNotNull(ads);
+		assertEquals(2, ads.size());
 	}
 }

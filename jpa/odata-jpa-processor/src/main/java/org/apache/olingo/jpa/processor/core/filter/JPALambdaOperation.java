@@ -7,7 +7,7 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
-import org.apache.olingo.jpa.processor.core.query.JPANavigationProptertyInfo;
+import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -32,25 +32,24 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 	}
 
 	@Override
-	protected Subquery<?> getExistsQuery() throws ODataApplicationException {
-		return getSubQuery(determineExpression());
+	protected Subquery<?> buildFilterSubQueries() throws ODataApplicationException {
+		return buildFilterSubQueries(determineExpression());
 	}
 
-	protected final Subquery<?> getSubQuery(final Expression expression) throws ODataApplicationException {
+	protected final Subquery<?> buildFilterSubQueries(final Expression expression) throws ODataApplicationException {
 		final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(uriResourceParts);
 		allUriResourceParts.addAll(member.getUriResourceParts());
 
 		// 1. Determine all relevant associations
-		final List<JPANavigationProptertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
+		final List<JPANavigationPropertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
 		JPAAbstractQuery<?> parent = root;
 		final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>(
 				naviPathList.size());
 
 		// 2. Create the queries and roots
 
-		// for (int i = 0; i < naviPathList.size(); i++) {
 		for (int i = naviPathList.size() - 1; i >= 0; i--) {
-			final JPANavigationProptertyInfo naviInfo = naviPathList.get(i);
+			final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
 			if (i == 0) {
 				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
 						.getAssociationPath(), expression));
@@ -68,7 +67,7 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 		return childQuery;
 	}
 
-	Expression determineExpression() {
+	protected Expression determineExpression() {
 		for (final UriResource uriResource : member.getUriResourceParts()) {
 			if (uriResource.getKind() == UriResourceKind.lambdaAny) {
 				return ((UriResourceLambdaAny) uriResource).getExpression();

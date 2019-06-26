@@ -19,8 +19,8 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
 abstract class JPAAbstractFilterProcessor {
-	final JPAEntityType jpaEntityType;
-	final VisitableExpression expression;
+	private final JPAEntityType jpaEntityType;
+	private final VisitableExpression expression;
 
 	public JPAAbstractFilterProcessor(final JPAEntityType jpaEntityType, final VisitableExpression expression) {
 		super();
@@ -36,6 +36,14 @@ abstract class JPAAbstractFilterProcessor {
 		} else {
 			this.expression = null;
 		}
+	}
+
+	public VisitableExpression getExpression() {
+		return expression;
+	}
+
+	public JPAEntityType getJpaEntityType() {
+		return jpaEntityType;
 	}
 
 	/**
@@ -55,8 +63,6 @@ abstract class JPAAbstractFilterProcessor {
 	protected abstract OData getOdata();
 
 	protected abstract EntityManager getEntityManager();
-
-	protected abstract JPAEntityType getJpaEntityType();
 
 	protected abstract JPAODataDatabaseProcessor getConverter();
 

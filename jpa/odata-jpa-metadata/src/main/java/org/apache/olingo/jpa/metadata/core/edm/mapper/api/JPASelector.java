@@ -8,7 +8,8 @@ public interface JPASelector extends Comparable<JPASelector> {
 	String getAlias();
 
 	/**
-	 * The last path element must be instance of {@link JPAAttribute}.
+	 * If there are more than 1 path elements, then the selector is navigating
+	 * through a complex type.
 	 */
 	List<JPAAttribute<?>> getPathElements();
 

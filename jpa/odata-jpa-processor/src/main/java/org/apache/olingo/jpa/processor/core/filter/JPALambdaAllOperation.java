@@ -18,13 +18,13 @@ public class JPALambdaAllOperation extends JPALambdaOperation {
 	}
 
 	public Subquery<?> getNotExistsQuery() throws ODataApplicationException {
-		return getSubQuery(new NotExpression(determineExpression()));
+		return buildFilterSubQueries(new NotExpression(determineExpression()));
 	}
 
 	@Override
 	public Expression<Boolean> get() throws ODataApplicationException {
 		final CriteriaBuilder cb = converter.getCriteriaBuilder();
-		return cb.and(cb.exists(getExistsQuery()), cb.not(cb.exists(getNotExistsQuery())));
+		return cb.and(cb.exists(buildFilterSubQueries()), cb.not(cb.exists(getNotExistsQuery())));
 	}
 
 	private class NotExpression implements Unary {

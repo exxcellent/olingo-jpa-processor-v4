@@ -8,7 +8,7 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAAbstractCriteriaQuery;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -42,11 +42,11 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	final OData odata;
 	final IntermediateServiceDocument sd;
 	final List<UriResource> uriResourceParts;
-	final JPAAbstractQuery<?> parent;
+	final JPAAbstractCriteriaQuery<?> parent;
 
 	public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
 			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
-			final UriInfoResource uriResource, final JPAAbstractQuery<?> parent) {
+			final UriInfoResource uriResource, final JPAAbstractCriteriaQuery<?> parent) {
 
 		super(jpaEntityType, uriResource);
 
@@ -66,11 +66,11 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	@SuppressWarnings("unchecked")
 	public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
 
-		if (expression == null) {
+		if (getExpression() == null) {
 			return null;
 		}
 		final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
-		final Expression<Boolean> finalExpression = (Expression<Boolean>) expression.accept(visitor).get();
+		final Expression<Boolean> finalExpression = (Expression<Boolean>) getExpression().accept(visitor).get();
 
 		return finalExpression;
 	}
@@ -78,11 +78,6 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	@Override
 	public JPAODataDatabaseProcessor getConverter() {
 		return converter;
-	}
-
-	@Override
-	public JPAEntityType getJpaEntityType() {
-		return jpaEntityType;
 	}
 
 	@Override
@@ -106,7 +101,7 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	}
 
 	@Override
-	public JPAAbstractQuery<?> getParent() {
+	public JPAAbstractCriteriaQuery<?> getParent() {
 		return parent;
 	}
 

@@ -33,10 +33,11 @@ public class TestCriteriaBuilder {
 
 	@BeforeClass
 	public static void setupClass() {
+		DataSourceHelper.forceFreshCreatedDatabase();
 		final Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(ENTITY_MANAGER_DATA_SOURCE, DataSourceHelper.createDataSource(
 				// doesn't work with HDBSQL
-				DataSourceHelper.DatabaseType.DERBY));
+				DataSourceHelper.DatabaseType.H2));
 		emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME, properties);
 	}
 

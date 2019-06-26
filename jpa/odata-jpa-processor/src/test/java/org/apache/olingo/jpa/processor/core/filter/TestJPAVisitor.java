@@ -28,10 +28,12 @@ import org.junit.Test;
 public class TestJPAVisitor {
 
 	private JPAAbstractFilterProcessor compiler;
+	@SuppressWarnings("rawtypes")
 	private JPAAbstractQuery query;
 	private JPAVisitor cut;
 	private AbstractJPADatabaseProcessor converter;
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() {
 		converter = new JPA_DefaultDatabaseProcessor();

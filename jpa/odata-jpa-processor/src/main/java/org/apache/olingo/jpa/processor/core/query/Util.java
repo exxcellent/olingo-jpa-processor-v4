@@ -241,10 +241,10 @@ public class Util {
 		return pathList;
 	}
 
-	public static List<JPANavigationProptertyInfo> determineAssoziations(final IntermediateServiceDocument sd,
+	public static List<JPANavigationPropertyInfo> determineAssoziations(final IntermediateServiceDocument sd,
 			final List<UriResource> resourceParts) throws ODataApplicationException {
 
-		final List<JPANavigationProptertyInfo> pathList = new ArrayList<JPANavigationProptertyInfo>();
+		final List<JPANavigationPropertyInfo> pathList = new ArrayList<JPANavigationPropertyInfo>();
 
 		StringBuffer associationName = null;
 		UriResourceNavigation navigation = null;
@@ -261,7 +261,7 @@ public class Util {
 					}
 					if (resourceParts.get(i) instanceof UriResourceNavigation
 							|| resourceParts.get(i) instanceof UriResourceEntitySet) {
-						pathList.add(new JPANavigationProptertyInfo((UriResourcePartTyped) resourceParts.get(i),
+						pathList.add(new JPANavigationPropertyInfo((UriResourcePartTyped) resourceParts.get(i),
 								determineAssoziationPath(sd, ((UriResourcePartTyped) resourceParts.get(i)), associationName)));
 						if (resourceParts.get(i) instanceof UriResourceNavigation) {
 							navigation = (UriResourceNavigation) resourceParts.get(i);

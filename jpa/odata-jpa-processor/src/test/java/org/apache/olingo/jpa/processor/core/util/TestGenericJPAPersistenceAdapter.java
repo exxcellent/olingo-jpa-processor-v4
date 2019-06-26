@@ -5,6 +5,7 @@ import javax.persistence.EntityManagerFactory;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_H2DatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.test.AbstractTest;
@@ -29,7 +30,7 @@ public class TestGenericJPAPersistenceAdapter extends ResourceLocalPersistenceAd
 		case HSQLDB:
 			return new JPA_HSQLDBDatabaseProcessor();
 		case H2:
-			// fall trough
+			return new JPA_H2DatabaseProcessor();
 		default:
 			return new JPA_DefaultDatabaseProcessor();
 		}

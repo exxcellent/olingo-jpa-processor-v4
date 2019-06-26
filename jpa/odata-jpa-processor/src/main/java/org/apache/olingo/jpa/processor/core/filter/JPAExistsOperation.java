@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -11,7 +12,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
-import org.apache.olingo.jpa.processor.core.query.JPANavigationProptertyInfo;
+import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -41,11 +42,12 @@ abstract class JPAExistsOperation implements JPAExpression<Expression<Boolean>> 
 	}
 
 	public static boolean hasNavigation(final List<UriResource> uriResourceParts) {
-		if (uriResourceParts != null) {
-			for (int i = uriResourceParts.size() - 1; i >= 0; i--) {
-				if (uriResourceParts.get(i) instanceof UriResourceNavigation) {
-					return true;
-				}
+		if (uriResourceParts == null) {
+			return false;
+		}
+		for (final UriResource resourcePart : uriResourceParts) {
+			if (resourcePart instanceof UriResourceNavigation) {
+				return true;
 			}
 		}
 		return false;
@@ -53,39 +55,42 @@ abstract class JPAExistsOperation implements JPAExpression<Expression<Boolean>> 
 
 	@Override
 	public Expression<Boolean> get() throws ODataApplicationException {
-		return converter.getCriteriaBuilder().exists(getExistsQuery());
+		return converter.getCriteriaBuilder().exists(buildFilterSubQueries());
 	}
 
-	abstract Subquery<?> getExistsQuery() throws ODataApplicationException;
+	abstract Subquery<?> buildFilterSubQueries() throws ODataApplicationException;
 
-	protected List<JPANavigationProptertyInfo> determineAssoziations(final IntermediateServiceDocument sd,
+	protected List<JPANavigationPropertyInfo> determineAssoziations(final IntermediateServiceDocument sd,
 			final List<UriResource> resourceParts) throws ODataApplicationException {
-		final List<JPANavigationProptertyInfo> pathList = new ArrayList<JPANavigationProptertyInfo>();
+		if (!hasNavigation(resourceParts)) {
+			return Collections.emptyList();
+		}
+		final List<JPANavigationPropertyInfo> pathList = new LinkedList<JPANavigationPropertyInfo>();
 
 		StringBuffer associationName = null;
 		UriResourceNavigation navigation = null;
-		if (resourceParts != null && hasNavigation(resourceParts)) {
-			// for (int i = 0; i < resourceParts.size(); i++) {
-			for (int i = resourceParts.size() - 1; i >= 0; i--) {
-				final UriResource resourcePart = resourceParts.get(i);
-				if (resourcePart instanceof UriResourceNavigation) {
-					if (navigation != null) {
-						pathList.add(new JPANavigationProptertyInfo(navigation,
-								Util.determineAssoziationPath(sd, ((UriResourcePartTyped) resourceParts.get(i)), associationName)));
-					}
-					navigation = (UriResourceNavigation) resourceParts.get(i);
+		// for (int i = 0; i < resourceParts.size(); i++) {
+		for (int i = resourceParts.size() - 1; i >= 0; i--) {
+			final UriResource resourcePart = resourceParts.get(i);
+			if (resourcePart instanceof UriResourceNavigation) {
+				if (navigation != null) {
+					pathList.add(new JPANavigationPropertyInfo(navigation,
+							Util.determineAssoziationPath(sd, ((UriResourcePartTyped) resourceParts.get(i)), associationName)));
+				} else {
+					navigation = (UriResourceNavigation) resourcePart;
 					associationName = new StringBuffer();
 					associationName.insert(0, navigation.getProperty().getName());
 				}
-				if (navigation != null) {
-					if (resourceParts.get(i) instanceof UriResourceComplexProperty) {
-						associationName.insert(0, JPASelector.PATH_SEPERATOR);
-						associationName.insert(0, ((UriResourceComplexProperty) resourceParts.get(i)).getProperty().getName());
-					}
-					if (resourcePart instanceof UriResourceEntitySet) {
-						pathList.add(new JPANavigationProptertyInfo(navigation,
-								Util.determineAssoziationPath(sd, ((UriResourcePartTyped) resourceParts.get(i)), associationName)));
-					}
+			}
+			if (navigation != null) {
+				if (resourcePart instanceof UriResourceComplexProperty) {
+					associationName.insert(0, JPASelector.PATH_SEPERATOR);
+					associationName.insert(0, ((UriResourceComplexProperty) resourcePart).getProperty().getName());
+				}
+				if (resourcePart instanceof UriResourceEntitySet) {
+					pathList.add(new JPANavigationPropertyInfo(navigation,
+							Util.determineAssoziationPath(sd, ((UriResourcePartTyped) resourcePart),
+									associationName)));
 				}
 			}
 		}

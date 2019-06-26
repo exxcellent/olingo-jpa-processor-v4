@@ -290,7 +290,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			// we do not expand the entities
 			final EntityCollection entityCollection = query.execute(false);
 
-			final JPAEntityType jpaType = query.getJPAEntityType();
+			final JPAEntityType jpaType = query.getQueryResultType();
 			if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
 				try {
 					final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),

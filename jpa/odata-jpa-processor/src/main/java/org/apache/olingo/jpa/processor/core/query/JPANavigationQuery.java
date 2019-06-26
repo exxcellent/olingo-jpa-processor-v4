@@ -1,16 +1,14 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import java.util.List;
-
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -40,34 +38,24 @@ public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	protected <T> void createSelectClause(final Subquery<T> subQuery) throws ODataJPAModelException {
-		// we select from left side of association, because is the 'subRoot'
-		final List<JPASelector> conditionItems = getAssociation().getLeftPaths();
-		if (conditionItems.isEmpty()) {
-			throw new IllegalStateException("join conditions required");
-		}
-		for (final JPASelector leftSelector : conditionItems) {
-			Path<?> p = getRoot();
-			for (final JPAAttribute<?> jpaPathElement : leftSelector.getPathElements()) {
-				p = p.get(jpaPathElement.getInternalName());
-			}
-			// TODO loop useless, because only the latest 'select' come into effect?
-			subQuery.select((Expression<T>) p);
-		}
-	}
+	protected Expression<Boolean> createSubqueryWhereByAssociation()
+			throws ODataApplicationException, ODataJPAModelException {
+		final CriteriaBuilder cb = getCriteriaBuilder();
 
-	@Override
-	protected List<JPASelector> determineSourceSelectors() throws ODataJPAModelException {
-		// 'subRoot' is the source of navigation; the left side
-		return getAssociation().getLeftPaths();
-	}
+		final JPAAssociationPath association = getAssociation();
+		final Root<?> parentFrom = getParentQuery().getRoot();
+		final Root<?> subRoot = getRoot();
 
-	@Override
-	protected List<JPASelector> determineTargetSelectors() throws ODataJPAModelException {
-		// 'parentFrom' represents the target of navigation (association), means: the
-		// right side
-		return getAssociation().getRightPaths();
+		From<?, ?> subFrom = subRoot;
+		for (final JPAAttribute<?> a : association.getPathElements()) {
+			subFrom = subFrom.join(a.getInternalName());
+		}
+
+		// the last path element is the relationship of same type as the parent query
+		// root and we have to join our subselect with that
+		/* final From<?, ?> correlatedRoot = */ getQuery().correlate(subRoot);
+		return cb.equal(parentFrom, subFrom);
+
 	}
 
 }
