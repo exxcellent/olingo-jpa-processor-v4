@@ -6,8 +6,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
@@ -19,16 +19,16 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
 abstract class JPAAbstractFilterProcessor {
-	private final JPAEntityType jpaEntityType;
+	private final JPAStructuredType jpaEntityType;
 	private final VisitableExpression expression;
 
-	public JPAAbstractFilterProcessor(final JPAEntityType jpaEntityType, final VisitableExpression expression) {
+	public JPAAbstractFilterProcessor(final JPAStructuredType jpaEntityType, final VisitableExpression expression) {
 		super();
 		this.jpaEntityType = jpaEntityType;
 		this.expression = expression;
 	}
 
-	public JPAAbstractFilterProcessor(final JPAEntityType jpaEntityType, final UriInfoResource uriResource) {
+	public JPAAbstractFilterProcessor(final JPAStructuredType jpaEntityType, final UriInfoResource uriResource) {
 		super();
 		this.jpaEntityType = jpaEntityType;
 		if (uriResource != null && uriResource.getFilterOption() != null) {
@@ -42,7 +42,7 @@ abstract class JPAAbstractFilterProcessor {
 		return expression;
 	}
 
-	public JPAEntityType getJpaEntityType() {
+	public final JPAStructuredType getJpaEntityType() {
 		return jpaEntityType;
 	}
 
@@ -54,7 +54,7 @@ abstract class JPAAbstractFilterProcessor {
 	 */
 	public abstract Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException;
 
-	protected abstract JPAAbstractQuery<?> getParent();
+	protected abstract JPAAbstractQuery<?, ?> getParent();
 
 	protected abstract List<UriResource> getUriResourceParts();
 

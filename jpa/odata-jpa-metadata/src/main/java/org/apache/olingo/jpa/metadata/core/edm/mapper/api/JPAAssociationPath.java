@@ -4,7 +4,11 @@ import java.util.List;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-public interface JPAAssociationPath extends JPASelector {
+/**
+ * Used for JPA relationships.
+ *
+ */
+public interface JPAAssociationPath extends JPANavigationPath {
 
 	/**
 	 *

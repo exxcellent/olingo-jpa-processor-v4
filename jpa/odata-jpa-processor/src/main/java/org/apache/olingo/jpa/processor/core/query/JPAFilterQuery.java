@@ -1,12 +1,13 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -15,6 +16,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -27,63 +29,65 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceKind;
+import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 import org.apache.olingo.server.api.uri.queryoption.expression.Binary;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
-public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
+public class JPAFilterQuery extends JPAAbstractRelationshipQuery<JPANavigationPath, Join<?, ?>> {
 
 	private final JPANavigationFilterProcessor filter;
+	private From<?, ?> correlatedRoot;// initialized by constructor calls
+	//	private final From<?, ?> subqueryFrom;
 
-	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery<?> parent, final EntityManager em,
-			final JPAAssociationPath association)
+	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd,
+			final UriResourcePartTyped navigationResource, final JPANavigationPath association,
+			final JPAAbstractQuery<?, ?> parent, final EntityManager em)
 					throws ODataApplicationException {
-		super(sd, uriResourceItem, parent, em, association);
+		super(sd, navigationResource, association, parent, em);
+		//		subqueryFrom = getQuery().from(association.getLeaf().getStructuredType().getTypeClass());
 		this.filter = null;
 	}
 
-	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery<?> parent, final EntityManager em,
-			final JPAAssociationPath association,
+	public JPAFilterQuery(final OData odata, final IntermediateServiceDocument sd,
+			final UriResourcePartTyped navigationResource, final JPANavigationPath association,
+			final JPAAbstractQuery<?, ?> parent, final EntityManager em,
 			final VisitableExpression expression) throws ODataApplicationException {
-		super(sd, uriResourceItem, parent, em, association);
-		this.filter = new JPANavigationFilterProcessor(odata, sd, em, getQueryResultType(),
+		super(sd, navigationResource, association, parent, em);
+		//		subqueryFrom = getQuery().from(association.getLeaf().getStructuredType().getTypeClass());
+		// the target of the navigation is the type context for the filter processor
+		this.filter = new JPANavigationFilterProcessor(odata, sd, em,
+				association.getLeaf().getStructuredType() /* getQueryResultType() */,
 				getContext().getDatabaseProcessor(), null, this, expression);
 	}
 
-	private Expression<Boolean> createSubqueryWhereByAssociationPart()
-			throws ODataApplicationException, ODataJPAModelException {
-		final CriteriaBuilder cb = getCriteriaBuilder();
-
-		final JPAAssociationPath association = getAssociation();
-		final Root<?> parentFrom = getParentQuery().getRoot();
-		final Root<?> subRoot = getRoot();
-
-		// we have to start navigation from source (using the parent query root) to join
-		// association target (subquery root)
-		final Root<?> correlatedRoot = getQuery().correlate(parentFrom);
+	@Override
+	protected Join<?, ?> buildFrom() {
+		final From<?, ?> parentFrom = getParentQuery().getRoot();
+		//		From<?, ?> correlatedRoot;
+		if (parentFrom instanceof Root) {
+			correlatedRoot = getQuery().correlate((Root<?>) parentFrom);
+		} else {
+			// part of another subquery?!
+			correlatedRoot = getQuery().correlate((Join<?, ?>) parentFrom);
+		}
+		final JPASelector association = getSelector();
 		From<?, ?> subFrom = correlatedRoot;
 		for (final JPAAttribute<?> a : association.getPathElements()) {
 			subFrom = subFrom.join(a.getInternalName());
 		}
-
-		return cb.equal(subFrom, subRoot);
+		return (Join<?, ?>) subFrom;
 	}
 
 	@Override
 	protected Expression<Boolean> createSubqueryWhereByAssociation()
 			throws ODataApplicationException, ODataJPAModelException {
-		Expression<Boolean> whereCondition = createSubqueryWhereByAssociationPart();
+		Expression<Boolean> whereCondition = null;
 
 		if (filter != null && getAggregationType(this.filter.getExpression()) == null) {
 			try {
 				if (filter.getExpression() != null) {
-					if (whereCondition != null) {
-						whereCondition = getCriteriaBuilder().and(whereCondition, filter.compile());
-					} else {
-						whereCondition = filter.compile();
-					}
+					whereCondition = filter.compile();
 				}
 			} catch (final ExpressionVisitException e) {
 				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -94,18 +98,18 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 	}
 
 	@Override
-	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
+	protected List<Expression<?>> handleAggregation(final Subquery<?> subQuery, final Join<?, ?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException {
 
 		if (filter == null) {
-			return;
+			return Collections.emptyList();
 		}
 		if (getAggregationType(this.filter.getExpression()) == null) {
-			return;
+			return Collections.emptyList();
 		}
-		final List<Expression<?>> groupByLIst = new ArrayList<Expression<?>>();
-		// 'subRoot' is the source of navigation; the left side
-		final List<JPASelector> navigationSourceSelectors = getAssociation().getRightPaths();
+		final List<Expression<?>> groupByLIst = new LinkedList<>();
+		// FIXME
+		final List<JPASelector> navigationSourceSelectors = ((JPAAssociationPath) getSelector()).getRightPaths();
 		for (int index = 0; index < navigationSourceSelectors.size(); index++) {
 			Path<?> subPath = subRoot;
 			final JPASelector sourceSelector = navigationSourceSelectors.get(index);
@@ -115,11 +119,13 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery {
 			groupByLIst.add(subPath);
 		}
 		subQuery.groupBy(groupByLIst);
+
 		try {
 			subQuery.having(this.filter.compile());
 		} catch (final ExpressionVisitException e) {
 			throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
+		return groupByLIst;
 
 	}
 

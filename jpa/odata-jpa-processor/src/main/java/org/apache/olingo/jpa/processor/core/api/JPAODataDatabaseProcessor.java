@@ -6,7 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.From;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
@@ -53,7 +53,7 @@ public interface JPAODataDatabaseProcessor {
 	 *
 	 * @param cb
 	 * @param cq
-	 * @param root
+	 * @param from         The database table representing the entity to search in.
 	 * @param entityType
 	 * @param searchOption
 	 * @return
@@ -63,7 +63,7 @@ public interface JPAODataDatabaseProcessor {
 	 *             logic is outside.
 	 */
 	@Deprecated
-	Expression<Boolean> createSearchWhereClause(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<?> root,
+	Expression<Boolean> createSearchWhereClause(CriteriaBuilder cb, CriteriaQuery<?> cq, From<?, ?> from,
 			JPAEntityType entityType, SearchOption searchOption) throws ODataApplicationException;
 
 	List<?> executeFunctionQuery(UriResourceFunction uriResourceFunction, JPAFunction jpaFunction,

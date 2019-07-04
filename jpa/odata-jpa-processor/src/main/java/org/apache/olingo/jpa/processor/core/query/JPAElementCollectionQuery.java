@@ -25,7 +25,7 @@ import org.apache.olingo.jpa.processor.core.query.result.JPAQueryElementCollecti
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 
-class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<Tuple>> {
+class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<Tuple>, Tuple> {
 	private final CriteriaQuery<Tuple> cq;
 	private final Root<?> root;
 	@SuppressWarnings("unused")
@@ -33,10 +33,10 @@ class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<T
 	private final List<JPASelector> paths;
 
 	JPAElementCollectionQuery(final JPAEntityType jpaEntityType,
-	        final JPAAttribute<?> attribute, final List<JPASelector> paths,
-	        final JPAODataContext context,
-	        final UriInfoResource uriInfo, final EntityManager em)
-	        throws ODataApplicationException {
+			final JPAAttribute<?> attribute, final List<JPASelector> paths,
+			final JPAODataContext context,
+			final UriInfoResource uriInfo, final EntityManager em)
+					throws ODataApplicationException {
 		super(context, jpaEntityType, em, uriInfo);
 		cq = getCriteriaBuilder().createTupleQuery();
 		root = cq.from(jpaEntityType.getTypeClass());
@@ -86,13 +86,13 @@ class JPAElementCollectionQuery extends JPAAbstractCriteriaQuery<CriteriaQuery<T
 			return new JPAQueryElementCollectionResult(result, listKeyPaths);
 		} catch (final ODataJPAModelException e) {
 			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(),
-			        Locale.ENGLISH, e);
+					Locale.ENGLISH, e);
 		}
 	}
 
 	private Map<String, List<Tuple>> convertResult(final List<Tuple> intermediateResult,
-	        final List<JPASelector> listKeyPath)
-	        throws ODataApplicationException {
+			final List<JPASelector> listKeyPath)
+					throws ODataApplicationException {
 
 		List<Tuple> subResult;
 		String actualKey;

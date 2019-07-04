@@ -75,8 +75,8 @@ import org.apache.olingo.server.core.uri.queryoption.LevelsOptionImpl;
  *
  */
 public class JPAODataActionProcessor extends AbstractProcessor
-        implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionPrimitiveCollectionProcessor,
-        ActionEntityProcessor, ActionEntityCollectionProcessor {
+implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionPrimitiveCollectionProcessor,
+ActionEntityProcessor, ActionEntityCollectionProcessor {
 
 	private static class ActionCallResult {
 
@@ -103,21 +103,21 @@ public class JPAODataActionProcessor extends AbstractProcessor
 
 	@Override
 	public void processActionEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-	        final ContentType requestFormat, final ContentType responseFormat)
-	        throws ODataApplicationException, ODataLibraryException {
+			final ContentType requestFormat, final ContentType responseFormat)
+					throws ODataApplicationException, ODataLibraryException {
 		processActionEntityWithResult(request, response, uriInfo, requestFormat, responseFormat, false);
 	}
 
 	@Override
 	public void processActionEntityCollection(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-	        final ContentType requestFormat,
-	        final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+			final ContentType requestFormat,
+			final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 		processActionEntityWithResult(request, response, uriInfo, requestFormat, responseFormat, true);
 	}
 
 	private void processActionEntityWithResult(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-	        final ContentType requestFormat, final ContentType responseFormat, final boolean resultIsCollection)
-	        throws ODataApplicationException, ODataLibraryException {
+			final ContentType requestFormat, final ContentType responseFormat, final boolean resultIsCollection)
+					throws ODataApplicationException, ODataLibraryException {
 		final ActionCallResult acr = processActionsCall(request, uriInfo, requestFormat);
 		if (!resultIsCollection && acr.resultValues.isEmpty()) {
 			response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -139,28 +139,29 @@ public class JPAODataActionProcessor extends AbstractProcessor
 				expand.setIsStar(true);
 				expand.setSystemQueryOption(new LevelsOptionImpl().setMax());
 				((ExpandOptionImpl) resultExpand).addExpandItem(expand);
-			} else
+			} else {
 				resultExpand = uriInfo.getExpandOption();
+			}
 			final String selectList = uriHelper.buildContextURLSelectList(targetEdmEntitySet.getEntityType(),
-			        resultExpand, uriInfo.getSelectOption());
+					resultExpand, uriInfo.getSelectOption());
 			final ContextURL contextUrl = ContextURL.with().entitySet(targetEdmEntitySet).suffix(Suffix.ENTITY)
-			        .selectList(selectList).build();
+					.selectList(selectList).build();
 			final ODataSerializer serializer = odata.createSerializer(responseFormat);
 			final EdmEntityType type = (EdmEntityType) uriResourceAction.getAction().getReturnType().getType();
 
 			final SerializerResult serializerResult;
 			if (resultIsCollection) {
 				final EntityCollectionSerializerOptions options = EntityCollectionSerializerOptions.with().contextURL(contextUrl)
-				        .select(uriInfo.getSelectOption()).expand(resultExpand).build();
+						.select(uriInfo.getSelectOption()).expand(resultExpand).build();
 				serializerResult = serializer.entityCollection(getServiceMetadata(), type, entityCollection,
-				        options);
+						options);
 			} else if (entityCollection.getEntities().isEmpty()) {
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-				        HttpStatusCode.INTERNAL_SERVER_ERROR);
+						HttpStatusCode.INTERNAL_SERVER_ERROR);
 			} else {
 				// we have at least one entity
 				final EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl)
-				        .select(uriInfo.getSelectOption()).expand(resultExpand).build();
+						.select(uriInfo.getSelectOption()).expand(resultExpand).build();
 				serializerResult = serializer.entity(getServiceMetadata(), type, entityCollection.getEntities().get(0), options);
 			}
 
@@ -173,21 +174,21 @@ public class JPAODataActionProcessor extends AbstractProcessor
 
 	@Override
 	public void processActionPrimitive(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-	        final ContentType requestFormat, final ContentType responseFormat)
-	        throws ODataApplicationException, ODataLibraryException {
+			final ContentType requestFormat, final ContentType responseFormat)
+					throws ODataApplicationException, ODataLibraryException {
 		processActionPrimitiveWithResult(request, response, uriInfo, requestFormat, responseFormat, false);
 	}
 
 	@Override
 	public void processActionPrimitiveCollection(final ODataRequest request, final ODataResponse response,
-	        final UriInfo uriInfo, final ContentType requestFormat, final ContentType responseFormat)
-	        throws ODataApplicationException, ODataLibraryException {
+			final UriInfo uriInfo, final ContentType requestFormat, final ContentType responseFormat)
+					throws ODataApplicationException, ODataLibraryException {
 		processActionPrimitiveWithResult(request, response, uriInfo, requestFormat, responseFormat, true);
 	}
 
 	private void processActionPrimitiveWithResult(final ODataRequest request, final ODataResponse response,
-	        final UriInfo uriInfo, final ContentType requestFormat, final ContentType responseFormat,
-	        final boolean resultIsCollection) throws ODataApplicationException, ODataLibraryException {
+			final UriInfo uriInfo, final ContentType requestFormat, final ContentType responseFormat,
+			final boolean resultIsCollection) throws ODataApplicationException, ODataLibraryException {
 		final ActionCallResult acr = processActionsCall(request, uriInfo, requestFormat);
 		if (!resultIsCollection && acr.resultValues.isEmpty()) {
 			response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -218,7 +219,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 
 	@Override
 	public void processActionVoid(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-	        final ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
+			final ContentType requestFormat) throws ODataApplicationException, ODataLibraryException {
 		processActionsCall(request, uriInfo, requestFormat);
 		// ignore results, return type MUST be 'void'
 		response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -230,7 +231,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 	 *         called for the action and may have a result. So the result may be a list of collections.
 	 */
 	private ActionCallResult processActionsCall(final ODataRequest request, final UriInfo uriInfo, final ContentType requestFormat)
-	        throws ODataApplicationException, DeserializerException {
+			throws ODataApplicationException, DeserializerException {
 		final int handle = debugger.startRuntimeMeasurement("JPAODataActionProcessor", "processActionCall");
 
 		final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
@@ -241,7 +242,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 		final JPAAction jpaAction = sd.getAction(uriResourceAction.getAction());
 		if (jpaAction == null) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-			        HttpStatusCode.INTERNAL_SERVER_ERROR);
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 
 		// extract request parameters as arguments for action call
@@ -258,13 +259,13 @@ public class JPAODataActionProcessor extends AbstractProcessor
 					is = new BufferedInputStream(is, bufferSize);
 					is.mark(bufferSize - 1);
 					final String bodyContent = new BufferedReader(new InputStreamReader(is)).lines().parallel()
-					        .collect(Collectors.joining("\n"));
+							.collect(Collectors.joining("\n"));
 					log.log(Level.FINER, "Request body for action call: " + bodyContent);
 					is.reset();
 				}
 				final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
 				final DeserializerResult deserializerResult = deserializer.actionParameters(is,
-				        uriResourceAction.getAction());
+						uriResourceAction.getAction());
 				parameters = deserializerResult.getActionParameters();
 				log.log(Level.FINER, "Request parameters for action call: " + parameters);
 			} else {
@@ -272,7 +273,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			}
 		} catch (final IOException ex) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-			        HttpStatusCode.INTERNAL_SERVER_ERROR, ex);
+					HttpStatusCode.INTERNAL_SERVER_ERROR, ex);
 		}
 
 		final List<Object> results = new LinkedList<>();
@@ -285,20 +286,21 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			} catch (final ODataJPAModelException e) {
 				debugger.stopRuntimeMeasurement(handle);
 				throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-				        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+						HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 			}
 			// we do not expand the entities
 			final EntityCollection entityCollection = query.execute(false);
 
-			final JPAEntityType jpaType = query.getQueryResultType();
+			// TODO check cast
+			final JPAEntityType jpaType = (JPAEntityType) query.getQueryResultType();
 			if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
 				try {
 					final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-					        getOData().createUriHelper(), context.getDependencyInjector());
+							getOData().createUriHelper(), context.getDependencyInjector());
 					for (final Entity entity : entityCollection.getEntities()) {
 						// call action in context of entity
 						final Object resultAction = invoker.invokeBoundActionMethod(jpaType, entity, jpaAction,
-						        parameters);
+								parameters);
 						if (resultAction != null) {
 							results.add(resultAction);
 						}
@@ -310,7 +312,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 		} else {
 			try {
 				final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-				        getOData().createUriHelper(), context.getDependencyInjector());
+						getOData().createUriHelper(), context.getDependencyInjector());
 				final Object resultAction = invoker.invokeUnboundActionMethod(jpaAction, parameters);
 				if (resultAction != null) {
 					results.add(resultAction);
@@ -334,10 +336,10 @@ public class JPAODataActionProcessor extends AbstractProcessor
 	 */
 	@SuppressWarnings("unchecked")
 	private EntityCollection convert2Entities(final boolean resultContainsCollections, final ActionCallResult acr)
-	        throws ODataApplicationException {
+			throws ODataApplicationException {
 		if (!resultContainsCollections && acr.resultValues.size() != 1) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-			        HttpStatusCode.INTERNAL_SERVER_ERROR);
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 
 		final EntityCollection odataEntityCollection = new EntityCollection();
@@ -346,15 +348,16 @@ public class JPAODataActionProcessor extends AbstractProcessor
 		try {
 			// the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
 			final EntityConverter entityConverter = new EntityConverter(acr.resultType, uriHelper, sd,
-			        getServiceMetadata());
+					getServiceMetadata());
 
 			Collection<Object> jpaEntities;
 			for (final Object resultEntry : acr.resultValues) {
 				// build a temporary list, also for single result entities
-				if (resultContainsCollections)
+				if (resultContainsCollections) {
 					jpaEntities = (Collection<Object>) resultEntry;
-				else
+				} else {
 					jpaEntities = Collections.singletonList(resultEntry);
+				}
 				for (final Object japEntity : jpaEntities) {
 					final Entity entity = entityConverter.convertJPA2ODataEntity(japEntity);
 					odataEntityCollection.getEntities().add(entity);
@@ -362,7 +365,7 @@ public class JPAODataActionProcessor extends AbstractProcessor
 			}
 		} catch (final ODataJPAModelException e) {
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+					HttpStatusCode.INTERNAL_SERVER_ERROR, e);
 		}
 		return odataEntityCollection;
 	}
@@ -372,12 +375,12 @@ public class JPAODataActionProcessor extends AbstractProcessor
 	 * into a single OData property
 	 */
 	private Property convert2Primitive(final EdmPrimitiveType type, final boolean resultContainsCollections,
-	        final ActionCallResult acr)
-	        throws ODataJPAProcessorException {
+			final ActionCallResult acr)
+					throws ODataJPAProcessorException {
 		if (acr.resultValues.isEmpty()) {
 			// should never happen, because we have checked that before
 			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-			        HttpStatusCode.INTERNAL_SERVER_ERROR);
+					HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 		if (resultContainsCollections) {
 			// one or more actions with collections as result

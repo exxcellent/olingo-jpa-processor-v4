@@ -22,8 +22,8 @@ class JPATuple2EntityConverter extends JPATupleAbstractConverter {
 	private final static Logger LOG = Logger.getLogger(JPATuple2EntityConverter.class.getName());
 
 	public JPATuple2EntityConverter(final IntermediateServiceDocument sd, final JPAEntityType jpaTargetEntity,
-	        final UriHelper uriHelper, final ServiceMetadata serviceMetadata) throws ODataJPAModelException,
-	        ODataApplicationException {
+			final UriHelper uriHelper, final ServiceMetadata serviceMetadata) throws ODataJPAModelException,
+	ODataApplicationException {
 		super(jpaTargetEntity, uriHelper, sd, serviceMetadata);
 	}
 
@@ -31,7 +31,7 @@ class JPATuple2EntityConverter extends JPATupleAbstractConverter {
 	 * Converts the {@link JPAQueryEntityResult#ROOT_RESULT} part of the result map.
 	 */
 	public EntityCollection convertQueryResult(final JPAQueryEntityResult jpaQueryResult)
-	        throws ODataJPAModelException, ODataJPAConversionException {
+			throws ODataJPAModelException, ODataJPAConversionException {
 		final EntityCollection odataEntityCollection = new EntityCollection();
 
 		final JPAEntityType jpaEntityType = getJpaEntityType();
@@ -43,7 +43,7 @@ class JPATuple2EntityConverter extends JPATupleAbstractConverter {
 				}
 			} catch (final ODataJPAModelException e) {
 				LOG.log(Level.WARNING, "Couldn't set media stream on entity type " + jpaEntityType.getExternalName(),
-				        e);
+						e);
 			}
 			odataEntityCollection.getEntities().add(odataEntity);
 		}

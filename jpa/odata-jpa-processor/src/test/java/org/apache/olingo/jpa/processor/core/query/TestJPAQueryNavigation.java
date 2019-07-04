@@ -178,7 +178,6 @@ public class TestJPAQueryNavigation extends TestBase {
 
 	@Test
 	public void testNavigationSelfToOneThreeHopsNoResult() throws IOException, ODataException {
-
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Organizations('3')/Address/AdministrativeDivision/Parent/Parent");
 		helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());

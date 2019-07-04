@@ -15,14 +15,14 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 
-public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Long>> {
+public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Long>, Long> {
 
 	private final CriteriaQuery<Long> cq;
 	private final Root<?> root;
 
 	public JPAEntityCountQuery(final EdmEntitySet entitySet, final JPAODataContext context,
-	        final UriInfo uriInfo, final EntityManager em)
-	        throws ODataApplicationException, ODataJPAModelException {
+			final UriInfo uriInfo, final EntityManager em)
+					throws ODataApplicationException, ODataJPAModelException {
 		super(entitySet, context, uriInfo, em);
 		cq = getCriteriaBuilder().createQuery(Long.class);
 		root = cq.from(getQueryResultType().getTypeClass());
