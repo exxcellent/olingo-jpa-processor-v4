@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.From;
 
 import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
@@ -230,7 +230,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 		return jpaComplier.getSd();
 	}
 
-	Root<?> getRoot() {
+	From<?, ?> getRoot() {
 		return jpaComplier.getParent().getRoot();
 	}
 

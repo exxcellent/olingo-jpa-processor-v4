@@ -26,18 +26,18 @@ import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.queryoption.SkipOption;
 import org.apache.olingo.server.api.uri.queryoption.TopOption;
 
-public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
-        extends JPAAbstractCriteriaQuery<QueryType> {
+public abstract class JPAAbstractEntityQuery<QT extends CriteriaQuery<DT>, DT>
+		extends JPAAbstractCriteriaQuery<QT, DT> {
 
 	protected JPAAbstractEntityQuery(final EdmEntitySet entitySet, final JPAODataContext context, final UriInfoResource uriInfo,
-	        final EntityManager em)
-	        throws ODataApplicationException, ODataJPAModelException {
+			final EntityManager em)
+					throws ODataApplicationException, ODataJPAModelException {
 
 		super(context, entitySet, em, uriInfo);
 	}
 
 	protected JPAAbstractEntityQuery(final JPAODataContext context, final JPAEntityType jpaEntityType, final EntityManager em,
-	        final UriInfoResource uriResource) throws ODataApplicationException {
+			final UriInfoResource uriResource) throws ODataApplicationException {
 		super(context, jpaEntityType, em, uriResource);
 	}
 
@@ -66,7 +66,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			return Integer.valueOf(skipNumber);
 		} else {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-			        HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
+					HttpStatusCode.BAD_REQUEST, Integer.toString(skipNumber), "$skip");
 		}
 	}
 
@@ -81,7 +81,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			return Integer.valueOf(topNumber);
 		} else {
 			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
-			        HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
+					HttpStatusCode.BAD_REQUEST, Integer.toString(topNumber), "$top");
 		}
 	}
 
@@ -134,7 +134,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	 *         from the same attribute (first element in path list).
 	 */
 	protected final Map<JPAAttribute<?>, List<JPASelector>> separateElementCollectionPaths(
-	        final List<JPASelector> completeSelectorList) {
+			final List<JPASelector> completeSelectorList) {
 		final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = new HashMap<>();
 		List<JPASelector> elementCollectionList;
 		for (int i = completeSelectorList.size(); i > 0; i--) {
@@ -154,7 +154,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 	}
 
 	protected final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> readElementCollections(
-	        final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap) throws ODataApplicationException {
+			final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap) throws ODataApplicationException {
 		if (elementCollectionMap.isEmpty()) {
 			return Collections.emptyMap();
 		}
@@ -169,7 +169,7 @@ public abstract class JPAAbstractEntityQuery<QueryType extends CriteriaQuery<?>>
 			final JPAAttribute<?> attribute = entry.getKey();
 
 			final JPAElementCollectionQuery query = new JPAElementCollectionQuery(jpaEntityType, attribute,
-			        entry.getValue(), getContext(), getUriInfoResource(), getEntityManager());
+					entry.getValue(), getContext(), getUriInfoResource(), getEntityManager());
 			final JPAQueryElementCollectionResult result = query.execute();
 			allResults.put(attribute, result);
 		}

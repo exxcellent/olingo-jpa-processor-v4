@@ -62,9 +62,9 @@ class JPAExpandItemInfoFactory {
 
 		if (grandParentHops != null) {
 			parentHops.addAll(grandParentHops);
-			parentHops.addAll(Util.determineAssoziations(sd, startResourceList));
+			parentHops.addAll(Util.determineNavigations(sd, startResourceList));
 		} else {
-			parentHops = Util.determineAssoziations(sd, startResourceList);
+			parentHops = Util.determineNavigations(sd, startResourceList);
 		}
 		return parentHops;
 	}

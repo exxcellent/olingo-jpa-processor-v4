@@ -7,8 +7,8 @@ import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.jpa.processor.core.query.Util;
@@ -24,9 +24,9 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 class JPAMemberVisitor implements ExpressionVisitor<JPASelector> {
 	private final List<JPASelector> pathList = new LinkedList<JPASelector>();
-	private final JPAEntityType jpaEntityType;
+	private final JPAStructuredType jpaEntityType;
 
-	public JPAMemberVisitor(final JPAEntityType jpaEntityType) {
+	public JPAMemberVisitor(final JPAStructuredType jpaEntityType) {
 		super();
 		this.jpaEntityType = jpaEntityType;
 	}
@@ -38,21 +38,21 @@ class JPAMemberVisitor implements ExpressionVisitor<JPASelector> {
 	@Override
 	public JPASelector visitBinaryOperator(final BinaryOperatorKind operator, final JPASelector left,
 			final JPASelector right)
-			throws ExpressionVisitException, ODataApplicationException {
+					throws ExpressionVisitException, ODataApplicationException {
 		return null;
 	}
 
 	@Override
 	public JPAAttributePath visitUnaryOperator(final UnaryOperatorKind operator, final JPASelector operand)
 			throws ExpressionVisitException,
-	ODataApplicationException {
+			ODataApplicationException {
 		return null;
 	}
 
 	@Override
 	public JPASelector visitMethodCall(final MethodKind methodCall, final List<JPASelector> parameters)
 			throws ExpressionVisitException,
-	ODataApplicationException {
+			ODataApplicationException {
 		return null;
 	}
 

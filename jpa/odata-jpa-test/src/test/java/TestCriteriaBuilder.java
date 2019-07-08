@@ -47,6 +47,7 @@ public class TestCriteriaBuilder {
 		cb = em.getCriteriaBuilder();
 	}
 
+	@Ignore("For development test only")
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSubstringWithExperession() {
@@ -64,6 +65,7 @@ public class TestCriteriaBuilder {
 		tq.getResultList();
 	}
 
+	@Ignore("For development test only")
 	@Test
 	public void testSubSelect() {
 		// https://stackoverflow.com/questions/29719321/combining-conditional-expressions-with-and-and-or-predicates-using-the-jpa-c
@@ -93,6 +95,7 @@ public class TestCriteriaBuilder {
 		tq.getResultList();
 	}
 
+	@Ignore("For development test only")
 	@Test
 	public void TestExpandSimilarCount() {
 		final CriteriaQuery<Tuple> count = cb.createTupleQuery();
@@ -107,6 +110,7 @@ public class TestCriteriaBuilder {
 		tq.getFirstResult();
 	}
 
+	@Ignore("For development test only")
 	@Test
 	public void TestAnd() {
 		final CriteriaQuery<Tuple> count = cb.createTupleQuery();
@@ -124,7 +128,7 @@ public class TestCriteriaBuilder {
 		tq.getFirstResult();
 	}
 
-	@Ignore
+	@Ignore("For development test only")
 	@Test
 	public void TestSearchNoSubquery() {
 		final CriteriaQuery<Tuple> cq = cb.createTupleQuery();

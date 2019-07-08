@@ -30,7 +30,7 @@ import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
 
-public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
+public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>, Tuple> {
 
 	private final ServiceMetadata serviceMetadata;
 	private final CriteriaQuery<Tuple> cq;
@@ -114,6 +114,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>>
 		// Convert tuple result into an OData Result
 		EntityCollection entityCollection;
 		try {
+			// TODO check cast
 			entityCollection = new JPATuple2EntityConverter(getContext().getEdmProvider().getServiceDocument(),
 					result.getEntityType(), getOData().createUriHelper(),
 					serviceMetadata)

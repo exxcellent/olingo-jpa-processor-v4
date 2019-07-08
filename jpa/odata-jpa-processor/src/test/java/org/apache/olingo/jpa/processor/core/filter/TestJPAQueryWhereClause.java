@@ -488,9 +488,6 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testNavigationFilter() throws IOException, ODataException {
-		// skip test with EclipseLink
-		assumeTrue("EclipseLink will produce an invalid query", getJPAProvider() != JPAProvider.EclipseLink);
-
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"RelationshipSourceEntities?$top=3&$filter=Targets/any(d:contains(d/Name, 'rel'))");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -498,6 +495,28 @@ public class TestJPAQueryWhereClause extends TestBase {
 		final ArrayNode relSources = helper.getValues();
 		assertTrue(relSources.size() == 2);
 		assertTrue(relSources.get(0).get("Targets") == null);
+	}
+
+	@Test
+	public void testNavigationFilterElementCollectionWithoutNestedElements() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"BusinessPartners?$select=ID,Country&$top=4&$filter=PhoneNumbers/any(d:d/InternationalAreaCode eq '+42')");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode relSources = helper.getValues();
+		assertTrue(relSources.size() == 1);
+	}
+
+	@Test
+	public void testNavigationFilterElementCollectionForCompleteBO() throws IOException, ODataException {
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+				"BusinessPartners?$top=4&$filter=PhoneNumbers/any(d:d/InternationalAreaCode eq '+42')");
+		helper.execute(HttpStatusCode.OK.getStatusCode());
+
+		final ArrayNode relSources = helper.getValues();
+		assertTrue(relSources.size() == 1);
+		assertTrue(relSources.get(0).withArray("PhoneNumbersAsString").size() == 2);
+		assertTrue(relSources.get(0).withArray("PhoneNumbers").size() == 2);
 	}
 
 	@Test
@@ -549,11 +568,11 @@ public class TestJPAQueryWhereClause extends TestBase {
 		// https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
 		// Example 43: return all Categories with less than 10 products
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations?$select=ID&$filter=Roles/$count eq 2");
+				"Organizations?$select=ID&$filter=Roles/$count eq 1");
 
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		final ArrayNode orgs = helper.getValues();
-		assertEquals(1, orgs.size());
+		assertEquals(2, orgs.size());
 	}
 
 	@Ignore("Currently no deeper navigation available ending with a collection")

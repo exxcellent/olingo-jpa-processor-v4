@@ -246,7 +246,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
 				continue;
 			}
 			final JPATupleExpandResultConverter converter = new JPATupleExpandResultConverter(
-					entry.getValue().getEntityType(), owningEntityRow, entry.getKey(), uriHelper,
+					(JPAEntityType) entry.getValue().getEntityType(), owningEntityRow, entry.getKey(), uriHelper,
 					getIntermediateServiceDocument(), getServiceMetadata());
 			final Link expand = converter.convertTuples2ExpandLink(entry.getValue());
 			// TODO Check how to convert Organizations('3')/AdministrativeInformation?$expand=Created/User

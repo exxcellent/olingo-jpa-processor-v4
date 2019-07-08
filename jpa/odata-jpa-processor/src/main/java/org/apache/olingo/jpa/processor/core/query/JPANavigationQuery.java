@@ -1,5 +1,8 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
@@ -9,32 +12,32 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriResource;
+import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 
 /**
  * Creates a sub query for a navigation.
  * @author Oliver Grande
  *
  */
-public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
+public class JPANavigationQuery extends JPAAbstractRelationshipQuery<JPAAssociationPath, Root<?>> {
 
-	public <T extends Object> JPANavigationQuery(final IntermediateServiceDocument sd, final UriResource uriResourceItem,
-			final JPAAbstractQuery<?> parent, final EntityManager em, final JPAAssociationPath association)
+	public <T extends Object> JPANavigationQuery(final IntermediateServiceDocument sd,
+			final UriResourcePartTyped navigationResource, final JPAAssociationPath association,
+			final JPAAbstractQuery<?, ?> parent, final EntityManager em)
 					throws ODataApplicationException {
 
-		super(sd, uriResourceItem, parent, em, association);
+		super(sd, navigationResource, association, parent, em);
 	}
 
-	/**
-	 * Maybe implemented by sub classes.
-	 */
 	@Override
-	protected void handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
+	protected List<Expression<?>> handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
 			throws ODataApplicationException, ODataJPAModelException {
 		// do nothing
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -42,8 +45,8 @@ public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 			throws ODataApplicationException, ODataJPAModelException {
 		final CriteriaBuilder cb = getCriteriaBuilder();
 
-		final JPAAssociationPath association = getAssociation();
-		final Root<?> parentFrom = getParentQuery().getRoot();
+		final JPASelector association = getSelector();
+		final From<?, ?> parentFrom = getParentQuery().getRoot();
 		final Root<?> subRoot = getRoot();
 
 		From<?, ?> subFrom = subRoot;

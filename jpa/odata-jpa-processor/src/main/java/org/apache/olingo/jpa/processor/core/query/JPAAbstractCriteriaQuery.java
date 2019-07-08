@@ -19,7 +19,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
@@ -49,7 +48,6 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceComplexProperty;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
-import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
@@ -58,7 +56,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
-public abstract class JPAAbstractCriteriaQuery<QueryType extends CriteriaQuery<?>> extends JPAAbstractQuery<QueryType> {
+public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT> extends JPAAbstractQuery<QT, RT> {
 
 	private final UriInfoResource uriResource;
 	private final JPAEntityFilterProcessor filter;
@@ -261,7 +259,7 @@ public abstract class JPAAbstractCriteriaQuery<QueryType extends CriteriaQuery<?
 	protected final Map<String, From<?, ?>> createFromClause(final List<JPAAssociationAttribute> orderByTarget)
 			throws ODataApplicationException {
 		final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
-		final Root<?> root = getRoot();
+		final From<?, ?> root = getRoot();
 		// 1. Create root
 		final JPAEntityType jpaEntityType = getQueryResultType();
 		joinTables.put(jpaEntityType.getInternalName(), root);
@@ -441,7 +439,7 @@ public abstract class JPAAbstractCriteriaQuery<QueryType extends CriteriaQuery<?
 		javax.persistence.criteria.Expression<Boolean> whereCondition = null;
 
 		final List<UriResource> resources = uriResource.getUriResourceParts();
-		final Root<?> root = getRoot();
+		final From<?, ?> root = getRoot();
 		UriResource resourceItem = null;
 		// Given key: Organizations('1')
 		if (resources != null) {
@@ -497,23 +495,6 @@ public abstract class JPAAbstractCriteriaQuery<QueryType extends CriteriaQuery<?
 		return whereCondition;
 	}
 
-	protected final JPAAssociationPath determineAssoziation(final UriResourcePartTyped naviStart,
-			final StringBuffer associationName)
-					throws ODataApplicationException {
-
-		JPAEntityType naviStartType;
-		try {
-			if (naviStart instanceof UriResourceEntitySet) {
-				naviStartType = sd.getEntityType(((UriResourceEntitySet) naviStart).getType());
-			} else {
-				naviStartType = sd.getEntityType(((UriResourceNavigation) naviStart).getProperty().getType());
-			}
-			return naviStartType.getAssociationPath(associationName.toString());
-		} catch (final ODataJPAModelException e) {
-			throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-		}
-	}
-
 	protected final Path<?> convertToCriteriaPath(final JPASelector jpaPath) {
 		if (JPAAssociationPath.class.isInstance(jpaPath)) {
 			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
@@ -556,17 +537,6 @@ public abstract class JPAAbstractCriteriaQuery<QueryType extends CriteriaQuery<?
 		return null;
 	}
 
-	final boolean hasNavigation(final List<UriResource> uriResourceParts) {
-		if (uriResourceParts != null) {
-			for (int i = uriResourceParts.size() - 1; i >= 0; i--) {
-				if (uriResourceParts.get(i) instanceof UriResourceNavigation) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	private javax.persistence.criteria.Expression<Boolean> combineAND(
 			javax.persistence.criteria.Expression<Boolean> whereCondition,
 			final javax.persistence.criteria.Expression<Boolean> additionalExpression) {
@@ -599,26 +569,21 @@ public abstract class JPAAbstractCriteriaQuery<QueryType extends CriteriaQuery<?
 
 		final List<UriResource> resourceParts = uriResource.getUriResourceParts();
 
-		// No navigation
-		if (!hasNavigation(resourceParts)) {
-			return null;
-		}
-
 		// 1. Determine all relevant associations
-		final List<JPANavigationPropertyInfo> naviPathList = Util.determineAssoziations(sd, resourceParts);
-		JPAAbstractQuery<?> parent = this;
+		final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, resourceParts);
+		JPAAbstractQuery<?, ?> parent = this;
 		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
 
 		// 2. Create the queries and roots
 		for (final JPANavigationPropertyInfo naviInfo : naviPathList) {
-			if (naviInfo.getAssociationPath() == null) {
+			if (naviInfo.getNavigationPath() == null) {
 				LOG.log(Level.SEVERE, "Association for navigation path to '"
-						+ naviInfo.getUriResiource().getType().getName() + "' not found. Cannot resolve target entity");
+						+ naviInfo.getNavigationUriResource().getType().getName() + "' not found. Cannot resolve target entity");
 				continue;
 			}
-			final JPANavigationQuery navQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent,
-					getEntityManager(),
-					naviInfo.getAssociationPath());
+			final JPANavigationQuery navQuery = new JPANavigationQuery(sd,
+					naviInfo.getNavigationUriResource(),
+					(JPAAssociationPath) naviInfo.getNavigationPath(), parent, getEntityManager());
 			queryList.add(navQuery);
 			parent = navQuery;
 		}

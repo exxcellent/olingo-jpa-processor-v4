@@ -59,7 +59,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
  * @author Oliver Grande
  *
  */
-class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
+class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>, Tuple> {
 
 	private final JPAAssociationPath association;
 	private final JPAExpandItemInfo item;
@@ -280,17 +280,20 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>> {
 		final IntermediateServiceDocument sd = getContext().getEdmProvider().getServiceDocument();
 
 		// 1. Determine all relevant associations
-		final List<JPANavigationPropertyInfo> expandPathList = Util.determineAssoziations(sd, resourceParts);
+		// TODO Are possible existing navigations always the same as the 'hops', so this
+		// is a useless call here?!
+		List<JPANavigationPropertyInfo> expandPathList = Util.determineNavigations(sd, resourceParts);
+		expandPathList = new LinkedList<JPANavigationPropertyInfo>(expandPathList);
 		expandPathList.addAll(item.getHops());
 
 		// 2. Create the queries and roots
-		JPAAbstractQuery<?> parent = this;
+		JPAAbstractQuery<?, ?> parent = this;
 		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
 
 		for (final JPANavigationPropertyInfo naviInfo : expandPathList) {
-			final JPANavigationQuery newQuery = new JPANavigationQuery(sd, naviInfo.getUriResiource(), parent,
-					getEntityManager(),
-					naviInfo.getAssociationPath());
+			final JPANavigationQuery newQuery = new JPANavigationQuery(sd,
+					naviInfo.getNavigationUriResource(),
+					(JPAAssociationPath) naviInfo.getNavigationPath(), parent, getEntityManager());
 			queryList.add(newQuery);
 			parent = newQuery;
 		}

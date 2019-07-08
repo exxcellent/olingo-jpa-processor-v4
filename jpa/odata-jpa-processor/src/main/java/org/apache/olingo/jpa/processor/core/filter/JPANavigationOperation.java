@@ -7,14 +7,15 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
+import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceKind;
-import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.queryoption.ApplyOption;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
 import org.apache.olingo.server.api.uri.queryoption.CustomQueryOption;
@@ -61,21 +62,10 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 		}
 	}
 
-	public static boolean hasNavigation(final List<UriResource> uriResourceParts) {
-		if (uriResourceParts != null) {
-			for (int i = uriResourceParts.size() - 1; i >= 0; i--) {
-				if (uriResourceParts.get(i) instanceof UriResourceNavigation) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public Expression<Boolean> get() throws ODataApplicationException {
-		// return converter.cb.greaterThan(getExistsQuery().as("a"), converter.cb.literal('5'));
+		// TODO ??? better to reuse parent behaviour?
 		if (aggregationType != null) {
 			return (Expression<Boolean>) buildFilterSubQueries().getRoots().toArray()[0];
 		}
@@ -88,8 +78,8 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 		allUriResourceParts.addAll(jpaMember.getMember().getResourcePath().getUriResourceParts());
 
 		// 1. Determine all relevant associations
-		final List<JPANavigationPropertyInfo> naviPathList = determineAssoziations(sd, allUriResourceParts);
-		JPAAbstractQuery<?> parent = root;
+		final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
+		JPAAbstractQuery<?, ?> parent = root;
 		final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>();
 
 		// 2. Create the queries and roots
@@ -100,11 +90,11 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 			if (i == 0 && aggregationType == null) {
 				final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getLiteral(),
 						operator);
-				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
-						.getAssociationPath(), expression));
+				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+						(JPAAssociationPath) naviInfo.getNavigationPath(), parent, em, expression));
 			} else {
-				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getUriResiource(), parent, em, naviInfo
-						.getAssociationPath()));
+				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+						(JPAAssociationPath) naviInfo.getNavigationPath(), parent, em));
 			}
 			parent = queryList.get(queryList.size() - 1);
 		}

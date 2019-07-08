@@ -5,7 +5,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractCriteriaQuery;
@@ -42,11 +42,11 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	final OData odata;
 	final IntermediateServiceDocument sd;
 	final List<UriResource> uriResourceParts;
-	final JPAAbstractCriteriaQuery<?> parent;
+	final JPAAbstractCriteriaQuery<?, ?> parent;
 
 	public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-			final JPAEntityType jpaEntityType, final JPAODataDatabaseProcessor converter,
-			final UriInfoResource uriResource, final JPAAbstractCriteriaQuery<?> parent) {
+			final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
+			final UriInfoResource uriResource, final JPAAbstractCriteriaQuery<?, ?> parent) {
 
 		super(jpaEntityType, uriResource);
 
@@ -101,7 +101,7 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 	}
 
 	@Override
-	public JPAAbstractCriteriaQuery<?> getParent() {
+	public JPAAbstractCriteriaQuery<?, ?> getParent() {
 		return parent;
 	}
 
