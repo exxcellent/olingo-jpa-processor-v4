@@ -765,8 +765,8 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testFilterTimestamp2SqlTimestampWithDateConversion() throws IOException, ODataException {
-		// skip test with Hibernate
-		assumeTrue("This test fails on Travis with Hibernate", getJPAProvider() != JPAProvider.Hibernate);
+		// skip test...
+		assumeTrue("This test fails on Travis", true);
 
 		// '2010-01-01' will be expanded to '2010-01-01 00:00:00.0' (a complete
 		// timestamp)
