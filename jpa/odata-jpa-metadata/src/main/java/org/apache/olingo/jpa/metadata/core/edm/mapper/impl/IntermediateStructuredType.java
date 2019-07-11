@@ -202,6 +202,9 @@ implements JPAStructuredType {
 		lazyBuildCompletePathMap();
 		final List<JPASelector> pathList = new ArrayList<JPASelector>();
 		for (final Entry<String, JPAPathImpl> entry : simpleAttributePathMap.entrySet()) {
+			if (entry.getValue().ignore()) {
+				continue;
+			}
 			pathList.add(entry.getValue());
 		}
 		return pathList;

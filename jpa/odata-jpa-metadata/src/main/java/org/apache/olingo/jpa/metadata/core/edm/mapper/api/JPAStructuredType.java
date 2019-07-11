@@ -52,14 +52,17 @@ public interface JPAStructuredType extends JPAElement {
 	public JPASelector getPath(String externalName) throws ODataJPAModelException;
 
 	/**
-	 * List of all attributes that are available for this type via the OData service. That is:
+	 * List of all attributes that are available for this type via the OData
+	 * service. That is:
 	 * <ul>
-	 * <li> All not ignored properties of the type.
-	 * <li> All not ignored properties from supertypes.
-	 * <li> All not ignored properties from embedded types.
+	 * <li>All not ignored properties of the type.
+	 * <li>All not ignored properties from supertypes.
+	 * <li>All not ignored properties from embedded types.
 	 * </ul>
+	 * 
 	 * @return List of all attributes that are available via the OData service.
 	 * @throws ODataJPAModelException
+	 * @see {@link org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore @EdmIgnore}
 	 */
 	public List<JPASelector> getPathList() throws ODataJPAModelException;
 

@@ -5,9 +5,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
 
 import org.apache.olingo.commons.api.edm.EdmFunction;
 import org.apache.olingo.commons.api.edm.EdmParameter;
@@ -32,7 +30,6 @@ import org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperator;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
-import org.apache.olingo.server.api.uri.queryoption.SearchOption;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 
 /**
@@ -330,14 +327,6 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 			throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
 					HttpStatusCode.NOT_IMPLEMENTED, jpaOperator.getOperator().name());
 		}
-	}
-
-	@Override
-	public Expression<Boolean> createSearchWhereClause(final CriteriaBuilder cb, final CriteriaQuery<?> cq,
-			final From<?, ?> root, final JPAEntityType entityType, final SearchOption searchOption)
-							throws ODataApplicationException {
-		throw new ODataJPADBAdaptorException(ODataJPADBAdaptorException.MessageKeys.NOT_SUPPORTED_SEARCH,
-				HttpStatusCode.NOT_IMPLEMENTED);
 	}
 
 	@Override

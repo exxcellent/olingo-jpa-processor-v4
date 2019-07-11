@@ -9,9 +9,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
@@ -99,7 +102,7 @@ public abstract class JPAAbstractQuery<QT extends AbstractQuery<RT>, RT> {
 		return text.replaceAll("'", "");
 	}
 
-	protected List<UriParameter> determineKeyPredicates(final UriResource uriResourceItem)
+	protected static List<UriParameter> determineKeyPredicates(final UriResource uriResourceItem)
 			throws ODataApplicationException {
 
 		if (uriResourceItem instanceof UriResourceEntitySet) {
@@ -108,6 +111,50 @@ public abstract class JPAAbstractQuery<QT extends AbstractQuery<RT>, RT> {
 			return ((UriResourceNavigation) uriResourceItem).getKeyPredicates();
 		}
 		return Collections.emptyList();
+	}
+
+	protected final Path<?> convertToCriteriaPath(final From<?, ?> from, final JPASelector jpaPath) {
+		if (JPAAssociationPath.class.isInstance(jpaPath)) {
+			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
+		}
+		Path<?> p = from;
+		Join<?, ?> existingJoin;
+		for (final JPAAttribute<?> jpaPathElement : jpaPath.getPathElements()) {
+			if (jpaPathElement.isCollection()) {
+				// we can cast, because 'p' is the Root<> or another Join<>
+				existingJoin = findAlreadyDefinedJoin((From<?, ?>) p, jpaPathElement);
+				if (existingJoin != null) {
+					p = existingJoin;
+				} else {
+					// @ElementCollection's are loaded in separate queries, so an INNER JOIN is ok
+					// to suppress results for not existing joined rows
+					p = from.join(jpaPathElement.getInternalName(), JoinType.INNER);
+				}
+			} else {
+				p = p.get(jpaPathElement.getInternalName());
+			}
+		}
+		return p;
+	}
+
+	/**
+	 * Find an already created {@link Join} expression for the given attribute. The
+	 * given attribute must be:
+	 * <ul>
+	 * <li>an attribute annotated with @ElementCollection</li>
+	 * <li>the first path element in a {@link JPASelector}</li>
+	 * </ul>
+	 *
+	 * @return The already existing {@link Join} or <code>null</code>.
+	 */
+	private Join<?, ?> findAlreadyDefinedJoin(final From<?, ?> parentCriteriaPath,
+			final JPAAttribute<?> jpaPathElement) {
+		for (final Join<?, ?> join : parentCriteriaPath.getJoins()) {
+			if (jpaPathElement.getInternalName().equals(join.getAttribute().getName())) {
+				return join;
+			}
+		}
+		return null;
 	}
 
 	public abstract <TT extends From<T, T>, T> TT getRoot();

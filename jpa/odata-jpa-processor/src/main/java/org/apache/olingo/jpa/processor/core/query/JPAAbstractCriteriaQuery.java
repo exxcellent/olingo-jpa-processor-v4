@@ -413,7 +413,7 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
 			}
 
 			// default case
-			final Path<?> p = convertToCriteriaPath(jpaPath);
+			final Path<?> p = convertToCriteriaPath(getRoot(), jpaPath);
 			if (p == null) {
 				continue;
 			}
@@ -483,58 +483,10 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
 		}
 
 		if (uriResource.getSearchOption() != null && uriResource.getSearchOption().getSearchExpression() != null) {
-			final JPAEntityType jpaEntityType = getQueryResultType();
-			whereCondition = combineAND(whereCondition,
-					context.getDatabaseProcessor().createSearchWhereClause(getCriteriaBuilder(), this.getQuery(),
-							getRoot(),
-							jpaEntityType,
-							uriResource
-							.getSearchOption()));
+			whereCondition = combineAND(whereCondition, createWhereFromSearchOption());
 		}
 
 		return whereCondition;
-	}
-
-	protected final Path<?> convertToCriteriaPath(final JPASelector jpaPath) {
-		if (JPAAssociationPath.class.isInstance(jpaPath)) {
-			throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
-		}
-		Path<?> p = getRoot();
-		Join<?, ?> existingJoin;
-		for (final JPAAttribute<?> jpaPathElement : jpaPath.getPathElements()) {
-			if (jpaPathElement.isCollection()) {
-				// we can cast, because 'p' is the Root<> or another Join<>
-				existingJoin = findAlreadyDefinedJoin((From<?, ?>) p, jpaPathElement);
-				if (existingJoin != null) {
-					p = existingJoin;
-				} else {
-					// @ElementCollection's are loaded in separate queries, so an INNER JOIN is ok
-					// to suppress results for not existing joined rows
-					p = From.class.cast(getRoot()).join(jpaPathElement.getInternalName(), JoinType.INNER);
-				}
-			} else {
-				p = p.get(jpaPathElement.getInternalName());
-			}
-		}
-		return p;
-	}
-
-	/**
-	 * Find an already created {@link Join} expression for the given attribute. The given attribute must be:
-	 * <ul>
-	 * <li>an attribute annotated with @ElementCollection</li>
-	 * <li>the first path element in a {@link JPASelector}</li>
-	 * </ul>
-	 *
-	 * @return The already existing {@link Join} or <code>null</code>.
-	 */
-	private Join<?, ?> findAlreadyDefinedJoin(final From<?, ?> parentCriteriaPath, final JPAAttribute<?> jpaPathElement) {
-		for (final Join<?, ?> join : parentCriteriaPath.getJoins()) {
-			if (jpaPathElement.getInternalName().equals(join.getAttribute().getName())) {
-				return join;
-			}
-		}
-		return null;
 	}
 
 	private javax.persistence.criteria.Expression<Boolean> combineAND(
@@ -549,6 +501,29 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
 			}
 		}
 		return whereCondition;
+	}
+
+	/**
+	 * Search at OData:
+	 * <p>
+	 * <a href=
+	 * "http://docs.oasis-open.org/odata/odata/v4.0/os/part1-protocol/odata-v4.0-os-part1-protocol.html#_Toc372793700">
+	 * OData Version 4.0 Part 1 - 11.2.5.6 System Query Option $search</a>
+	 * <p>
+	 * <a href=
+	 * "http://docs.oasis-open.org/odata/odata/v4.0/os/part2-url-conventions/odata-v4.0-os-part2-url-conventions.html#_Toc372793865">
+	 * OData Version 4.0 Part 2 - 5.1.7 System Query Option $search</a>
+	 *
+	 * @return
+	 * @throws ODataApplicationException
+	 */
+	private javax.persistence.criteria.Expression<Boolean> createWhereFromSearchOption() throws ODataApplicationException {
+		final JPASearchQuery searchQuery = new JPASearchQuery(this);
+		final Subquery<?> subquery = searchQuery.getSubQueryExists();
+		if (subquery == null) {
+			return null;
+		}
+		return getCriteriaBuilder().exists(subquery);
 	}
 
 	/**

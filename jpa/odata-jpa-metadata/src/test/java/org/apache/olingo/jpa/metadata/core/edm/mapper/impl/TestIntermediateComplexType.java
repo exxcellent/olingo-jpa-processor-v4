@@ -47,9 +47,11 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 		final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
 				"CommunicationData"),
 				serviceDocument);
-		// one attribute is ignored, so we should have 3 properties, but 4 paths
+		// one attribute is ignored, so we should have 3 public entries
+		assertEquals("Wrong number of declared attributes", 4, ct.getSimpleAttributePathMap().size());
+		assertEquals("Wrong number of attributes", 3, ct.getAttributes().size());
 		assertEquals("Wrong number of properties", 3, ct.getEdmItem().getProperties().size());
-		assertEquals("Wrong number of properties", 4, ct.getPathList().size());
+		assertEquals("Wrong number of paths", 3, ct.getPathList().size());
 	}
 
 	@Test

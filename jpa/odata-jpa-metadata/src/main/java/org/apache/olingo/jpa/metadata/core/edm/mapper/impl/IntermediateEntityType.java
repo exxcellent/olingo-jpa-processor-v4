@@ -45,8 +45,8 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 	private final DataAccessConditioner<?> dac;
 
 	IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
-	        final IntermediateServiceDocument serviceDocument)
-	        throws ODataJPAModelException {
+			final IntermediateServiceDocument serviceDocument)
+					throws ODataJPAModelException {
 		super(nameBuilder, et, serviceDocument);
 		this.setExternalName(nameBuilder.buildEntityTypeName(et));
 		final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaManagedType.getJavaType()).getAnnotation(EdmIgnore.class);
@@ -114,7 +114,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 				if (idClassAnnotation != null) {
 					if (jpaManagedType.getClass().getName().startsWith("org.hibernate")) {
 						LOG.log(Level.WARNING, "invalid metamodel of Hibernate found for " + getInternalName()
-						        + ", no idType or invalid... use workaround");
+						+ ", no idType or invalid... use workaround");
 					}
 					return idClassAnnotation.value();
 				}
@@ -129,7 +129,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 	@Override
 	public List<JPASelector> getSearchablePath() throws ODataJPAModelException {
 		final List<JPASelector> allPath = getPathList();
-		final List<JPASelector> searchablePath = new ArrayList<JPASelector>();
+		final List<JPASelector> searchablePath = new ArrayList<JPASelector>(allPath.size());
 		for (final JPASelector p : allPath) {
 			if (p.getLeaf().isSearchable()) {
 				searchablePath.add(p);
@@ -163,7 +163,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 		}
 
 		return (t == null) ? jpaManagedType.getJavaType().getName().toUpperCase(Locale.ENGLISH)
-		        : t.name();
+				: t.name();
 	}
 
 	@Override
@@ -192,16 +192,16 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 
 	@SuppressWarnings("unchecked")
 	protected <T> List<?> extractEdmProperties(final Map<String, ? extends IntermediateModelElement> mappingBuffer)
-	        throws ODataJPAModelException {
+			throws ODataJPAModelException {
 		final List<T> extractionTarget = new LinkedList<T>();
 		for (final String externalName : mappingBuffer.keySet()) {
 			if (!((IntermediateModelElement) mappingBuffer.get(externalName)).ignore()
-			        // Skip Streams
-			        && !(mappingBuffer.get(externalName) instanceof IntermediateProperty &&
-			                ((IntermediateProperty) mappingBuffer.get(externalName)).isStream())) {
+					// Skip Streams
+					&& !(mappingBuffer.get(externalName) instanceof IntermediateProperty &&
+							((IntermediateProperty) mappingBuffer.get(externalName)).isStream())) {
 				if (mappingBuffer.get(externalName) instanceof IntermediateEmbeddedIdProperty) {
 					extractionTarget.addAll((Collection<? extends T>) resolveEmbeddedId(
-					        (IntermediateEmbeddedIdProperty) mappingBuffer.get(externalName)));
+							(IntermediateEmbeddedIdProperty) mappingBuffer.get(externalName)));
 				} else {
 					extractionTarget.add((T) ((IntermediateModelElement) mappingBuffer.get(externalName)).getEdmItem());
 				}
@@ -220,8 +220,8 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 			edmEntityType.setName(getExternalName());
 			edmEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
 			edmEntityType.setNavigationProperties(
-			        (List<CsdlNavigationProperty>) extractEdmProperties(
-			                declaredNaviPropertiesList));
+					(List<CsdlNavigationProperty>) extractEdmProperties(
+							declaredNaviPropertiesList));
 			edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
 			edmEntityType.setAbstract(isAbstract());
 			edmEntityType.setBaseType(determineBaseType());
@@ -249,16 +249,16 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
 	 * @throws ODataJPAModelException
 	 */
 	List<CsdlPropertyRef> extractEdmKeyElements(final Map<String, IntermediateProperty> propertyList)
-	        throws ODataJPAModelException {
+			throws ODataJPAModelException {
 		// TODO setAlias
 		final List<CsdlPropertyRef> keyList = new ArrayList<CsdlPropertyRef>();
 		for (final String internalName : propertyList.keySet()) {
 			if (propertyList.get(internalName).isKey()) {
 				if (propertyList.get(internalName).isComplex()) {
 					final List<JPASimpleAttribute> idAttributes = ((IntermediateComplexType) propertyList
-					        .get(internalName)
-					        .getStructuredType())
-					                .getAttributes();
+							.get(internalName)
+							.getStructuredType())
+							.getAttributes();
 					for (final JPAAttribute<?> idAttribute : idAttributes) {
 						final CsdlPropertyRef key = new CsdlPropertyRef();
 						key.setName(idAttribute.getExternalName());

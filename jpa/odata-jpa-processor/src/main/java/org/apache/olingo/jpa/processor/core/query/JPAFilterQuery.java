@@ -108,7 +108,7 @@ public class JPAFilterQuery extends JPAAbstractRelationshipQuery<JPANavigationPa
 			return Collections.emptyList();
 		}
 		final List<Expression<?>> groupByLIst = new LinkedList<>();
-		// FIXME
+		// TODO avoid cast to JPAAssociationPath
 		final List<JPASelector> navigationSourceSelectors = ((JPAAssociationPath) getSelector()).getRightPaths();
 		for (int index = 0; index < navigationSourceSelectors.size(); index++) {
 			Path<?> subPath = subRoot;
