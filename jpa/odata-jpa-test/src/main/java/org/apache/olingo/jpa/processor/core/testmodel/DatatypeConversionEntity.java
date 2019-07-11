@@ -21,6 +21,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
@@ -60,17 +61,20 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.TimeOfDay)
 	private java.time.LocalTime aTime1;
 
+	@EdmSearchable
 	@Column(name = "\"AUrlString\"", columnDefinition = "clob")
 	@Convert(converter = JPAUrlConverter.class)
 	@EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.String, converter = EdmUrlConverter.class)
 	private URL aUrl;
 
+	@EdmSearchable
 	@Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5)
 	private BigDecimal aDecimal;
 
 	// @Column(name = "\"AYear\"", insertable = false, updatable = false)
 	// private java.time.Year aYear;
 
+	@EdmSearchable
 	@Column(name = "\"AYear\"")
 	private Integer aIntegerYear;
 
@@ -86,13 +90,16 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Enumerated(javax.persistence.EnumType.STRING)
 	private TestEnum aEnumFromOtherPackage;
 
+	@EdmSearchable
 	// do not define a JPA converter here, we want to test the autoapply!
 	@Column(name = "\"UUID\"")
 	private UUID uuid;
 
+	@EdmSearchable
 	@Column(name = "\"AIntBoolean\"", columnDefinition = "smallint")
 	private Boolean aIntBoolean;
 
+	@EdmSearchable
 	@Column(name = "\"ABoolean\"")
 	private boolean aBoolean;
 

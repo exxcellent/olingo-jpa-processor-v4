@@ -9,7 +9,6 @@ import javax.persistence.Table;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 
 @Entity
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::AdministrativeDivisionDescription\"")
@@ -18,7 +17,6 @@ public class AdministrativeDivisionDescription {
 	@EmbeddedId
 	private AdministrativeDivisionDescriptionKey key;
 
-	@EdmSearchable
 	@Column(name = "\"Name\"", length = 100, updatable = false)
 	private String name;
 

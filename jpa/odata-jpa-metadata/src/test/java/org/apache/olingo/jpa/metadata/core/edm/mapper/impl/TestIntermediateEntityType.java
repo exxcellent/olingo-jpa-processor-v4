@@ -182,7 +182,9 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"BusinessPartner"),
 				serviceDocument);
-		assertEquals("Wrong number of entities", TestDataConstants.NO_ATTRIBUTES_BUISNESS_PARTNER,
+		assertEquals("Wrong number of entities",
+				TestDataConstants.NO_SIMPLE_ATTRIBUTES_BUISNESS_PARTNER
+						+ TestDataConstants.NO_COMPLEX_ATTRIBUTES_BUISNESS_PARTNER,
 				et.getEdmItem()
 				.getProperties().size());
 	}
@@ -231,8 +233,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 		final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
 				"Organization"),
 				serviceDocument);
-		// 'paths' are more then attributes
-		final int exp = TestDataConstants.NO_ATTRIBUTES_BUISNESS_PARTNER
+		final int exp = TestDataConstants.NO_SIMPLE_ATTRIBUTES_BUISNESS_PARTNER
 				+ TestDataConstants.NO_ATTRIBUTES_PHONE
 				+ TestDataConstants.NO_ATTRIBUTES_POSTAL_ADDRESS
 				+ TestDataConstants.NO_ATTRIBUTES_COMMUNICATION_DATA

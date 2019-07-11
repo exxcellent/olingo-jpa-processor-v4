@@ -186,7 +186,7 @@ public class JPAEntityQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>,
 		final List<javax.persistence.criteria.Expression<?>> groupBy = new ArrayList<javax.persistence.criteria.Expression<?>>();
 
 		for (final JPASelector jpaPath : selectionPathList) {
-			final Path<?> path = convertToCriteriaPath(jpaPath);
+			final Path<?> path = convertToCriteriaPath(getRoot(), jpaPath);
 			if (path == null) {
 				continue;
 			}
