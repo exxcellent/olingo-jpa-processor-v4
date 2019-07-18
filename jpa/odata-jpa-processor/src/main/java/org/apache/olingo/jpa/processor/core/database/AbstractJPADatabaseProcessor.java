@@ -189,11 +189,9 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
     case LENGTH:
       return cb.length((Expression<String>) (parameters.get(0).get()));
     case CONTAINS:
-      final StringBuffer contains = new StringBuffer();
-      contains.append('%');
-      contains.append((String) ((JPALiteralOperator) parameters.get(1)).getLiteralValue());
-      contains.append('%');
-      return cb.like((Expression<String>) (parameters.get(0).get()), contains.toString());
+      final Expression<String> operand = (Expression<String>) parameters.get(0).get();
+      final String literal = (String) ((JPALiteralOperator) parameters.get(1)).getLiteralValue();
+      return contains(operand, literal);
     case ENDSWITH:
       final StringBuffer ends = new StringBuffer();
       ends.append('%');
@@ -315,6 +313,15 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   protected Expression<?> cast(final Expression<?> value, final EdmType type) throws ODataApplicationException {
     throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
         HttpStatusCode.NOT_IMPLEMENTED, MethodKind.CAST.name());
+  }
+
+  protected Expression<?> contains(final Expression<String> operand, final String literal)
+      throws ODataApplicationException {
+    final StringBuffer contains = new StringBuffer();
+    contains.append('%');
+    contains.append(literal);
+    contains.append('%');
+    return cb.like(operand, contains.toString());
   }
 
   @Override
