@@ -3,15 +3,17 @@ package org.apache.olingo.jpa.processor.core.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
 import org.apache.olingo.jpa.processor.core.query.Util;
+import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -42,209 +44,212 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
  */
 class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperator<Enum<?>> {
 
-	final BinaryOperatorKind operator;
-	final JPAMemberOperator jpaMember;
-	final JPALiteralOperator operand;
-	private final UriResourceKind aggregationType;
+  final BinaryOperatorKind operator;
+  final JPAMemberOperator jpaMember;
+  final JPALiteralOperator operand;
+  private final UriResourceKind aggregationType;
 
-	JPANavigationOperation(final JPAAbstractFilterProcessor jpaComplier, final BinaryOperatorKind operator,
-			final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
+  JPANavigationOperation(final JPAAbstractFilterProcessor jpaComplier, final BinaryOperatorKind operator,
+      final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 
-		super(jpaComplier);
-		this.aggregationType = null;
-		this.operator = operator;
-		if (left instanceof JPAMemberOperator) {
-			jpaMember = (JPAMemberOperator) left;
-			operand = (JPALiteralOperator) right;
-		} else {
-			jpaMember = (JPAMemberOperator) right;
-			operand = (JPALiteralOperator) left;
-		}
-	}
+    super(jpaComplier);
+    this.aggregationType = null;
+    this.operator = operator;
+    if (left instanceof JPAMemberOperator) {
+      jpaMember = (JPAMemberOperator) left;
+      operand = (JPALiteralOperator) right;
+    } else {
+      jpaMember = (JPAMemberOperator) right;
+      operand = (JPALiteralOperator) left;
+    }
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Expression<Boolean> get() throws ODataApplicationException {
-		// TODO ??? better to reuse parent behaviour?
-		if (aggregationType != null) {
-			return (Expression<Boolean>) buildFilterSubQueries().getRoots().toArray()[0];
-		}
-		return converter.getCriteriaBuilder().exists(buildFilterSubQueries());
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  public Expression<Boolean> get() throws ODataApplicationException {
+    // TODO ??? better to reuse parent behaviour?
+    if (aggregationType != null) {
+      return (Expression<Boolean>) buildFilterSubQueries().getRoots().toArray()[0];
+    }
+    return getEntityManager().getCriteriaBuilder().exists(buildFilterSubQueries());
+  }
 
-	@Override
-	Subquery<?> buildFilterSubQueries() throws ODataApplicationException {
-		final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(uriResourceParts);
-		allUriResourceParts.addAll(jpaMember.getMember().getResourcePath().getUriResourceParts());
+  @Override
+  Subquery<?> buildFilterSubQueries() throws ODataApplicationException {
+    final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(getUriResourceParts());
+    allUriResourceParts.addAll(jpaMember.getMember().getResourcePath().getUriResourceParts());
 
-		// 1. Determine all relevant associations
-		final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
-		JPAAbstractQuery<?, ?> parent = root;
-		final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>();
+    final IntermediateServiceDocument sd = getIntermediateServiceDocument();
+    // 1. Determine all relevant associations
+    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
+    JPAAbstractQuery<?, ?> parent = getOwnerQuery();
+    final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>();
 
-		// 2. Create the queries and roots
+    // 2. Create the queries and roots
 
-		// for (int i = 0; i < naviPathList.size(); i++) {
-		for (int i = naviPathList.size() - 1; i >= 0; i--) {
-			final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
-			if (i == 0 && aggregationType == null) {
-				final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getLiteral(),
-						operator);
-				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-						(JPAAssociationPath) naviInfo.getNavigationPath(), parent, em, expression));
-			} else {
-				queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-						(JPAAssociationPath) naviInfo.getNavigationPath(), parent, em));
-			}
-			parent = queryList.get(queryList.size() - 1);
-		}
-		// 3. Create select statements
-		Subquery<?> childQuery = null;
-		for (int i = queryList.size() - 1; i >= 0; i--) {
-			childQuery = queryList.get(i).getSubQueryExists(childQuery);
-		}
-		return childQuery;
-	}
+    // for (int i = 0; i < naviPathList.size(); i++) {
+    final EntityManager em = getEntityManager();
+    final OData odata = getOdata();
+    for (int i = naviPathList.size() - 1; i >= 0; i--) {
+      final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
+      if (i == 0 && aggregationType == null) {
+        final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getLiteral(),
+            operator);
+        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+            naviInfo.getNavigationPath(), parent, em, expression));
+      } else {
+        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+            naviInfo.getNavigationPath(), parent, em));
+      }
+      parent = queryList.get(queryList.size() - 1);
+    }
+    // 3. Create select statements
+    Subquery<?> childQuery = null;
+    for (int i = queryList.size() - 1; i >= 0; i--) {
+      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+    }
+    return childQuery;
+  }
 
-	@Override
-	public Enum<?> getOperator() {
-		return null;
-	}
+  @Override
+  public Enum<?> getOperator() {
+    return null;
+  }
 
-	private class SubMember implements Member {
-		final private JPAMemberOperator parentMember;
+  private class SubMember implements Member {
+    final private JPAMemberOperator parentMember;
 
-		public SubMember(final JPAMemberOperator parentMember) {
-			super();
-			this.parentMember = parentMember;
-		}
+    public SubMember(final JPAMemberOperator parentMember) {
+      super();
+      this.parentMember = parentMember;
+    }
 
-		@Override
-		public <T> T accept(final ExpressionVisitor<T> visitor) throws ExpressionVisitException, ODataApplicationException {
-			return null;
-		}
+    @Override
+    public <T> T accept(final ExpressionVisitor<T> visitor) throws ExpressionVisitException, ODataApplicationException {
+      return null;
+    }
 
-		@Override
-		public UriInfoResource getResourcePath() {
-			return new SubResource(parentMember);
-		}
+    @Override
+    public UriInfoResource getResourcePath() {
+      return new SubResource(parentMember);
+    }
 
-		@Override
-		public EdmType getType() {
-			// TODO Auto-generated method stub
-			return null;
-		}
+    @Override
+    public EdmType getType() {
+      // TODO Auto-generated method stub
+      return null;
+    }
 
-		@Override
-		public EdmType getStartTypeFilter() {
-			// TODO Auto-generated method stub
-			return null;
-		}
+    @Override
+    public EdmType getStartTypeFilter() {
+      // TODO Auto-generated method stub
+      return null;
+    }
 
-		@Override
-		public boolean isCollection() {
-			// TODO Auto-generated method stub
-			return false;
-		}
+    @Override
+    public boolean isCollection() {
+      // TODO Auto-generated method stub
+      return false;
+    }
 
-	}
+  }
 
-	private class SubResource implements UriInfoResource {
-		final private JPAMemberOperator parentMember;
+  private class SubResource implements UriInfoResource {
+    final private JPAMemberOperator parentMember;
 
-		public SubResource(final JPAMemberOperator member) {
-			super();
-			this.parentMember = member;
-		}
+    public SubResource(final JPAMemberOperator member) {
+      super();
+      this.parentMember = member;
+    }
 
-		@Override
-		public List<CustomQueryOption> getCustomQueryOptions() {
-			return null;
-		}
+    @Override
+    public List<CustomQueryOption> getCustomQueryOptions() {
+      return null;
+    }
 
-		@Override
-		public ExpandOption getExpandOption() {
-			return null;
-		}
+    @Override
+    public ExpandOption getExpandOption() {
+      return null;
+    }
 
-		@Override
-		public FilterOption getFilterOption() {
-			return null;
-		}
+    @Override
+    public FilterOption getFilterOption() {
+      return null;
+    }
 
-		@Override
-		public FormatOption getFormatOption() {
-			return null;
-		}
+    @Override
+    public FormatOption getFormatOption() {
+      return null;
+    }
 
-		@Override
-		public IdOption getIdOption() {
-			return null;
-		}
+    @Override
+    public IdOption getIdOption() {
+      return null;
+    }
 
-		@Override
-		public CountOption getCountOption() {
-			return null;
-		}
+    @Override
+    public CountOption getCountOption() {
+      return null;
+    }
 
-		@Override
-		public OrderByOption getOrderByOption() {
-			return null;
-		}
+    @Override
+    public OrderByOption getOrderByOption() {
+      return null;
+    }
 
-		@Override
-		public SearchOption getSearchOption() {
-			return null;
-		}
+    @Override
+    public SearchOption getSearchOption() {
+      return null;
+    }
 
-		@Override
-		public SelectOption getSelectOption() {
-			return null;
-		}
+    @Override
+    public SelectOption getSelectOption() {
+      return null;
+    }
 
-		@Override
-		public SkipOption getSkipOption() {
-			return null;
-		}
+    @Override
+    public SkipOption getSkipOption() {
+      return null;
+    }
 
-		@Override
-		public SkipTokenOption getSkipTokenOption() {
-			return null;
-		}
+    @Override
+    public SkipTokenOption getSkipTokenOption() {
+      return null;
+    }
 
-		@Override
-		public TopOption getTopOption() {
-			return null;
-		}
+    @Override
+    public TopOption getTopOption() {
+      return null;
+    }
 
-		@Override
-		public DeltaTokenOption getDeltaTokenOption() {
-			return null;
-		}
+    @Override
+    public DeltaTokenOption getDeltaTokenOption() {
+      return null;
+    }
 
-		@Override
-		public List<UriResource> getUriResourceParts() {
-			final List<UriResource> result = new ArrayList<UriResource>();
-			final List<UriResource> source = parentMember.getMember().getResourcePath().getUriResourceParts();
-			for (int i = source.size() - 1; i > 0; i--) {
-				if (source.get(i).getKind() == UriResourceKind.navigationProperty || source.get(i)
-						.getKind() == UriResourceKind.entitySet) {
-					break;
-				}
-				result.add(0, source.get(i));
-			}
-			return result;
-		}
+    @Override
+    public List<UriResource> getUriResourceParts() {
+      final List<UriResource> result = new ArrayList<UriResource>();
+      final List<UriResource> source = parentMember.getMember().getResourcePath().getUriResourceParts();
+      for (int i = source.size() - 1; i > 0; i--) {
+        if (source.get(i).getKind() == UriResourceKind.navigationProperty || source.get(i)
+            .getKind() == UriResourceKind.entitySet) {
+          break;
+        }
+        result.add(0, source.get(i));
+      }
+      return result;
+    }
 
-		@Override
-		public String getValueForAlias(final String alias) {
-			return null;
-		}
+    @Override
+    public String getValueForAlias(final String alias) {
+      return null;
+    }
 
-		@Override
-		public ApplyOption getApplyOption() {
-			return null;
-		}
+    @Override
+    public ApplyOption getApplyOption() {
+      return null;
+    }
 
-	}
+  }
 }

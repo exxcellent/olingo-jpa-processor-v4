@@ -3,7 +3,6 @@ package org.apache.olingo.jpa.processor.core.api;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -19,8 +18,6 @@ import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 
 public interface JPAODataDatabaseProcessor {
-
-	public CriteriaBuilder getCriteriaBuilder();
 
 	public <T extends Number> Expression<T> convert(final JPAArithmeticOperator jpaOperator)
 			throws ODataApplicationException;
