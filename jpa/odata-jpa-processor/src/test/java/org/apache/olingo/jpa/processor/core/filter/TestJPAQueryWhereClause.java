@@ -765,6 +765,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
 	@Test
 	public void testFilterTimestamp2SqlTimestampWithDateConversion() throws IOException, ODataException {
+		// FIXME
 		// skip test...
 		assumeTrue("This test fails on Travis", false);
 

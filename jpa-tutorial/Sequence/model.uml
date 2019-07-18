@@ -80,7 +80,7 @@
     <message xmi:type="uml:Message" xmi:id="_4bqPQI-jEearGawbxKN0CA" name="process_Message1" messageSort="reply" receiveEvent="_4brdYY-jEearGawbxKN0CA" sendEvent="_4brdYI-jEearGawbxKN0CA" signature="_mqJmMI-HEearGawbxKN0CA"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Class" xmi:id="_rw-ykI-GEearGawbxKN0CA" name="Servlet"/>
-  <packagedElement xmi:type="uml:Class" xmi:id="_u6_3gI-GEearGawbxKN0CA" name="JPAODataGetHandler">
+  <packagedElement xmi:type="uml:Class" xmi:id="_u6_3gI-GEearGawbxKN0CA" name="JPAODataServletHandler">
     <ownedOperation xmi:type="uml:Operation" xmi:id="_mqJmMI-HEearGawbxKN0CA" name="process"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Class" xmi:id="_2cLJ8I-GEearGawbxKN0CA" name="JPAODataRequestProcessor">
@@ -88,7 +88,7 @@
     <ownedOperation xmi:type="uml:Operation" xmi:id="_Q5cesI-iEearGawbxKN0CA" name="readEntity"/>
   </packagedElement>
   <packagedElement xmi:type="uml:Class" xmi:id="_3EdR8I-GEearGawbxKN0CA" name="JPAODataBatchProcessor"/>
-  <packagedElement xmi:type="uml:Signal" xmi:id="_DRNisI-HEearGawbxKN0CA" name="JPAODataGetHandler"/>
+  <packagedElement xmi:type="uml:Signal" xmi:id="_DRNisI-HEearGawbxKN0CA" name="JPAODataServletHandler"/>
   <packagedElement xmi:type="uml:Interface" xmi:id="_42D0oI-VEearGawbxKN0CA" name="ODataHttpHandler">
     <ownedOperation xmi:type="uml:Operation" xmi:id="_AyHFMI-WEearGawbxKN0CA" name="register">
       <ownedParameter xmi:type="uml:Parameter" xmi:id="_-tCVcI-dEearGawbxKN0CA" name="processor" type="_5SWOYI-dEearGawbxKN0CA"/>

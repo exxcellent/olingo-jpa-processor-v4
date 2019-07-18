@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:notation="http://www.eclipse.org/gmf/runtime/1.0.2/notation" xmlns:style="http://www.eclipse.org/papyrus/infra/gmfdiag/style" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML">
-  <notation:Diagram xmi:id="_z4HycI9-EearGawbxKN0CA" type="PapyrusUMLSequenceDiagram" name="Sequence Diagram" measurementUnit="Pixel">
+  <notation:Diagram xmi:id="_z4HycI9-EearGawbxKN0CA" type="PapyrusUMLSequenceDiagram" name="Processor Call Hierarchy [outdated]" measurementUnit="Pixel">
     <children xmi:type="notation:Shape" xmi:id="_z4HycY9-EearGawbxKN0CA" type="Interaction_Shape">
       <children xmi:type="notation:DecorationNode" xmi:id="_z4Hyco9-EearGawbxKN0CA" type="Interaction_NameLabel"/>
       <children xmi:type="notation:BasicCompartment" xmi:id="_0AUMoDv8Eemf8LIIhaiJTw" type="Interaction_SubfragmentCompartment">
@@ -118,7 +118,7 @@
     <element xmi:type="uml:Interaction" href="model.uml#_z2rA8I9-EearGawbxKN0CA"/>
     <edges xmi:type="notation:Edge" xmi:id="_DRw8UI-HEearGawbxKN0CA" type="Message_CreateEdge" source="_8Nkg0I-GEearGawbxKN0CA" target="_7TkWsI-GEearGawbxKN0CA">
       <children xmi:type="notation:DecorationNode" xmi:id="_DRw8VI-HEearGawbxKN0CA" type="Message_CreateNameLabel">
-        <layoutConstraint xmi:type="notation:Location" xmi:id="_DRw8VY-HEearGawbxKN0CA" x="1" y="-13"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_DRw8VY-HEearGawbxKN0CA" x="7" y="-29"/>
       </children>
       <children xmi:type="notation:DecorationNode" xmi:id="_DRw8Vo-HEearGawbxKN0CA" type="Message_CreateStereotypeLabel">
         <layoutConstraint xmi:type="notation:Location" xmi:id="_DRw8V4-HEearGawbxKN0CA" x="1" y="-33"/>

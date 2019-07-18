@@ -20,9 +20,7 @@ public class ODataServlet extends HttpServlet {
 	@Override
 	protected void service(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
-
 		try {
-
 			JPAODataServletHandler requestHandler = createHandler();
 			requestHandler.process(req, resp);
 		} catch (final RuntimeException | ODataException e) {
