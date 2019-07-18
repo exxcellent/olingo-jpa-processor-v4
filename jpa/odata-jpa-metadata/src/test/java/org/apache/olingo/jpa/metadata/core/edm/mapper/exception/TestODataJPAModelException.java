@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Locale;
 
-import org.apache.olingo.jpa.processor.core.testmodel.LocaleEnumeration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +53,7 @@ public class TestODataJPAModelException {
 		try {
 			final ArrayList<Locale> localesList = new ArrayList<Locale>();
 			localesList.add(Locale.GERMAN);
-			final Enumeration<Locale> locales = new LocaleEnumeration(localesList);
+			final Enumeration<Locale> locales = Collections.enumeration(localesList);
 			TestException.setLocales(locales);
 			RaiseExeption();
 		} catch (final ODataJPAException e) {
