@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.processor.core.util;
 
+import java.util.Map;
+
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
@@ -21,6 +23,11 @@ public class TestGenericJPAPersistenceAdapter extends ResourceLocalPersistenceAd
 
 	public TestGenericJPAPersistenceAdapter(final String pUnit, final DataSourceHelper.DatabaseType dbType) {
 		super(pUnit, AbstractTest.buildEntityManagerFactoryProperties(dbType), determineDatabaseProcessor(dbType));
+	}
+
+	public TestGenericJPAPersistenceAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
+	        final AbstractJPADatabaseProcessor dbAccessor) {
+		super(pUnit, mapEntityManagerProperties, dbAccessor);
 	}
 
 	private static AbstractJPADatabaseProcessor determineDatabaseProcessor(final DataSourceHelper.DatabaseType dbType) {

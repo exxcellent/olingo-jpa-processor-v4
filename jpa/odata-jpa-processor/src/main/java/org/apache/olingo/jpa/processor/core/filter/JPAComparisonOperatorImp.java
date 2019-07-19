@@ -9,13 +9,14 @@ import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKin
 
 //
 public final class JPAComparisonOperatorImp<T extends Comparable<T>> implements JPAComparisonOperator<T> {
+
 	private final JPAODataDatabaseProcessor converter;
 	private final BinaryOperatorKind operator;
 	private final JPAExpressionElement<?> left;
 	private final JPAExpressionElement<?> right;
 
 	public JPAComparisonOperatorImp(final JPAODataDatabaseProcessor converter, final BinaryOperatorKind operator,
-			final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
+	        final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 		super();
 		this.converter = converter;
 		this.operator = operator;
@@ -23,9 +24,11 @@ public final class JPAComparisonOperatorImp<T extends Comparable<T>> implements 
 		this.right = right;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Expression<Boolean> get() throws ODataApplicationException {
-		return converter.convert(this);
+		return converter.createComparison(operator, (Expression<Comparable<Object>>) left.get(),
+		        (Expression<Comparable<Object>>) right.get());
 	}
 
 	@Override

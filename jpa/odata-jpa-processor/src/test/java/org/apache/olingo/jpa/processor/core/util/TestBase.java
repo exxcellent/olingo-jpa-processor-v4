@@ -40,8 +40,8 @@ public abstract class TestBase {
 	 * persistence unit.
 	 */
 	protected TestGenericJPAPersistenceAdapter createPersistenceAdapter() {
-		return persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
-				DataSourceHelper.DatabaseType.H2);
+		return new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
+		        DataSourceHelper.DatabaseType.H2);
 	}
 
 	protected JPAProvider getJPAProvider() {

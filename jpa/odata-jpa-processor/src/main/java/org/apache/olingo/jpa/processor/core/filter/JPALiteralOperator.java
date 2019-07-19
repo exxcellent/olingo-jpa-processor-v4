@@ -1,10 +1,12 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
 import java.lang.annotation.Annotation;
+import java.util.Calendar;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
+import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeException;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
@@ -97,9 +99,10 @@ public class JPALiteralOperator implements JPAExpression<Expression<Object>> {
 
 	/**
 	 *
-	 * @param requestedTargetEdmTypeKind The optional value to give a hint to format
-	 *                                   the literal value using that given kind of
-	 *                                   data type.
+	 * @param requestedTargetEdmTypeKind
+	 *            The optional value to give a hint to format
+	 *            the literal value using that given kind of
+	 *            data type.
 	 * @return The literal value represented by an instance of the requested target
 	 *         type.
 	 */
@@ -109,8 +112,9 @@ public class JPALiteralOperator implements JPAExpression<Expression<Object>> {
 		return getObjectValue(requestedTargetEdmTypeKind, typeInformation);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object getObjectValue(final EdmPrimitiveTypeKind requestedTargetEdmTypeKind, final JPATypedElement typeInformation)
-			throws ODataApplicationException {
+	        throws ODataApplicationException {
 		if (isNullLiteral()) {
 			return null;
 		}
@@ -126,13 +130,25 @@ public class JPALiteralOperator implements JPAExpression<Expression<Object>> {
 			oadataType = EdmPrimitiveTypeFactory.getInstance(requestedTargetEdmTypeKind).getDefaultType();
 		}
 		try {
+			if (EdmEnumType.class.isInstance(edmType)) {
+				// build enum literal instance
+				@SuppressWarnings("rawtypes")
+				final Class<Enum> clazz = (Class<Enum>) Class
+				        .forName(((EdmEnumType) edmType).getFullQualifiedName().getFullQualifiedNameAsString());
+				return Enum.valueOf(clazz, literal.getText());
+			}
 			// TODO literal does not convert decimals without scale properly
 			// EdmPrimitiveType edmType = ((EdmPrimitiveType) literal.getType());
 			final String value = edmType.fromUriLiteral(literal.getText());
-			return edmType.valueOfString(value, Boolean.valueOf(typeInformation.isNullable()),
-					typeInformation.getMaxLength(), typeInformation.getPrecision(), typeInformation.getScale(),
-					Boolean.TRUE, oadataType);
-		} catch (final EdmPrimitiveTypeException e) {
+			final Object retValue = edmType.valueOfString(value, Boolean.valueOf(typeInformation.isNullable()),
+			        typeInformation.getMaxLength(), typeInformation.getPrecision(), typeInformation.getScale(),
+			        Boolean.TRUE, oadataType);
+			if (retValue instanceof Calendar) {
+				// avoid #toString(), so we use directly the literal string
+				return literal.getText();
+			}
+			return retValue;
+		} catch (final EdmPrimitiveTypeException | ClassNotFoundException e) {
 			throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
 		}
 	}

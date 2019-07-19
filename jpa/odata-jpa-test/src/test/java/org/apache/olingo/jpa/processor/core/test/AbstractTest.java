@@ -12,6 +12,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 public abstract class AbstractTest implements Constant {
 
 	public final static class EntityManagerProperty {
+
 		private final String key;
 		private final Object value;
 
@@ -27,8 +28,8 @@ public abstract class AbstractTest implements Constant {
 	 * JTA data source for {@link #PUNIT_NAME}.
 	 */
 	protected static EntityManagerFactory createEntityManagerFactory(final DataSourceHelper.DatabaseType dbType,
-			final EntityManagerProperty... additionalProperties) {
-		final Map<String, Object> properties = buildEntityManagerFactoryProperties(dbType);
+	        final EntityManagerProperty... additionalProperties) {
+		final Map<String, Object> properties = buildEntityManagerFactoryProperties(dbType, additionalProperties);
 		return Persistence.createEntityManagerFactory(PUNIT_NAME, properties);
 
 	}
@@ -38,7 +39,7 @@ public abstract class AbstractTest implements Constant {
 	 * database dialect.
 	 */
 	public static Map<String, Object> buildEntityManagerFactoryProperties(final DataSourceHelper.DatabaseType dbType,
-			final EntityManagerProperty... additionalProperties) {
+	        final EntityManagerProperty... additionalProperties) {
 		final Map<String, Object> properties = new HashMap<String, Object>();
 		DataSource ds = null;
 		switch (dbType) {
