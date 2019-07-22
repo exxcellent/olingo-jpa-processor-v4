@@ -42,11 +42,11 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
  * @author Oliver Grande
  *
  */
-class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperator<Enum<?>> {
+class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperator<BinaryOperatorKind, Boolean> {
 
   final BinaryOperatorKind operator;
-  final JPAMemberOperator jpaMember;
-  final JPALiteralOperator operand;
+  final JPAMemberOperator<?> jpaMember;
+  final JPALiteralOperand operand;
   private final UriResourceKind aggregationType;
 
   JPANavigationOperation(final JPAAbstractFilterProcessor jpaComplier, final BinaryOperatorKind operator,
@@ -56,11 +56,11 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     this.aggregationType = null;
     this.operator = operator;
     if (left instanceof JPAMemberOperator) {
-      jpaMember = (JPAMemberOperator) left;
-      operand = (JPALiteralOperator) right;
+      jpaMember = (JPAMemberOperator<?>) left;
+      operand = (JPALiteralOperand) right;
     } else {
-      jpaMember = (JPAMemberOperator) right;
-      operand = (JPALiteralOperator) left;
+      jpaMember = (JPAMemberOperator<?>) right;
+      operand = (JPALiteralOperand) left;
     }
   }
 
@@ -93,7 +93,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     for (int i = naviPathList.size() - 1; i >= 0; i--) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
       if (i == 0 && aggregationType == null) {
-        final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getLiteral(),
+        final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getODataLiteral(),
             operator);
         queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
             naviInfo.getNavigationPath(), parent, em, expression));
@@ -112,14 +112,14 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
   }
 
   @Override
-  public Enum<?> getOperator() {
-    return null;
+  public BinaryOperatorKind getOperator() {
+    return operator;
   }
 
   private class SubMember implements Member {
-    final private JPAMemberOperator parentMember;
+    final private JPAMemberOperator<?> parentMember;
 
-    public SubMember(final JPAMemberOperator parentMember) {
+    public SubMember(final JPAMemberOperator<?> parentMember) {
       super();
       this.parentMember = parentMember;
     }
@@ -155,9 +155,9 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
   }
 
   private class SubResource implements UriInfoResource {
-    final private JPAMemberOperator parentMember;
+    final private JPAMemberOperator<?> parentMember;
 
-    public SubResource(final JPAMemberOperator member) {
+    public SubResource(final JPAMemberOperator<?> member) {
       super();
       this.parentMember = member;
     }

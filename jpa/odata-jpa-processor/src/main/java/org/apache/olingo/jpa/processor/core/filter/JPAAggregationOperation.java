@@ -1,12 +1,11 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 
-public interface JPAAggregationOperation extends JPAExpression<Expression<Long>> {
+public interface JPAAggregationOperation extends JPAExpression<Long> {
 
-	JPAFilterAggregationType getAggregation();
+  JPAFilterAggregationType getAggregation();
 
-	Path<?> getPath();
+  Path<?> getPath();
 
 }

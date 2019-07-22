@@ -14,7 +14,7 @@ import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResource;
 
-abstract class JPAExistsOperation implements JPAExpression<Expression<Boolean>> {
+abstract class JPAExistsOperation implements JPAExpression<Boolean> {
 
   private final List<UriResource> uriResourceParts;
   private final JPAAbstractQuery<?, ?> root;

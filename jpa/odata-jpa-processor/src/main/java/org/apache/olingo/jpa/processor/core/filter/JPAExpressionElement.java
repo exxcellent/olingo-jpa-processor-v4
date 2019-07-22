@@ -4,11 +4,10 @@ import org.apache.olingo.server.api.ODataApplicationException;
 
 /**
  *
- * @author Ralf zozmann
+ * @author Ralf Zozmann
  *
- * @param <T> The result type of parameter
+ * @param <T> The result type of expression building for value.
  */
-//TODO remove this interface by using only 'JPAExpression<Expression>' as more correct style
 public interface JPAExpressionElement<T> {
-	public T get() throws ODataApplicationException;
+  public T get() throws ODataApplicationException;
 }

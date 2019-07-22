@@ -8,31 +8,31 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 class JPAUnaryBooleanOperatorImp implements JPAUnaryBooleanOperator {
 
-	private final JPAODataDatabaseProcessor converter;
-	private final UnaryOperatorKind operator;
-	private final JPAExpression<Expression<Boolean>> operand;
+  private final JPAODataDatabaseProcessor converter;
+  private final UnaryOperatorKind operator;
+  private final JPAExpression<Boolean> operand;
 
-	public JPAUnaryBooleanOperatorImp(final JPAODataDatabaseProcessor converter, final UnaryOperatorKind operator,
-			final JPAExpression<Expression<Boolean>> operand) {
-		super();
-		this.converter = converter;
-		this.operator = operator;
-		this.operand = operand;
-	}
+  public JPAUnaryBooleanOperatorImp(final JPAODataDatabaseProcessor converter, final UnaryOperatorKind operator,
+      final JPAExpression<Boolean> operand) {
+    super();
+    this.converter = converter;
+    this.operator = operator;
+    this.operand = operand;
+  }
 
-	@Override
-	public Expression<Boolean> get() throws ODataApplicationException {
-		return converter.convert(this);
-	}
+  @Override
+  public Expression<Boolean> get() throws ODataApplicationException {
+    return converter.convert(this);
+  }
 
-	@Override
-	public Expression<Boolean> getOperand() throws ODataApplicationException {
-		return operand.get();
-	}
+  @Override
+  public Expression<Boolean> getOperand() throws ODataApplicationException {
+    return operand.get();
+  }
 
-	@Override
-	public UnaryOperatorKind getOperator() {
-		return operator;
-	}
+  @Override
+  public UnaryOperatorKind getOperator() {
+    return operator;
+  }
 
 }

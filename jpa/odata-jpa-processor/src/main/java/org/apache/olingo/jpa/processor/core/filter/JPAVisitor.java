@@ -47,6 +47,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
         HttpStatusCode.NOT_IMPLEMENTED, "Alias");
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public JPAExpressionElement<?> visitBinaryOperator(final BinaryOperatorKind operator,
       final JPAExpressionElement<?> left, final JPAExpressionElement<?> right)
@@ -61,7 +62,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
         || operator == BinaryOperatorKind.GT
         || operator == BinaryOperatorKind.LT
         || operator == BinaryOperatorKind.LE) {
-      return new JPAComparisonOperatorImp<>(this.jpaComplier.getConverter(), operator, left, right);
+      return new JPAComparisonOperatorImp(this.jpaComplier.getConverter(), operator,
+          (JPAExpressionElement<Comparable<?>>) left, (JPAExpressionElement<Comparable<?>>) right);
     } else if (operator == BinaryOperatorKind.AND || operator == BinaryOperatorKind.OR) {
       return new JPABooleanOperatorImp(this.jpaComplier.getConverter(), operator,
           checkBooleanExpressionOperand(left), checkBooleanExpressionOperand(right));
@@ -70,14 +72,16 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
         || operator == BinaryOperatorKind.MUL
         || operator == BinaryOperatorKind.DIV
         || operator == BinaryOperatorKind.MOD) {
-      return new JPAArithmeticOperatorImp(this.jpaComplier.getConverter(), operator, left, right);
+      return new JPAArithmeticOperatorImp(this.jpaComplier.getConverter(), operator,
+          (JPAExpressionElement<Number>) left,
+          (JPAExpressionElement<Number>) right);
     }
     throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
         HttpStatusCode.NOT_IMPLEMENTED, operator.name());
   }
 
   @SuppressWarnings("unchecked")
-  private JPAExpression<Expression<Boolean>> checkBooleanExpressionOperand(final JPAExpressionElement<?> operator)
+  private JPAExpression<Boolean> checkBooleanExpressionOperand(final JPAExpressionElement<?> operator)
       throws ODataJPAFilterException {
     if (JPAExpressionOperator.class.isInstance(operator)) {
       return JPAExpressionOperator.class.cast(operator);
@@ -87,7 +91,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       case CONTAINS:
       case STARTSWITH:
       case ENDSWITH:
-        return (JPAExpression<Expression<Boolean>>) operator;
+        return (JPAExpression<Boolean>) operator;
       default:
         // throw exception at end of method
       }
@@ -110,7 +114,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
           HttpStatusCode.NOT_IMPLEMENTED, "Multiple Enumeration values");
     }
     final Literal literal = new LiteralImpl(enumValues.get(0), type);
-    return new JPALiteralOperator(getOdata(), getCriteriaBuilder(), literal);
+    return new JPALiteralOperand(getOdata(), getCriteriaBuilder(), literal);
   }
 
   @Override
@@ -133,9 +137,10 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
   @Override
   public JPAExpressionElement<?> visitLiteral(final Literal literal)
       throws ExpressionVisitException, ODataApplicationException {
-    return new JPALiteralOperator(getOdata(), getCriteriaBuilder(), literal);
+    return new JPALiteralOperand(getOdata(), getCriteriaBuilder(), literal);
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public JPAExpressionElement<?> visitMember(final Member member)
       throws ExpressionVisitException, ODataApplicationException {
@@ -195,7 +200,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 
   boolean hasNavigation(final JPAExpressionElement<?> operand) {
     if (operand instanceof JPAMemberOperator) {
-      final List<UriResource> uriResourceParts = ((JPAMemberOperator) operand).getMember().getResourcePath()
+      final List<UriResource> uriResourceParts = ((JPAMemberOperator<?>) operand).getMember().getResourcePath()
           .getUriResourceParts();
       for (int i = uriResourceParts.size() - 1; i >= 0; i--) {
         if (uriResourceParts.get(i) instanceof UriResourceNavigation) {

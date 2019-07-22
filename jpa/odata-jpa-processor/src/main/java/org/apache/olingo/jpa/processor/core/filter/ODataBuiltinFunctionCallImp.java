@@ -10,47 +10,48 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 
 class ODataBuiltinFunctionCallImp implements ODataBuiltinFunctionCall {
-	private final MethodKind methodCall;
-	private final List<JPAExpressionElement<?>> parameters;
-	private final JPAODataDatabaseProcessor converter;
+  private final MethodKind methodCall;
+  private final List<JPAExpressionElement<?>> parameters;
+  private final JPAODataDatabaseProcessor converter;
 
-	public ODataBuiltinFunctionCallImp(final JPAODataDatabaseProcessor converter, final MethodKind methodCall,
-			final List<JPAExpressionElement<?>> parameters) {
-		super();
-		this.methodCall = methodCall;
-		this.parameters = parameters;
-		this.converter = converter;
-	}
+  public ODataBuiltinFunctionCallImp(final JPAODataDatabaseProcessor converter, final MethodKind methodCall,
+      final List<JPAExpressionElement<?>> parameters) {
+    super();
+    this.methodCall = methodCall;
+    this.parameters = parameters;
+    this.converter = converter;
+  }
 
-	@Override
-	public Expression<?> get() throws ODataApplicationException {
-		return converter.convertBuiltinFunction(methodCall, parameters);
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  public Expression<Object> get() throws ODataApplicationException {
+    return (Expression<Object>) converter.convertBuiltinFunction(methodCall, parameters);
+  }
 
-	@Override
-	public MethodKind getFunctionKind() {
-		return methodCall;
-	}
+  @Override
+  public MethodKind getFunctionKind() {
+    return methodCall;
+  }
 
-	@Override
-	public JPAExpressionElement<?> getParameter(final int index) {
-		return parameters.get(index);
-	}
+  @Override
+  public JPAExpressionElement<?> getParameter(final int index) {
+    return parameters.get(index);
+  }
 
-	@Override
-	public int noParameters() {
-		return parameters.size();
-	}
+  @Override
+  public int noParameters() {
+    return parameters.size();
+  }
 
-	@Override
-	public EdmPrimitiveTypeKind getResultType() {
-		switch (methodCall) {
-		case DATE:
-			return EdmPrimitiveTypeKind.Date;
-		case TIME:
-			return EdmPrimitiveTypeKind.TimeOfDay;
-		default:
-			return null;
-		}
-	}
+  @Override
+  public EdmPrimitiveTypeKind getResultType() {
+    switch (methodCall) {
+    case DATE:
+      return EdmPrimitiveTypeKind.Date;
+    case TIME:
+      return EdmPrimitiveTypeKind.TimeOfDay;
+    default:
+      return null;
+    }
+  }
 }
