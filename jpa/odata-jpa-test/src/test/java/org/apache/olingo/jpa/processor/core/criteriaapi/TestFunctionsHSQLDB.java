@@ -1,3 +1,4 @@
+package org.apache.olingo.jpa.processor.core.criteriaapi;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;

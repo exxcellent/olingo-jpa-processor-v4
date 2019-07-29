@@ -15,48 +15,50 @@ import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConv
 
 @Entity(name = "OrganizationImage")
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::OrganizationImage\"")
-public class OrganizationImage {
-	@Id
-	@Column(name = "\"ID\"")
-	private String ID;
+public class OrganizationImage implements BPImageIfc {
+  @Id
+  @Column(name = "\"ID\"")
+  private String ID;
 
-	@Column(name = "\"Image\"")
-	@EdmMediaStream(contentTypeAttribute = "mimeType")
-	private byte[] image;
+  @Column(name = "\"Image\"")
+  @EdmMediaStream(contentTypeAttribute = "mimeType")
+  private byte[] image;
 
-	@EdmIgnore
-	@Column(name = "\"MimeType\"")
-	private String mimeType;
+  @EdmIgnore
+  @Column(name = "\"MimeType\"")
+  private String mimeType;
 
-	@Column(name = "\"ThumbnailUrl\"", length = 4000)
-	@EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.String, converter = EdmUrlConverter.class)
-	private URL thumbnailUrl;
+  @Column(name = "\"ThumbnailUrl\"", length = 4000)
+  @EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.String, converter = EdmUrlConverter.class)
+  private URL thumbnailUrl;
 
-	String getID() {
-		return ID;
-	}
+  @Override
+  public String getID() {
+    return ID;
+  }
 
-	void setID(final String iD) {
-		ID = iD;
-	}
+  void setID(final String iD) {
+    ID = iD;
+  }
 
-	byte[] getImage() {
-		return image;
-	}
+  @Override
+  public byte[] getImage() {
+    return image;
+  }
 
-	void setImage(final byte[] image) {
-		this.image = image;
-	}
+  void setImage(final byte[] image) {
+    this.image = image;
+  }
 
-	String getMimeType() {
-		return mimeType;
-	}
+  String getMimeType() {
+    return mimeType;
+  }
 
-	void setMimeType(final String mimeType) {
-		this.mimeType = mimeType;
-	}
+  void setMimeType(final String mimeType) {
+    this.mimeType = mimeType;
+  }
 
-	public URL getThumbnailUrl() {
-		return thumbnailUrl;
-	}
+  public URL getThumbnailUrl() {
+    return thumbnailUrl;
+  }
 }
