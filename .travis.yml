@@ -19,8 +19,8 @@ cache:
 # 'true' will skip install step
 install: true
 stages:
-  - build_with_hibernate
-#  - build_with_eclipselink
+#  - build_with_hibernate
+  - build_with_eclipselink
 #  - deploy
 jobs:
   include:
