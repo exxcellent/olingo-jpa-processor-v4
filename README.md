@@ -1,14 +1,17 @@
 [![Build Status](https://travis-ci.org/exxcellent/olingo-jpa-processor-v4.svg?branch=eXXcellent_adaptions)](https://travis-ci.org/exxcellent/olingo-jpa-processor-v4)
 
 # First words...
-This is a major refactoring of the content now provided via [SAP/olingo-jpa-processor-v4](https://github.com/SAP/olingo-jpa-processor-v4). The content in this fork was modified before the GitHub project provided by SAP/Olingo was created and based on a initial archive attached to an [Olingo Issue](https://issues.apache.org/jira/browse/OLINGO-1010). One of the goals of this GitHub fork is to give back most of the code contributions to the origin project.
+This is a major refactoring of the content now provided via [SAP/olingo-jpa-processor-v4](https://github.com/SAP/olingo-jpa-processor-v4). The content in this fork was modified before the GitHub project provided by SAP was created and based on a initial archive attached to an [Olingo Issue](https://issues.apache.org/jira/browse/OLINGO-1010). Over the time the implementations of both GitHub projects became different in many parts. Most parts of the API maybe still compatible, but the supported functionality and behaviour at runtime will not.
+Currently we see no chance to give back most of the code contributions to the origin project. So using one of the jpa processor forks may be a decision forever.
 
-# Generic OLingo (OData) JPA Adapter
+# Generic OData-JPA-Adapter
 This library implements functionality to enable CRUD operations for an JPA based data model in a OData (REST) environment.
-Developers using this library have to write only a few lines of code to get a servlet running handling all typical operations to read, write/update and delete JPA entities as OData/REST resources. Additional supported out-of-the-box functionality defined by the [OData](http://www.odata.org/) standard is:
-* Call Java methods like remote procedure call (RPC) as OData bound actions
+Developers using this library have to write only a few lines of code to get a servlet running handling all typical operations to read, write/update and delete JPA entities as [OData](http://www.odata.org/)/REST resources. Additional supported out-of-the-box functionality is:
+* Call Java methods as OData actions
+* Define custom OData entities outside JPA via DTO classes to get benefits from OData, but avoiding the persistence layer from JPA 
+* Limit access to resources/actions with authorisation checks
+* A few builtin automatic datatype conversions (including time types) to mediate between OData, Java and the JPA/Database
 * Sorting + filtering for results
-* Define DTO classes to get benefits from OData, but hiding the real persistence layer 
 
 # Documentation
 ## For integrators
