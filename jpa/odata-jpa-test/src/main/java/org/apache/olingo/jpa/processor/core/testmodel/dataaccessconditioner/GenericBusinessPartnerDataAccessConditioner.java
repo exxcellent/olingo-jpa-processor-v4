@@ -9,7 +9,7 @@ import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.server.api.ODataApplicationException;
 
-public class BusinessPartnerDataAccessConditioner implements DataAccessConditioner<GenericBusinessPartner> {
+public class GenericBusinessPartnerDataAccessConditioner implements DataAccessConditioner<GenericBusinessPartner> {
 
 	public enum SelectionStrategy {
 		ALL, OnlyPersons, OnlyOrganizations;

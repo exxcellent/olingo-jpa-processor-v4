@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.exxcellent.olingo-generic-processor</groupId>
 		<artifactId>olingo-generic-processor-root-pom</artifactId>
-		<version>0.25.1-SNAPSHOT</version>
+		<version>0.25.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -155,28 +155,7 @@
 		</profile>
 	</profiles>
 		
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>cobertura-maven-plugin</artifactId>
-					<configuration>
-						<instrumentation>
-							<excludes>
-								<exclude>org/apache/olingo/**/sample/**/*.class</exclude>
-								<exclude>org/apache/olingo/**/tecsvc/**/*.class</exclude>
-								<exclude>org/apache/olingo/**/fit/**/*.class</exclude>
-								<exclude>org/apache/olingo/**/testutil/**/*.class</exclude>
-							</excludes>
-						</instrumentation>
-						<check />
-						<aggregate>true</aggregate>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		
+	<build>		
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
