@@ -33,7 +33,6 @@
 	<modules>
 		<module>jpa</module>
 		<module>jpa-examples</module>
-		<!-- module>overall-coverage-report</module-->
 	</modules>
 
 	<dependencyManagement>
