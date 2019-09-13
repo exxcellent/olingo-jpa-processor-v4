@@ -28,9 +28,6 @@
 		<openjpa.version>3.0.0</openjpa.version>
 		<hibernate.version>5.4.1.Final</hibernate.version>
 		<coveralls.version>4.3.0</coveralls.version>
-		
-		<!-- skip this module -->
-		<coveralls.skip>true</coveralls.skip>
 	</properties>
 
 	<modules>
@@ -407,7 +404,7 @@
 					<artifactId>coveralls-maven-plugin</artifactId>
 					<version>${coveralls.version}</version>
 					<configuration>
-						<jacocoReports>${basedir}/target/jacoco-ut/jacoco.xml</jacocoReports>
+						<relativeReportDirs>/jacoco-ut</relativeReportDirs>
 						<repoToken>COVERALLS_TOKEN</repoToken>
 					</configuration>
 					<dependencies>
