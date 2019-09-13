@@ -15,7 +15,11 @@
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		
+		<!-- enable for coverage report -->
+		<coveralls.skip>true</coveralls.skip>
 	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
