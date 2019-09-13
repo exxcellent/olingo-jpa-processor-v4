@@ -27,7 +27,10 @@
 		<eclipselink.version>2.7.4</eclipselink.version>
 		<openjpa.version>3.0.0</openjpa.version>
 		<hibernate.version>5.4.1.Final</hibernate.version>
-		<coveralls.version>4.3.0</coveralls.version>		
+		<coveralls.version>4.3.0</coveralls.version>
+		
+		<!-- skip this module -->
+		<coveralls.skip>true</coveralls.skip>
 	</properties>
 
 	<modules>
