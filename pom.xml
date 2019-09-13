@@ -404,7 +404,9 @@
 					<artifactId>coveralls-maven-plugin</artifactId>
 					<version>${coveralls.version}</version>
 					<configuration>
-						<relativeReportDirs>/jacoco-ut</relativeReportDirs>
+						<relativeReportDirs>
+							<relativeReportDir>/jacoco-ut</relativeReportDir>						
+						</relativeReportDirs>
 						<repoToken>COVERALLS_TOKEN</repoToken>
 					</configuration>
 					<dependencies>
