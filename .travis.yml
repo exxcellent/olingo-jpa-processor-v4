@@ -20,6 +20,7 @@ install: true
 stages:
   - build_with_hibernate
   - build_with_eclipselink
+  - upload_coverage_report
   - deploy
 jobs:
   include:
