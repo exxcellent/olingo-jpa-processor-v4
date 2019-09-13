@@ -16,6 +16,8 @@
 	
 	<properties>
 		<disable.enhancer>false</disable.enhancer>
+		<!-- Do not coverage the test model -->
+		<jacoco.skip>true</jacoco.skip>
 	</properties>
 	
 	<dependencies>

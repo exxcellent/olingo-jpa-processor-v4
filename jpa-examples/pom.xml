@@ -13,10 +13,12 @@
 	<artifactId>odata-jpa-examples</artifactId>
 	<packaging>pom</packaging>
 
-	<name>OData-JPA bridge examples</name>
+	<name>OData-JPA-Adapter examples</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
+		<!-- Do not coverage the examples code -->
+		<jacoco.skip>true</jacoco.skip>
 	</properties>
 
 	<dependencies>
@@ -28,6 +30,10 @@
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
 			<plugin>
 				<!-- skip deployment of this module -->
 				<groupId>org.apache.maven.plugins</groupId>

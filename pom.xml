@@ -7,7 +7,7 @@
 	<version>0.25.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>OData-JPA bridge Root POM</name>
+	<name>OData-JPA-Adapter Root POM</name>
 	<url>https://gitlab.exxcellent.de/akad/olingo-generic-processor</url>
 
 	<properties>
@@ -23,15 +23,17 @@
 		<olingo.version>4.6.0</olingo.version>
 		<jetty.version>9.4.14.v20181114</jetty.version>
 		<jackson.version>2.9.8</jackson.version>
-		<javax.version>4.0.1</javax.version>
+		<javax.servlet.version>4.0.1</javax.servlet.version>
 		<eclipselink.version>2.7.4</eclipselink.version>
 		<openjpa.version>3.0.0</openjpa.version>
 		<hibernate.version>5.4.1.Final</hibernate.version>
+		<coveralls.version>4.3.0</coveralls.version>		
 	</properties>
 
 	<modules>
 		<module>jpa</module>
 		<module>jpa-examples</module>
+		<module>overall-coverage-report</module>
 	</modules>
 
 	<dependencyManagement>
@@ -151,7 +153,7 @@
 			<dependency>
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
-				<version>${javax.version}</version>
+				<version>${javax.servlet.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -209,6 +211,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.22.1</version>
 					<configuration>
+                        <argLine>${surefireArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
 						<systemProperties>
 							<property>
@@ -216,6 +219,9 @@
 								<value>target/derby.log</value>
 							</property>
 						</systemProperties>
+                        <excludes>
+                            <exclude>**/*IT.java</exclude>
+                        </excludes>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -223,7 +229,11 @@
 					<artifactId>maven-failsafe-plugin</artifactId>
 					<version>2.22.1</version>
 					<configuration>
+                        <argLine>${failsafeArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
+                        <includes>
+                            <include>**/*IT.java</include>
+                        </includes>
 					</configuration>
 					<executions>
 						<execution>
@@ -300,19 +310,111 @@
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>0.8.4</version>
 					<executions>
+                        <!--
+                            Prepares the property pointing to the JaCoCo runtime agent which
+                            is passed as VM argument when Maven the Surefire plugin is executed.
+                        -->
+                        <execution>
+                            <id>pre-unit-test</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <!-- Sets the name to the file which contains the execution data. -->
+                                <destFile>${basedir}/target/jacoco.exec</destFile>
+                                <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
+                                <propertyName>surefireArgLine</propertyName>
+                                <append>true</append>
+                            </configuration>
+                        </execution>
+                        <!--
+                            Ensures that the code coverage report for unit tests is created after
+                            unit tests have been run.
+                        -->
+                        <execution>
+                            <id>post-unit-test</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <!-- Sets the name to the file which contains the execution data. -->
+                                <dataFile>${basedir}/target/jacoco.exec</dataFile>
+                                <!-- Sets the output directory for the code coverage report. -->
+                                <outputDirectory>${basedir}/target/jacoco-ut</outputDirectory>
+                            </configuration>
+                        </execution>
+                        <!--
+                            Prepares the property pointing to the JaCoCo runtime agent which
+                            is passed as VM argument when Maven the Failsafe plugin is executed.
+                        -->
+                        <execution>
+                            <id>pre-integration-test</id>
+                            <phase>pre-integration-test</phase>
+                            <goals>
+                                <goal>prepare-agent-integration</goal>
+                            </goals>
+                            <configuration>
+                                <!-- Sets the name to the file which contains the execution data. -->
+                                <destFile>${basedir}/target/jacoco-it.exec</destFile>
+                                <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
+                                <propertyName>failsafeArgLine</propertyName>
+                                <append>true</append>
+                            </configuration>
+                        </execution>
+                        <!--
+                            Ensures that the code coverage report for integration tests after
+                            integration tests have been run.
+                        -->
+                        <execution>
+                            <id>post-integration-test</id>
+                            <phase>post-integration-test</phase>
+                            <goals>
+                                <goal>report-integration</goal>
+                            </goals>
+                            <configuration>
+                                <!-- Sets the name to the file which contains the execution data. -->
+                                <dataFile>${basedir}/target/jacoco-it.exec</dataFile>
+                                <!-- Sets the output directory for the code coverage report. -->
+                                <outputDirectory>${basedir}/target/jacoco-it</outputDirectory>
+                            </configuration>
+                        </execution>
+						<!-- defined disabled aggregated unit test coverage report -->
+					  	<!-- Skip, because we have a separate model (overall-coverage-report) creating the report there -->
 						<execution>
-							<goals>
-								<goal>prepare-agent</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>report</id>
-							<phase>prepare-package</phase>
+							<id>aggregate-reports-ut</id>
+							<phase>test</phase>
 							<goals>
 								<goal>report-aggregate</goal>
-							</goals>
+							</goals>						  
+							<configuration>
+								<skip>true</skip>
+								<title>Coverage of Unit Tests</title>
+								<outputDirectory>${basedir}/target/jacoco-aggregate-ut</outputDirectory>
+								<dataFileExcludes>
+									<!-- exclude coverage data of integration tests --> 
+									<dataFileExclude>**/target/jacoco-it.exec</dataFileExclude>
+								</dataFileExcludes>								
+							</configuration>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.eluder.coveralls</groupId>
+					<artifactId>coveralls-maven-plugin</artifactId>
+					<version>${coveralls.version}</version>
+					<configuration>
+						<jacocoReports>${basedir}/target/jacoco-ut/jacoco.xml</jacocoReports>
+						<repoToken>COVERALLS_TOKEN</repoToken>
+					</configuration>
+					<dependencies>
+						<!-- temporary workaround to get it working with Java greater JDK 8 -->
+						<dependency>
+						    <groupId>javax.xml.bind</groupId>
+						    <artifactId>jaxb-api</artifactId>
+						    <version>2.2.3</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 			</plugins>
 		</pluginManagement>

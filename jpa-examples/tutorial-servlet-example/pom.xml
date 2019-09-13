@@ -12,7 +12,7 @@
 	<artifactId>olingo-generic-servlet-example</artifactId>
 	<packaging>war</packaging>
 
-	<name>OData-JPA bridge servlet-example</name>
+	<name>OData-JPA-Adapter servlet-example</name>
 
 	<properties>
 	  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

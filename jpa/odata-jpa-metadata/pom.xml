@@ -17,6 +17,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
 	<dependencies>
 		<dependency>
 		    <groupId>javax.persistence</groupId>
@@ -88,8 +89,8 @@
                         </goals>
                     </execution>
                 </executions>   
-            </plugin>			
-	  	</plugins>		
+            </plugin>
+	  	</plugins>
 	</build>
 	
 </project>
