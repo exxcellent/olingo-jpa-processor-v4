@@ -398,25 +398,6 @@
 						</execution>
 					</executions>
 				</plugin>
-				<plugin>
-					<groupId>org.eluder.coveralls</groupId>
-					<artifactId>coveralls-maven-plugin</artifactId>
-					<version>${coveralls.version}</version>
-					<configuration>
-						<relativeReportDirs>
-							<relativeReportDir>/jacoco-ut</relativeReportDir>						
-						</relativeReportDirs>
-						<repoToken>COVERALLS_TOKEN</repoToken>
-					</configuration>
-					<dependencies>
-						<!-- temporary workaround to get it working with Java greater JDK 8 -->
-						<!-- dependency>
-						    <groupId>javax.xml.bind</groupId>
-						    <artifactId>jaxb-api</artifactId>
-						    <version>2.2.3</version>
-						</dependency-->
-					</dependencies>
-				</plugin>
 			</plugins>
 		</pluginManagement>
 
