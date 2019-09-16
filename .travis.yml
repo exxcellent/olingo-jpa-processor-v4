@@ -24,17 +24,17 @@ stages:
 #  - deploy
 jobs:
   include:
-    - stage: build_with_hibernate
-      script: mvn clean verify -Duse-hibernate -DskipITs -Dmaven.source.skip -Dmaven.javadoc.skip
+#    - stage: build_with_hibernate
+#      script: mvn clean verify -Duse-hibernate -DskipITs -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: build_with_eclipselink
       script: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: upload_coverage_report
       script: mvn jacoco:report && bash <(curl -s https://codecov.io/bash)
-    - stage: deploy
-      provider: script
-      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
-      skip_cleanup: false
-      on:
-        branch: eXXcellent_adaptions
+#    - stage: deploy
+#      provider: script
+#      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
+#      skip_cleanup: false
+#      on:
+#        branch: eXXcellent_adaptions
 
 
