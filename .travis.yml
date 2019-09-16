@@ -29,7 +29,7 @@ jobs:
     - stage: build_with_eclipselink
       script: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: upload_coverage_report
-      script: mvn jacoco:report && bash <(curl -s https://codecov.io/bash)
+      script: mvn jacoco:report && bash <(curl -s https://codecov.io/bash) -Z -s jpa/odata-jpa-processor/target/jacoco-ut -s jpa/odata-jpa-metadata/target/jacoco-ut
 #    - stage: deploy
 #      provider: script
 #      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
