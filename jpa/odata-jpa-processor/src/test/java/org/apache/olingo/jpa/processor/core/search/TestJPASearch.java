@@ -10,8 +10,10 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.commons.core.Encoder;
 import org.apache.olingo.jpa.processor.core.database.JPA_HANADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
@@ -27,8 +29,8 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testAllAttributesSimpleCase() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations?$search = Org");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").search("Org");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode ents = helper.getValues();
@@ -43,8 +45,9 @@ public class TestJPASearch extends TestBase {
         "Hibernate has a stupid parameter binding check not accepting '%001%' as pattern for java.net.URL attribute",
         getJPAProvider() != JPAProvider.Hibernate);
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "DatatypeConversionEntities?$search = \"001\"");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
+        "\"001\"");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode ents = helper.getValues();
@@ -56,8 +59,10 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testMultipleAttributesSearchWithComplexExpression() throws IOException, ODataException {
 
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
+        "anywhere OR \"888\"");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "DatatypeConversionEntities?$search = anywhere OR \"888\"");
+        uriBuilder);
     // not supported -> TODO
     helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -77,8 +82,24 @@ public class TestJPASearch extends TestBase {
     // use HANA SQL dialect working against H2 database (will only work for SQL code generation not at runtime)
     persistenceAdapter = new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
         properties, new JPA_HANADatabaseProcessor());
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "DatatypeConversionEntities?$search = AnyWhere");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
+        "AnyWhere");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
+
+  @Test
+  public void testUmlautInPhrase() throws IOException, ODataException {
+
+    // double encoding required because OLINGO-1239
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisionDescriptions").search(
+        "\"" + Encoder.encode(Encoder.encode("ö")) + "\"");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode ents = helper.getValues();
+    assertEquals(1, ents.size());
+    assertTrue(ents.get(0).get("Name").asText().equals("Bezirk Löwen"));
   }
 
 }
