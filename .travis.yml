@@ -22,7 +22,6 @@ install: true
 stages:
   - build_with_hibernate
   - build_with_eclipselink + coverage upload
-  - upload_coverage_report
   - deploy
 
 # define the jobs self for all the stages
