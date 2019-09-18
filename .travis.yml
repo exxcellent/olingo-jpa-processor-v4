@@ -21,23 +21,22 @@ install: true
 # define the stage ordering for job building
 stages:
   - build_with_hibernate
-  - build_with_eclipselink
+  - build_with_eclipselink + coverage upload
   - upload_coverage_report
   - deploy
 
 # define the jobs self for all the stages
 jobs:
   include:
-#    - stage: build_with_hibernate
-#      script: mvn clean verify -Duse-hibernate -DskipITs -Dmaven.source.skip -Dmaven.javadoc.skip
+    - stage: build_with_hibernate
+      script: mvn clean verify -Duse-hibernate -DskipITs -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: build_with_eclipselink + coverage upload
       script: mvn clean verify jacoco:report -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
       after_success: 
         bash <(curl -s https://codecov.io/bash) -X gcov -Z -F unittests -f jpa/odata-jpa-processor/target/jacoco-ut/jacoco.xml -f jpa/odata-jpa-metadata/target/jacoco-ut/jacoco.xml
-#    - stage: deploy
-#      provider: script
-#      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
-#      skip_cleanup: false
+    - stage: deploy
+      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
+      skip_cleanup: false
       on:
         branch: eXXcellent_adaptions
 
