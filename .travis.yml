@@ -17,11 +17,15 @@ cache:
     - $HOME/.m2/repository
 # 'true' will skip install step
 install: true
+
+# define the stage ordering for job building
 stages:
-#  - build_with_hibernate
+  - build_with_hibernate
   - build_with_eclipselink
   - upload_coverage_report
-#  - deploy
+  - deploy
+
+# define the jobs self for all the stages
 jobs:
   include:
 #    - stage: build_with_hibernate
@@ -29,7 +33,7 @@ jobs:
     - stage: build_with_eclipselink
       script: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
     - stage: upload_coverage_report
-      script: mvn clean verify jacoco:report && bash <(curl -s https://codecov.io/bash) -X gcov -Z -F unittests -f jpa/odata-jpa-processor/target/jacoco-ut/jacoco.xml -f jpa/odata-jpa-metadata/target/jacoco-ut/jacoco.xml
+      script: mvn clean verify jacoco:report -DskipITs -Dmaven.source.skip -Dmaven.javadoc.skip && bash <(curl -s https://codecov.io/bash) -X gcov -Z -F unittests -f jpa/odata-jpa-processor/target/jacoco-ut/jacoco.xml -f jpa/odata-jpa-metadata/target/jacoco-ut/jacoco.xml
 #    - stage: deploy
 #      provider: script
 #      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
