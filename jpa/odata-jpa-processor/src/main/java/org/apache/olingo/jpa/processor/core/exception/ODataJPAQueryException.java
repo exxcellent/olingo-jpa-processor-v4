@@ -9,7 +9,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAMessageK
  */
 public class ODataJPAQueryException extends ODataJPAProcessException {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -7188499882306858747L;
 
@@ -25,7 +25,8 @@ public class ODataJPAQueryException extends ODataJPAProcessException {
     QUERY_PREPARATION_ENTITY_UNKNOWN,
     QUERY_PREPARATION_INVALID_VALUE,
     QUERY_PREPARATION_ERROR,
-    NOT_SUPPORTED_RESOURCE_TYPE;
+    NOT_SUPPORTED_RESOURCE_TYPE,
+    ENTITY_NOT_FOUND;
 
     @Override
     public String getKey() {
