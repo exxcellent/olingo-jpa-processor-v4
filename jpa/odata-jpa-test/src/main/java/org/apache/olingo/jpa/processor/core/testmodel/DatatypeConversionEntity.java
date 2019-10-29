@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.chrono.IsoEra;
@@ -16,6 +17,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
@@ -103,10 +105,9 @@ public class DatatypeConversionEntity extends AbstractEntity {
 	@Column(name = "\"ABoolean\"")
 	private boolean aBoolean;
 
-
 	@EdmAction()
 	public static boolean unboundActionCheckAllValueSettings(
-			@EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
+	        @EdmActionParameter(name = "jpaEnity") final DatatypeConversionEntity jpaEnity) {
 		if (jpaEnity == null) {
 			throw new IllegalStateException("Entity not given");
 		}
@@ -144,4 +145,23 @@ public class DatatypeConversionEntity extends AbstractEntity {
 		result.add("two");
 		return result;
 	}
+
+	/**
+	 *
+	 * @return Received informations about the file: file name [0] and size[1]
+	 */
+	@EdmAction
+	public static Collection<String> uploadFile(@EdmActionParameter(name = "file") @NotNull final java.io.InputStream stream,
+	        @EdmActionParameter(name = "filename") final String fileName) throws IOException {
+		final Collection<String> result = new LinkedList<>();
+		result.add(fileName);
+		int length = 0;
+		while (stream.read() > -1) {
+			length++;
+		}
+		result.add(Integer.toString(length));
+		stream.close();
+		return result;
+	}
+
 }

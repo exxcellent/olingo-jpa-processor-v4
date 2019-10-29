@@ -108,10 +108,11 @@ public class JPAEntityHelper {
 		} catch (final InvocationTargetException e) {
 			log.log(Level.FINE, "Invocation of bound action '" + jpaAction.getExternalName()
 			        + "' failed (will rethrow target exception): " + e.getMessage());
-			if (ODataApplicationException.class.isInstance(e.getTargetException()))
+			if (ODataApplicationException.class.isInstance(e.getTargetException())) {
 				throw ODataApplicationException.class.cast(e.getTargetException());
-			else
+			} else {
 				throw new ODataJPAModelException(e);
+			}
 		} catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new ODataJPAModelException(e);
 		}
@@ -138,6 +139,9 @@ public class JPAEntityHelper {
 			// fill OData parameters
 			final Parameter p = odataParameterValues.get(jpaParameter.getName());
 			if (p == null) {
+				if (!jpaParameter.isNullable()) {
+					throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER, jpaParameter.getName());
+				}
 				continue;
 			}
 			switch (p.getValueType()) {

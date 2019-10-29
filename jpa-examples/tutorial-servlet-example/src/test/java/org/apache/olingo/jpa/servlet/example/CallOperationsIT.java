@@ -1,12 +1,24 @@
 package org.apache.olingo.jpa.servlet.example;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.olingo.client.api.communication.response.ODataInvokeResponse;
 import org.apache.olingo.client.api.domain.ClientComplexValue;
@@ -25,12 +37,18 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
@@ -94,20 +112,6 @@ public class CallOperationsIT {
 		response.close();
 	}
 
-	@Ignore("No functions are available in test environment")
-	@Test
-	public void test05FunctionUnbound() throws Exception {
-		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendOperationCallSegment("IS_PRIME");
-		final Map<String, ClientValue> functionParameters = new HashMap<>();
-		functionParameters.put("Number", new ClientPrimitiveValueImpl.BuilderImpl().buildDecimal(BigDecimal.valueOf(123.456)));
-		final ODataInvokeResponse<ClientInvokeResult> response = endpoint.callFunction(uriBuilder, ClientInvokeResult.class,
-		        functionParameters);
-		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
-		// String sCount = response.getBody().toCastValue(String.class);
-		// Assert.assertTrue(Integer.valueOf(sCount).intValue() > 0);
-		response.close();
-	}
-
 	@Ignore
 	@Test
 	public void test04DataConversionUnboundActionUnbound() throws Exception {
@@ -146,4 +150,64 @@ public class CallOperationsIT {
 		Assert.assertTrue(success.booleanValue());
 	}
 
+	@Ignore("No functions are available in test environment")
+	@Test
+	public void test05FunctionUnbound() throws Exception {
+		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendOperationCallSegment("IS_PRIME");
+		final Map<String, ClientValue> functionParameters = new HashMap<>();
+		functionParameters.put("Number", new ClientPrimitiveValueImpl.BuilderImpl().buildDecimal(BigDecimal.valueOf(123.456)));
+		final ODataInvokeResponse<ClientInvokeResult> response = endpoint.callFunction(uriBuilder, ClientInvokeResult.class,
+		        functionParameters);
+		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+		// String sCount = response.getBody().toCastValue(String.class);
+		// Assert.assertTrue(Integer.valueOf(sCount).intValue() > 0);
+		response.close();
+	}
+
+	private Client buildClient() {
+		final ClientBuilder builder = ClientBuilder.newBuilder();
+		builder.register(MultiPartFeature.class);
+		return builder.build();
+	}
+
+	@Test
+	public void test06UnboundActionFileUpload() throws Exception {
+		final URIBuilder uriBuilder = endpoint.newUri().appendOperationCallSegment("uploadFile");
+		URI uri = uriBuilder.build();
+		// the uri builder is buggy, because OLingo does not accept tailing '()' for operations without parameters
+		if (uri.toString().endsWith("()")) {
+			final String uriString = uri.toString();
+			uri = URI.create(uriString.substring(0, uriString.length() - 2));
+		}
+
+		final Client client = buildClient();
+		final WebTarget target = client.target(uri);
+		final String orgFileName = "test.png";
+		final InputStream fileIs = this.getClass().getClassLoader().getResourceAsStream(orgFileName);
+		final int fileSize = fileIs.available();
+		final StreamDataBodyPart filePart = new StreamDataBodyPart(
+		        "file",
+		        fileIs,
+		        orgFileName,
+		        MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+		final String testFileName = "fn" + Long.toString(System.currentTimeMillis()) + "-" + orgFileName;
+		final FormDataMultiPart multipartPart = new FormDataMultiPart();
+		multipartPart.bodyPart(new FormDataBodyPart("filename", testFileName, MediaType.TEXT_PLAIN_TYPE));
+		multipartPart.bodyPart(filePart);
+		final Response response = target.request().accept(MediaType.APPLICATION_JSON_TYPE)
+		        .header(HttpHeaders.AUTHORIZATION, endpoint.determineAuthorization())
+		        .post(Entity.entity(multipartPart, multipartPart.getMediaType()));
+		multipartPart.close();
+		Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+		final String json = response.readEntity(String.class);
+		response.close();
+		Assert.assertNotNull(json);
+		final ObjectMapper mapper = new ObjectMapper();
+		final Map<?, ?> map = mapper.readValue(json, Map.class);
+		Assert.assertEquals(testFileName, ((List<?>) map.get("value")).get(0));
+		// the received file size on server side must match
+		Assert.assertEquals(fileSize, Integer.parseInt((String) ((List<?>) map.get("value")).get(1)));
+
+	}
 }

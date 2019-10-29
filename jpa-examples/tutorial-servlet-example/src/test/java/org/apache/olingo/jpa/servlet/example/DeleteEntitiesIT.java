@@ -30,9 +30,9 @@ public class DeleteEntitiesIT {
 	public void testDeleteNonExistingPerson() {
 		final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("9555559");
 		try {
-			final ODataDeleteResponse response = endpoint.deleteEntity(uriBuilder,
-					"Delete non existing person with ID 9555559");
-		} catch(final ODataClientErrorException ex) {
+			endpoint.deleteEntity(uriBuilder,
+			        "Delete non existing person with ID 9555559");
+		} catch (final ODataClientErrorException ex) {
 			Assert.assertTrue(ex.getStatusLine().getStatusCode() == HttpStatusCode.NOT_FOUND.getStatusCode());
 		}
 	}
@@ -45,7 +45,7 @@ public class DeleteEntitiesIT {
 		Assert.assertTrue(response.getStatusCode() == HttpStatusCode.NO_CONTENT.getStatusCode());
 		response.close();
 		final int countAfter = countPersons();
-		Assert.assertEquals(countBefore, countAfter+1);
+		Assert.assertEquals(countBefore, countAfter + 1);
 	}
 
 	@Test

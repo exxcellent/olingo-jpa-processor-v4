@@ -8,7 +8,7 @@
     <version>0.25.5-SNAPSHOT</version>
   </parent>
   <artifactId>odata-jpa-annotation</artifactId>
-  <name>odata-jpa-annotation</name>
+  <name>OData-JPA-Adapter data model configuration API</name>
   <url>http://maven.apache.org</url>
   
   <properties>

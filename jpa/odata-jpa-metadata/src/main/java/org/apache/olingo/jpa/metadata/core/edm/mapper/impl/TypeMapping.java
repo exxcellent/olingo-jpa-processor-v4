@@ -149,7 +149,9 @@ public final class TypeMapping {
 			return mapTemporalType(javaMember);
 		} else if (jpaType.equals(UUID.class)) {
 			return EdmPrimitiveTypeKind.Guid;
-		} else if (jpaType.equals(Byte[].class)) {
+		} else if (jpaType.equals(Byte[].class) || jpaType.equals(byte[].class)) {
+			return EdmPrimitiveTypeKind.Binary;
+		} else if (jpaType.equals(java.io.InputStream.class)) {
 			return EdmPrimitiveTypeKind.Binary;
 		} else if (jpaType.equals(Blob.class) && isBlob(javaMember)) {
 			return EdmPrimitiveTypeKind.Binary;
@@ -399,8 +401,9 @@ public final class TypeMapping {
 		if (Collection.class.isAssignableFrom(field.getType())) {
 			// javaType = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
 			javaType = TypeMapping.extractElementTypeOfCollection(field);
-		} else
+		} else {
 			javaType = field.getType();
+		}
 		if (javaType == null) {
 			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
 			        "Java type not available");
