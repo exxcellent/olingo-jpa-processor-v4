@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -26,6 +28,7 @@ import org.apache.olingo.server.core.deserializer.DeserializerResultImpl;
 
 public class MultipartFormDataDeserializer implements ODataDeserializer {
 
+	private final Logger log = Logger.getLogger(ODataDeserializer.class.getName());
 	private final ODataRequest request;
 
 	public MultipartFormDataDeserializer(final ODataRequest request) {
@@ -53,7 +56,9 @@ public class MultipartFormDataDeserializer implements ODataDeserializer {
 				final FileItemStream item = iter.next();
 				final String parameterName = item.getFieldName();
 
-				checkActionParameter(edmAction, parameterName);
+				if (!checkActionParameter(edmAction, parameterName)) {
+					continue;
+				}
 
 				try (final InputStream stream = item.openStream();) {
 					final Parameter parameter = new Parameter();
@@ -84,7 +89,7 @@ public class MultipartFormDataDeserializer implements ODataDeserializer {
 		}
 	}
 
-	private void checkActionParameter(final EdmAction edmAction, final String parameterName) throws DeserializerException {
+	private boolean checkActionParameter(final EdmAction edmAction, final String parameterName) throws DeserializerException {
 		for (final String aN : edmAction.getParameterNames()) {
 			if (!aN.equals(parameterName)) {
 				continue;
@@ -93,7 +98,7 @@ public class MultipartFormDataDeserializer implements ODataDeserializer {
 			switch (edmParameter.getType().getKind()) {
 			case PRIMITIVE:
 				// the only supported type(s)
-				return;
+				return true;
 			case DEFINITION:
 			case ENUM:
 			case COMPLEX:
@@ -104,10 +109,10 @@ public class MultipartFormDataDeserializer implements ODataDeserializer {
 				        DeserializerException.MessageKeys.INVALID_ACTION_PARAMETER_TYPE, parameterName);
 			}
 		}
-		throw new DeserializerException(
+		log.log(Level.FINE,
 		        "The multi part/form-data entry with name '" + parameterName + "' is not an known action parameter name. Must be one of: "
-		                + String.join(", ", edmAction.getParameterNames()),
-		        DeserializerException.MessageKeys.UNKNOWN_CONTENT, parameterName);
+		                + String.join(", ", edmAction.getParameterNames()));
+		return false;
 	}
 
 	@Override

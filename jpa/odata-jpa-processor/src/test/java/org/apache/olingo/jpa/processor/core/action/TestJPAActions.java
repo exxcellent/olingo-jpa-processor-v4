@@ -376,7 +376,12 @@ public class TestJPAActions extends TestBase {
 		requestBody.append("Content-Disposition: form-data; name=\"filename\"").append(NEW_LINE);
 		requestBody.append(NEW_LINE);
 		requestBody.append(fileName).append(NEW_LINE);
-		// part 2: the file content
+		// part 3: ignored data
+		requestBody.append("--").append(boundary).append(NEW_LINE);
+		requestBody.append("Content-Disposition: form-data; name=\"document-data\"").append(NEW_LINE);
+		requestBody.append(NEW_LINE);
+		requestBody.append("useless content").append(NEW_LINE);
+		// part 3: the file content
 		requestBody.append("--").append(boundary).append(NEW_LINE);
 		requestBody.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"").append(NEW_LINE);
 		requestBody.append("Content-Type: application/octet-stream").append(NEW_LINE);// content type of multi part entry
