@@ -482,6 +482,10 @@ public abstract class AbstractConverter {
     return embeddedIdFieldObject;
   }
 
+  /**
+   *
+   * @return The resulting property value from JPA entity instance
+   */
   private Object transferComplexOData2JPAProperty(final Object targetJPAObject, final JPAStructuredType jpaEntityType,
       final JPAAttribute<?> jpaAttribute, final Property sourceOdataProperty)
           throws ODataJPAModelException, ODataJPAConversionException, NoSuchFieldException, IllegalArgumentException,
@@ -538,6 +542,7 @@ public abstract class AbstractConverter {
       } else {
         // mmmhh above we force the existence of that complex value object and now set it to null?!
         jpaAttribute.getAttributeAccessor().setPropertyValue(targetJPAObject, null);
+        embeddedFieldObject = null;
       }
     }
     return embeddedFieldObject;
