@@ -12,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 
 @Entity(name = "PersonImage")
@@ -64,6 +66,16 @@ public class PersonImage implements BPImageIfc {
 
   void setImage(final byte[] image) {
     this.image = image;
+  }
+
+  /**
+   * used for integration test to check correct handling of missed complex type (@Embedded) entries while conversion.
+   */
+  @EdmAction
+  public static void checkPersonImageWithoutEmbeddedArgument(@EdmActionParameter(name = "pi") final PersonImage pi) {
+    if (pi.administrativeInformation != null) {
+      throw new IllegalStateException("Test should send person image without embedded administrativeInformation data");
+    }
   }
 
 }

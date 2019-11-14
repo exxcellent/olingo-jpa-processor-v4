@@ -358,4 +358,21 @@ public class TestJPAActions extends TestBase {
     assertTrue(((ObjectNode) helper.getValues().get(0)).get("SystemRequirements").size() == 3);
   }
 
+  @Test
+  public void testUnboundActionWithMissedEmbedded() throws IOException, ODataException {
+
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("\"pi\": {");
+    requestBody.append("\"PID\": \"dummyId\", ");
+    requestBody.append("\"AdministrativeInformation\": null");// empty to check handling
+    requestBody.append("}");
+    requestBody.append("}");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("checkPersonImageWithoutEmbeddedArgument");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
+
+    helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+  }
+
 }
