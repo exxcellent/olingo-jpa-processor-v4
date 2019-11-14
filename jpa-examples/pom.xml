@@ -25,6 +25,7 @@
 	</dependencies>
 
 	<modules>
+		<!-- module>java-client-api-generator-example</module-->
 		<module>tutorial-servlet-example</module>
 	</modules>
 

@@ -12,50 +12,54 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 public abstract class AbstractJPASchema implements JPAElement {
 
-	private final JPAEdmNameBuilder nameBuilder;
+  private final JPAEdmNameBuilder nameBuilder;
 
-	public AbstractJPASchema(final String namespace) {
-		nameBuilder = new JPAEdmNameBuilder(namespace);
-	}
+  public AbstractJPASchema(final String namespace) {
+    nameBuilder = new JPAEdmNameBuilder(namespace);
+  }
 
-	protected final JPAEdmNameBuilder getNameBuilder() {
-		return nameBuilder;
-	}
+  protected final JPAEdmNameBuilder getNameBuilder() {
+    return nameBuilder;
+  }
 
-	@Override
-	public FullQualifiedName getExternalFQN() {
-		return nameBuilder.buildFQN(getExternalName());
-	}
+  @Override
+  public FullQualifiedName getExternalFQN() {
+    return nameBuilder.buildFQN(getExternalName());
+  }
 
-	@Override
-	public String getExternalName() {
-		return nameBuilder.buildNamespace();
-	}
+  @Override
+  public String getExternalName() {
+    return nameBuilder.buildNamespace();
+  }
 
-	@Override
-	public String getInternalName() {
-		return getExternalName();
-	}
+  @Override
+  public String getInternalName() {
+    return getExternalName();
+  }
 
-	abstract IntermediateEnumType getEnumType(final Class<?> targetClass);
+  abstract IntermediateEnumType getEnumType(final Class<?> targetClass);
 
-	abstract JPAEntityType getEntityType(final Class<?> targetClass);
+  abstract JPAEntityType getEntityType(final Class<?> targetClass);
 
-	abstract JPAEntityType getEntityType(final String externalName);
+  abstract JPAEntityType getEntityType(final String externalName);
 
-	abstract JPAFunction getFunction(final String externalName);
+  abstract JPAFunction getFunction(final String externalName);
 
-	abstract List<JPAFunction> getFunctions();
+  abstract List<JPAFunction> getFunctions();
 
-	abstract JPAAction getAction(final String externalName);
+  abstract JPAAction getAction(final String externalName);
 
-	abstract List<JPAAction> getActions();
+  abstract List<JPAAction> getActions();
 
-	public abstract CsdlSchema getEdmItem() throws ODataJPAModelException;
+  public abstract CsdlSchema getEdmItem() throws ODataJPAModelException;
 
-	abstract IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
+  abstract IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
 
-	abstract List<JPAEntityType> getEntityTypes();
+  abstract List<JPAEntityType> getEntityTypes();
 
-	abstract IntermediateComplexType getComplexType(final Class<?> targetClass);
+  abstract List<IntermediateComplexType> getComplexTypes();
+
+  abstract List<IntermediateEnumType> getEnumTypes();
+
+  abstract IntermediateComplexType getComplexType(final Class<?> targetClass);
 }
