@@ -6,6 +6,8 @@
 1. Extend the OData-JPA bridge  
     * Use [DTO's](DTOConcept.md) instead of JPA mapped entities      
     * Call Java methods as OData [action](Actions.md)  
+1. Detailed informations  
+    * More [hints](MoreHints.md)  
 
 ---
 # Known issues

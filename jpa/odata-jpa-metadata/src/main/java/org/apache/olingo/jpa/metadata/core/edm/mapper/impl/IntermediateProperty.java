@@ -145,11 +145,14 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 	}
 
 	boolean isStream() {
-		return streamInfo == null ? false : streamInfo.stream();
+		return (streamInfo != null);
 	}
 
 	@SuppressWarnings("unchecked")
 	private FullQualifiedName createTypeName() throws ODataJPAModelException {
+		if (isStream()) {
+			return EdmPrimitiveTypeKind.Stream.getFullQualifiedName();
+		}
 		switch (jpaAttribute.getPersistentAttributeType()) {
 		case BASIC:
 			if (jpaAttribute.getJavaType().isEnum()) {

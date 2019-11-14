@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.25.5-SNAPSHOT</version>
+	<version>0.26.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>
@@ -22,6 +22,7 @@
 		<logback.version>1.2.3</logback.version>
 		<olingo.version>4.6.0</olingo.version>
 		<jetty.version>9.4.14.v20181114</jetty.version>
+        <jersey.version>2.27</jersey.version>
 		<jackson.version>2.9.8</jackson.version>
 		<javax.servlet.version>4.0.1</javax.servlet.version>
 		<eclipselink.version>2.7.4</eclipselink.version>
@@ -47,6 +48,11 @@
 				<artifactId>jaxws-api</artifactId>
 				<version>2.3.0</version>
 			</dependency>
+		    <dependency>
+		    	<groupId>javax.ws.rs</groupId>
+		    	<artifactId>javax.ws.rs-api</artifactId>
+			    <version>2.1.1</version>
+		    </dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -63,6 +69,7 @@
 				<version>${logback.version}</version>
 			</dependency>
 			<dependency>
+				<!-- required by logback-classic -->
 		    	<groupId>org.codehaus.janino</groupId>
 		    	<artifactId>janino</artifactId>
 		    	<version>3.0.10</version>
@@ -176,6 +183,11 @@
 				<version>3.3.2</version>
 			</dependency>
 			<dependency>
+			    <groupId>commons-fileupload</groupId>
+			    <artifactId>commons-fileupload</artifactId>
+			    <version>1.4</version>
+			</dependency>					
+			<dependency>
 				<groupId>com.googlecode.flyway</groupId>
 				<artifactId>flyway-core</artifactId>
 				<version>2.3.1</version>
@@ -190,6 +202,21 @@
 			    <artifactId>javax.inject</artifactId>
 			    <version>1</version>
 			</dependency>
+	        <dependency>
+	            <groupId>org.glassfish.jersey.core</groupId>
+	            <artifactId>jersey-client</artifactId>
+	            <version>${jersey.version}</version>
+	        </dependency>
+			<dependency>
+			    <groupId>org.glassfish.jersey.media</groupId>
+			    <artifactId>jersey-media-multipart</artifactId>
+	            <version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.inject</groupId>
+				<artifactId>jersey-hk2</artifactId>
+	            <version>${jersey.version}</version>
+			</dependency>			
 		</dependencies>
 	</dependencyManagement>
 

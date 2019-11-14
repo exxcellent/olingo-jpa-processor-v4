@@ -39,7 +39,7 @@ public @interface ODataEntity {
 
 	/**
 	 *
-	 * @return The class implementing the logic to handle custom logic for JPA query generation.
+	 * @return The class implementing the functionality to handle custom logic for JPA query generation.
 	 */
 	Class<? extends DataAccessConditioner<?>> handlerDataAccessConditioner() default DEFAULT.class;
 }

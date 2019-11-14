@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa.examples</groupId>
 		<artifactId>odata-jpa-examples</artifactId>
-		<version>0.25.5-SNAPSHOT</version>
+		<version>0.26.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -85,8 +85,29 @@
 		<dependency>
 		   	<groupId>org.codehaus.janino</groupId>
 		   	<artifactId>janino</artifactId>
-		</dependency>		
-  </dependencies>
+	        <scope>runtime</scope>
+		</dependency>
+	    <dependency>
+	    	<groupId>javax.ws.rs</groupId>
+	    	<artifactId>javax.ws.rs-api</artifactId>
+			<scope>test</scope>
+	    </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+			<scope>test</scope>
+        </dependency>
+		<dependency>
+		    <groupId>org.glassfish.jersey.media</groupId>
+		    <artifactId>jersey-media-multipart</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

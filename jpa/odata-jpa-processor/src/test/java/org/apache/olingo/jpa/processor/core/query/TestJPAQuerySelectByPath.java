@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.testmodel.ImageLoader;
@@ -19,8 +20,9 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
 	@Test
 	public void testNavigationToOwnPrimitiveProperty() throws IOException, ODataException {
-
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Organizations('3')/Name1");
+		final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
+		        .appendNavigationSegment("Name1");
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -31,8 +33,9 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	@Test
 	public void testNavigationToOwnPrimitiveDescriptionProperty() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('3')/LocationName");
+		final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
+		        .appendNavigationSegment("LocationName");
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -42,8 +45,9 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	@Test
 	public void testNavigationToComplexProperty() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/Address");
+		final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("4")
+		        .appendNavigationSegment("Address");
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -54,7 +58,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationToNestedComplexProperty() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/AdministrativeInformation/Created");
+		        "Organizations('4')/AdministrativeInformation/Created");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -67,7 +71,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationViaComplexAndNaviPropertyToPrimitive() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('3')/AdministrativeInformation/Created/User/FirstName");
+		        "Organizations('3')/AdministrativeInformation/Created/User/FirstName");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -78,7 +82,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationToComplexPropertySelect() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/Address?$select=Country,Region");
+		        "Organizations('4')/Address?$select=Country,Region");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -91,7 +95,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationToComplexPropertyExpand() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/Address");
+		        "Organizations('4')/Address");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -102,7 +106,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationToComplexPrimitiveProperty() throws IOException, ODataException {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/Address/Region");
+		        "Organizations('4')/Address/Region");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final ObjectNode org = helper.getValue();
@@ -115,7 +119,9 @@ public class TestJPAQuerySelectByPath extends TestBase {
 	public void testNavigationToStreamValue() throws IOException, ODataException {
 		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "PersonImages('99')/$value");
+		final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").appendKeySegment("99").appendValueSegment();
+		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final byte[] act = helper.getBinaryResult();
@@ -128,7 +134,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Persons('99')/Image/$value");
+		        "Persons('99')/Image/$value");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final byte[] act = helper.getBinaryResult();
@@ -141,7 +147,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/AdministrativeInformation/Created/By/$value");
+		        "Organizations('4')/AdministrativeInformation/Created/By/$value");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String act = helper.getRawResult();
@@ -154,7 +160,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 		new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Organizations('4')/ID/$value");
+		        "Organizations('4')/ID/$value");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String act = helper.getRawResult();
