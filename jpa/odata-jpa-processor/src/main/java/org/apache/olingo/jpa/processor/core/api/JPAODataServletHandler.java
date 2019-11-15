@@ -16,6 +16,7 @@ import org.apache.olingo.jpa.processor.core.processor.JPAODataActionProcessor;
 import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
+import org.apache.olingo.jpa.processor.core.util.MultipartFormDataContentTypeSupport;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
 
@@ -51,6 +52,7 @@ public class JPAODataServletHandler {
 		final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(this);
 		context.initializeRequestContext(request);
 		handler.register(context.getDebugSupport());
+		handler.register(new MultipartFormDataContentTypeSupport());// for file uploads
 
 		final Collection<Processor> processors = collectProcessors(request, response, handler.getEntityManager());
 		for (final Processor p : processors) {

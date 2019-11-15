@@ -1,13 +1,15 @@
 package org.apache.olingo.jpa.processor.core.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class HttpRequestHeaderDouble {
+
+	static final String HEADER_CONTENT_TYPE = "Content-Type";
+
 	private final HashMap<String, List<String>> headers;
 
 	public HttpRequestHeaderDouble() {
@@ -26,73 +28,37 @@ public class HttpRequestHeaderDouble {
 		headerValue.add("max-age=0");
 		headers.put("cache-control", headerValue);
 
-		headerValue = new ArrayList<String>();
-		headerValue.add("text/html,application/json,application/xml;q=0.9,image/webp,*/*;q=0.8");
-		headers.put("accept", headerValue);
-
-		headerValue = new ArrayList<String>();
-		headerValue.add("gzip, deflate, sdch");
-		headers.put("accept-encoding", headerValue);
-
-		addHeader("accept-language", "de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4");
+		setHeader("accept", "text/html,application/json,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		setHeader("accept-encoding", "gzip, deflate, sdch");
+		setHeader("accept-language", "de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4");
 
 	}
 
-	public void addHeader(final String headerKey, final String headerValue) {
+	/**
+	 * Set new value or replace existing value(s) for same key.
+	 *
+	 */
+	public void setHeader(final String headerKey, final String headerValue) {
 		final List<String> headerValues = new ArrayList<String>(1);
 		headerValues.add(headerValue);
 		headers.put(headerKey, headerValues);
 	}
 
-	public Enumeration<String> getEnumerator() {
-		return new HeaderEnumerator(headers.keySet());
+	public Enumeration<String> getHeaderNamesEnumeration() {
+		return Collections.enumeration(headers.keySet());
 	}
 
-	public Enumeration<String> get(final String headerName) {
-		return new headerItem(headers.get(headerName));
+	public Enumeration<String> getHeaderValues(final String headerName) {
+		return Collections.enumeration(headers.get(headerName));
+	}
+
+	public boolean hasHeader(final String name) {
+		return headers.containsKey(name);
 	}
 
 	public void setBatchRequest() {
 		final List<String> headerValue = new ArrayList<String>();
 		headerValue.add("multipart/mixed;boundary=abc123");
 		headers.put("content-type", headerValue);
-	}
-
-	class HeaderEnumerator implements Enumeration<String> {
-
-		private final Iterator<String> keys;
-
-		HeaderEnumerator(final Set<String> keySet) {
-			keys = keySet.iterator();
-		}
-
-		@Override
-		public boolean hasMoreElements() {
-			return keys.hasNext();
-		}
-
-		@Override
-		public String nextElement() {
-			return keys.next();
-		}
-	}
-
-	class headerItem implements Enumeration<String> {
-		private final Iterator<String> keys;
-
-		public headerItem(final List<String> header) {
-			keys = header.iterator();
-		}
-
-		@Override
-		public boolean hasMoreElements() {
-			return keys.hasNext();
-		}
-
-		@Override
-		public String nextElement() {
-			return keys.next();
-		}
-
 	}
 }
