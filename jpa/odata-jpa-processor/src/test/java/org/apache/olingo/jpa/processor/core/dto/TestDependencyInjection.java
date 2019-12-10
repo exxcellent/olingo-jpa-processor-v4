@@ -30,98 +30,98 @@ import org.junit.Test;
 
 public class TestDependencyInjection extends TestBase {
 
-	@ODataDTO(handler = DtoHandler.class)
-	public static class Dto {
-		@Id
-		private long id;
-	}
+  @ODataDTO(handler = DtoHandler.class)
+  public static class Dto {
+    @Id
+    private long id;
+  }
 
-	public static class DtoHandler implements ODataDTOHandler<Dto> {
+  public static class DtoHandler implements ODataDTOHandler<Dto> {
 
-		@Inject
-		private HttpServletRequest request;
+    @Inject
+    private HttpServletRequest request;
 
-		@Inject
-		private HttpServletResponse response;
+    @Inject
+    private HttpServletResponse response;
 
-		@Inject
-		private JPAAdapter persistenceAdapter;
+    @Inject
+    private JPAAdapter persistenceAdapter;
 
-		@Inject
-		private JPAEdmProvider edmProvider;
+    @Inject
+    private JPAEdmProvider edmProvider;
 
-		@Inject
-		private EntityManager em;
+    @Inject
+    private EntityManager em;
 
-		@Override
-		public Collection<Dto> read(final UriInfoResource requestedResource) throws RuntimeException {
-			checkInjection();
-			final Collection<Dto> result = new LinkedList<>();
+    @Override
+    public Collection<Dto> read(final UriInfoResource requestedResource) throws RuntimeException {
+      checkInjection();
+      final Collection<Dto> result = new LinkedList<>();
 
-			final Dto dto1 = new Dto();
-			dto1.id = 1;
-			result.add(dto1);
+      final Dto dto1 = new Dto();
+      dto1.id = 1;
+      result.add(dto1);
 
-			final Dto dto2 = new Dto();
-			dto2.id = 2;
-			result.add(dto2);
+      final Dto dto2 = new Dto();
+      dto2.id = 2;
+      result.add(dto2);
 
-			return result;
-		};
+      return result;
+    };
 
-		@Override
-		public void write(final UriInfoResource requestedResource, final Dto dto) throws RuntimeException {
-			checkInjection();
-		}
+    @Override
+    public void write(final UriInfoResource requestedResource, final Dto dto) throws RuntimeException {
+      checkInjection();
+    }
 
-		private void checkInjection() throws RuntimeException {
-			if (request == null) {
-				throw new IllegalStateException("HttpServletRequest not injected");
-			}
-			if (response == null) {
-				throw new IllegalStateException("HttpServletResponse not injected");
-			}
-			if (persistenceAdapter == null) {
-				throw new IllegalStateException("JPAAdapter not injected");
-			}
-			if (edmProvider == null) {
-				throw new IllegalStateException("JPAEdmProvider not injected");
-			}
-			if (em == null) {
-				throw new IllegalStateException("EntityManager not injected");
-			}
+    private void checkInjection() throws RuntimeException {
+      if (request == null) {
+        throw new IllegalStateException("HttpServletRequest not injected");
+      }
+      if (response == null) {
+        throw new IllegalStateException("HttpServletResponse not injected");
+      }
+      if (persistenceAdapter == null) {
+        throw new IllegalStateException("JPAAdapter not injected");
+      }
+      if (edmProvider == null) {
+        throw new IllegalStateException("JPAEdmProvider not injected");
+      }
+      if (em == null) {
+        throw new IllegalStateException("EntityManager not injected");
+      }
 
-		}
-	}
+    }
+  }
 
-	@Before
-	public void setup() throws ODataJPAModelException {
-		persistenceAdapter.registerDTO(Dto.class);
-	}
+  @Before
+  public void setup() throws ODataJPAModelException {
+    persistenceAdapter.registerDTO(Dto.class);
+  }
 
-	@Test
-	public void testReadDTO() throws IOException, ODataException, SQLException {
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-				"Dtos");
-		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(helper.getValues().size() == 2);
-	}
+  @Test
+  public void testReadDTO() throws IOException, ODataException, SQLException {
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+        "Dtos");
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    assertTrue(helper.getValues().size() == 2);
+  }
 
-	@Test
-	public void testWriteDTO() throws IOException, ODataException, SQLException {
-		final String id = Integer.toString((int) System.currentTimeMillis());
-		final StringBuffer requestBody = new StringBuffer("{");
-		requestBody.append("\"Id\": " + id);
-		requestBody.append("}");
+  @Test
+  public void testWriteDTO() throws IOException, ODataException, SQLException {
+    final String id = Integer.toString((int) System.currentTimeMillis());
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("\"Id\": " + id);
+    requestBody.append("}");
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Dtos(" + id + ")",
-				requestBody, HttpMethod.PUT);
-		helper.execute(HttpStatusCode.OK.getStatusCode());
-	}
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Dtos(" + id + ")",
+        requestBody.toString(), HttpMethod.PUT);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testInvalidType() {
-		final DependencyInjector injector = new DependencyInjector();
-		injector.registerDependencyMapping(Integer.class, Integer.valueOf(2));
-	}
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidType() {
+    final DependencyInjector injector = new DependencyInjector();
+    injector.registerDependencyMapping(Integer.class, Integer.valueOf(2));
+  }
 }

@@ -2,12 +2,18 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.provider.CsdlNamed;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 class TypeMetaAPIWriter extends AbstractWriter {
@@ -47,17 +53,47 @@ class TypeMetaAPIWriter extends AbstractWriter {
     return propNameUpperCase + "_NAME";
   }
 
-  public void writeMetaTypeProperty(final CsdlNavigationProperty prop) throws IOException {
+  public void writePropertiesMetaInformations() throws ODataJPAModelException, IOException {
+    final List<JPASimpleAttribute> simpleAttributes = type.getAttributes();
+    final List<JPAAssociationAttribute> navigationAttributes = type.getAssociations();
+    // navigation properties
+    for (final JPAAssociationAttribute prop : navigationAttributes) {
+      writeMetaTypeProperty(prop);
+    }
+    // simple properties
+    for (final JPASimpleAttribute prop : simpleAttributes) {
+      writeMetaTypeProperty(prop);
+    }
+
+  }
+
+  private void writeMetaTypeProperty(final JPAAssociationAttribute attribute) throws IOException,
+  ODataJPAModelException {
+    final CsdlNavigationProperty prop = attribute.getProperty();
     write(NEWLINE + NEWLINE + "\t");
     write("public final static String " + determineTypeMetaPropertyNameConstantName(prop) + " = \"" + prop.getName()
     + "\";");
   }
 
-  public void writeMetaTypeProperty(final CsdlProperty prop) throws IOException {
+  private void writeMetaTypeProperty(final JPASimpleAttribute attribute) throws IOException, ODataJPAModelException {
+    if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
+      // write attributes of embedded key type directly in that entity meta
+      for (final JPASimpleAttribute prop : attribute.getStructuredType().getAttributes()) {
+        writeMetaTypeProperty(prop);
+      }
+      return;
+    }
+    final CsdlProperty prop = attribute.getProperty();
     final String propNameUpperCase = determineTypeMetaPropertyConstantName(prop);
-    write(NEWLINE + NEWLINE + "\t");
-    write("public final static String " + determineTypeMetaPropertyNameConstantName(prop) + " = \"" + prop.getName()
-    + "\";");
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "public final static String " + determineTypeMetaPropertyNameConstantName(prop) + " = \""
+        + prop.getName() + "\";");
+    if (attribute.getAttributeMapping() == AttributeMapping.SIMPLE && !attribute.getType().isPrimitive()
+        && determineEmdPrimitiveType(attribute) != EdmPrimitiveTypeKind.Binary) {
+      write(NEWLINE + "\t" + "public final static Class<" + TypeDtoAPIWriter
+          .determineClientSidePropertyRawJavaTypeName(attribute, false) + "> " + propNameUpperCase + "_DATATYPE = "
+          + TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false) + ".class;");
+    }
     if (prop.getMaxLength() != null) {
       write(NEWLINE + "\t");
       write("public final static int " + propNameUpperCase + "_MAXLENGTH = " + prop.getMaxLength().intValue() + ";");
@@ -72,6 +108,13 @@ class TypeMetaAPIWriter extends AbstractWriter {
     }
   }
 
+  private EdmPrimitiveTypeKind determineEmdPrimitiveType(final JPATypedElement attribute) {
+    try {
+      return TypeMapping.convertToEdmSimpleType(attribute);
+    } catch (final ODataJPAModelException e) {
+      return null;
+    }
+  }
   public void writeMetaEnd() throws IOException {
     write(NEWLINE + "}");
     closeFile();

@@ -2,11 +2,11 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 
 import java.net.URI;
 
-public class BusinessPartnerAccess extends AbstractBusinessPartnerAccess {
+public class DatatypeConversionEntityAccess extends AbstractDatatypeConversionEntityAccess {
 
   private final URI serviceUrl;
 
-  public BusinessPartnerAccess(final URI serviceUrl) {
+  public DatatypeConversionEntityAccess(final URI serviceUrl) {
     this.serviceUrl = serviceUrl;
   }
 

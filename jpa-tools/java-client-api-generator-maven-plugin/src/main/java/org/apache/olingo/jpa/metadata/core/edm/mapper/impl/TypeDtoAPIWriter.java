@@ -7,27 +7,33 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.olingo.jpa.generator.api.client.generatorclassloader.LogWrapper;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
 class TypeDtoAPIWriter extends AbstractWriter {
 
-  private final String typeName;
-  private final String typeMetaName;
+  private final JPAStructuredType type;
+  private final LogWrapper log;
 
-  public TypeDtoAPIWriter(final File generationBaseDirectory, final String packageName, final String typeName) {
-    super(generationBaseDirectory, packageName, determineTypeName(typeName));
-    this.typeName = determineTypeName(typeName);
-    this.typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(typeName);
+  public TypeDtoAPIWriter(final File generationBaseDirectory, final JPAStructuredType st, final LogWrapper log) {
+    super(generationBaseDirectory, st.getTypeClass().getPackage().getName(), determineTypeName(st.getTypeClass()
+        .getSimpleName()));
+    this.type = st;
+    this.log = log;
   }
 
   public void writeDtoStart() throws IOException {
     createFile();
     write(HEADER_TEXT);
+    final String typeName = determineTypeName(type.getTypeClass().getSimpleName());
+    final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(type.getTypeClass().getSimpleName());
     write(NEWLINE + "public class " + typeName + " implements " + typeMetaName + " {");
   }
 
@@ -44,11 +50,15 @@ class TypeDtoAPIWriter extends AbstractWriter {
     return "set" + determineBeanPropertyName(attribute);
   }
 
-  private static <T extends JPAAttribute<?>> String determineServerSideTypeName(final T attribute)
-      throws ODataJPAModelException {
+  private static <T extends JPAAttribute<?>> String determineServerSideTypeName(final T attribute,
+      final boolean convertPrimitiveClassToObjectClass)
+          throws ODataJPAModelException {
     if (JPASimpleAttribute.class.isInstance(attribute)) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
+        if (convertPrimitiveClassToObjectClass) {
+          return convertPrimitiveClassToObjectClass(JPASimpleAttribute.class.cast(attribute).getType()).getName();
+        }
         return (JPASimpleAttribute.class.cast(attribute).getType().getName());
       case AS_COMPLEX_TYPE:
         return attribute.getStructuredType().getInternalName();
@@ -63,30 +73,92 @@ class TypeDtoAPIWriter extends AbstractWriter {
     }
   }
 
-  static <T extends JPAAttribute<?>> String determineClientSidePropertyJavaType(final T attribute)
-      throws ODataJPAModelException {
+  private static Class<?> convertPrimitiveClassToObjectClass(final Class<?> clazz) {
+    if (clazz.isPrimitive()) {
+      if (long.class == clazz) {
+        return Long.class;
+      }
+      if (int.class == clazz) {
+        return Integer.class;
+      }
+      if (short.class == clazz) {
+        return Short.class;
+      }
+      if (double.class == clazz) {
+        return Double.class;
+      }
+      if (float.class == clazz) {
+        return Float.class;
+      }
+      if (char.class == clazz) {
+        return Character.class;
+      }
+      if (byte.class == clazz) {
+        return Byte.class;
+      }
+      if (boolean.class == clazz) {
+        return Boolean.class;
+      }
+    }
+    return clazz;
+  }
+
+  static <T extends JPAAttribute<?>> String determineClientSidePropertyRawJavaTypeName(final T attribute,
+      final boolean convertPrimitiveClassToObjectClass)
+          throws ODataJPAModelException {
+    switch (attribute.getAttributeMapping()) {
+    case SIMPLE:
+      // simple types will have same name on client and server side
+      return determineServerSideTypeName(attribute, convertPrimitiveClassToObjectClass);
+    default:
+      // complex types are handled as 'DTO' on client side
+      return determineTypeName(determineServerSideTypeName(attribute, convertPrimitiveClassToObjectClass));
+    }
+  }
+
+  /**
+   * Same as {@link #determineClientSidePropertyRawJavaTypeName(JPAAttribute)} but will wrap the returned type into
+   * ...Collection&lt;..&gt; for collections.
+   */
+  static <T extends JPAAttribute<?>> String determineClientSidePropertyJavaTypeName(final T attribute,
+      final boolean convertPrimitiveClassToObjectClass)
+          throws ODataJPAModelException {
     final StringBuilder buffer = new StringBuilder();
     if (attribute.isCollection()) {
       buffer.append(Collection.class.getName() + "<");
     }
-    switch (attribute.getAttributeMapping()) {
-    case SIMPLE:
-      // simple types will have same name on client and server side
-      buffer.append(JPASimpleAttribute.class.cast(attribute).getType().getName());
-      break;
-    default:
-      // complex types are handled as 'DTO' on client side
-      buffer.append(determineTypeName(determineServerSideTypeName(attribute)));
-      break;
-    }
+    buffer.append(determineClientSidePropertyRawJavaTypeName(attribute, convertPrimitiveClassToObjectClass));
     if (attribute.isCollection()) {
       buffer.append('>');
     }
     return buffer.toString();
   }
 
+  public void writeDtoTypeProperties() throws ODataJPAModelException, IOException {
+    final List<JPASimpleAttribute> simpleAttributes = type.getAttributes();
+    final List<JPAAssociationAttribute> navigationAttributes = type.getAssociations();
+    String streamProperty = "";
+    if (IntermediateEntityType.class.isInstance(type)) {
+      if (IntermediateEntityType.class.cast(type).hasStream()) {
+        streamProperty = IntermediateEntityType.class.cast(type).getStreamAttributePath().getLeaf().getInternalName();
+      }
+    }
+    // navigation properties
+    for (final JPAAssociationAttribute prop : navigationAttributes) {
+      processAttribute(prop);
+    }
+    // simple properties
+    for (final JPASimpleAttribute prop : simpleAttributes) {
+      if (streamProperty.equals(prop.getInternalName())) {
+        log.debug("Suppress stream property " + type.getExternalName() + "+" + prop.getInternalName() + " in API");
+        continue;
+      }
+      processAttribute(prop);
+    }
+  }
+
   @SuppressWarnings("unchecked")
-  public void writeDtoTypeProperty(final JPAAttribute<?> attribute) throws IOException, ODataJPAModelException {
+  private void processAttribute(final JPAAttribute<?> attribute) throws IOException, ODataJPAModelException {
     List<JPAAttribute<?>> listProcessAttributes;
     if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
       // special case for complex key attribute type having nested attributes
@@ -104,7 +176,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
   ODataJPAModelException {
     final String memberName = attribute.getInternalName();
     final String beanName = determineBeanPropertyName(attribute);
-    final String propClientType = determineClientSidePropertyJavaType(attribute);
+    final String propClientType = determineClientSidePropertyJavaTypeName(attribute, false);
 
     // attribute
     if (JPASimpleAttribute.class.isInstance(attribute) && JPASimpleAttribute.class.cast(attribute).getType()
@@ -117,7 +189,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     if (attribute.getAttributeMapping() == AttributeMapping.RELATIONSHIP) {
       write(NEWLINE + "\t" + "/**");
       write(NEWLINE + "\t" + " * @return Will be <code>null</code> if not loaded via $expand");
-      write(NEWLINE + "\t" + " * @see " + determineServerSideTypeName(attribute));
+      write(NEWLINE + "\t" + " * @see " + determineServerSideTypeName(attribute, false));
       write(NEWLINE + "\t" + " */");
     }
     write(NEWLINE + "\t" + "public " + propClientType + " get" + beanName + "() {");
