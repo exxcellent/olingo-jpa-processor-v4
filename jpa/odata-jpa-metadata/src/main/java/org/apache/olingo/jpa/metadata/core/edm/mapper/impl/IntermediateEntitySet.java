@@ -17,73 +17,74 @@ import org.apache.olingo.server.api.etag.CustomETagSupport;
  *
  */
 class IntermediateEntitySet extends IntermediateModelElement implements CustomETagSupport {
-	private final JPAEntityType entityType;
-	private CsdlEntitySet edmEntitySet;
+  private final JPAEntityType entityType;
+  private CsdlEntitySet edmEntitySet;
 
-	IntermediateEntitySet(final JPAEdmNameBuilder nameBuilder, final JPAEntityType et)
-			throws ODataJPAModelException {
-		super(nameBuilder, JPANameBuilder.buildEntitySetInternalName(nameBuilder, et));
-		entityType = et;
-		setExternalName(nameBuilder.buildEntitySetName(et.getExternalName()));
-	}
+  IntermediateEntitySet(final JPAEdmNameBuilder nameBuilder, final JPAEntityType et)
+      throws ODataJPAModelException {
+    super(nameBuilder, nameBuilder.buildFQN(et.getInternalName()).getFullQualifiedNameAsString());
+    entityType = et;
+    setExternalName(nameBuilder.buildEntitySetName(et.getExternalName()));
+  }
 
-	public JPAEntityType getEntityType() {
-		return entityType;
-	}
+  public JPAEntityType getEntityType() {
+    return entityType;
+  }
 
-	@Override
-	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		if (edmEntitySet == null) {
-			edmEntitySet = new CsdlEntitySet();
+  @Override
+  protected void lazyBuildEdmItem() throws ODataJPAModelException {
+    if (edmEntitySet == null) {
+      edmEntitySet = new CsdlEntitySet();
 
-			edmEntitySet.setName(getExternalName());
-			edmEntitySet.setType(nameBuilder.buildFQN(entityType.getExternalName()));
+      edmEntitySet.setName(getExternalName());
+      edmEntitySet.setType(getNameBuilder().buildFQN(entityType.getExternalName()));
 
-			// Create navigation Property Binding
-			// V4: An entity set or a singleton SHOULD contain an edm:NavigationPropertyBinding element for each navigation
-			// property of its entity type, including navigation properties defined on complex typed properties.
-			// If omitted, clients MUST assume that the target entity set or singleton can vary per related entity.
+      // Create navigation Property Binding
+      // V4: An entity set or a singleton SHOULD contain an edm:NavigationPropertyBinding element for each navigation
+      // property of its entity type, including navigation properties defined on complex typed properties.
+      // If omitted, clients MUST assume that the target entity set or singleton can vary per related entity.
 
-			final List<JPAAssociationPath> naviPropertyList = entityType.getAssociationPathList();
+      final List<JPAAssociationPath> naviPropertyList = entityType.getAssociationPathList();
 
-			if (naviPropertyList != null && !naviPropertyList.isEmpty()) {
-				// http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406398035
-				final List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
-				for (final JPAAssociationPath naviPropertyPath : naviPropertyList) {
-					final CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
-					navPropBinding.setPath(naviPropertyPath.getAlias());
+      if (naviPropertyList != null && !naviPropertyList.isEmpty()) {
+        // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406398035
+        final List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
+        for (final JPAAssociationPath naviPropertyPath : naviPropertyList) {
+          final CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
+          navPropBinding.setPath(naviPropertyPath.getAlias());
 
-					// TODO Check is FQN is better here
-					final IntermediateNavigationProperty naviProperty = ((IntermediateNavigationProperty) naviPropertyPath
-							.getLeaf());
-					navPropBinding.setTarget(nameBuilder.buildEntitySetName(naviProperty.getTargetEntity().getExternalName()));
-					navPropBindingList.add(navPropBinding);
-				}
-				edmEntitySet.setNavigationPropertyBindings(returnNullIfEmpty(navPropBindingList));
-			}
-		}
-	}
+          // TODO Check is FQN is better here
+          final IntermediateNavigationProperty naviProperty = ((IntermediateNavigationProperty) naviPropertyPath
+              .getLeaf());
+          navPropBinding.setTarget(getNameBuilder().buildEntitySetName(naviProperty.getTargetEntity()
+              .getExternalName()));
+          navPropBindingList.add(navPropBinding);
+        }
+        edmEntitySet.setNavigationPropertyBindings(returnNullIfEmpty(navPropBindingList));
+      }
+    }
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	CsdlEntitySet getEdmItem() throws ODataJPAModelException {
-		lazyBuildEdmItem();
-		return edmEntitySet;
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  CsdlEntitySet getEdmItem() throws ODataJPAModelException {
+    lazyBuildEdmItem();
+    return edmEntitySet;
+  }
 
-	@Override
-	public boolean hasETag(final EdmBindingTarget entitySetOrSingleton) {
-		try {
-			return entityType.hasEtag();
-		} catch (final ODataJPAModelException e) {
-			// TODO logging
-			return false;
-		}
-	}
+  @Override
+  public boolean hasETag(final EdmBindingTarget entitySetOrSingleton) {
+    try {
+      return entityType.hasEtag();
+    } catch (final ODataJPAModelException e) {
+      // TODO logging
+      return false;
+    }
+  }
 
-	@Override
-	public boolean hasMediaETag(final EdmBindingTarget entitySetOrSingleton) {
-		// TODO implement this
-		return false;
-	}
+  @Override
+  public boolean hasMediaETag(final EdmBindingTarget entitySetOrSingleton) {
+    // TODO implement this
+    return false;
+  }
 }

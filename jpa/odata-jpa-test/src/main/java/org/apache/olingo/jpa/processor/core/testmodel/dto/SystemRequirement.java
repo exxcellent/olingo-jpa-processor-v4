@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.testmodel.dto;
 
+import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 
 /**
@@ -9,27 +10,27 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
  * @author Ralf Zozmann
  *
  */
-@ODataDTO
+@ODataDTO(attributeNaming = NamingStrategy.AsIs)
 public class SystemRequirement {
 
-	private final String requirementName;
-	private final String requirementDescription;
+  private final String requirementName;
+  private final String requirementDescription;
 
-	public SystemRequirement() {
-		// default constructor for JPA
-		this(null, null);
-	}
+  public SystemRequirement() {
+    // default constructor for JPA
+    this(null, null);
+  }
 
-	SystemRequirement(final String requirementName, final String requirementDescription) {
-		this.requirementName = requirementName;
-		this.requirementDescription = requirementDescription;
-	}
+  SystemRequirement(final String requirementName, final String requirementDescription) {
+    this.requirementName = requirementName;
+    this.requirementDescription = requirementDescription;
+  }
 
-	public String getRequirementName() {
-		return requirementName;
-	}
+  public String getRequirementName() {
+    return requirementName;
+  }
 
-	public String getRequirementDescription() {
-		return requirementDescription;
-	}
+  public String getRequirementDescription() {
+    return requirementDescription;
+  }
 }

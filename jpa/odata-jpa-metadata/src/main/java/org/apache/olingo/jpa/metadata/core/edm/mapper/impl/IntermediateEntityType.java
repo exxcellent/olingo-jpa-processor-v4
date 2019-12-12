@@ -47,13 +47,24 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
   IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
       final IntermediateServiceDocument serviceDocument)
           throws ODataJPAModelException {
-    super(nameBuilder, et, serviceDocument);
-    this.setExternalName(nameBuilder.buildEntityTypeName(et));
+    super(determineEntityNameBuilder(nameBuilder, et.getJavaType()), et, serviceDocument);
+    this.setExternalName(getNameBuilder().buildEntityTypeName(et));
     final EdmIgnore jpaIgnore = ((AnnotatedElement) this.jpaManagedType.getJavaType()).getAnnotation(EdmIgnore.class);
     if (jpaIgnore != null) {
       this.setIgnore(true);
     }
     dac = buildDataAccessConditionerInstance(this.jpaManagedType.getJavaType());
+  }
+
+  private static JPAEdmNameBuilder determineEntityNameBuilder(final JPAEdmNameBuilder nameBuilderDefault,
+      final Class<?> entityClass) {
+    final ODataEntity entityAnnotation = entityClass.getAnnotation(ODataEntity.class);
+    if (entityAnnotation == null || entityAnnotation.attributeNaming() == null) {
+      // nothing to change
+      return nameBuilderDefault;
+    }
+    // prepare a custom name builder
+    return new JPAEdmNameBuilder(nameBuilderDefault.getNamespace(), entityAnnotation.attributeNaming());
   }
 
   private DataAccessConditioner<?> buildDataAccessConditionerInstance(final Class<?> entityClass) throws ODataJPAModelException {

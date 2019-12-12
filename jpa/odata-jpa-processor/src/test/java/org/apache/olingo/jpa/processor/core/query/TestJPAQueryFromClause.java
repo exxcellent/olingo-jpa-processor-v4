@@ -33,71 +33,72 @@ import org.junit.Test;
 
 public class TestJPAQueryFromClause extends TestBase {
 
-	private JPAEntityQuery cut;
-	private Root<?> root;
-	private JPAEntityType jpaEntityType;
+  private JPAEntityQuery cut;
+  @SuppressWarnings("unused")
+  private Root<?> root;
+  private JPAEntityType jpaEntityType;
 
-	@Before
-	public void setup() throws ODataException {
-		helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
-		jpaEntityType = helper.getJPAEntityType("Organizations");
-		final JPAODataContext context = new JPAODataContextAccessDouble(
-		        new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter, createHeaders());
-		cut = new JPAEntityQuery(new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
-		        persistenceAdapter.createEntityManager(), null);
-		root = cut.getRoot();
-	}
+  @Before
+  public void setup() throws ODataException {
+    helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
+    jpaEntityType = helper.getJPAEntityType("Organizations");
+    final JPAODataContext context = new JPAODataContextAccessDouble(
+        new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter, createHeaders());
+    cut = new JPAEntityQuery(new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
+        persistenceAdapter.createEntityManager(), null);
+    root = cut.getRoot();
+  }
 
-	@Test
-	public void checkFromListContainsRoot() throws ODataApplicationException {
-		final Map<String, From<?, ?>> act = cut.createFromClause(new ArrayList<JPAAssociationAttribute>());
-		assertNotNull(act.get(jpaEntityType.getInternalName()));
-	}
+  @Test
+  public void checkFromListContainsRoot() throws ODataApplicationException {
+    final Map<String, From<?, ?>> act = cut.createFromClause(new ArrayList<JPAAssociationAttribute>());
+    assertNotNull(act.get(jpaEntityType.getInternalName()));
+  }
 
-	@Test
-	public void checkFromListOrderByContainsOne() throws ODataJPAModelException, ODataApplicationException {
-		final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
-		final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
-		orderBy.add((JPAAssociationAttribute) exp);
+  @Test
+  public void checkFromListOrderByContainsOne() throws ODataJPAModelException, ODataApplicationException {
+    final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
+    final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
+    orderBy.add((JPAAssociationAttribute) exp);
 
-		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
-		assertNotNull(act.get(exp.getInternalName()));
-	}
+    final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
+    assertNotNull(act.get(exp.getInternalName()));
+  }
 
-	@Test
-	public void checkFromListOrderByOuterJoinOne() throws ODataJPAModelException, ODataApplicationException {
-		final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
-		final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
-		orderBy.add((JPAAssociationAttribute) exp);
+  @Test
+  public void checkFromListOrderByOuterJoinOne() throws ODataJPAModelException, ODataApplicationException {
+    final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
+    final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
+    orderBy.add((JPAAssociationAttribute) exp);
 
-		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
+    final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
 
-		@SuppressWarnings("unchecked")
-		final Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
-		final Set<Join<Organization, ?>> joins = root.getJoins();
-		assertEquals(1, joins.size());
+    @SuppressWarnings("unchecked")
+    final Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
+    final Set<Join<Organization, ?>> joins = root.getJoins();
+    assertEquals(1, joins.size());
 
-		for (final Join<Organization, ?> join : joins) {
-			assertEquals(JoinType.LEFT, join.getJoinType());
-		}
-	}
+    for (final Join<Organization, ?> join : joins) {
+      assertEquals(JoinType.LEFT, join.getJoinType());
+    }
+  }
 
-	@Test
-	public void checkFromListOrderByOuterJoinOnConditionOne() throws ODataJPAModelException, ODataApplicationException {
-		final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
-		final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
-		orderBy.add((JPAAssociationAttribute) exp);
+  @Test
+  public void checkFromListOrderByOuterJoinOnConditionOne() throws ODataJPAModelException, ODataApplicationException {
+    final List<JPAAssociationAttribute> orderBy = new ArrayList<JPAAssociationAttribute>();
+    final JPAAttribute<?> exp = helper.getJPAAssociation("Organizations", "roles");
+    orderBy.add((JPAAssociationAttribute) exp);
 
-		final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
+    final Map<String, From<?, ?>> act = cut.createFromClause(orderBy);
 
-		@SuppressWarnings("unchecked")
-		final Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
-		final Set<Join<Organization, ?>> joins = root.getJoins();
-		assertEquals(1, joins.size());
+    @SuppressWarnings("unchecked")
+    final Root<Organization> root = (Root<Organization>) act.get(jpaEntityType.getInternalName());
+    final Set<Join<Organization, ?>> joins = root.getJoins();
+    assertEquals(1, joins.size());
 
-		for (final Join<Organization, ?> join : joins) {
-			assertNull(join.getOn());
-		}
-	}
+    for (final Join<Organization, ?> join : joins) {
+      assertNull(join.getOn());
+    }
+  }
 
 }

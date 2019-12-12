@@ -25,59 +25,59 @@ import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcesso
  */
 public interface JPAAdapter {
 
-	/**
-	 * After creating a new entity manager a call to
-	 * {@link #beginTransaction(EntityManager)} will happen.
-	 */
-	public EntityManager createEntityManager() throws RuntimeException;
+  /**
+   * After creating a new entity manager a call to
+   * {@link #beginTransaction(EntityManager)} will happen.
+   */
+  public EntityManager createEntityManager() throws RuntimeException;
 
-	/**
-	 *
-	 * @see javax.transaction.UserTransaction#begin()
-	 */
-	public void beginTransaction(EntityManager em) throws RuntimeException;
+  /**
+   *
+   * @see javax.transaction.UserTransaction#begin()
+   */
+  public void beginTransaction(EntityManager em) throws RuntimeException;
 
-	/**
-	 * Finish usage of entity manager (transaction).
-	 *
-	 * @see javax.transaction.UserTransaction#commit()
-	 */
-	public void commitTransaction(EntityManager em) throws RuntimeException;
+  /**
+   * Finish usage of entity manager (transaction).
+   *
+   * @see javax.transaction.UserTransaction#commit()
+   */
+  public void commitTransaction(EntityManager em) throws RuntimeException;
 
-	/**
-	 * Cancel usage of entity manager (transaction).
-	 *
-	 * @see javax.transaction.UserTransaction#rollback()
-	 */
-	public void cancelTransaction(EntityManager em) throws RuntimeException;
+  /**
+   * Cancel usage of entity manager (transaction).
+   *
+   * @see javax.transaction.UserTransaction#rollback()
+   */
+  public void cancelTransaction(EntityManager em) throws RuntimeException;
 
-	/**
-	 *
-	 * @return The name space used on OData for JPA entities.
-	 */
-	public String getNamespace();
+  /**
+   *
+   * @return The name space used on OData for JPA entities coming from {@link #getMetamodel()}.
+   */
+  public String getNamespace();
 
-	public Metamodel getMetamodel();
+  public Metamodel getMetamodel();
 
-	/**
-	 * @return An empty, non empty or <code>null</code> collection of non persistent
-	 *         (non JPA) POJOs classes to handle as OData entities.
-	 * @see org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO
-	 *      annotation
-	 */
-	public Collection<Class<?>> getDTOs();
+  /**
+   * @return An empty, non empty or <code>null</code> collection of non persistent
+   *         (non JPA) POJOs classes to handle as OData entities.
+   * @see org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO
+   *      annotation
+   */
+  public Collection<Class<?>> getDTOs();
 
-	/**
-	 *
-	 * @return The implementor knowing the database specific SQL dialect to
-	 *         transform OData queries into JPA criteria API expressions.
-	 */
-	public AbstractJPADatabaseProcessor getDatabaseAccessor();
+  /**
+   *
+   * @return The implementor knowing the database specific SQL dialect to
+   *         transform OData queries into JPA criteria API expressions.
+   */
+  public AbstractJPADatabaseProcessor getDatabaseAccessor();
 
-	/**
-	 * Called at end of lifecycle of adapter to release any allocated resources
-	 * (close {@link javax.persistence.EntityManagerFactory#close()
-	 * EntityManagerFactory} etc.).
-	 */
-	public void dispose();
+  /**
+   * Called at end of lifecycle of adapter to release any allocated resources
+   * (close {@link javax.persistence.EntityManagerFactory#close()
+   * EntityManagerFactory} etc.).
+   */
+  public void dispose();
 }
