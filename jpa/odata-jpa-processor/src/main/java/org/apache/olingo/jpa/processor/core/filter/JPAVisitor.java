@@ -80,6 +80,19 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
         HttpStatusCode.NOT_IMPLEMENTED, operator.name());
   }
 
+  @Override
+  public JPAExpressionElement<?> visitBinaryOperator(final BinaryOperatorKind operator,
+      final JPAExpressionElement<?> left,
+      final List<JPAExpressionElement<?>> right) throws ExpressionVisitException, ODataApplicationException {
+    if (right.isEmpty()) {
+      return visitBinaryOperator(operator, left, (JPAExpressionElement<?>) null);
+    }
+    if (right.size() > 1) {
+      throw new UnsupportedOperationException("Multiple expressions on right side are currently not supported");
+    }
+    return visitBinaryOperator(operator, left, right.get(0));
+  }
+
   @SuppressWarnings("unchecked")
   private JPAExpression<Boolean> checkBooleanExpressionOperand(final JPAExpressionElement<?> operator)
       throws ODataJPAFilterException {

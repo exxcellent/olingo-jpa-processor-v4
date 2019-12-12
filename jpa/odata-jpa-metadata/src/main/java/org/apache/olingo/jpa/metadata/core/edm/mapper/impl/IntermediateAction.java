@@ -172,9 +172,6 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
       }
       parameters.add(csdlParam);
     }
-    if (parameters.isEmpty()) {
-      return null;
-    }
     return parameters;
   }
 

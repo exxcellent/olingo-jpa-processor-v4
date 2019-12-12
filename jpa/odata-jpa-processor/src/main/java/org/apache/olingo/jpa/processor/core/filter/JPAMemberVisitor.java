@@ -23,93 +23,100 @@ import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
 
 class JPAMemberVisitor implements ExpressionVisitor<JPASelector> {
-	private final List<JPASelector> pathList = new LinkedList<JPASelector>();
-	private final JPAStructuredType jpaEntityType;
+  private final List<JPASelector> pathList = new LinkedList<JPASelector>();
+  private final JPAStructuredType jpaEntityType;
 
-	public JPAMemberVisitor(final JPAStructuredType jpaEntityType) {
-		super();
-		this.jpaEntityType = jpaEntityType;
-	}
+  public JPAMemberVisitor(final JPAStructuredType jpaEntityType) {
+    super();
+    this.jpaEntityType = jpaEntityType;
+  }
 
-	public List<JPASelector> get() {
-		return pathList;
-	}
+  public List<JPASelector> get() {
+    return pathList;
+  }
 
-	@Override
-	public JPASelector visitBinaryOperator(final BinaryOperatorKind operator, final JPASelector left,
-			final JPASelector right)
-					throws ExpressionVisitException, ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPASelector visitBinaryOperator(final BinaryOperatorKind operator, final JPASelector left,
+      final JPASelector right)
+          throws ExpressionVisitException, ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPAAttributePath visitUnaryOperator(final UnaryOperatorKind operator, final JPASelector operand)
-			throws ExpressionVisitException,
-			ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPASelector visitBinaryOperator(final BinaryOperatorKind operator, final JPASelector left,
+      final List<JPASelector> right)
+      throws ExpressionVisitException, ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPASelector visitMethodCall(final MethodKind methodCall, final List<JPASelector> parameters)
-			throws ExpressionVisitException,
-			ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPAAttributePath visitUnaryOperator(final UnaryOperatorKind operator, final JPASelector operand)
+      throws ExpressionVisitException,
+      ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPASelector visitLambdaExpression(final String lambdaFunction, final String lambdaVariable,
-			final org.apache.olingo.server.api.uri.queryoption.expression.Expression expression) throws ExpressionVisitException,
-	ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPASelector visitMethodCall(final MethodKind methodCall, final List<JPASelector> parameters)
+      throws ExpressionVisitException,
+      ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPAAttributePath visitLiteral(final Literal literal) throws ExpressionVisitException, ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPASelector visitLambdaExpression(final String lambdaFunction, final String lambdaVariable,
+      final org.apache.olingo.server.api.uri.queryoption.expression.Expression expression) throws ExpressionVisitException,
+  ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPASelector visitMember(final Member member) throws ExpressionVisitException, ODataApplicationException {
-		final UriResourceKind uriResourceKind = member.getResourcePath().getUriResourceParts().get(0).getKind();
+  @Override
+  public JPAAttributePath visitLiteral(final Literal literal) throws ExpressionVisitException, ODataApplicationException {
+    return null;
+  }
 
-		if (uriResourceKind == UriResourceKind.primitiveProperty || uriResourceKind == UriResourceKind.complexProperty) {
-			if (!Util.hasNavigation(member.getResourcePath().getUriResourceParts())) {
-				final String path = Util.determineProptertyNavigationPath(member.getResourcePath().getUriResourceParts());
-				JPASelector selectItemPath = null;
-				try {
-					selectItemPath = jpaEntityType.getPath(path);
-				} catch (final ODataJPAModelException e) {
-					throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-				}
-				if (selectItemPath != null) {
-					pathList.add(selectItemPath);
-					return selectItemPath;
-				}
-			}
-		}
-		return null;
-	}
+  @Override
+  public JPASelector visitMember(final Member member) throws ExpressionVisitException, ODataApplicationException {
+    final UriResourceKind uriResourceKind = member.getResourcePath().getUriResourceParts().get(0).getKind();
 
-	@Override
-	public JPAAttributePath visitAlias(final String aliasName) throws ExpressionVisitException, ODataApplicationException {
-		return null;
-	}
+    if (uriResourceKind == UriResourceKind.primitiveProperty || uriResourceKind == UriResourceKind.complexProperty) {
+      if (!Util.hasNavigation(member.getResourcePath().getUriResourceParts())) {
+        final String path = Util.determineProptertyNavigationPath(member.getResourcePath().getUriResourceParts());
+        JPASelector selectItemPath = null;
+        try {
+          selectItemPath = jpaEntityType.getPath(path);
+        } catch (final ODataJPAModelException e) {
+          throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+        }
+        if (selectItemPath != null) {
+          pathList.add(selectItemPath);
+          return selectItemPath;
+        }
+      }
+    }
+    return null;
+  }
 
-	@Override
-	public JPAAttributePath visitTypeLiteral(final EdmType type) throws ExpressionVisitException, ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPAAttributePath visitAlias(final String aliasName) throws ExpressionVisitException, ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPAAttributePath visitLambdaReference(final String variableName) throws ExpressionVisitException,
-	ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPAAttributePath visitTypeLiteral(final EdmType type) throws ExpressionVisitException, ODataApplicationException {
+    return null;
+  }
 
-	@Override
-	public JPAAttributePath visitEnum(final EdmEnumType type, final List<String> enumValues) throws ExpressionVisitException,
-	ODataApplicationException {
-		return null;
-	}
+  @Override
+  public JPAAttributePath visitLambdaReference(final String variableName) throws ExpressionVisitException,
+  ODataApplicationException {
+    return null;
+  }
+
+  @Override
+  public JPAAttributePath visitEnum(final EdmEnumType type, final List<String> enumValues) throws ExpressionVisitException,
+  ODataApplicationException {
+    return null;
+  }
 
 }
