@@ -20,21 +20,21 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::RelationshipEntity\"")
 public abstract class AbstractRelationshipEntity extends AbstractEntity {
 
-	@Column(name = "\"Name\"", length = 255)
-	protected String name;
+  @Column(name = "\"Name\"", length = 255)
+  protected String name;
 
-	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "secondRightM2Ns")
-	protected Collection<AbstractRelationshipEntity> secondLeftM2Ns;
+  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "secondRightM2Ns")
+  protected Collection<AbstractRelationshipEntity> secondLeftM2Ns;
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::RELATIONSHIPJoinTable\"", joinColumns = {
-			@JoinColumn(referencedColumnName = "\"ID\"", name = "\"RIGHT_ID\"") }, inverseJoinColumns = {
-					@JoinColumn(name = "\"LEFT_ID\"", referencedColumnName = "\"ID\"") })
-	protected Collection<AbstractRelationshipEntity> secondRightM2Ns;
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::RELATIONSHIPJoinTable\"", joinColumns = {
+      @JoinColumn(referencedColumnName = "\"ID\"", name = "\"RIGHT_ID\"") }, inverseJoinColumns = {
+          @JoinColumn(name = "\"LEFT_ID\"", referencedColumnName = "\"ID\"") })
+  protected Collection<AbstractRelationshipEntity> secondRightM2Ns;
 
-	@EdmAction(name = "actionInAbstractEntity")
-	public void actionInAbstractEntity() {
-		// do nothing
-	}
+  @EdmAction(name = "actionInAbstractEntity")
+  public void actionInAbstractEntity() {
+    // do nothing
+  }
 
 }

@@ -6,6 +6,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
@@ -19,8 +20,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNullValue() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions?$filter=AlternativeCode eq null");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "AlternativeCode eq null");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
     assertTrue(orgs.size() > 0);
@@ -30,8 +33,8 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterOneEquals() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations?$filter=ID eq '3'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("ID eq '3'");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();
@@ -477,9 +480,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterBoolean2() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Countries").filter(
+        "length(Code) gt 1 and startswith( substring(Name,0,3), 'S')").top(3);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Countries?$filter=length(Code) gt 1 and startswith( substring(Name,0,3), 'S')&$top=3");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();
@@ -488,19 +492,22 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testNavigationFilter() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "RelationshipSourceEntities?$top=3&$filter=Targets/any(d:contains(d/Name, 'rel'))");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").filter(
+        "targets/any(d:contains(d/Name, 'rel'))");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode relSources = helper.getValues();
     assertTrue(relSources.size() == 2);
-    assertTrue(relSources.get(0).get("Targets") == null);
+    assertTrue(relSources.get(0).get("targets") == null);// AsIs
+    assertTrue(relSources.get(0).get("Targets") == null);// upperCamelCase (not valid)
   }
 
   @Test
   public void testNavigationFilterElementCollectionWithoutNestedElements() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "BusinessPartners?$select=ID,Country&$top=4&$filter=PhoneNumbers/any(d:d/InternationalAreaCode eq '+42')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartners").select("ID", "Country")
+        .filter("PhoneNumbers/any(d:d/internationalAreaCode eq '+42')").top(4);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode relSources = helper.getValues();
@@ -509,8 +516,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testNavigationFilterElementCollectionForCompleteBO() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "BusinessPartners?$top=4&$filter=PhoneNumbers/any(d:d/InternationalAreaCode eq '+42')");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartners").filter(
+        "PhoneNumbers/any(d:d/internationalAreaCode eq '+42')").top(4);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode relSources = helper.getValues();
