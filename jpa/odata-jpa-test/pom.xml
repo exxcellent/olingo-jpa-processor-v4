@@ -11,7 +11,7 @@
 
 	<artifactId>odata-jpa-test</artifactId>
 
-	<name>odata-jpa-test</name>
+	<name>OData-JPA-Adapter testmodel</name>
 	<url>http://maven.apache.org</url>
 	
 	<properties>

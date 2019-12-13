@@ -10,7 +10,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
  * @author Ralf Zozmann
  *
  */
-@ODataDTO(attributeNaming = NamingStrategy.AsIs)
+@ODataDTO(attributeNaming = NamingStrategy.AsIs, edmEntitySetName = "SystemRequirementEntitySet")
 public class SystemRequirement {
 
   private final String requirementName;

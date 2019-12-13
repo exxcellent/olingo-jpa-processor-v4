@@ -95,10 +95,6 @@ public final class JPAEdmNameBuilder {
    * EDM EntitySet Name - RULES
    * ************************************************************************
    */
-  final public String buildEntitySetName(final FullQualifiedName entityTypeFQName) {
-    return buildEntitySetName(entityTypeFQName.getName());
-  }
-
   /**
    *
    * @param entityTypeName The external name of entity type.

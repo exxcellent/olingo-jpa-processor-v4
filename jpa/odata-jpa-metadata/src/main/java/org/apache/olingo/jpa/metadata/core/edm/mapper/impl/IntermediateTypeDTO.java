@@ -53,6 +53,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
   private final Map<String, JPAPathImpl> complexAttributePathMap;
   private final Map<String, JPAAssociationPathDTOImpl> associationPathMap;
   private InitializationState initStateType = InitializationState.NotInitialized;
+  private final String entitySetName;
 
   public IntermediateTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<?> dtoType,
       final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
@@ -76,6 +77,18 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
     this.simpleAttributePathMap = new HashMap<String, JPAPathImpl>();
     this.complexAttributePathMap = new HashMap<String, JPAPathImpl>();
     this.associationPathMap = new HashMap<String, JPAAssociationPathDTOImpl>();
+    entitySetName = determineEntitySetName(dtoType);
+  }
+
+  private String determineEntitySetName(final Class<?> entityClass) {
+    final ODataDTO dtoAnnotation = entityClass.getAnnotation(ODataDTO.class);
+    if (dtoAnnotation == null || dtoAnnotation.edmEntitySetName() == null || dtoAnnotation.edmEntitySetName()
+        .isEmpty()) {
+      // default naming
+      return getNameBuilder().buildEntitySetName(getExternalName());
+    }
+    // manual naming
+    return dtoAnnotation.edmEntitySetName();
   }
 
   private static JPAEdmNameBuilder determineDTONameBuilder(final JPAEdmNameBuilder nameBuilderDefault,
@@ -87,6 +100,11 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
     }
     // prepare a custom name builder
     return new JPAEdmNameBuilder(nameBuilderDefault.getNamespace(), dtoAnnotation.attributeNaming());
+  }
+
+  @Override
+  public String getEntitySetName() {
+    return entitySetName;
   }
 
   boolean determineAbstract() {

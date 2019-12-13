@@ -6,22 +6,25 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 
+import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
+
 @Entity
 @IdClass(CountryKey.class)
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::CountryDescription\"")
+@ODataEntity(edmEntitySetName = "CountryEntitySet")
 public class Country {
-	@Id
-	@Column(name = "\"ISOCode\"")
-	private String code;
+  @Id
+  @Column(name = "\"ISOCode\"")
+  private String code;
 
-	@Id
-	@Column(name = "\"LanguageISO\"")
-	private String language;
+  @Id
+  @Column(name = "\"LanguageISO\"")
+  private String language;
 
-	@Column(name = "\"Name\"", length = 100)
-	private String name;
+  @Column(name = "\"Name\"", length = 100)
+  private String name;
 
-	public String getCode() {
-		return code;
-	}
+  public String getCode() {
+    return code;
+  }
 }

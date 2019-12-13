@@ -52,6 +52,7 @@ class IntermediateEntityContainer extends IntermediateModelElement {
     // TODO Singleton
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   CsdlEntityContainer getEdmItem() throws ODataJPAModelException {
     lazyBuildEdmItem();
@@ -88,7 +89,7 @@ class IntermediateEntityContainer extends IntermediateModelElement {
       // Build Entity Sets
       for (final JPAEntityType et : schema.getEntityTypes()) {
         if (!et.ignore()) {
-          final IntermediateEntitySet es = new IntermediateEntitySet(schema.getNameBuilder(), et);
+          final IntermediateEntitySet es = new IntermediateEntitySet(et);
           entitySetListInternalKey.put(es.getInternalName(), es);
         }
       }

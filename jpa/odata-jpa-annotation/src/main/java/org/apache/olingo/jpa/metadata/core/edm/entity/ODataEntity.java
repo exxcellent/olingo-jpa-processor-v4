@@ -51,4 +51,9 @@ public @interface ODataEntity {
    * @see NamingStrategy#UpperCamelCase
    */
   NamingStrategy attributeNaming() default NamingStrategy.UpperCamelCase;
+
+  /**
+   * Define the name of the entity set for this entity manually.
+   */
+  String edmEntitySetName() default "";
 }

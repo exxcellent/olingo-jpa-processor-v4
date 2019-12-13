@@ -43,6 +43,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
   private CsdlEntityType edmEntityType;
   private boolean hasEtag = false;
   private final DataAccessConditioner<?> dac;
+  private final String entitySetName;
 
   IntermediateEntityType(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
       final IntermediateServiceDocument serviceDocument)
@@ -54,6 +55,18 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
       this.setIgnore(true);
     }
     dac = buildDataAccessConditionerInstance(this.jpaManagedType.getJavaType());
+    entitySetName = determineEntitySetName(this.jpaManagedType.getJavaType());
+  }
+
+  private String determineEntitySetName(final Class<?> entityClass) {
+    final ODataEntity entityAnnotation = entityClass.getAnnotation(ODataEntity.class);
+    if (entityAnnotation == null || entityAnnotation.edmEntitySetName() == null || entityAnnotation.edmEntitySetName()
+        .isEmpty()) {
+      // default naming
+      return getNameBuilder().buildEntitySetName(getExternalName());
+    }
+    // manual naming
+    return entityAnnotation.edmEntitySetName();
   }
 
   private static JPAEdmNameBuilder determineEntityNameBuilder(final JPAEdmNameBuilder nameBuilderDefault,
@@ -86,6 +99,11 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
     } catch (InstantiationException | IllegalAccessException e) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INNER_EXCEPTION, e);
     }
+  }
+
+  @Override
+  public String getEntitySetName() {
+    return entitySetName;
   }
 
   @Override

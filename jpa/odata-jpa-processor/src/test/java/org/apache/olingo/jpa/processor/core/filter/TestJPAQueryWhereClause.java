@@ -470,8 +470,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterBoolean1() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Countries?$filter=contains(Code,'H') and startswith(Name, 'S') and not endswith(Name, 'xyz')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("CountryEntitySet").filter(
+        "contains(Code,'H') and startswith(Name, 'S') and not endswith(Name, 'xyz')");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();
@@ -480,10 +481,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterBoolean2() throws IOException, ODataException {
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Countries").filter(
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("CountryEntitySet").filter(
         "length(Code) gt 1 and startswith( substring(Name,0,3), 'S')").top(3);
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
-
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();

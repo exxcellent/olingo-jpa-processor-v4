@@ -8,6 +8,9 @@ import java.util.Map;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
 import org.apache.olingo.client.core.uri.URIBuilderImpl;
+import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
 import org.apache.olingo.jpa.processor.core.test.Constant;
@@ -24,6 +27,7 @@ public abstract class TestBase {
   protected TestHelper helper;
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
   protected TestGenericJPAPersistenceAdapter persistenceAdapter;
+  protected JPAEdmProvider jpaEdm;
 
   /**
    * Execute every test class with a fresh created database
@@ -34,8 +38,9 @@ public abstract class TestBase {
   }
 
   @Before
-  public final void setupTest() throws ODataJPAModelException {
+  public final void setupTest() throws ODataException {
     persistenceAdapter = createPersistenceAdapter();
+    jpaEdm = new JPAEdmProvider(persistenceAdapter.getNamespace(), persistenceAdapter.getMetamodel());
   }
 
   /**
@@ -45,6 +50,14 @@ public abstract class TestBase {
   protected TestGenericJPAPersistenceAdapter createPersistenceAdapter() {
     return new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
         DataSourceHelper.DatabaseType.H2);
+  }
+
+  /**
+   * Register a DTO class in meta model for later use. Must be called after {@link #setupTest()}.
+   */
+  @SuppressWarnings("unchecked")
+  protected <T extends JPAEntityType> T registerDTO(final Class<?> dtoClass) throws ODataJPAModelException {
+    return (T) jpaEdm.getServiceDocument().createDTOType(dtoClass);
   }
 
   protected JPAProvider getJPAProvider() {
