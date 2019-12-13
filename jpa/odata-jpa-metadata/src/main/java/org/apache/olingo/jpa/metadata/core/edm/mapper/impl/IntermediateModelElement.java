@@ -11,87 +11,87 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 abstract class IntermediateModelElement implements JPAElement {
 
-	protected static enum InitializationState {
-		NotInitialized, InProgress, Initialized;
-	}
+  protected static enum InitializationState {
+    NotInitialized, InProgress, Initialized;
+  }
 
-	protected final JPAEdmNameBuilder nameBuilder;
-	protected final String internalName;
+  private final JPAEdmNameBuilder nameBuilder;
+  private final String internalName;
 
-	private boolean toBeIgnored = false;
-	private String externalName;
+  private boolean toBeIgnored = false;
+  private String externalName;
 
-	public IntermediateModelElement(final JPAEdmNameBuilder nameBuilder, final String internalName) {
-		super();
-		this.nameBuilder = nameBuilder;
-		this.internalName = internalName;
-	}
+  public IntermediateModelElement(final JPAEdmNameBuilder nameBuilder, final String internalName) {
+    super();
+    this.nameBuilder = nameBuilder;
+    this.internalName = internalName;
+  }
 
-	JPAEdmNameBuilder getNameBuilder() {
-		return nameBuilder;
-	}
+  protected JPAEdmNameBuilder getNameBuilder() {
+    return nameBuilder;
+  }
 
-	@Override
-	public String getExternalName() {
-		return externalName;
-	}
+  @Override
+  public String getExternalName() {
+    return externalName;
+  }
 
-	@Override
-	public FullQualifiedName getExternalFQN() {
-		return nameBuilder.buildFQN(getExternalName());
-	}
+  @Override
+  public FullQualifiedName getExternalFQN() {
+    return nameBuilder.buildFQN(getExternalName());
+  }
 
-	@Override
-	public String getInternalName() {
-		return internalName;
-	}
+  @Override
+  public String getInternalName() {
+    return internalName;
+  }
 
-	public boolean ignore() {
-		return toBeIgnored;
-	}
+  public boolean ignore() {
+    return toBeIgnored;
+  }
 
-	public void setExternalName(final String externalName) {
-		this.externalName = externalName;
-	}
+  public void setExternalName(final String externalName) {
+    this.externalName = externalName;
+  }
 
-	public void setIgnore(final boolean ignore) {
-		this.toBeIgnored = ignore;
-	}
+  public void setIgnore(final boolean ignore) {
+    this.toBeIgnored = ignore;
+  }
 
-	protected abstract void lazyBuildEdmItem() throws ODataJPAModelException;
+  protected abstract void lazyBuildEdmItem() throws ODataJPAModelException;
 
-	@SuppressWarnings("unchecked")
-	protected static <T> List<?> extractEdmModelElements(
-			final Map<String, ? extends IntermediateModelElement> mappingBuffer) throws ODataJPAModelException {
-		final List<T> extractionTarget = new ArrayList<T>(mappingBuffer.size());
-		for (final String externalName : mappingBuffer.keySet()) {
-			if (!((IntermediateModelElement) mappingBuffer.get(externalName)).toBeIgnored) {
-				final IntermediateModelElement element = mappingBuffer.get(externalName);
-				final CsdlAbstractEdmItem edmElement = element.getEdmItem();
-				if (!element.ignore()) {
-					extractionTarget.add((T) edmElement);
-				}
-			}
-		}
-		return extractionTarget;
-		// return returnNullIfEmpty(extractionTarget);
-	}
+  @SuppressWarnings("unchecked")
+  protected static <T> List<?> extractEdmModelElements(
+      final Map<String, ? extends IntermediateModelElement> mappingBuffer) throws ODataJPAModelException {
+    final List<T> extractionTarget = new ArrayList<T>(mappingBuffer.size());
+    for (final String externalName : mappingBuffer.keySet()) {
+      if (!((IntermediateModelElement) mappingBuffer.get(externalName)).toBeIgnored) {
+        final IntermediateModelElement element = mappingBuffer.get(externalName);
+        final CsdlAbstractEdmItem edmElement = element.getEdmItem();
+        if (!element.ignore()) {
+          extractionTarget.add((T) edmElement);
+        }
+      }
+    }
+    return extractionTarget;
+    // return returnNullIfEmpty(extractionTarget);
+  }
 
-	protected IntermediateModelElement findModelElementByEdmItem(final String edmEntityItemName,
-			final Map<String, ?> buffer) throws ODataJPAModelException {
-		for (final String internalName : buffer.keySet()) {
-			final IntermediateModelElement modelElement = (IntermediateModelElement) buffer.get(internalName);
-			if (edmEntityItemName.equals(modelElement.getExternalName())) {
-				return modelElement;
-			}
-		}
-		return null;
+  protected IntermediateModelElement findModelElementByEdmItem(final String edmEntityItemName,
+      final Map<String, ?> buffer) throws ODataJPAModelException {
+    for (final String internalName : buffer.keySet()) {
+      final IntermediateModelElement modelElement = (IntermediateModelElement) buffer.get(internalName);
+      if (edmEntityItemName.equals(modelElement.getExternalName())) {
+        return modelElement;
+      }
+    }
+    return null;
 
-	}
+  }
 
-	protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
-		return list == null || list.isEmpty() ? null : list;
-	}
+  protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
+    return list == null || list.isEmpty() ? null : list;
+  }
 
-	abstract <CDSLType extends CsdlAbstractEdmItem> CDSLType getEdmItem() throws ODataJPAModelException;
+  abstract <CDSLType extends CsdlAbstractEdmItem> CDSLType getEdmItem() throws ODataJPAModelException;
 }

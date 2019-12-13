@@ -32,270 +32,270 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 
 class IntermediateFunction extends IntermediateModelElement implements JPAFunction {
-	private CsdlFunction edmFunction;
-	private final EdmFunction jpaUserDefinedFunction;
-	private final AbstractJPASchema schema;
-	private final Class<?> jpaDefiningPOJO;
+  private CsdlFunction edmFunction;
+  private final EdmFunction jpaUserDefinedFunction;
+  private final AbstractJPASchema schema;
+  private final Class<?> jpaDefiningPOJO;
 
-	IntermediateFunction(final JPAEdmNameBuilder nameBuilder, final EdmFunction jpaFunction,
-			final Class<?> definingPOJO, final AbstractJPASchema schema)
-					throws ODataJPAModelException {
-		super(nameBuilder, JPANameBuilder.buildFunctionInternalName(jpaFunction));
-		this.setExternalName(jpaFunction.name());
-		this.jpaUserDefinedFunction = jpaFunction;
-		this.jpaDefiningPOJO = definingPOJO;
-		this.schema = schema;
-	}
+  IntermediateFunction(final JPAEdmNameBuilder nameBuilder, final EdmFunction jpaFunction,
+      final Class<?> definingPOJO, final AbstractJPASchema schema)
+          throws ODataJPAModelException {
+    super(nameBuilder, jpaFunction.name());
+    this.setExternalName(jpaFunction.name());
+    this.jpaUserDefinedFunction = jpaFunction;
+    this.jpaDefiningPOJO = definingPOJO;
+    this.schema = schema;
+  }
 
-	@Override
-	public String getDBName() {
-		return jpaUserDefinedFunction.functionName();
-	}
+  @Override
+  public String getDBName() {
+    return jpaUserDefinedFunction.functionName();
+  }
 
-	@Override
-	public List<JPAOperationParameter> getParameter() {
-		final List<JPAOperationParameter> parameterList = new ArrayList<JPAOperationParameter>();
-		for (final EdmFunctionParameter jpaParameter : jpaUserDefinedFunction.parameter()) {
-			parameterList.add(new IntermediatFunctionParameter(jpaParameter));
-		}
-		return parameterList;
-	}
+  @Override
+  public List<JPAOperationParameter> getParameter() {
+    final List<JPAOperationParameter> parameterList = new ArrayList<JPAOperationParameter>();
+    for (final EdmFunctionParameter jpaParameter : jpaUserDefinedFunction.parameter()) {
+      parameterList.add(new IntermediatFunctionParameter(jpaParameter));
+    }
+    return parameterList;
+  }
 
-	@Override
-	public JPAOperationResultParameter getResultParameter() {
-		return new IntermediatResultFunctionParameter(jpaUserDefinedFunction.returnType());
-	}
+  @Override
+  public JPAOperationResultParameter getResultParameter() {
+    return new IntermediatResultFunctionParameter(jpaUserDefinedFunction.returnType());
+  }
 
-	@Override
-	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		if (edmFunction == null) {
-			edmFunction = new CsdlFunction();
-			edmFunction.setName(getExternalName());
-			edmFunction.setParameters(returnNullIfEmpty(determineEdmInputParameter()));
-			edmFunction.setReturnType(determineEdmResultType(jpaUserDefinedFunction.returnType()));
-			edmFunction.setBound(jpaUserDefinedFunction.isBound());
-			// TODO edmFunction.setComposable(isComposable)
-			edmFunction.setComposable(false);
-			// TODO edmFunction.setEntitySetPath(entitySetPath) for bound functions
+  @Override
+  protected void lazyBuildEdmItem() throws ODataJPAModelException {
+    if (edmFunction == null) {
+      edmFunction = new CsdlFunction();
+      edmFunction.setName(getExternalName());
+      edmFunction.setParameters(returnNullIfEmpty(determineEdmInputParameter()));
+      edmFunction.setReturnType(determineEdmResultType(jpaUserDefinedFunction.returnType()));
+      edmFunction.setBound(jpaUserDefinedFunction.isBound());
+      // TODO edmFunction.setComposable(isComposable)
+      edmFunction.setComposable(false);
+      // TODO edmFunction.setEntitySetPath(entitySetPath) for bound functions
 
-		}
-	}
+    }
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	CsdlFunction getEdmItem() throws ODataJPAModelException {
-		lazyBuildEdmItem();
-		return edmFunction;
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  CsdlFunction getEdmItem() throws ODataJPAModelException {
+    lazyBuildEdmItem();
+    return edmFunction;
+  }
 
-	String getUserDefinedFunction() {
-		return jpaUserDefinedFunction.functionName();
-	}
+  String getUserDefinedFunction() {
+    return jpaUserDefinedFunction.functionName();
+  }
 
-	boolean requiresFunctionImport() {
-		return !isBound() && jpaUserDefinedFunction.hasFunctionImport();
-	}
+  boolean requiresFunctionImport() {
+    return !isBound() && jpaUserDefinedFunction.hasFunctionImport();
+  }
 
-	@Override
-	public boolean isBound() {
-		return jpaUserDefinedFunction.isBound();
-	}
+  @Override
+  public boolean isBound() {
+    return jpaUserDefinedFunction.isBound();
+  }
 
-	private List<CsdlParameter> determineEdmInputParameter() throws ODataJPAModelException {
-		final List<CsdlParameter> edmInputParameterList = new ArrayList<CsdlParameter>();
-		for (final EdmFunctionParameter jpaParameter : jpaUserDefinedFunction.parameter()) {
+  private List<CsdlParameter> determineEdmInputParameter() throws ODataJPAModelException {
+    final List<CsdlParameter> edmInputParameterList = new ArrayList<CsdlParameter>();
+    for (final EdmFunctionParameter jpaParameter : jpaUserDefinedFunction.parameter()) {
 
-			final CsdlParameter edmInputParameter = new CsdlParameter();
-			edmInputParameter.setName(jpaParameter.name());
-			edmInputParameter.setType(TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName());
+      final CsdlParameter edmInputParameter = new CsdlParameter();
+      edmInputParameter.setName(jpaParameter.name());
+      edmInputParameter.setType(TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName());
 
-			edmInputParameter.setNullable(false);
-			edmInputParameter.setCollection(jpaParameter.isCollection());
-			if (jpaParameter.maxLength() >= 0) {
-				edmInputParameter.setMaxLength(Integer.valueOf(jpaParameter.maxLength()));
-			}
-			if (jpaParameter.precision() >= 0) {
-				edmInputParameter.setPrecision(Integer.valueOf(jpaParameter.precision()));
-			}
-			if (jpaParameter.scale() >= 0) {
-				edmInputParameter.setScale(Integer.valueOf(jpaParameter.scale()));
-			}
-			if (jpaParameter.srid() != null && !jpaParameter.srid().srid().isEmpty()) {
-				final SRID srid = SRID.valueOf(jpaParameter.srid().srid());
-				srid.setDimension(jpaParameter.srid().dimension());
-				edmInputParameter.setSrid(srid);
-			}
-			edmInputParameterList.add(edmInputParameter);
-		}
-		return edmInputParameterList;
-	}
+      edmInputParameter.setNullable(false);
+      edmInputParameter.setCollection(jpaParameter.isCollection());
+      if (jpaParameter.maxLength() >= 0) {
+        edmInputParameter.setMaxLength(Integer.valueOf(jpaParameter.maxLength()));
+      }
+      if (jpaParameter.precision() >= 0) {
+        edmInputParameter.setPrecision(Integer.valueOf(jpaParameter.precision()));
+      }
+      if (jpaParameter.scale() >= 0) {
+        edmInputParameter.setScale(Integer.valueOf(jpaParameter.scale()));
+      }
+      if (jpaParameter.srid() != null && !jpaParameter.srid().srid().isEmpty()) {
+        final SRID srid = SRID.valueOf(jpaParameter.srid().srid());
+        srid.setDimension(jpaParameter.srid().dimension());
+        edmInputParameter.setSrid(srid);
+      }
+      edmInputParameterList.add(edmInputParameter);
+    }
+    return edmInputParameterList;
+  }
 
-	// TODO handle multiple schemas
-	private CsdlReturnType determineEdmResultType(final ReturnType returnType) throws ODataJPAModelException {
-		final CsdlReturnType edmResultType = new CsdlReturnType();
-		FullQualifiedName fqn;
-		if (returnType.type() == Object.class) {
-			final JPAStructuredType et = schema.getEntityType(jpaDefiningPOJO);
-			fqn = nameBuilder.buildFQN(et.getExternalName());
-			this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
-		} else {
-			final JPAStructuredType et = schema.getEntityType(returnType.type());
-			if (et != null) {
-				fqn = nameBuilder.buildFQN(et.getExternalName());
-				this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
-			} else {
-				fqn = TypeMapping.convertToEdmSimpleType(returnType.type()).getFullQualifiedName();
-			}
-		}
-		edmResultType.setType(fqn);
-		edmResultType.setCollection(returnType.isCollection());
-		edmResultType.setNullable(returnType.isNullable());
-		if (returnType.maxLength() >= 0) {
-			edmResultType.setMaxLength(Integer.valueOf(returnType.maxLength()));
-		}
-		if (returnType.precision() >= 0) {
-			edmResultType.setPrecision(Integer.valueOf(returnType.precision()));
-		}
-		if (returnType.scale() >= 0) {
-			edmResultType.setScale(Integer.valueOf(returnType.scale()));
-		}
-		if (returnType.srid() != null && !returnType.srid().srid().isEmpty()) {
-			final SRID srid = SRID.valueOf(returnType.srid().srid());
-			srid.setDimension(returnType.srid().dimension());
-			edmResultType.setSrid(srid);
-		}
-		return edmResultType;
-	}
+  // TODO handle multiple schemas
+  private CsdlReturnType determineEdmResultType(final ReturnType returnType) throws ODataJPAModelException {
+    final CsdlReturnType edmResultType = new CsdlReturnType();
+    FullQualifiedName fqn;
+    if (returnType.type() == Object.class) {
+      final JPAStructuredType et = schema.getEntityType(jpaDefiningPOJO);
+      fqn = getNameBuilder().buildFQN(et.getExternalName());
+      this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
+    } else {
+      final JPAStructuredType et = schema.getEntityType(returnType.type());
+      if (et != null) {
+        fqn = getNameBuilder().buildFQN(et.getExternalName());
+        this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
+      } else {
+        fqn = TypeMapping.convertToEdmSimpleType(returnType.type()).getFullQualifiedName();
+      }
+    }
+    edmResultType.setType(fqn);
+    edmResultType.setCollection(returnType.isCollection());
+    edmResultType.setNullable(returnType.isNullable());
+    if (returnType.maxLength() >= 0) {
+      edmResultType.setMaxLength(Integer.valueOf(returnType.maxLength()));
+    }
+    if (returnType.precision() >= 0) {
+      edmResultType.setPrecision(Integer.valueOf(returnType.precision()));
+    }
+    if (returnType.scale() >= 0) {
+      edmResultType.setScale(Integer.valueOf(returnType.scale()));
+    }
+    if (returnType.srid() != null && !returnType.srid().srid().isEmpty()) {
+      final SRID srid = SRID.valueOf(returnType.srid().srid());
+      srid.setDimension(returnType.srid().dimension());
+      edmResultType.setSrid(srid);
+    }
+    return edmResultType;
+  }
 
-	private class IntermediatFunctionParameter implements JPAOperationParameter {
-		private final EdmFunctionParameter jpaParameter;
+  private class IntermediatFunctionParameter implements JPAOperationParameter {
+    private final EdmFunctionParameter jpaParameter;
 
-		IntermediatFunctionParameter(final EdmFunctionParameter jpaParameter) {
-			this.jpaParameter = jpaParameter;
-		}
+    IntermediatFunctionParameter(final EdmFunctionParameter jpaParameter) {
+      this.jpaParameter = jpaParameter;
+    }
 
-		@Override
-		public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-			// currently not supported
-			return null;
-		}
+    @Override
+    public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+      // currently not supported
+      return null;
+    }
 
-		@SuppressWarnings("unused")
-		public String getDBName() {
-			return jpaParameter.parameterName();
-		}
+    @SuppressWarnings("unused")
+    public String getDBName() {
+      return jpaParameter.parameterName();
+    }
 
-		@Override
-		public String getName() {
-			return jpaParameter.name();
-		}
+    @Override
+    public String getName() {
+      return jpaParameter.name();
+    }
 
-		@Override
-		public Class<?> getType() {
-			return jpaParameter.type();
-		}
+    @Override
+    public Class<?> getType() {
+      return jpaParameter.type();
+    }
 
-		@Override
-		public Integer getMaxLength() {
-			return Integer.valueOf(jpaParameter.maxLength());
-		}
+    @Override
+    public Integer getMaxLength() {
+      return Integer.valueOf(jpaParameter.maxLength());
+    }
 
-		@Override
-		public Integer getPrecision() {
-			return Integer.valueOf(jpaParameter.precision());
-		}
+    @Override
+    public Integer getPrecision() {
+      return Integer.valueOf(jpaParameter.precision());
+    }
 
-		@Override
-		public Integer getScale() {
-			return Integer.valueOf(jpaParameter.scale());
-		}
+    @Override
+    public Integer getScale() {
+      return Integer.valueOf(jpaParameter.scale());
+    }
 
-		@Override
-		public boolean isNullable() {
-			return jpaParameter.isNullable();
-		}
+    @Override
+    public boolean isNullable() {
+      return jpaParameter.isNullable();
+    }
 
-		@Override
-		public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
-			return TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName();
-		}
+    @Override
+    public FullQualifiedName getTypeFQN() throws ODataJPAModelException {
+      return TypeMapping.convertToEdmSimpleType(jpaParameter.type()).getFullQualifiedName();
+    }
 
-		@Override
-		public boolean isCollection() {
-			return jpaParameter.isCollection();
-		}
+    @Override
+    public boolean isCollection() {
+      return jpaParameter.isCollection();
+    }
 
-		@Override
-		public ParameterKind getParameterKind() {
-			// TODO support @Inject also for functions
-			return ParameterKind.OData;
-		}
+    @Override
+    public ParameterKind getParameterKind() {
+      // TODO support @Inject also for functions
+      return ParameterKind.OData;
+    }
 
-		@Override
-		public boolean isPrimitive() {
-			try {
-				return TypeMapping.convertToEdmSimpleType(jpaParameter.type()) != null;
-			} catch (final ODataJPAModelException e) {
-				return false;
-			}
-		}
-	}
+    @Override
+    public boolean isPrimitive() {
+      try {
+        return TypeMapping.convertToEdmSimpleType(jpaParameter.type()) != null;
+      } catch (final ODataJPAModelException e) {
+        return false;
+      }
+    }
+  }
 
-	private class IntermediatResultFunctionParameter implements JPAOperationResultParameter {
-		private final ReturnType jpaReturnType;
+  private class IntermediatResultFunctionParameter implements JPAOperationResultParameter {
+    private final ReturnType jpaReturnType;
 
-		public IntermediatResultFunctionParameter(final ReturnType jpaReturnType) {
-			this.jpaReturnType = jpaReturnType;
-		}
+    public IntermediatResultFunctionParameter(final ReturnType jpaReturnType) {
+      this.jpaReturnType = jpaReturnType;
+    }
 
-		@Override
-		public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-			// currently not supported
-			return null;
-		}
+    @Override
+    public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+      // currently not supported
+      return null;
+    }
 
-		@Override
-		public Class<?> getType() {
-			return jpaReturnType.type();
-		}
+    @Override
+    public Class<?> getType() {
+      return jpaReturnType.type();
+    }
 
-		@Override
-		public Integer getMaxLength() {
-			return Integer.valueOf(jpaReturnType.maxLength());
-		}
+    @Override
+    public Integer getMaxLength() {
+      return Integer.valueOf(jpaReturnType.maxLength());
+    }
 
-		@Override
-		public Integer getPrecision() {
-			return Integer.valueOf(jpaReturnType.precision());
-		}
+    @Override
+    public Integer getPrecision() {
+      return Integer.valueOf(jpaReturnType.precision());
+    }
 
-		@Override
-		public Integer getScale() {
-			return Integer.valueOf(jpaReturnType.scale());
-		}
+    @Override
+    public Integer getScale() {
+      return Integer.valueOf(jpaReturnType.scale());
+    }
 
-		@Override
-		public boolean isNullable() {
-			return jpaReturnType.isNullable();
-		}
+    @Override
+    public boolean isNullable() {
+      return jpaReturnType.isNullable();
+    }
 
-		@Override
-		public FullQualifiedName getTypeFQN() {
-			return edmFunction.getReturnType().getTypeFQN();
-		}
+    @Override
+    public FullQualifiedName getTypeFQN() {
+      return edmFunction.getReturnType().getTypeFQN();
+    }
 
-		@Override
-		public boolean isCollection() {
-			return jpaReturnType.isCollection();
-		}
+    @Override
+    public boolean isCollection() {
+      return jpaReturnType.isCollection();
+    }
 
-		@Override
-		public boolean isPrimitive() {
-			try {
-				return TypeMapping.convertToEdmSimpleType(jpaReturnType.type()) != null;
-			} catch (final ODataJPAModelException e) {
-				return false;
-			}
-		}
-	}
+    @Override
+    public boolean isPrimitive() {
+      try {
+        return TypeMapping.convertToEdmSimpleType(jpaReturnType.type()) != null;
+      } catch (final ODataJPAModelException e) {
+        return false;
+      }
+    }
+  }
 }

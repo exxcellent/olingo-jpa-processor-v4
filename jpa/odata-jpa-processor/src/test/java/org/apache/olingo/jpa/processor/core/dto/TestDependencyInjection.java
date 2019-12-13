@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -101,21 +102,24 @@ public class TestDependencyInjection extends TestBase {
 
   @Test
   public void testReadDTO() throws IOException, ODataException, SQLException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Dtos");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Dtos");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getValues().size() == 2);
   }
 
   @Test
   public void testWriteDTO() throws IOException, ODataException, SQLException {
-    final String id = Integer.toString((int) System.currentTimeMillis());
+    final int iId = (int) System.currentTimeMillis();
+    final String sId = Integer.toString(iId);
     final StringBuffer requestBody = new StringBuffer("{");
-    requestBody.append("\"Id\": " + id);
+    requestBody.append("\"Id\": " + sId);
     requestBody.append("}");
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "Dtos(" + id + ")",
-        requestBody.toString(), HttpMethod.PUT);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Dtos").appendKeySegment(Integer.valueOf(iId));
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody.toString(),
+        HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 

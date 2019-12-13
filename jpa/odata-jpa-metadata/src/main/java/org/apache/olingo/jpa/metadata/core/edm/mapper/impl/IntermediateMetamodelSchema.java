@@ -91,6 +91,10 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return edmSchema;
   }
 
+  private static String buildStructuredTypeInternalName(final Class<?> clazz) {
+    return clazz.getCanonicalName();
+  }
+
   /**
    * {@link IntermediateStructuredType Structured types} including
    * {@link IntermediateEntityType}'s.
@@ -103,21 +107,21 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
       targetClass = jpaAttribute.getJavaType();
     }
     IntermediateStructuredType<?> type = complexTypeListInternalKey
-        .get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
+        .get(buildStructuredTypeInternalName(targetClass));
     if (type == null) {
-      type = entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
+      type = entityTypeListInternalKey.get(buildStructuredTypeInternalName(targetClass));
     }
     return type;
   }
 
   @Override
   JPAEntityType getEntityType(final Class<?> targetClass) {
-    return entityTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
+    return entityTypeListInternalKey.get(buildStructuredTypeInternalName(targetClass));
   }
 
   @Override
   IntermediateComplexType getComplexType(final Class<?> targetClass) {
-    return complexTypeListInternalKey.get(JPANameBuilder.buildStructuredTypeInternalName(targetClass));
+    return complexTypeListInternalKey.get(buildStructuredTypeInternalName(targetClass));
   }
 
   @Override
@@ -188,7 +192,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     for (final EmbeddableType<?> embeddable : this.jpaMetamodel.getEmbeddables()) {
       final IntermediateComplexType ct = new IntermediateComplexType(getNameBuilder(), embeddable,
           serviceDocument);
-      ctList.put(ct.internalName, ct);
+      ctList.put(ct.getInternalName(), ct);
     }
     return ctList;
   }
@@ -198,7 +202,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
       final IntermediateEntityType et = new IntermediateEntityType(getNameBuilder(), entity, serviceDocument);
-      etList.put(et.internalName, et);
+      etList.put(et.getInternalName(), et);
     }
     return etList;
   }
@@ -228,7 +232,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   List<IntermediateEnumType> getEnumTypes() {
     return Collections.emptyList();
   }
-
+  
   @Override
   IntermediateEnumType getEnumType(final Class<?> targetClass) {
     return null;

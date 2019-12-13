@@ -164,7 +164,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
         return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
       }
     case EMBEDDED:
-      return nameBuilder.buildFQN(type.getExternalName());
+      return getNameBuilder().buildFQN(type.getExternalName());
     case ELEMENT_COLLECTION:
       final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) jpaAttribute;
       if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
@@ -307,7 +307,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
   private void buildProperty(final JPAEdmNameBuilder nameBuilder) throws ODataJPAModelException {
     // Set element specific attributes of super type
-    this.setExternalName(nameBuilder.buildPropertyName(internalName));
+    this.setExternalName(nameBuilder.buildPropertyName(getInternalName()));
 
     type = serviceDocument.getStructuredType(jpaAttribute);
 
@@ -322,11 +322,11 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
         dbFieldName = jpaColumnDetails.name();
         if (dbFieldName.isEmpty()) {
           final StringBuffer s = new StringBuffer(DB_FIELD_NAME_PATTERN);
-          s.replace(1, 3, internalName);
+          s.replace(1, 3, getInternalName());
           dbFieldName = s.toString();
         }
       } else {
-        dbFieldName = internalName;
+        dbFieldName = getInternalName();
       }
       // TODO @Transient -> e.g. Calculated fields like formated name
       final EdmSearchable jpaSearchable = annotatedMember.getAnnotation(EdmSearchable.class);
@@ -338,7 +338,8 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
       if (streamInfo != null) {
         if ((streamInfo.contentType() == null || streamInfo.contentType().isEmpty())
             && (streamInfo.contentTypeAttribute() == null || streamInfo.contentTypeAttribute().isEmpty())) {
-          throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.ANNOTATION_STREAM_INCOMPLETE, internalName);
+          throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.ANNOTATION_STREAM_INCOMPLETE,
+              getInternalName());
         }
       }
       final Version jpaVersion = annotatedMember.getAnnotation(Version.class);
@@ -421,7 +422,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
   public String toString() {
     return "IntermediateProperty [jpaAttribute=" + jpaAttribute + ", serviceDocument=" + serviceDocument + ", edmProperty="
         + edmProperty + ", type=" + type + ", dbFieldName=" + dbFieldName + ", searchable=" + searchable + ", isVersion="
-        + isVersion + ", streamInfo=" + streamInfo + ", internalName=" + internalName + "]";
+        + isVersion + ", streamInfo=" + streamInfo + ", internalName=" + getInternalName() + "]";
   }
 
 }
