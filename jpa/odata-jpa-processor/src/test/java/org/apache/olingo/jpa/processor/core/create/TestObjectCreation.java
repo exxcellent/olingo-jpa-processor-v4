@@ -15,6 +15,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -27,6 +28,7 @@ public class TestObjectCreation extends TestBase {
     persistenceAdapter.registerDTO(SystemRequirement.class);
   }
 
+  @Ignore("Keys are currently not forbidden, because OData<->JPA conversion is alos used for internal loading")
   @Test
   public void testIllegalCreationWithKey() throws IOException, ODataException {
     final StringBuffer requestBody = new StringBuffer("{");

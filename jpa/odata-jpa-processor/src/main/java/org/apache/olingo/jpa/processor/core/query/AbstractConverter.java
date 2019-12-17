@@ -320,10 +320,12 @@ public abstract class AbstractConverter {
       }
     }
     // do not allow to set ID attributes if that attributes must be generated
-    if (sourceOdataValue != null && isGenerated && isKey) {
-      throw new ODataJPAConversionException(HttpStatusCode.PRECONDITION_FAILED,
-          ODataJPAConversionException.MessageKeys.GENERATED_KEY_ATTRIBUTE_IS_NOT_SUPPORTED, jpaElement.toString());
-    }
+    // TODO Conversion happens also for internal loading, so the value maybe given sometimes...so we cannot force null
+    // value
+    //    if (sourceOdataValue != null && isGenerated && isKey) {
+    //      throw new ODataJPAConversionException(HttpStatusCode.PRECONDITION_FAILED,
+    //          ODataJPAConversionException.MessageKeys.GENERATED_KEY_ATTRIBUTE_IS_NOT_SUPPORTED, jpaElement.toString());
+    //    }
 
     if (sourceOdataValue == null) {
       return null;

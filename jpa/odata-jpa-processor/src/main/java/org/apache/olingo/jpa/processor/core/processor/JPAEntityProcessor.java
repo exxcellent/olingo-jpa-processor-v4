@@ -205,7 +205,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
         final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
             odata.createUriHelper(), context.getDependencyInjector());
         // load the entity as JPA instance from DB, using the ID from resource path
-        final Object persistenceEntity = invoker.loadJPAEntity(jpaEntityType, odataEntityMerged);
+        final Object persistenceEntity = invoker.lookupJPAEntity(jpaEntityType, odataEntityMerged);
         if (persistenceEntity == null) {
           throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
               HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -253,7 +253,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
             getOData().createUriHelper(), context.getDependencyInjector());
         final JPAEntityType jpaType = sd.getEntitySetType(targetEdmEntitySet.getName());
         for (final Entity entity : entityCollection.getEntities()) {
-          final Object persistenceEntity = invoker.loadJPAEntity(jpaType, entity);
+          final Object persistenceEntity = invoker.lookupJPAEntity(jpaType, entity);
           em.remove(persistenceEntity);
         }
         // ok
