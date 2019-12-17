@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.test.TestDataConstants;
+import org.apache.olingo.jpa.test.util.TestDataConstants;
 import org.junit.Before;
 import org.junit.Test;
 

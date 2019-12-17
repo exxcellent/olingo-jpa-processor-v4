@@ -19,7 +19,6 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
-import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
@@ -30,6 +29,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
+import org.apache.olingo.jpa.test.util.Constant;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;

@@ -10,12 +10,12 @@ import java.util.List;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
 import org.apache.olingo.jpa.processor.core.util.EdmEntitySetDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestHelper;
 import org.apache.olingo.jpa.processor.core.util.UriHelperDouble;
+import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.junit.Before;

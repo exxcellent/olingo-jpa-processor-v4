@@ -11,13 +11,13 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.test.Constant;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
+import org.apache.olingo.jpa.test.util.Constant;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.Test;
 

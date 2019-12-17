@@ -12,12 +12,12 @@ import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.processor.core.test.Constant;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 //import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
+import org.apache.olingo.jpa.test.util.Constant;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Test;
 
 public class TestPersistenceManager extends TestBase {

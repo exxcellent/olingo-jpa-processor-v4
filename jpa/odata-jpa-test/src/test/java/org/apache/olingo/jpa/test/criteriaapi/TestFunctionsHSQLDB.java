@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.criteriaapi;
+package org.apache.olingo.jpa.test.criteriaapi;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
@@ -18,7 +18,7 @@ import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class TestFunctionsHSQLDB {
 
 		final DataSource ds = DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.HSQLDB);
 		properties.put(ENTITY_MANAGER_DATA_SOURCE, ds);
-		emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME, properties);
+		emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME, properties);
 	}
 
 	private EntityManager em;

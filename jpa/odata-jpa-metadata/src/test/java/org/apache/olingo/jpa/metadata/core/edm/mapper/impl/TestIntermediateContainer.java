@@ -9,7 +9,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.test.TestDataConstants;
+import org.apache.olingo.jpa.test.util.TestDataConstants;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

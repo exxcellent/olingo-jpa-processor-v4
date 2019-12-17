@@ -10,8 +10,8 @@ import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcesso
 import org.apache.olingo.jpa.processor.core.database.JPA_H2DatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_HSQLDBDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
-import org.apache.olingo.jpa.processor.core.test.AbstractTest;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
+import org.apache.olingo.jpa.test.util.AbstractTest;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 
 /**
  * Adapter using a non jta data source for testing purposes.

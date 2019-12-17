@@ -1,6 +1,4 @@
-package org.apache.olingo.jpa.processor.core.testmodel;
-
-import java.io.IOException;
+package org.apache.olingo.jpa.test.util;
 
 import javax.sql.DataSource;
 
@@ -84,8 +82,6 @@ public class DataSourceHelper {
       try {
         hanaInfo = (ObjectNode) mapper.readTree(env);
       } catch (final JsonProcessingException e) {
-        return null;
-      } catch (final IOException e) {
         return null;
       }
       String url = REMOTE_URL;

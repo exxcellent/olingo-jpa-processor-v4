@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.test;
+package org.apache.olingo.jpa.test.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,8 +6,6 @@ import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
-
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 
 public abstract class AbstractTest implements Constant {
 

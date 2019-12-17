@@ -2,10 +2,10 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import javax.persistence.EntityManagerFactory;
 
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.BeforeClass;
 
-public abstract class TestMappingRoot extends org.apache.olingo.jpa.processor.core.test.AbstractTest {
+public abstract class TestMappingRoot extends org.apache.olingo.jpa.test.util.AbstractTest {
 
 	protected static EntityManagerFactory emf;
 	protected static final String BUPA_CANONICAL_NAME = "org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner";

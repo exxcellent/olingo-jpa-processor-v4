@@ -64,7 +64,7 @@ public class PersonImage implements BPImageIfc {
     return image;
   }
 
-  void setImage(final byte[] image) {
+  public void setImage(final byte[] image) {
     this.image = image;
   }
 
