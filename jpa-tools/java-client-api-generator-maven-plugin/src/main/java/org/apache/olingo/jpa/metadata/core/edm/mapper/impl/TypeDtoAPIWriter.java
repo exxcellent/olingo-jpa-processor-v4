@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -182,7 +183,11 @@ class TypeDtoAPIWriter extends AbstractWriter {
     if (JPASimpleAttribute.class.isInstance(attribute) && JPASimpleAttribute.class.cast(attribute).getType()
         .isPrimitive()) {
       write(NEWLINE + NEWLINE + "\t" + "private " + propClientType + " " + memberName +";");
+    } else if (JPASimpleAttribute.class.isInstance(attribute) && attribute.isCollection()) {
+      write(NEWLINE + NEWLINE + "\t" + "private " + propClientType + " " + memberName + " = new " + LinkedList.class
+          .getName() + "<>();");
     } else {
+      // all not primitive types (including 1:n relationships aka collections) are assigned to null as default
       write(NEWLINE + NEWLINE + "\t" + "private " + propClientType + " " + memberName + " = null;");
     }
     // getter method

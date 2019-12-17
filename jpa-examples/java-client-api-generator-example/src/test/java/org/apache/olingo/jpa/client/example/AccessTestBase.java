@@ -13,7 +13,13 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-public class AccessTestBase extends TestBase {
+/**
+ * Base for simple unit tests for generated code. For real world integration test see
+ * <i>olingo-generic-servlet-example</i>.
+ * @author Ralf Zozmann
+ *
+ */
+class AccessTestBase extends TestBase {
 
   private class AccessClassInvocationHandler implements MethodHandler, MethodFilter {
 

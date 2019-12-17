@@ -3,16 +3,19 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntityRequest;
 import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
+import org.apache.olingo.client.api.domain.ClientCollectionValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.domain.ClientProperty;
 import org.apache.olingo.client.api.domain.ClientValue;
@@ -24,13 +27,16 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
+
 class AccessAPIWriter extends AbstractWriter {
 
   private static final String METHOD_EXTRACT_VALUE = "extractValue";
+  private static final String METHOD_EXTRACT_COLLECTIONVALUE = "extractCollectionValue";
 
   private static class KeySorter implements Comparator<JPASimpleAttribute> {
     @Override
@@ -98,6 +104,7 @@ class AccessAPIWriter extends AbstractWriter {
 
   public void writeProtocolCode() throws IOException, ODataJPAModelException {
     // TODO
+    generate_ExtractCollectionValue_HelperMethod();
     generate_ExtractValue_HelperMethod();
     generateGetEntity();
   }
@@ -134,7 +141,12 @@ class AccessAPIWriter extends AbstractWriter {
               .getProperty()) + ", " + memberName + ");");
     }
 
-    final String esName = schema.getNameBuilder().buildEntitySetName(type.getExternalFQN());
+    final String esName;
+    if (JPAEntityType.class.isInstance(type)) {
+      esName = JPAEntityType.class.cast(type).getEntitySetName();
+    } else {
+      esName = schema.getNameBuilder().buildEntitySetName(type.getExternalName());
+    }
     write(NEWLINE + "\t" + "\t" + URIBuilder.class.getName() + " uriBuilder = "
         + " defineEndpoint().appendEntitySetSegment(\""
         + esName + "\").appendKeySegment(keys)" + ";");
@@ -167,11 +179,10 @@ class AccessAPIWriter extends AbstractWriter {
     write(NEWLINE);
     write(NEWLINE + "\t" + "@SuppressWarnings({ \"unchecked\", \"rawtypes\" })");
     write(NEWLINE + "\t" + "private " + "<T extends " + ClientValue.class.getName() + ", R>" + " R extractValue("
-        + ClientProperty.class.getName() + " property, " + Class.class.getSimpleName()
+        + "T clientValue, " + Class.class.getSimpleName()
         + "<R> resultTypeClass, final Integer maxLength, final Integer precision, final Integer scale) throws "
         + ODataException.class.getName() + " {");
 
-    write(NEWLINE + "\t" + "\t" + ClientValue.class.getName() + " clientValue = property.getValue();");
     write(NEWLINE + "\t" + "\t" + "if(clientValue.isEnum()) {");
     // enum handling code
     // enums are generated as duplicate on client side (code) so we can reference directly the enum class
@@ -196,6 +207,32 @@ class AccessAPIWriter extends AbstractWriter {
         + "return clientValue.asPrimitive().toCastValue(resultTypeClass);");
     write(NEWLINE + "\t" + "\t" + "\t" + "}");
     write(NEWLINE + "\t" + "\t" + "}");
+
+    write(NEWLINE + "\t" + "}");
+  }
+
+  private void generate_ExtractCollectionValue_HelperMethod() throws ODataJPAModelException, IOException {
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "private " + "<R> "
+        + Collection.class.getName() + "<R> extractCollectionValue("
+        + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + "> clientValue, " + Class.class
+        .getSimpleName()
+        + "<R> resultTypeClass, final Integer maxLength, final Integer precision, final Integer scale) throws "
+        + ODataException.class.getName() + " {");
+
+    write(NEWLINE + "\t" + "\t" + "if(clientValue == null) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return " + Collections.class.getName() + ".emptyList();");
+    write(NEWLINE + "\t" + "\t" + "}");
+    write(NEWLINE + "\t" + "\t" + Collection.class.getName() + "<R> result = new " + ArrayList.class.getName()
+        + "<R>(clientValue.size());");
+    write(NEWLINE + "\t" + "\t" + Iterator.class.getName() + "<" + ClientValue.class.getName()
+        + "> it = clientValue.iterator();");
+    write(NEWLINE + "\t" + "\t" + "while(it.hasNext()) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + METHOD_EXTRACT_VALUE
+        + "(it.next(), resultTypeClass, maxLength, precision, scale));");
+    write(NEWLINE + "\t" + "\t" + "}");
+
+    write(NEWLINE + "\t" + "\t" + "return result;");
 
     write(NEWLINE + "\t" + "}");
 
@@ -236,19 +273,16 @@ class AccessAPIWriter extends AbstractWriter {
     if (attribute.isCollection()) {
       // special handling for collection attributes
       write(NEWLINE + "\t" + "\t" + "// collection attribute value");
-      write(NEWLINE + "\t" + "\t" + propClientType + " l" + memberName + " = new " + LinkedList.class.getName() + "<>()"
-          + ";");
-      write(NEWLINE + "\t" + "\t" + Iterator.class.getName() + "<" + ClientValue.class.getName() + "> it" + memberName
-          + " = odataEntity.getProperty(" + typeMetaName + "."
-          + TypeMetaAPIWriter
-          .determineTypeMetaPropertyNameConstantName(attribute.getProperty())
-          + ").getCollectionValue().iterator();");
-      write(NEWLINE + "\t" + "\t" + "while(it" + memberName + ".hasNext()) {");
-      write(NEWLINE + "\t" + "\t" + "\t" + "l" + memberName + ".add(" + METHOD_EXTRACT_VALUE + "(it" + memberName
-          + ".next(), "
-          + attribute.getType().getName() + ".class, " + integer2CodeString(attribute.getMaxLength()) + ", "
-          + integer2CodeString(attribute.getPrecision()) + ", " + integer2CodeString(attribute.getScale()) + "));");
-      write(NEWLINE + "\t" + "\t" + "}");
+      write(NEWLINE + "\t" + "\t" + ClientProperty.class.getName() + " prop" + memberName
+          + " = odataEntity.getProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ");");
+      write(NEWLINE + "\t" + "\t" + propClientType + " c" + memberName + " = " + METHOD_EXTRACT_COLLECTIONVALUE + "("
+          + "prop" + memberName + ".getCollectionValue(), " + TypeDtoAPIWriter
+          .determineClientSidePropertyRawJavaTypeName(attribute, true) + ".class" + ", " + integer2CodeString(
+              attribute.getMaxLength()) + ", " + integer2CodeString(attribute.getPrecision()) + ", "
+              + integer2CodeString(attribute.getScale()) + ");");
+      write(NEWLINE + "\t" + "\t" + "dto." + TypeDtoAPIWriter.determinePropertySetterMethodName(attribute) + "(" + "c"
+          + memberName + ");");
     } else if (attribute.getType().isEnum()) {
       // enums are generated as duplicate on client side (code) so we can reference directly the enum class
       write(NEWLINE + "\t" + "\t" + "// enum attribute value");
@@ -257,7 +291,7 @@ class AccessAPIWriter extends AbstractWriter {
           + TypeMetaAPIWriter.determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ");");
       write(NEWLINE + "\t" + "\t" + attribute.getType().getName() + " e" + memberName + " = " + METHOD_EXTRACT_VALUE
           + "(prop"
-          + memberName + ", " + attribute.getType().getName() + ".class, null, null, null);");
+          + memberName + ".getValue(), " + attribute.getType().getName() + ".class, null, null, null);");
       write(NEWLINE + "\t" + "\t" + "dto." + TypeDtoAPIWriter.determinePropertySetterMethodName(attribute) + "("
           + "e" + memberName + ");");
     } else if (TypeMapping.convertToEdmSimpleType(attribute) == EdmPrimitiveTypeKind.Binary) {
@@ -270,9 +304,10 @@ class AccessAPIWriter extends AbstractWriter {
           + ");");
       write(NEWLINE + "\t" + "\t" + propClientType + " r" + memberName + " = " + METHOD_EXTRACT_VALUE + "(prop"
           + memberName
-          + ", " + propClientTypePrimitiveAsObject + ".class, " + integer2CodeString(attribute.getMaxLength()) + ", "
-          + integer2CodeString(attribute.getPrecision()) + ", " + integer2CodeString(attribute.getScale()) + ")"
-          + determinePrimitiveTypeCastSuffix(attribute) + ";");
+          + ".getValue(), " + propClientTypePrimitiveAsObject + ".class, " + integer2CodeString(attribute
+              .getMaxLength()) + ", "
+              + integer2CodeString(attribute.getPrecision()) + ", " + integer2CodeString(attribute.getScale()) + ")"
+              + determinePrimitiveTypeCastSuffix(attribute) + ";");
       write(NEWLINE + "\t" + "\t" + "dto." + TypeDtoAPIWriter.determinePropertySetterMethodName(attribute) + "("
           + "r" + memberName + ");");
     }
