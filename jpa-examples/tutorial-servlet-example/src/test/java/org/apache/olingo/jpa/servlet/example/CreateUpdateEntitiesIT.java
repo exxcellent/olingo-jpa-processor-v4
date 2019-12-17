@@ -128,9 +128,10 @@ public class CreateUpdateEntitiesIT {
     final ClientEntity entity = factory.newEntity(fqn);
     ClientProperty property;
 
-    property = factory.newPrimitiveProperty("ID",
-        factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(ID)));
-    entity.getProperties().add(property);
+    // generated value
+    //    property = factory.newPrimitiveProperty("ID",
+    //        factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(ID)));
+    //    entity.getProperties().add(property);
 
     property = factory.newPrimitiveProperty("ADate1", factory.newPrimitiveValueBuilder().buildString("1610-10-11"));
     entity.getProperties().add(property);

@@ -1,5 +1,14 @@
 --CREATE ALIAS IS_PRIME FOR "org.apache.olingo.jpa.processor.core.test_udf.UserDefinedFunctions.isPrime";
 SET schema "OLINGO";
+
+CREATE SEQUENCE
+	IDSEQUENCE
+	start with 100000
+	increment by 1
+	minvalue 100000
+	maxvalue 9999999
+	cycle
+;
     
 CREATE TABLE "org.apache.olingo.jpa::BusinessPartner" (
 

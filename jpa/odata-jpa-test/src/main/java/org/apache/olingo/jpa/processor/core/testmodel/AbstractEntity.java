@@ -1,8 +1,11 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
 import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.SequenceGenerator;
 
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 
@@ -14,17 +17,19 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
  */
 @MappedSuperclass
 public abstract class AbstractEntity {
-	@Id
-	@Column(name = "\"ID\"", updatable = false, nullable = false, unique = true, columnDefinition = "bigint")
-	private Integer ID;
+  @Id
+  @Column(name = "\"ID\"", updatable = false, nullable = false, unique = true, columnDefinition = "bigint")
+  @GeneratedValue(generator = "IdSequence", strategy = GenerationType.SEQUENCE)
+  @SequenceGenerator(name = "IdSequence", sequenceName = "OLINGO.IDSEQUENCE", allocationSize = 1)
+  private Integer ID;
 
-	public Integer getID() {
-		return ID;
-	}
+  public Integer getID() {
+    return ID;
+  }
 
-	@EdmAction(name = "actionInMappedSuperclass")
-	public void actionInMappedSuperclass() {
-		// do nothing
-	}
+  @EdmAction(name = "actionInMappedSuperclass")
+  public void actionInMappedSuperclass() {
+    // do nothing
+  }
 
 }
