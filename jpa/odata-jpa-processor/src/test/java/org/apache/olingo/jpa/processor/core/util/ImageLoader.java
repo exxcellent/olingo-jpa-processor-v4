@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.testmodel;
+package org.apache.olingo.jpa.processor.core.util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,6 +14,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+
+import org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage;
+import org.apache.olingo.jpa.processor.core.testmodel.PersonImage;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
+import org.apache.olingo.jpa.test.util.DataSourceHelper.DatabaseType;
 
 public class ImageLoader {
 

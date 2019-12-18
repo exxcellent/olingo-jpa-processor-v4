@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.28.0</version>
+		<version>0.28.2</version>
 	</parent>
 
 
@@ -69,11 +69,6 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	

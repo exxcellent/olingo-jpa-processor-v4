@@ -11,6 +11,7 @@ import javax.persistence.metamodel.EmbeddableType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeInformation;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.junit.Before;

@@ -309,21 +309,23 @@ public abstract class AbstractConverter {
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public final Object convertOData2JPAValue(final JPATypedElement jpaElement, final Object sourceOdataValue)
       throws ODataJPAConversionException {
+    final boolean isGenerated = jpaElement.getAnnotation(GeneratedValue.class) != null;
     boolean isKey = false;
     if (JPAAttribute.class.isInstance(jpaElement)) {
       final JPAAttribute jpaAttribute = JPAAttribute.class.cast(jpaElement);
       isKey = jpaAttribute.isKey();
-      if (sourceOdataValue == null && isKey) {
+      if (sourceOdataValue == null && isKey && !isGenerated) {
         throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.ATTRIBUTE_MUST_NOT_BE_NULL,
             jpaAttribute.getInternalName());
       }
     }
-    final boolean isGenerated = jpaElement.getAnnotation(GeneratedValue.class) != null;
     // do not allow to set ID attributes if that attributes must be generated
-    if (isGenerated && isKey) {
-      throw new ODataJPAConversionException(HttpStatusCode.PRECONDITION_FAILED,
-          ODataJPAConversionException.MessageKeys.GENERATED_KEY_ATTRIBUTE_IS_NOT_SUPPORTED, jpaElement.toString());
-    }
+    // TODO Conversion happens also for internal loading, so the value maybe given sometimes...so we cannot force null
+    // value
+    //    if (sourceOdataValue != null && isGenerated && isKey) {
+    //      throw new ODataJPAConversionException(HttpStatusCode.PRECONDITION_FAILED,
+    //          ODataJPAConversionException.MessageKeys.GENERATED_KEY_ATTRIBUTE_IS_NOT_SUPPORTED, jpaElement.toString());
+    //    }
 
     if (sourceOdataValue == null) {
       return null;

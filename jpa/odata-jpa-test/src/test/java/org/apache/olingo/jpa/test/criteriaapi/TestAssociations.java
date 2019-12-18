@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.criteriaapi;
+package org.apache.olingo.jpa.test.criteriaapi;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -18,14 +18,14 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.processor.core.test.AbstractTest;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRoleKey;
 import org.apache.olingo.jpa.processor.core.testmodel.Country;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
+import org.apache.olingo.jpa.test.util.AbstractTest;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;

@@ -20,12 +20,12 @@ import org.apache.olingo.client.api.domain.ClientValue;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeInformation;
 import org.apache.olingo.jpa.processor.core.testmodel.ChangeInformation;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
+import org.apache.olingo.jpa.test.util.Constant;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -128,9 +128,10 @@ public class CreateUpdateEntitiesIT {
     final ClientEntity entity = factory.newEntity(fqn);
     ClientProperty property;
 
-    property = factory.newPrimitiveProperty("ID",
-        factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(ID)));
-    entity.getProperties().add(property);
+    // generated value
+    //    property = factory.newPrimitiveProperty("ID",
+    //        factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(ID)));
+    //    entity.getProperties().add(property);
 
     property = factory.newPrimitiveProperty("ADate1", factory.newPrimitiveValueBuilder().buildString("1610-10-11"));
     entity.getProperties().add(property);

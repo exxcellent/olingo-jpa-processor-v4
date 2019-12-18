@@ -19,7 +19,6 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
-import org.apache.olingo.jpa.processor.core.test.Constant;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
@@ -30,6 +29,8 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
+import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
+import org.apache.olingo.jpa.test.util.Constant;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -239,27 +240,32 @@ public class TestJPAActions extends TestBase {
     assumeTrue("Hibernate cannot handle an abstract entity class as resource",
         getJPAProvider() != JPAProvider.Hibernate);
 
-    // the action must be present in all concrete/abstract entity classes
+    URIBuilder uriBuilder;
 
+    // the action must be present in all concrete/abstract entity classes
+    uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipEntities").appendKeySegment(Integer.valueOf(1))
+        .appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
     final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
-        "RelationshipEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity",
-        null, HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
+    uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").appendKeySegment(Integer.valueOf(
+        1)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
     final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
-        "RelationshipSourceEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
-        HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
+    uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipTargetEntities").appendKeySegment(Integer.valueOf(
+        2)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
     final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter,
-        "RelationshipTargetEntities(2)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
-        HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
     // must fail
+    uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").appendKeySegment(Integer.valueOf(
+        1)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
     final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
-        "DatatypeConversionEntities(1)/" + Constant.PUNIT_NAME + ".actionInAbstractEntity", null,
-        HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper4.execute(HttpStatusCode.BAD_REQUEST.getStatusCode());
 
   }

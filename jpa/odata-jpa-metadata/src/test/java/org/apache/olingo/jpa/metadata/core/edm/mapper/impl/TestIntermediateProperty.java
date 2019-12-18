@@ -9,6 +9,7 @@ import javax.persistence.metamodel.EmbeddableType;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

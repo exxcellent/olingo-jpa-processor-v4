@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.test;
+package org.apache.olingo.jpa.test.util;
 
 public interface TestDataConstants {
 

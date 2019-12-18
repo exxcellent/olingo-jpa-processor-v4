@@ -30,10 +30,10 @@ import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
 
@@ -85,7 +85,7 @@ public class ODataServlet extends HttpServlet {
 		elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
 
 		final AbstractJPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(
-		        org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME,
+		        org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME,
 		        elProperties,
 		        new JPA_DERBYDatabaseProcessor());
 		mappingAdapter.registerDTO(EnvironmentInfo.class);

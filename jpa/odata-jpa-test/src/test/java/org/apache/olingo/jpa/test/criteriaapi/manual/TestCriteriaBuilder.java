@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.criteriaapi.manual;
+package org.apache.olingo.jpa.test.criteriaapi.manual;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +19,8 @@ import javax.persistence.criteria.Subquery;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
-import org.apache.olingo.jpa.processor.core.testmodel.DataSourceHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -39,7 +39,7 @@ public class TestCriteriaBuilder {
     properties.put(ENTITY_MANAGER_DATA_SOURCE, DataSourceHelper.createDataSource(
         // doesn't work with HDBSQL
         DataSourceHelper.DatabaseType.H2));
-    emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.processor.core.test.Constant.PUNIT_NAME, properties);
+    emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME, properties);
   }
 
   @Before
