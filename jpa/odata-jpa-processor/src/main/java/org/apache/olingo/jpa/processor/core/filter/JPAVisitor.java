@@ -108,6 +108,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       default:
         // throw exception at end of method
       }
+    } else if (JPAExistsOperation.class.isInstance(operator)) {
+      return JPAExistsOperation.class.cast(operator);
     }
     throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
         HttpStatusCode.NOT_IMPLEMENTED, operator.getClass().getSimpleName());
