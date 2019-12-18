@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.junit.Before;
 import org.junit.Test;

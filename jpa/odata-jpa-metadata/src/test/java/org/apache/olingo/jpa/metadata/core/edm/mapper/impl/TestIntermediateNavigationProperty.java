@@ -14,6 +14,7 @@ import javax.persistence.metamodel.EntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
 import org.junit.Before;

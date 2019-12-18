@@ -13,16 +13,14 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
+import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
 public abstract class TestBase {
-
-  public enum JPAProvider {
-    EclipseLink, Hibernate, OpenJPA;
-  }
 
   protected TestHelper helper;
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);

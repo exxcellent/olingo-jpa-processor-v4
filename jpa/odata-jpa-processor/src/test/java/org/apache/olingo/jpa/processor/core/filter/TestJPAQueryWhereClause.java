@@ -11,6 +11,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
+import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -545,6 +546,34 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "Organizations?$select=ID&$filter=Roles/any(d:d/RoleCategory eq 'A' and d/BusinessPartnerID eq '1')");
 
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getValues();
+    assertEquals(1, orgs.size());
+  }
+
+  @Test
+  public void testFilterLambdaAllOperatorAfterBooleanOperatorExpression() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter(
+        "Name1 ne 'foo' and Roles/all(d:d/RoleCategory eq 'A')").select("ID");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getValues();
+    assertEquals(1, orgs.size());
+  }
+
+  /**
+   * Services MUST support case-insensitive operator names
+   *
+   * @see https://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.html#_Toc26179939
+   */
+  @Ignore("With Olingo 4.7.0 operators are case sensitive (must be lower case)")
+  @Test
+  public void testCaseInsensitiveFilterOperators() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter(
+        "Name1 ne 'foo' AND Name1 ne 'bar'").select("ID");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
     assertEquals(1, orgs.size());

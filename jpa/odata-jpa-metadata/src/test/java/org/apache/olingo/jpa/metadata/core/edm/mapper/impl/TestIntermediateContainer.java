@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.List;
 
@@ -9,201 +10,206 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.test.util.TestDataConstants;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateContainer extends TestMappingRoot {
-	private IntermediateServiceDocument serviceDocument;
+  private IntermediateServiceDocument serviceDocument;
 
-	@Before
-	public void setup() throws ODataJPAModelException {
-		serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
-		serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
-	}
+  @Before
+  public void setup() throws ODataJPAModelException {
+    serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
+    serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
+  }
 
-	@Test
-	public void checkContainerCanBeCreated() throws ODataJPAModelException {
+  @Test
+  public void checkContainerCanBeCreated() throws ODataJPAModelException {
 
-		new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME), serviceDocument);
-	}
+    new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME), serviceDocument);
+  }
 
-	@Test
-	public void checkGetName() throws ODataJPAModelException {
+  @Test
+  public void checkGetName() throws ODataJPAModelException {
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
-		assertEquals("OrgApacheOlingoJpaContainer", container.getExternalName());
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
+    assertEquals("OrgApacheOlingoJpaContainer", container.getExternalName());
+  }
 
-	@Test
-	public void checkGetNoEntitySets() throws ODataJPAModelException {
+  @Test
+  public void checkGetNoEntitySets() throws ODataJPAModelException {
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
-		assertEquals(TestDataConstants.NO_ENTITY_TYPES, container.getEdmItem().getEntitySets().size());
-	}
+    assumeTrue(
+        "Hibernate does not separate entities in different persistence units, so the numer of entities is the sum of all persistence units",
+        getJPAProvider() != JPAProvider.Hibernate);
 
-	@Test
-	public void checkGetEntitySetName() throws ODataJPAModelException {
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
+    assertEquals(TestDataConstants.NO_ENTITY_TYPES, container.getEdmItem().getEntitySets().size());
+  }
 
-		final List<CsdlEntitySet> entitySets = serviceDocument.getEntityContainer().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				return;
-			}
-		}
-		fail();
-	}
+  @Test
+  public void checkGetEntitySetName() throws ODataJPAModelException {
 
-	@Test
-	public void checkGetEntitySetType() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = serviceDocument.getEntityContainer().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (entitySet.getName().equals("BusinessPartners")) {
+        return;
+      }
+    }
+    fail();
+  }
 
-		final List<CsdlEntitySet> entitySets = serviceDocument.getEntityContainer().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				assertEquals(new JPAEdmNameBuilder(PUNIT_NAME).buildFQN("BusinessPartner"), entitySet.getTypeFQN());
-				return;
-			}
-		}
-		fail();
-	}
+  @Test
+  public void checkGetEntitySetType() throws ODataJPAModelException {
 
-	@Test
-	public void checkGetNoNavigationPropertyBindings() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = serviceDocument.getEntityContainer().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (entitySet.getName().equals("BusinessPartners")) {
+        assertEquals(new JPAEdmNameBuilder(PUNIT_NAME).buildFQN("BusinessPartner"), entitySet.getTypeFQN());
+        return;
+      }
+    }
+    fail();
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetNoNavigationPropertyBindings() throws ODataJPAModelException {
 
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				assertEquals(3, entitySet.getNavigationPropertyBindings().size());
-				return;
-			}
-		}
-		fail();
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Test
-	public void checkGetNavigationPropertyBindingsPath() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (entitySet.getName().equals("BusinessPartners")) {
+        assertEquals(3, entitySet.getNavigationPropertyBindings().size());
+        return;
+      }
+    }
+    fail();
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetNavigationPropertyBindingsPath() throws ODataJPAModelException {
 
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
-					if ("Roles".equals(binding.getPath())) {
-						return;
-					}
-				}
-			}
-		}
-		fail();
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Test
-	public void checkGetNavigationPropertyBindingsTarget() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (entitySet.getName().equals("BusinessPartners")) {
+        for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
+          if ("Roles".equals(binding.getPath())) {
+            return;
+          }
+        }
+      }
+    }
+    fail();
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetNavigationPropertyBindingsTarget() throws ODataJPAModelException {
 
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
-					if ("Roles".equals(binding.getPath())) {
-						assertEquals("BusinessPartnerRoles", binding.getTarget());
-						return;
-					}
-				}
-			}
-		}
-		fail();
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Ignore("Address/AdministrativeDivision is currently commented out")
-	@Test
-	public void checkGetNavigationPropertyBindingsPathComplexType() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (entitySet.getName().equals("BusinessPartners")) {
+        for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
+          if ("Roles".equals(binding.getPath())) {
+            assertEquals("BusinessPartnerRoles", binding.getTarget());
+            return;
+          }
+        }
+      }
+    }
+    fail();
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Ignore("Address/AdministrativeDivision is currently commented out")
+  @Test
+  public void checkGetNavigationPropertyBindingsPathComplexType() throws ODataJPAModelException {
 
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (entitySet.getName().equals("BusinessPartners")) {
-				for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
-					if ("Address/AdministrativeDivision".equals(binding.getPath())) {
-						return;
-					}
-				}
-			}
-		}
-		fail();
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Test
-	public void checkGetNavigationPropertyBindingsPathComplexTypeNested() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (entitySet.getName().equals("BusinessPartners")) {
+        for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
+          if ("Address/AdministrativeDivision".equals(binding.getPath())) {
+            return;
+          }
+        }
+      }
+    }
+    fail();
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetNavigationPropertyBindingsPathComplexTypeNested() throws ODataJPAModelException {
 
-		final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
-		for (final CsdlEntitySet entitySet : entitySets) {
-			if (!entitySet.getName().equals("BusinessPartners")) {
-				continue;
-			}
-			for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
-				if ("Address/AdministrativeDivision".equals(binding.getPath())) {
-					return;
-				}
-			}
-		}
-		fail();
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Test
-	public void checkGetNoFunctionImportIfBound() throws ODataJPAModelException {
+    final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
+    for (final CsdlEntitySet entitySet : entitySets) {
+      if (!entitySet.getName().equals("BusinessPartners")) {
+        continue;
+      }
+      for (final CsdlNavigationPropertyBinding binding : entitySet.getNavigationPropertyBindings()) {
+        if ("Address/AdministrativeDivision".equals(binding.getPath())) {
+          return;
+        }
+      }
+    }
+    fail();
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetNoFunctionImportIfBound() throws ODataJPAModelException {
 
-		final List<CsdlFunctionImport> funcImports = container.getEdmItem().getFunctionImports();
-		for (final CsdlFunctionImport funcImport : funcImports) {
-			if (funcImport.getName().equals("CountRoles")) {
-				fail("Bound function must not generate a function import");
-			}
-		}
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Test
-	public void checkGetNoFunctionImportIfUnBoundHasImportFalse() throws ODataJPAModelException {
+    final List<CsdlFunctionImport> funcImports = container.getEdmItem().getFunctionImports();
+    for (final CsdlFunctionImport funcImport : funcImports) {
+      if (funcImport.getName().equals("CountRoles")) {
+        fail("Bound function must not generate a function import");
+      }
+    }
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetNoFunctionImportIfUnBoundHasImportFalse() throws ODataJPAModelException {
 
-		final List<CsdlFunctionImport> funcImports = container.getEdmItem().getFunctionImports();
-		for (final CsdlFunctionImport funcImport : funcImports) {
-			if (funcImport.getName().equals("max")) {
-				fail("UnBound function must not generate a function import is not annotated");
-			}
-		}
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
 
-	@Test
-	public void checkGetFunctionImportIfUnBoundHasImportTrue() throws ODataJPAModelException {
+    final List<CsdlFunctionImport> funcImports = container.getEdmItem().getFunctionImports();
+    for (final CsdlFunctionImport funcImport : funcImports) {
+      if (funcImport.getName().equals("max")) {
+        fail("UnBound function must not generate a function import is not annotated");
+      }
+    }
+  }
 
-		final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
-				serviceDocument);
+  @Test
+  public void checkGetFunctionImportIfUnBoundHasImportTrue() throws ODataJPAModelException {
 
-		final List<CsdlFunctionImport> funcImports = container.getEdmItem().getFunctionImports();
-		for (final CsdlFunctionImport funcImport : funcImports) {
-			if (funcImport.getName().equals("Olingo V4 ")) {
-				fail("UnBound function must be generate a function import is annotated");
-			}
-		}
-	}
+    final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
+        serviceDocument);
+
+    final List<CsdlFunctionImport> funcImports = container.getEdmItem().getFunctionImports();
+    for (final CsdlFunctionImport funcImport : funcImports) {
+      if (funcImport.getName().equals("Olingo V4 ")) {
+        fail("UnBound function must be generate a function import is annotated");
+      }
+    }
+  }
 }
