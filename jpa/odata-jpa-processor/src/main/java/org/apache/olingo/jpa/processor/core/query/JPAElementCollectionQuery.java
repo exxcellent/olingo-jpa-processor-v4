@@ -60,6 +60,7 @@ class JPAElementCollectionQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tup
     return cq;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public From<?, ?> getQueryScopeFrom() {
     return root;

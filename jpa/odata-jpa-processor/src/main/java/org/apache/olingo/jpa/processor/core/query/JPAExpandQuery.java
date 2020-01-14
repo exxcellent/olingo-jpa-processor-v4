@@ -304,18 +304,20 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>, Tuple>
           HttpStatusCode.BAD_REQUEST, e);
     }
 
-    if (whereCondition == null) {
-      whereCondition = cb.exists(buildNavigationSubQueries());
-    } else {
-      whereCondition = cb.and(whereCondition, cb.exists(buildNavigationSubQueries()));
-    }
+    whereCondition = combineAND(whereCondition, buildNavigationSubQueries());
+    //    if (whereCondition == null) {
+    //      whereCondition = cb.exists(buildNavigationSubQueries());
+    //    } else {
+    //      whereCondition = cb.and(whereCondition, cb.exists(buildNavigationSubQueries()));
+    //    }
 
     return whereCondition;
   }
 
   // TODO merge with JPAAbstractCriteriaQuery#buildNavigationSubQueries
-  private Subquery<?> buildNavigationSubQueries() throws ODataApplicationException, ODataJPAModelException {
-    Subquery<?> childQuery = null;
+  private javax.persistence.criteria.Expression<Boolean>/* Subquery<?> */ buildNavigationSubQueries()
+      throws ODataApplicationException, ODataJPAModelException {
+    final Subquery<?> childQuery = null;
 
     final List<UriResource> resourceParts = getUriInfoResource().getUriResourceParts();
     final IntermediateServiceDocument sd = getContext().getEdmProvider().getServiceDocument();
@@ -328,20 +330,28 @@ class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>, Tuple>
     expandPathList.addAll(item.getHops());
 
     // 2. Create the queries and roots
-    JPAAbstractQuery<?, ?> parent = this;
-    final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
+    From<?, ?> parentFrom = getQueryResultFrom();
+    final List<JPAQueryNavigation> queryList = new ArrayList<JPAQueryNavigation>();
 
     for (final JPANavigationPropertyInfo naviInfo : expandPathList) {
-      final JPANavigationQuery newQuery = new JPANavigationQuery(sd,
+      final JPAQueryNavigation newQuery = new JPAQueryNavigation(sd,
           naviInfo.getNavigationUriResource(),
-          (JPAAssociationPath) naviInfo.getNavigationPath(), parent, getEntityManager());
+          (JPAAssociationPath) naviInfo.getNavigationPath(), parentFrom, getEntityManager());
       queryList.add(newQuery);
-      parent = newQuery;
+      parentFrom = newQuery.getQueryResultFrom();
     }
     // 3. Create select statements
-    for (int i = queryList.size() - 1; i >= 0; i--) {
-      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+    //    for (int i = queryList.size() - 1; i >= 0; i--) {
+    //      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+    //    }
+    //    return childQuery;
+
+    javax.persistence.criteria.Expression<Boolean> whereCondition = null;
+    for (final JPAQueryNavigation navQuery : queryList) {
+      final javax.persistence.criteria.Expression<Boolean> where = navQuery.buildJoinWhere();
+      whereCondition = combineAND(whereCondition, where);
     }
-    return childQuery;
+    return whereCondition;
+
   }
 }

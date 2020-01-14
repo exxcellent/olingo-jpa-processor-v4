@@ -11,8 +11,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractRelationshipQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAFilterNavigationSubQuery;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
@@ -58,19 +57,19 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
     JPAAbstractQuery<?, ?> parent = getOwnerQuery();
-    final List<JPAAbstractRelationshipQuery> queryList = new ArrayList<>(naviPathList.size());
+    final List<JPAFilterNavigationSubQuery> queryList = new ArrayList<>(naviPathList.size());
 
     // 2. Create the queries and roots
     final EntityManager em = getEntityManager();
     final OData odata = getOdata();
     for (int i = naviPathList.size() - 1; i >= 0; i--) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
-      JPAFilterQuery query;
+      JPAFilterNavigationSubQuery query;
       if (i == 0) {
-        query = new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+        query = new JPAFilterNavigationSubQuery(odata, sd, naviInfo.getNavigationUriResource(),
             naviInfo.getNavigationPath(), parent, em, expression);
       } else {
-        query = new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+        query = new JPAFilterNavigationSubQuery(odata, sd, naviInfo.getNavigationUriResource(),
             naviInfo.getNavigationPath(), parent, em);
       }
       queryList.add(query);
@@ -79,7 +78,7 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
     // 3. Create select statements
     Subquery<?> childQuery = null;
     for (int i = queryList.size() - 1; i >= 0; i--) {
-      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+      childQuery = queryList.get(i).buildSubQuery(childQuery);
     }
     return childQuery;
   }

@@ -334,7 +334,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
             HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
 
-      final JPAEntityType jpaType = query.getQueryScopeType();
+      final JPAEntityType jpaType = query.getQueryResultType();
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
           final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),

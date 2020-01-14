@@ -59,6 +59,7 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
   private final JPAEntityFilterProcessor filter;
   private final JPAODataContext context;
   private final UriResourceEntitySet queryStartUriResource;
+  private final JPAEntityType jpaEntityType;
 
   public JPAAbstractCriteriaQuery(final JPAODataContext context, final EdmType edmType, final EntityManager em,
       final UriInfoResource uriInfo)
@@ -66,10 +67,20 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
     super(context.getEdmProvider().getServiceDocument(), edmType, em);
     queryStartUriResource = Util.determineStartingEntityUriResource(uriInfo);
 
+    this.jpaEntityType = context.getEdmProvider().getServiceDocument().getEntityType(edmType);
+    assert jpaEntityType != null;
     this.filter = new JPAEntityFilterProcessor(context.getOdata(), context.getEdmProvider().getServiceDocument(), em,
         getQueryScopeType(),
         context.getDatabaseProcessor(), uriInfo, this);
     this.context = context;
+  }
+
+  /**
+   *
+   * @return The {@link #getQueryScopeFrom() starting} query entity type.
+   */
+  public final JPAEntityType getQueryScopeType() {
+    return jpaEntityType;
   }
 
   protected final OData getOData() {
@@ -253,8 +264,7 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
 
   }
 
-  @Override
-  protected final UriResource getQueryScopeUriInfoResource() {
+  protected final UriResourceEntitySet getQueryScopeUriInfoResource() {
     return queryStartUriResource;
   }
 
@@ -458,8 +468,10 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
     final List<UriParameter> keyPredicates = getKeyPredicates();
     // keys are always for start table, not for target after joins
     final From<?, ?> root = getQueryScopeFrom();
+    final JPAEntityType rootType = getQueryScopeType();
     // Given key: Organizations('1')
-    final javax.persistence.criteria.Expression<Boolean> whereCondition = extendWhereByKey(root, null, keyPredicates);
+    final javax.persistence.criteria.Expression<Boolean> whereCondition = extendWhereByKey(root, rootType,
+        keyPredicates);
 
     //    UriResource resourceItem = null;
     //    // Given key: Organizations('1')
@@ -477,7 +489,7 @@ public abstract class JPAAbstractCriteriaQuery<QT extends CriteriaQuery<RT>, RT>
   }
 
   private javax.persistence.criteria.Expression<Boolean> createWhereConditionFromAccessConditioner() throws ODataApplicationException {
-    final DataAccessConditioner<?> dac = getQueryScopeType().getDataAccessConditioner();
+    final DataAccessConditioner<?> dac = getQueryResultType().getDataAccessConditioner();
     if (dac == null) {
       return null;
     }

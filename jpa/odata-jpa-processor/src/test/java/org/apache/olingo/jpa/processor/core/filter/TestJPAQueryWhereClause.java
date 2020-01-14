@@ -513,6 +513,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode relSources = helper.getValues();
     assertTrue(relSources.size() == 1);
+    assertEquals("USA", relSources.get(0).get("Country").asText());
   }
 
   @Test
@@ -635,10 +636,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNavigationPropertyToOneValueAndEquals() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE34'");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE34'");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
     assertEquals(1, orgs.size());
@@ -646,10 +646,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNavigationPropertyToOneValueTwoHops() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions?$filter=Parent/Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE212'");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "Parent/Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE212'");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
     assertEquals(1, orgs.size());

@@ -69,6 +69,9 @@ public class Util {
    * Find the last {@link UriResource} having a type identifying a {@link EdmEntitySet}.
    */
   public static EdmEntitySet determineTargetEntitySet(final List<UriResource> resources) {
+    if (resources == null) {
+      return null;
+    }
     EdmEntitySet targetEdmEntitySet = null;
     StringBuffer naviPropertyName = new StringBuffer();
 

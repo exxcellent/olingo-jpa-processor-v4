@@ -36,8 +36,8 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
-import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
+import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SkipOption;
@@ -49,32 +49,26 @@ public abstract class JPAAbstractEntityQuery<QT extends CriteriaQuery<DT>, DT> e
 JPAAbstractCriteriaQuery<QT, DT> {
 
   private final List<UriParameter> keyPredicates;
-  private final UriResourceEntitySet queryStartUriResource;
   private final UriInfoResource uriResource;
-  private List<JPANavigationQuery> navigationQueryList = null;
+  private List<JPAQueryNavigation> navigationQueryList = null;
 
   protected JPAAbstractEntityQuery(final EdmEntityType edmEntityType, final JPAODataContext context,
       final UriInfoResource uriInfo,
       final EntityManager em) throws ODataApplicationException, ODataJPAModelException {
     super(context, Util.determineStartingEntityUriResource(uriInfo).getEntityType(), em, uriInfo);
     this.uriResource = uriInfo;
-    queryStartUriResource = Util.determineStartingEntityUriResource(uriInfo);
-    assert queryStartUriResource != null;
-    this.keyPredicates = determineKeyPredicates(queryStartUriResource);
+    this.keyPredicates = determineKeyPredicates(getQueryScopeUriInfoResource());
   }
 
   protected final JPAEntityType determineStartingEntityType()
       throws ODataJPAModelException {
-    final EdmEntitySet es = getQueryStartUriResource().getEntitySet();
+    final EdmEntitySet es = getQueryScopeUriInfoResource().getEntitySet();
     return getServiceDocument().getEntitySetType(es.getName());
   }
 
   @Override
   protected void initializeQuery() throws ODataJPAModelException, ODataApplicationException {
     navigationQueryList = buildNavigation();
-    for (final JPANavigationQuery query : navigationQueryList) {
-      query.initializeQuery();
-    }
     super.initializeQuery();
   }
 
@@ -96,23 +90,15 @@ JPAAbstractCriteriaQuery<QT, DT> {
     if (navigationQueryList.isEmpty()) {
       return getQueryScopeFrom();
     }
-    final JPANavigationQuery navQuery = navigationQueryList.get(navigationQueryList.size() - 1);
+    final JPAQueryNavigation navQuery = navigationQueryList.get(navigationQueryList.size() - 1);
     return (From<T, T>) navQuery.getQueryResultFrom();
-  }
-
-  /**
-   *
-   * @return The uri resource assigned to start table/entity of query.
-   */
-  protected final UriResourceEntitySet getQueryStartUriResource() {
-    return queryStartUriResource;
   }
 
   /**
    *
    * @return The resource info for the target entity, derived from last resource element (navigation).
    */
-  protected final UriResource getQueryResultUriInfoResource() {
+  protected final UriResourcePartTyped getQueryResultUriInfoResource() {
     assertInitialized();
     if (navigationQueryList.isEmpty()) {
       return getQueryScopeUriInfoResource();
@@ -121,7 +107,7 @@ JPAAbstractCriteriaQuery<QT, DT> {
   }
 
   @Override
-  protected final JPAEntityType getQueryResultType() {
+  public final JPAEntityType getQueryResultType() {
     assertInitialized();
     if (navigationQueryList.isEmpty()) {
       return getQueryScopeType();
@@ -295,16 +281,16 @@ JPAAbstractCriteriaQuery<QT, DT> {
     return allResults;
   }
 
-  private List<JPANavigationQuery> buildNavigation() throws ODataJPAModelException, ODataApplicationException {
+  private List<JPAQueryNavigation> buildNavigation() throws ODataJPAModelException, ODataApplicationException {
     final List<UriResource> resourceParts = uriResource.getUriResourceParts();
 
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(getServiceDocument(), resourceParts);
 
     // 2. Create the queries and roots
-    final List<JPANavigationQuery> navigationQueryList = new ArrayList<JPANavigationQuery>(uriResource
+    final List<JPAQueryNavigation> navigationQueryList = new ArrayList<JPAQueryNavigation>(uriResource
         .getUriResourceParts().size());
-    JPAAbstractQuery<?, ?> parent = this;
+    From<?, ?> parentFrom = getQueryScopeFrom();// ==scope before navigation
     for (final JPANavigationPropertyInfo naviInfo : naviPathList) {
       if (naviInfo.getNavigationPath() == null) {
         LOG.log(Level.SEVERE, "Association for navigation path to '"
@@ -312,11 +298,11 @@ JPAAbstractCriteriaQuery<QT, DT> {
         continue;
       }
 
-      final JPANavigationQuery navQuery = new JPANavigationQuery(getServiceDocument(), naviInfo
+      final JPAQueryNavigation navQuery = new JPAQueryNavigation(getServiceDocument(), naviInfo
           .getNavigationUriResource(),
-          (JPAAssociationPath) naviInfo.getNavigationPath(), parent, getEntityManager());
+          (JPAAssociationPath) naviInfo.getNavigationPath(), parentFrom, getEntityManager());
       navigationQueryList.add(navQuery);
-      parent = navQuery;
+      parentFrom = navQuery.getQueryResultFrom();
     }
     return navigationQueryList;
   }
@@ -353,19 +339,26 @@ JPAAbstractCriteriaQuery<QT, DT> {
   private javax.persistence.criteria.Expression<Boolean> buildNavigationSubQueries()
       throws ODataApplicationException, ODataJPAModelException {
 
-    // 3. Create select statements
-    Subquery<?> jpaChildQuery = null;
-
-    // reverse order to get the first subquery as direct EXISTS of this parent query
-    for (int i = navigationQueryList.size() - 1; i >= 0; i--) {
-      final JPANavigationQuery navQuery = navigationQueryList.get(i);
-      jpaChildQuery = navQuery.getSubQueryExists(jpaChildQuery);
+    javax.persistence.criteria.Expression<Boolean> whereCondition = null;
+    for (final JPAQueryNavigation navQuery : navigationQueryList) {
+      final javax.persistence.criteria.Expression<Boolean> where = navQuery.buildJoinWhere();
+      whereCondition = combineAND(whereCondition, where);
     }
+    return whereCondition;
 
-    if (jpaChildQuery == null) {
-      return null;
-    }
-    return getCriteriaBuilder().exists(jpaChildQuery);
+    //    // 3. Create select statements
+    //    Subquery<?> jpaChildQuery = null;
+    //
+    //    // reverse order to get the first subquery as direct EXISTS of this parent query
+    //    for (int i = navigationQueryList.size() - 1; i >= 0; i--) {
+    //      final JPANavigationQuery navQuery = navigationQueryList.get(i);
+    //      jpaChildQuery = navQuery.getSubQueryExists(jpaChildQuery);
+    //    }
+    //
+    //    if (jpaChildQuery == null) {
+    //      return null;
+    //    }
+    //    return getCriteriaBuilder().exists(jpaChildQuery);
   }
 
   /**
@@ -385,7 +378,7 @@ JPAAbstractCriteriaQuery<QT, DT> {
    */
   private javax.persistence.criteria.Expression<Boolean> createWhereFromSearchOption() throws ODataApplicationException,
   ODataJPAModelException {
-    final JPASearchQuery searchQuery = new JPASearchQuery(this);
+    final JPASearchSubQuery searchQuery = new JPASearchSubQuery(this);
     final Subquery<?> subquery = searchQuery.getSubQueryExists();
     if (subquery == null) {
       return null;

@@ -2,13 +2,10 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.logging.Level;
 
 import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -18,12 +15,10 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.queryoption.SearchOption;
 import org.apache.olingo.server.api.uri.queryoption.search.SearchTerm;
 import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
@@ -34,64 +29,34 @@ import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
  * @author Ralf Zozmann
  *
  */
-class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
+class JPASearchSubQuery extends JPAAbstractSubQuery {
 
-  private From<?, ?> queryRoot = null;
-  private Subquery<Integer> subQuery = null;
+  private From<?, ?> subqueryResultFrom = null;
   private final UriInfoResource uriResource;
-  private final JPAAbstractCriteriaQuery<?, ?> parent;
   private final JPAODataDatabaseProcessor dbProcessor;
 
-  public JPASearchQuery(final JPAAbstractEntityQuery<?, ?> parent) throws ODataApplicationException,
+  public JPASearchSubQuery(final JPAAbstractEntityQuery<?, ?> parent) throws ODataApplicationException,
   ODataJPAModelException {
-    super(parent.getServiceDocument(), parent.getQueryScopeEdmType(), parent.getEntityManager());
-    this.parent = parent;
+    super(parent.getServiceDocument(), parent.getQueryResultUriInfoResource().getType(), parent.getEntityManager(),
+        parent);
     this.uriResource = parent.getUriInfoResource();
     this.dbProcessor = parent.getContext().getDatabaseProcessor();
 
+    // context should be already prepared for filter queries
+    initializeQuery();
   }
 
   @Override
-  protected JPAODataContext getContext() {
-    return parent.getContext();
-  }
-
-  @Override
-  protected UriResource getQueryScopeUriInfoResource() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  protected JPAEntityType getQueryResultType() {
-    return getQueryScopeType();
-  }
-
-  @Override
-  public Subquery<Integer> getQuery() {
-    if (subQuery == null) {
-      throw new IllegalStateException();
-    }
-    return subQuery;
-  }
-
-  @Override
-  protected final Locale getLocale() {
-    return getContext().getLocale();
+  protected void initializeQuery() throws ODataJPAModelException, ODataApplicationException {
+    this.subqueryResultFrom = createSubqueryResultFrom();
+    super.initializeQuery();
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getQueryResultFrom() {
-    if (queryRoot == null) {
-      throw new IllegalStateException();
-    }
-    return queryRoot;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public From<?, ?> getQueryScopeFrom() {
-    return getQueryResultFrom();
+  public <T> From<T, T> getQueryResultFrom() {
+    assertInitialized();
+    return (From<T, T>) subqueryResultFrom;
   }
 
   public final Subquery<Integer> getSubQueryExists()
@@ -105,7 +70,7 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
     }
     try {
       boolean attributesWithSearchableAnnotationFound = true;
-      final JPAEntityType jpaEntityType = getQueryScopeType();
+      final JPAEntityType jpaEntityType = getQueryResultType();
       List<JPASelector> searchableAttributes = jpaEntityType.getSearchablePath();
       if (searchableAttributes.isEmpty()) {
         LOG.log(Level.WARNING, "Entity " + jpaEntityType.getExternalName() + " has not attributes marked with @"
@@ -114,19 +79,7 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
         attributesWithSearchableAnnotationFound = false;
       }
 
-      this.subQuery = parent.getQuery().subquery(Integer.class);
-      // we select always '1'
-      // Hibernate needs an explicit FROM to work properly
-      /* final Root<?> from = */ subQuery.from(jpaEntityType.getTypeClass());
-
-      final From<?, ?> parentFrom = parent.getQueryResultFrom();
-      if (parentFrom instanceof Root) {
-        this.queryRoot = subQuery.correlate((Root<?>) parentFrom);
-      } else {
-        // part of another subquery?!
-        this.queryRoot = subQuery.correlate((Join<?, ?>) parentFrom);
-      }
-      // this.queryRoot = subQuery.from(getQueryResultType().getTypeClass());
+      final Subquery<Integer> subQuery = getQuery();
 
       // EXISTS subselect needs only a marker select for existence
       subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
@@ -147,7 +100,7 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
           }
           continue;
         }
-        final Path<?> path = convertToCriteriaPath(queryRoot, searchableAttribute);
+        final Path<?> path = convertToCriteriaPath(subqueryResultFrom, searchableAttribute);
         path.alias(searchableAttribute.getAlias());
         columnList.add(path);
       }
