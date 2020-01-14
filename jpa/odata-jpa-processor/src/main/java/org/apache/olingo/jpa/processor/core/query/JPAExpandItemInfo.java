@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -35,7 +36,12 @@ public class JPAExpandItemInfo {
     return Collections.unmodifiableList(hops);
   }
 
+  @Deprecated
   public JPAEntityType getEntityType() {
     return uriInfo.getEntityType();
+  }
+
+  public EdmEntitySet getTargetEntitySet() {
+    return uriInfo.getTargetEntitySet();
   }
 }

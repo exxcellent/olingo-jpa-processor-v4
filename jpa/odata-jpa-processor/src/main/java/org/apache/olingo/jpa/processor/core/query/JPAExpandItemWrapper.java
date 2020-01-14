@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.List;
 
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -26,102 +27,110 @@ import org.apache.olingo.server.api.uri.queryoption.TopOption;
 // TODO In case of second level $expand expandItem.getResourcePath() returns an empty UriInfoResource => Bug or
 // Feature?
 public class JPAExpandItemWrapper implements UriInfoResource {
-	private final ExpandItem item;
-	private final JPAEntityType jpaEntityType;
+  private final ExpandItem item;
+  private final JPAEntityType jpaEntityType;
+  private final EdmEntitySet targetEntitySet;
 
-	public JPAExpandItemWrapper(final IntermediateServiceDocument sd, final ExpandItem item) throws ODataApplicationException {
-		super();
-		this.item = item;
-		this.jpaEntityType = sd.getEntityType(Util.determineTargetEntityType(getUriResourceParts()));
-	}
+  public JPAExpandItemWrapper(final IntermediateServiceDocument sd, final ExpandItem item) throws ODataApplicationException {
+    super();
+    this.item = item;
+    this.targetEntitySet = Util.determineTargetEntitySet(getUriResourceParts());
+    this.jpaEntityType = sd.getEntityType(Util.determineTargetEntityType(getUriResourceParts()));
+  }
 
-	public JPAExpandItemWrapper(final ExpandItem item, final JPAEntityType jpaEntityType) {
-		super();
-		this.item = item;
-		this.jpaEntityType = jpaEntityType;
-	}
+  public JPAExpandItemWrapper(final ExpandItem item, final JPAEntityType jpaEntityType) {
+    super();
+    this.item = item;
+    this.targetEntitySet = Util.determineTargetEntitySet(getUriResourceParts());
+    this.jpaEntityType = jpaEntityType;
+  }
 
-	@Override
-	public List<CustomQueryOption> getCustomQueryOptions() {
-		return null;
-	}
+  @Override
+  public List<CustomQueryOption> getCustomQueryOptions() {
+    return null;
+  }
 
-	@Override
-	public ExpandOption getExpandOption() {
-		return item.getExpandOption();
-	}
+  @Override
+  public ExpandOption getExpandOption() {
+    return item.getExpandOption();
+  }
 
-	@Override
-	public FilterOption getFilterOption() {
-		return item.getFilterOption();
-	}
+  @Override
+  public FilterOption getFilterOption() {
+    return item.getFilterOption();
+  }
 
-	@Override
-	public FormatOption getFormatOption() {
-		return null;
-	}
+  @Override
+  public FormatOption getFormatOption() {
+    return null;
+  }
 
-	@Override
-	public IdOption getIdOption() {
-		return null;
-	}
+  @Override
+  public IdOption getIdOption() {
+    return null;
+  }
 
-	@Override
-	public CountOption getCountOption() {
-		return item.getCountOption();
-	}
+  @Override
+  public CountOption getCountOption() {
+    return item.getCountOption();
+  }
 
-	@Override
-	public OrderByOption getOrderByOption() {
-		return item.getOrderByOption();
-	}
+  @Override
+  public OrderByOption getOrderByOption() {
+    return item.getOrderByOption();
+  }
 
-	@Override
-	public SearchOption getSearchOption() {
-		return item.getSearchOption();
-	}
+  @Override
+  public SearchOption getSearchOption() {
+    return item.getSearchOption();
+  }
 
-	@Override
-	public SelectOption getSelectOption() {
-		return item.getSelectOption();
-	}
+  @Override
+  public SelectOption getSelectOption() {
+    return item.getSelectOption();
+  }
 
-	@Override
-	public SkipOption getSkipOption() {
-		return item.getSkipOption();
-	}
+  @Override
+  public SkipOption getSkipOption() {
+    return item.getSkipOption();
+  }
 
-	@Override
-	public SkipTokenOption getSkipTokenOption() {
-		return null;
-	}
+  @Override
+  public SkipTokenOption getSkipTokenOption() {
+    return null;
+  }
 
-	@Override
-	public TopOption getTopOption() {
-		return item.getTopOption();
-	}
+  @Override
+  public TopOption getTopOption() {
+    return item.getTopOption();
+  }
 
-	@Override
-	public List<UriResource> getUriResourceParts() {
-		return item.getResourcePath() != null ? item.getResourcePath().getUriResourceParts() : null;
-	}
+  @Override
+  public List<UriResource> getUriResourceParts() {
+    return item.getResourcePath() != null ? item.getResourcePath().getUriResourceParts() : null;
+  }
 
-	@Override
-	public String getValueForAlias(final String alias) {
-		return null;
-	}
+  @Override
+  public String getValueForAlias(final String alias) {
+    return null;
+  }
 
-	public JPAEntityType getEntityType() {
-		return jpaEntityType;
-	}
+  @Deprecated
+  public JPAEntityType getEntityType() {
+    return jpaEntityType;
+  }
 
-	@Override
-	public ApplyOption getApplyOption() {
-		return null;
-	}
+  public EdmEntitySet getTargetEntitySet() {
+    return targetEntitySet;
+  }
 
-	@Override
-	public DeltaTokenOption getDeltaTokenOption() {
-		return null;
-	}
+  @Override
+  public ApplyOption getApplyOption() {
+    return null;
+  }
+
+  @Override
+  public DeltaTokenOption getDeltaTokenOption() {
+    return null;
+  }
 }

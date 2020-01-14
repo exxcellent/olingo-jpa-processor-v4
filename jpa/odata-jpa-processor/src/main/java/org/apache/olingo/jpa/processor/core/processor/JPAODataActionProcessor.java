@@ -323,17 +323,18 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       // determine entity context
       JPAEntityQuery query = null;
       final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
+      final EntityCollection entityCollection;
       try {
-        query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, getServiceMetadata());
+        query = new JPAEntityQuery(targetEdmEntitySet.getEntityType(), context, uriInfo, em, getServiceMetadata());
+        // we do not expand the entities
+        entityCollection = query.execute(false);
       } catch (final ODataJPAModelException e) {
         debugger.stopRuntimeMeasurement(handle);
         throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
             HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
-      // we do not expand the entities
-      final EntityCollection entityCollection = query.execute(false);
 
-      final JPAEntityType jpaType = query.getQueryResultType();
+      final JPAEntityType jpaType = query.getQueryScopeType();
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
           final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),

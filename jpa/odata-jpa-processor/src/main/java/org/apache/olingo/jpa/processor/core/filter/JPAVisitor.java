@@ -165,7 +165,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     } else if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAll) {
       return new JPALambdaAllOperation(this.jpaComplier, member);
     } else if (isAggregation(member.getResourcePath())) {
-      return new JPAAggregationOperationCountImp(jpaComplier.getParent().getRoot(), jpaComplier.getConverter());
+      return new JPAAggregationOperationCountImp(jpaComplier.getParent().getQueryResultFrom(), jpaComplier.getConverter());
     } else if (isCustomFunction(member.getResourcePath())) {
       final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
       final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource)
@@ -251,7 +251,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
   }
 
   From<?, ?> getRoot() {
-    return jpaComplier.getParent().getRoot();
+    return jpaComplier.getParent().getQueryResultFrom();
   }
 
   public OData getOdata() {

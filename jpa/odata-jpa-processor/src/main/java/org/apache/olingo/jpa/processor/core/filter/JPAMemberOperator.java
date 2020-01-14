@@ -26,7 +26,7 @@ public class JPAMemberOperator<T> implements JPAExpression<T> {
     super();
     this.member = member;
     this.jpaEntityType = jpaEntityType;
-    this.root = parent.getRoot();
+    this.root = parent.getQueryResultFrom();
   }
 
   public JPASimpleAttribute determineAttribute() throws ODataApplicationException {
@@ -45,7 +45,7 @@ public class JPAMemberOperator<T> implements JPAExpression<T> {
   }
 
   private JPASelector determineAttributePath() throws ODataApplicationException {
-    final String path = Util.determineProptertyNavigationPath(member.getResourcePath().getUriResourceParts());
+    final String path = Util.determinePropertyNavigationPath(member.getResourcePath().getUriResourceParts());
     JPASelector selectItemPath = null;
     try {
       selectItemPath = jpaEntityType.getPath(path);

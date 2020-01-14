@@ -83,6 +83,7 @@
 		    <artifactId>jul-to-slf4j</artifactId>
 		</dependency>
 		<dependency>
+			<!-- required by logback classic -->
 		   	<groupId>org.codehaus.janino</groupId>
 		   	<artifactId>janino</artifactId>
 	        <scope>runtime</scope>

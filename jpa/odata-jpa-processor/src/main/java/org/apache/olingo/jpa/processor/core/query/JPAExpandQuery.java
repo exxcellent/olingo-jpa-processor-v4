@@ -61,246 +61,287 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
  */
 class JPAExpandQuery extends JPAAbstractEntityQuery<CriteriaQuery<Tuple>, Tuple> {
 
-	private final JPAAssociationPath association;
-	private final JPAExpandItemInfo item;
-	private final CriteriaQuery<Tuple> cq;
-	private final Root<?> root;
+  private final JPAAssociationPath association;
+  private final JPAExpandItemInfo item;
+  private final CriteriaQuery<Tuple> cq;
+  //  private final From<?, ?> expandTargetRoot;
+  private final Root<?> from;
 
-	public JPAExpandQuery(final JPAODataContext context, final EntityManager em,
-			final JPAExpandItemInfo item) throws ODataApplicationException {
+  public JPAExpandQuery(final JPAODataContext context, final EntityManager em,
+      final JPAExpandItemInfo item) throws ODataApplicationException, ODataJPAModelException {
+    super(item.getTargetEntitySet().getEntityType(), context, item.getUriInfo(), em);
+    this.association = item.getExpandAssociation();
+    this.item = item;
+    this.cq = getCriteriaBuilder().createTupleQuery();
 
-		super(context, item.getEntityType(), em, item.getUriInfo());
-		this.association = item.getExpandAssociation();
-		this.item = item;
-		this.cq = getCriteriaBuilder().createTupleQuery();
-		this.root = cq.from(getQueryResultType().getTypeClass());
-	}
+    // the 'source type' is used as start for relationship/navigation joins, because the reverse navigation is not
+    // possible for unidirectional relationships; but the result set entity type will be the 'target type' aka
+    // 'joinRoot' (see below)
+    this.from = cq.from(association.getSourceType().getTypeClass());
+    // we are in a $expand query; that means the results from the association target entity (right side) are only useful
+    // if an entity instance exists as source (left side)
+    // so we can use use a LEFT JOIN, because having results for source entity without target entities can be handled by
+    // result set converter
 
-	@Override
-	public CriteriaQuery<Tuple> getQuery() {
-		return cq;
-	}
+    //    this.expandTargetRoot = buildJoinPath(from, association);
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Root<?> getRoot() {
-		return root;
-	}
+    // this.expandTargetRoot = expandSourceRoot.join(association.getAlias(), JoinType.LEFT);
 
-	/**
-	 *
-	 * @param referenceList The list used as reference having entries that must be
-	 *                      not present in <i>filterList</i>.
-	 * @param filterList    The list to take only the entries not already present in
-	 *                      <i>referenceList</i>.
-	 * @return The collection containing the selectors not already present in
-	 *         <i>referenceList</i>.
-	 */
-	private Collection<JPASelector> determineUnselectedAttributes(final Collection<JPASelector> referenceList,
-			final List<JPASelector> filterList) {
-		final List<JPASelector> listNotDuplicated = new LinkedList<JPASelector>();
-		final Set<JPASelector> setReferences = new HashSet<>(referenceList);
-		JPASelector current;
-		for (int i = filterList.size(); i > 0; i--) {
-			current = filterList.get(i - 1);
-			if (setReferences.contains(current)) {
-				continue;
-			}
-			listNotDuplicated.add(current);
-		}
-		return listNotDuplicated;
-	}
+    // this.expandTargetRoot = cq.from(getQueryResultType().getTypeClass());
 
-	/**
-	 * Process a expand query, which contains a $skip and/or a $top option.<p>
-	 * This is a tricky problem, as it can not be done easily with SQL. It could be that a database offers special
-	 * solutions.
-	 * There is an worth reading blog regards this topic:
-	 * <a href="http://www.xaprb.com/blog/2006/12/07/how-to-select-the-firstleastmax-row-per-group-in-sql/">How to select
-	 * the first/least/max row per group in SQL</a>
-	 *
-	 * @return query result
-	 * @throws ODataApplicationException
-	 */
-	public JPAQueryEntityResult execute() throws ODataApplicationException {
+    // now we are ready
+    initializeQuery();
+  }
 
-		try {
-			long skip = 0;
-			long top = Long.MAX_VALUE;
-			// TODO merge with implementation in JPAExpandQuery#execute()
-			final UriInfoResource uriResource = getUriInfoResource();
+  @Override
+  public CriteriaQuery<Tuple> getQuery() {
+    return cq;
+  }
 
-			final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(Collections.emptyList());
+  @Override
+  public Root<?> getQueryScopeFrom() {
+    return from;
+  }
 
-			final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(uriResource);
-			final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = separateElementCollectionPaths(
-					selectionPathDirectMappings);
+  //  @SuppressWarnings("unchecked")
+  //  @Override
+  //  public From<?, ?> getQueryResultFrom() {
+  //    return expandTargetRoot;
+  //  }
 
-			final List<Selection<?>> joinSelections = createSelectClause(selectionPathDirectMappings);
+  /**
+   *
+   * @param referenceList The list used as reference having entries that must be
+   *                      not present in <i>filterList</i>.
+   * @param filterList    The list to take only the entries not already present in
+   *                      <i>referenceList</i>.
+   * @return The collection containing the selectors not already present in
+   *         <i>referenceList</i>.
+   */
+  private Collection<JPASelector> determineUnselectedAttributes(final Collection<JPASelector> referenceList,
+      final List<JPASelector> filterList) {
+    final List<JPASelector> listNotDuplicated = new LinkedList<JPASelector>();
+    final Set<JPASelector> setReferences = new HashSet<>(referenceList);
+    JPASelector current;
+    for (int i = filterList.size(); i > 0; i--) {
+      current = filterList.get(i - 1);
+      if (setReferences.contains(current)) {
+        continue;
+      }
+      listNotDuplicated.add(current);
+    }
+    return listNotDuplicated;
+  }
 
-			// add the key columns of target entity to selection, to build the key to map
-			// results for entries to owning entity
-			final List<JPASelector> listAssociationJoinKeyPaths = association.getRightPaths();
-			final Collection<JPASelector> additionalJoinKeyColumns = determineUnselectedAttributes(selectionPathDirectMappings,
-					listAssociationJoinKeyPaths);
+  /**
+   * Process a expand query, which contains a $skip and/or a $top option.<p>
+   * This is a tricky problem, as it can not be done easily with SQL. It could be that a database offers special
+   * solutions.
+   * There is an worth reading blog regards this topic:
+   * <a href="http://www.xaprb.com/blog/2006/12/07/how-to-select-the-firstleastmax-row-per-group-in-sql/">How to select
+   * the first/least/max row per group in SQL</a>
+   *
+   * @return query result
+   * @throws ODataApplicationException
+   */
+  public JPAQueryEntityResult execute() throws ODataApplicationException {
 
-			// join with owning entity (target of association aka right side)
-			joinSelections.addAll(createSelectClause(additionalJoinKeyColumns));
+    LOG.log(Level.FINE, "Process $expand for: " + association.getSourceType().getExternalName() + " -[" + association
+        .getAlias() + "]-> " + association.getTargetType().getExternalName());
+    try {
+      long skip = 0;
+      long top = Long.MAX_VALUE;
+      final UriInfoResource uriResource = getUriInfoResource();
 
-			cq.multiselect(joinSelections);
+      final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(Collections.emptyList());
 
-			cq.where(createWhere());
+      final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(uriResource);
+      final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = separateElementCollectionPaths(
+          selectionPathDirectMappings);
 
-			final List<Order> orderBy = createOrderByJoinCondition(association);
-			orderBy.addAll(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
-			cq.orderBy(orderBy);
-			// TODO group by also at $expand
-			final TypedQuery<Tuple> tupleQuery = getEntityManager().createQuery(cq);
+      List<Selection<?>> joinSelections = createSelectClause(selectionPathDirectMappings);
 
-			// Simplest solution for the problem. Read all and throw away, what is not requested
-			final List<Tuple> intermediateResult = tupleQuery.getResultList();
-			if (uriResource.getSkipOption() != null) {
-				skip = uriResource.getSkipOption().getValue();
-			}
-			if (uriResource.getTopOption() != null) {
-				top = uriResource.getTopOption().getValue();
-			}
+      // add the key columns of source entity to selection, to build the key to map
+      // results for entries to owning entity
+      // FIXME
+      //      			final List<JPASelector> listAssociationJoinKeyPaths = association.getRightPaths();
+      //      final List<JPASelector> listAssociationJoinKeyPaths = association.getLeftPaths();
+      final List<JPASelector> listAssociationJoinKeyPaths = buildKeyPath(association.getSourceType());
 
-			final Map<String, List<Tuple>> result = convertResult(intermediateResult, skip, top, listAssociationJoinKeyPaths);
-			final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(result, count(), getQueryResultType());
-			// load not yet processed @ElementCollection attribute content
-			queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
+      //			final Collection<JPASelector> additionalJoinKeyColumns = determineUnselectedAttributes(selectionPathDirectMappings,
+      //					listAssociationJoinKeyPaths);
+      //
+      //			// join with owning entity (target of association aka right side)
+      //			joinSelections.addAll(createSelectClause(additionalJoinKeyColumns));
 
-			return queryResult;
-		} catch (final ODataJPAModelException e) {
-			throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(),
-					Locale.ENGLISH, e);
-		}
-	}
+      //      for (final JPASelector jpaPath : listAssociationJoinKeyPaths) {
+      //        final Path<?> p = convertToCriteriaPath(from, jpaPath);
+      //        if (p == null) {
+      //          continue;
+      //        }
+      //        p.alias(buildTargetJoinAlias(association, (JPASimpleAttribute) jpaPath.getLeaf()));
+      //        joinSelections.add(p);
+      //      }
 
-	private Long count() {
-		// TODO Count and Expand -> Olingo
-		return null;
-	}
+      joinSelections = extendSelectionWithEntityKeys(joinSelections);
 
-	Map<String, List<Tuple>> convertResult(final List<Tuple> intermediateResult, final long skip, final long top,
-			final List<JPASelector> listJoinKeyPath)
-					throws ODataApplicationException {
-		String joinKey = "";
-		long skiped = 0;
-		long taken = 0;
+      cq.multiselect(joinSelections);
 
-		List<Tuple> subResult = null;
-		String actuallKey;
-		final Map<String, List<Tuple>> convertedResult = new HashMap<String, List<Tuple>>();
-		for (final Tuple row : intermediateResult) {
-			try {
-				// build key using target side + target side join columns, resulting key must be
-				// identical for source side + source side join columns
-				actuallKey = JPATupleAbstractConverter.buildOwningEntityKey(row, listJoinKeyPath);
-			} catch (final ODataJPAModelException e) {
-				throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-			} catch (final IllegalArgumentException e) {
-				LOG.log(Level.SEVERE,
-						"Problem converting database result for entity type " + item.getEntityType().getInternalName(),
-						e);
-				throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
-			}
+      cq.where(createWhere());
 
-			subResult = convertedResult.get(actuallKey);
-			if (!actuallKey.equals(joinKey)) {
-				subResult = new LinkedList<Tuple>();
-				convertedResult.put(actuallKey, subResult);
-				joinKey = actuallKey;
-				skiped = taken = 0;
-			}
-			if (skiped >= skip && taken < top) {
-				taken += 1;
-				subResult.add(row);
-			} else {
-				skiped += 1;
-			}
-		}
-		return convertedResult;
-	}
+      final List<Order> orderBy = createOrderByJoinCondition(association);
+      orderBy.addAll(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
+      cq.orderBy(orderBy);
+      final TypedQuery<Tuple> tupleQuery = getEntityManager().createQuery(cq);
 
-	private List<Order> createOrderByJoinCondition(final JPAAssociationPath a) throws ODataApplicationException {
-		final List<Order> orders = new ArrayList<Order>();
+      // Simplest solution for the problem. Read all and throw away, what is not requested
+      final List<Tuple> intermediateResult = tupleQuery.getResultList();
+      if (uriResource.getSkipOption() != null) {
+        skip = uriResource.getSkipOption().getValue();
+      }
+      if (uriResource.getTopOption() != null) {
+        top = uriResource.getTopOption().getValue();
+      }
 
-		try {
-			Path<?> path;
-			for (final JPASelector j : a.getRightPaths()) {
-				path = null;
-				for (final JPAAttribute<?> attr : j.getPathElements()) {
-					if (path == null) {
-						path = root.get(attr.getInternalName());
-					} else {
-						path = path.get(attr.getInternalName());
-					}
-				}
-				if (path == null) {
-					throw new IllegalStateException("Invalid model; cannot build join for "
-							+ a.getSourceType().getExternalName() + "#" + a.getAlias());
-				}
-				orders.add(getCriteriaBuilder().asc(path));
-			}
-		} catch (final ODataJPAModelException e) {
-			throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-		}
-		return orders;
-	}
+      // FIXME
+      // use association self for key building
+      final Map<String, List<Tuple>> result = convertResult(intermediateResult, skip, top, Collections.singletonList(
+          association));
+      //      final Map<String, List<Tuple>> result = convertResult(intermediateResult, skip, top, listAssociationJoinKeyPaths);
+      final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(result, count(), getQueryScopeType());
+      // load not yet processed @ElementCollection attribute content
+      queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
 
-	@Override
-	protected Expression<Boolean> createWhere() throws ODataApplicationException {
+      return queryResult;
+    } catch (final ODataJPAModelException e) {
+      throw new ODataApplicationException(e.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(),
+          Locale.ENGLISH, e);
+    }
+  }
 
-		final CriteriaBuilder cb = getCriteriaBuilder();
+  private Long count() {
+    // TODO Count and Expand -> Olingo
+    return null;
+  }
 
-		Expression<Boolean> whereCondition = null;
-		try {
-			whereCondition = getFilter().compile();
-		} catch (final ExpressionVisitException e) {
-			throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_FILTER_ERROR,
-					HttpStatusCode.BAD_REQUEST, e);
-		}
+  Map<String, List<Tuple>> convertResult(final List<Tuple> intermediateResult, final long skip, final long top,
+      final List<JPASelector> listJoinKeyPath)
+          throws ODataApplicationException {
+    String joinKey = "";
+    long skiped = 0;
+    long taken = 0;
 
-		if (whereCondition == null) {
-			whereCondition = cb.exists(buildNavigationSubQueries());
-		} else {
-			whereCondition = cb.and(whereCondition, cb.exists(buildNavigationSubQueries()));
-		}
+    List<Tuple> subResult = null;
+    String actuallKey;
+    final Map<String, List<Tuple>> convertedResult = new HashMap<String, List<Tuple>>();
+    for (final Tuple row : intermediateResult) {
+      try {
+        // build key using target side + target side join columns, resulting key must be
+        // identical for source side + source side join columns
+        actuallKey = JPATupleAbstractConverter.buildOwningEntityKey(row, listJoinKeyPath);
+      } catch (final ODataJPAModelException e) {
+        throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+      } catch (final IllegalArgumentException e) {
+        LOG.log(Level.SEVERE,
+            "Problem converting database result for entity type " + item.getTargetEntitySet().getName(), e);
+        throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+      }
 
-		return whereCondition;
-	}
+      subResult = convertedResult.get(actuallKey);
+      if (!actuallKey.equals(joinKey)) {
+        subResult = new LinkedList<Tuple>();
+        convertedResult.put(actuallKey, subResult);
+        joinKey = actuallKey;
+        skiped = taken = 0;
+      }
+      if (skiped >= skip && taken < top) {
+        taken += 1;
+        subResult.add(row);
+      } else {
+        skiped += 1;
+      }
+    }
+    return convertedResult;
+  }
 
-	// TODO merge with JPAAbstractCriteriaQuery#buildNavigationSubQueries()
-	private Subquery<?> buildNavigationSubQueries() throws ODataApplicationException {
-		Subquery<?> childQuery = null;
+  private List<Order> createOrderByJoinCondition(final JPAAssociationPath a) throws ODataApplicationException {
+    final List<Order> orders = new ArrayList<Order>();
 
-		final List<UriResource> resourceParts = getUriInfoResource().getUriResourceParts();
-		final IntermediateServiceDocument sd = getContext().getEdmProvider().getServiceDocument();
+    try {
+      Path<?> path;
+      for (final JPASelector j : a.getRightPaths()) {
+        path = null;
+        for (final JPAAttribute<?> attr : j.getPathElements()) {
+          if (path == null) {
+            path = getQueryResultFrom().get(attr.getInternalName());
+          } else {
+            path = path.get(attr.getInternalName());
+          }
+        }
+        if (path == null) {
+          throw new IllegalStateException("Invalid model; cannot build join for "
+              + a.getSourceType().getExternalName() + "#" + a.getAlias());
+        }
+        orders.add(getCriteriaBuilder().asc(path));
+      }
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+    }
+    return orders;
+  }
 
-		// 1. Determine all relevant associations
-		// TODO Are possible existing navigations always the same as the 'hops', so this
-		// is a useless call here?!
-		List<JPANavigationPropertyInfo> expandPathList = Util.determineNavigations(sd, resourceParts);
-		expandPathList = new LinkedList<JPANavigationPropertyInfo>(expandPathList);
-		expandPathList.addAll(item.getHops());
+  // TODO replace by super class implementation
+  @Override
+  protected Expression<Boolean> createWhere() throws ODataApplicationException, ODataJPAModelException {
 
-		// 2. Create the queries and roots
-		JPAAbstractQuery<?, ?> parent = this;
-		final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
+    final CriteriaBuilder cb = getCriteriaBuilder();
 
-		for (final JPANavigationPropertyInfo naviInfo : expandPathList) {
-			final JPANavigationQuery newQuery = new JPANavigationQuery(sd,
-					naviInfo.getNavigationUriResource(),
-					(JPAAssociationPath) naviInfo.getNavigationPath(), parent, getEntityManager());
-			queryList.add(newQuery);
-			parent = newQuery;
-		}
-		// 3. Create select statements
-		for (int i = queryList.size() - 1; i >= 0; i--) {
-			childQuery = queryList.get(i).getSubQueryExists(childQuery);
-		}
-		return childQuery;
-	}
+    Expression<Boolean> whereCondition = null;
+    try {
+      whereCondition = getFilter().compile();
+    } catch (final ExpressionVisitException e) {
+      throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_FILTER_ERROR,
+          HttpStatusCode.BAD_REQUEST, e);
+    }
+
+    if (whereCondition == null) {
+      whereCondition = cb.exists(buildNavigationSubQueries());
+    } else {
+      whereCondition = cb.and(whereCondition, cb.exists(buildNavigationSubQueries()));
+    }
+
+    return whereCondition;
+  }
+
+  // TODO merge with JPAAbstractCriteriaQuery#buildNavigationSubQueries
+  private Subquery<?> buildNavigationSubQueries() throws ODataApplicationException, ODataJPAModelException {
+    Subquery<?> childQuery = null;
+
+    final List<UriResource> resourceParts = getUriInfoResource().getUriResourceParts();
+    final IntermediateServiceDocument sd = getContext().getEdmProvider().getServiceDocument();
+
+    // 1. Determine all relevant associations
+    // TODO Are possible existing navigations always the same as the 'hops', so this
+    // is a useless call here?!
+    List<JPANavigationPropertyInfo> expandPathList = Util.determineNavigations(sd, resourceParts);
+    expandPathList = new LinkedList<JPANavigationPropertyInfo>(expandPathList);
+    expandPathList.addAll(item.getHops());
+
+    // 2. Create the queries and roots
+    JPAAbstractQuery<?, ?> parent = this;
+    final List<JPANavigationQuery> queryList = new ArrayList<JPANavigationQuery>();
+
+    for (final JPANavigationPropertyInfo naviInfo : expandPathList) {
+      final JPANavigationQuery newQuery = new JPANavigationQuery(sd,
+          naviInfo.getNavigationUriResource(),
+          (JPAAssociationPath) naviInfo.getNavigationPath(), parent, getEntityManager());
+      queryList.add(newQuery);
+      parent = newQuery;
+    }
+    // 3. Create select statements
+    for (int i = queryList.size() - 1; i >= 0; i--) {
+      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+    }
+    return childQuery;
+  }
 }

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.From;
 
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -33,7 +33,8 @@ public @interface ODataEntity {
   static final class DEFAULT implements DataAccessConditioner<Object> {
 
     @Override
-    public Expression<Boolean> buildSelectCondition(final EntityManager em, final Root<Object> from) throws ODataApplicationException {
+    public Expression<Boolean> buildSelectCondition(final EntityManager em, final From<Object, Object> from)
+        throws ODataApplicationException {
       throw new UnsupportedOperationException();
     }
   };

@@ -4,15 +4,11 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
-import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -23,42 +19,46 @@ import org.apache.olingo.server.api.uri.UriResourcePartTyped;
  * @author Oliver Grande
  *
  */
-public class JPANavigationQuery extends JPAAbstractRelationshipQuery<JPAAssociationPath, Root<?>> {
+public class JPANavigationQuery extends JPAAbstractRelationshipQuery {
 
-	public <T extends Object> JPANavigationQuery(final IntermediateServiceDocument sd,
-			final UriResourcePartTyped navigationResource, final JPAAssociationPath association,
-			final JPAAbstractQuery<?, ?> parent, final EntityManager em)
-					throws ODataApplicationException {
+  private From<?, ?> joinedParentRelatedResultFrom = null;
 
-		super(sd, navigationResource, association, parent, em);
-	}
+  public <T extends Object> JPANavigationQuery(final IntermediateServiceDocument sd,
+      final UriResourcePartTyped navigationResource, final JPAAssociationPath association,
+      final JPAAbstractQuery<?, ?> parent, final EntityManager em)
+          throws ODataApplicationException, ODataJPAModelException {
 
-	@Override
-	protected List<Expression<?>> handleAggregation(final Subquery<?> subQuery, final Root<?> subRoot)
-			throws ODataApplicationException, ODataJPAModelException {
-		// do nothing
-		return Collections.emptyList();
-	}
+    super(sd, navigationResource, association, parent, em);
+  }
 
-	@Override
-	protected Expression<Boolean> createSubqueryWhereByAssociation()
-			throws ODataApplicationException, ODataJPAModelException {
-		final CriteriaBuilder cb = getCriteriaBuilder();
+  @Override
+  protected final void initializeQuery() throws ODataJPAModelException, ODataApplicationException {
+    // if parent is an Entity query then this is he first sub query and 'scope from' is the correct
+    // if parent is an navigation query the 'scope from' must be the target of navigation (== result from)
+    joinedParentRelatedResultFrom = buildJoinPath(getParentQuery().getQueryScopeFrom(), getSelector());
 
-		final JPASelector association = getSelector();
-		final From<?, ?> parentFrom = getParentQuery().getRoot();
-		final Root<?> subRoot = getRoot();
+    super.initializeQuery();
+  }
 
-		From<?, ?> subFrom = subRoot;
-		for (final JPAAttribute<?> a : association.getPathElements()) {
-			subFrom = subFrom.join(a.getInternalName());
-		}
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> From<T, T> getQueryScopeFrom() {
+    assertInitialized();
+    return (From<T, T>) joinedParentRelatedResultFrom;
+  }
 
-		// the last path element is the relationship of same type as the parent query
-		// root and we have to join our subselect with that
-		/* final From<?, ?> correlatedRoot = */ getQuery().correlate(subRoot);
-		return cb.equal(parentFrom, subFrom);
+  @Override
+  protected List<Expression<?>> handleAggregation(final Subquery<?> subQuery, final From<?, ?> subRoot)
+      throws ODataApplicationException, ODataJPAModelException {
+    // do nothing
+    return Collections.emptyList();
+  }
 
-	}
+  @Override
+  protected Expression<Boolean> createSubqueryWhereByAssociation()
+      throws ODataApplicationException, ODataJPAModelException {
+    // no WHERE for relationship self required, we are joining...
+    return null;
+  }
 
 }

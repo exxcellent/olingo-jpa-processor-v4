@@ -23,6 +23,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
+import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.queryoption.SearchOption;
 import org.apache.olingo.server.api.uri.queryoption.search.SearchTerm;
 import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
@@ -41,8 +42,9 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
   private final JPAAbstractCriteriaQuery<?, ?> parent;
   private final JPAODataDatabaseProcessor dbProcessor;
 
-  public JPASearchQuery(final JPAAbstractCriteriaQuery<?, ?> parent) throws ODataApplicationException {
-    super(parent.getQueryResultType(), parent.getEntityManager());
+  public JPASearchQuery(final JPAAbstractEntityQuery<?, ?> parent) throws ODataApplicationException,
+  ODataJPAModelException {
+    super(parent.getServiceDocument(), parent.getQueryScopeEdmType(), parent.getEntityManager());
     this.parent = parent;
     this.uriResource = parent.getUriInfoResource();
     this.dbProcessor = parent.getContext().getDatabaseProcessor();
@@ -52,6 +54,16 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
   @Override
   protected JPAODataContext getContext() {
     return parent.getContext();
+  }
+
+  @Override
+  protected UriResource getQueryScopeUriInfoResource() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected JPAEntityType getQueryResultType() {
+    return getQueryScopeType();
   }
 
   @Override
@@ -69,11 +81,17 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
 
   @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getRoot() {
+  public From<?, ?> getQueryResultFrom() {
     if (queryRoot == null) {
       throw new IllegalStateException();
     }
     return queryRoot;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public From<?, ?> getQueryScopeFrom() {
+    return getQueryResultFrom();
   }
 
   public final Subquery<Integer> getSubQueryExists()
@@ -87,7 +105,7 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
     }
     try {
       boolean attributesWithSearchableAnnotationFound = true;
-      final JPAEntityType jpaEntityType = getQueryResultType();
+      final JPAEntityType jpaEntityType = getQueryScopeType();
       List<JPASelector> searchableAttributes = jpaEntityType.getSearchablePath();
       if (searchableAttributes.isEmpty()) {
         LOG.log(Level.WARNING, "Entity " + jpaEntityType.getExternalName() + " has not attributes marked with @"
@@ -101,7 +119,7 @@ class JPASearchQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
       // Hibernate needs an explicit FROM to work properly
       /* final Root<?> from = */ subQuery.from(jpaEntityType.getTypeClass());
 
-      final From<?, ?> parentFrom = parent.getRoot();
+      final From<?, ?> parentFrom = parent.getQueryResultFrom();
       if (parentFrom instanceof Root) {
         this.queryRoot = subQuery.correlate((Root<?>) parentFrom);
       } else {

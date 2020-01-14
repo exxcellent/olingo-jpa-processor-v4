@@ -581,10 +581,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNavigationPropertyToManyValueAnyNoRestriction() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Persons?$filter=Roles/any()");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").filter(
+        "Roles/any()");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
     assertEquals(2, orgs.size());
@@ -626,10 +625,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNavigationPropertyToOneValue() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1'");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "Parent/CodeID eq 'NUTS1'");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
     assertEquals(11, orgs.size());

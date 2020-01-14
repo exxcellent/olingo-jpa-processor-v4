@@ -323,11 +323,13 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       try {
         if (uriInfo.getCountOption() != null && uriInfo.getCountOption().getValue()) {
           // count entities
-          final JPAEntityCountQuery query = new JPAEntityCountQuery(targetEdmEntitySet, context, uriInfo, em);
+          final JPAEntityCountQuery query = new JPAEntityCountQuery(targetEdmEntitySet.getEntityType(), context,
+              uriInfo, em);
           return query.execute();
         } else {
           // load entities
-          final JPAEntityQuery query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, serviceMetadata);
+          final JPAEntityQuery query = new JPAEntityQuery(targetEdmEntitySet.getEntityType(), context, uriInfo, em,
+              serviceMetadata);
           return query.execute(true);
         }
 

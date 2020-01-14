@@ -8,7 +8,10 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmType;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
@@ -92,14 +95,21 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     final OData odata = getOdata();
     for (int i = naviPathList.size() - 1; i >= 0; i--) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
-      if (i == 0 && aggregationType == null) {
-        final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getODataLiteral(),
-            operator);
-        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em, expression));
-      } else {
-        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em));
+      try {
+        JPAFilterQuery query;
+        if (i == 0 && aggregationType == null) {
+          final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getODataLiteral(),
+              operator);
+          query = new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+              naviInfo.getNavigationPath(), parent, em, expression);
+        } else {
+          query = new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
+              naviInfo.getNavigationPath(), parent, em);
+        }
+        queryList.add(query);
+      } catch (final ODataJPAModelException e) {
+        throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
+            HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
       parent = queryList.get(queryList.size() - 1);
     }

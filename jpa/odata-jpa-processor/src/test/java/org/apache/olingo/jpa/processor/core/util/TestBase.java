@@ -19,8 +19,15 @@ import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public abstract class TestBase {
+
+  static {
+    // enable logging redirect
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+  }
 
   protected TestHelper helper;
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
