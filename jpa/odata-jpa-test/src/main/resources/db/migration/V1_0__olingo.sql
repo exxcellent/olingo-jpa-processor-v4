@@ -762,11 +762,16 @@ CREATE TABLE "org.apache.olingo.jpa::RELATIONSHIPJoinTable"(
 );
 
 -- join table matching several scenarios
+--
+-- illegal entry, because points from 'RelationshipSourceEntity' to 'RelationshipSourceEntity'
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 1, 4);
+-- valid
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 1, 5);
+-- illegal entry, because points from 'RelationshipTargetEntity' to 'RelationshipSourceEntity'
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 2, 4);
+-- illegal entry, because points from 'RelationshipTargetEntity' to 'RelationshipSourceEntity'
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 1);
--- illegal entry, because points to 'RelationshipTargetEntity'
+-- illegal entry, because points from 'RelationshipTargetEntity' to 'RelationshipSourceEntity'
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 4); 
 
 

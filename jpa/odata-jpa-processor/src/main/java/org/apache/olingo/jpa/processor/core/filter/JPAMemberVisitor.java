@@ -81,7 +81,7 @@ class JPAMemberVisitor implements ExpressionVisitor<JPASelector> {
 
     if (uriResourceKind == UriResourceKind.primitiveProperty || uriResourceKind == UriResourceKind.complexProperty) {
       if (!Util.hasNavigation(member.getResourcePath().getUriResourceParts())) {
-        final String path = Util.determineProptertyNavigationPath(member.getResourcePath().getUriResourceParts());
+        final String path = Util.determinePropertyNavigationPath(member.getResourcePath().getUriResourceParts());
         JPASelector selectItemPath = null;
         try {
           selectItemPath = jpaEntityType.getPath(path);

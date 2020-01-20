@@ -32,12 +32,6 @@ public interface JPAEntityType extends JPAStructuredType {
    */
   public Class<?> getKeyType();
 
-  /**
-   *
-   * @throws ODataJPAModelException
-   */
-  public List<JPASelector> getSearchablePath() throws ODataJPAModelException;
-
   public JPAAttributePath getStreamAttributePath() throws ODataJPAModelException;
 
   /**

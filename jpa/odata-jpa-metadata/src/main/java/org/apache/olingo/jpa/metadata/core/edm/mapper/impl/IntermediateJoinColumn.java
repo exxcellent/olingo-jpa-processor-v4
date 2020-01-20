@@ -8,43 +8,47 @@ import javax.persistence.JoinColumn;
  *
  */
 class IntermediateJoinColumn {
-	private String name;
-	private String referencedColumnName;
+  private String sourceColumnName;
+  private String targetColumnName;
 
-	public IntermediateJoinColumn(final JoinColumn jpaJoinColumn) {
-		this(jpaJoinColumn.name(), jpaJoinColumn.referencedColumnName());
-	}
+  /**
+   * Same as {@link #IntermediateJoinColumn(String, String) IntermediateJoinColumn(jpaJoinColumn.name(),
+   * jpaJoinColumn.referencedColumnName())}
+   */
+  public IntermediateJoinColumn(final JoinColumn jpaJoinColumn) {
+    this(jpaJoinColumn.name(), jpaJoinColumn.referencedColumnName());
+  }
 
-	public IntermediateJoinColumn(final String columnName, final String referencedColumnName) {
-		super();
-		this.name = columnName;
-		this.referencedColumnName = referencedColumnName;
-	}
+  public IntermediateJoinColumn(final String sourceColumnName, final String targetColumnName) {
+    super();
+    this.sourceColumnName = sourceColumnName;
+    this.targetColumnName = targetColumnName;
+  }
 
-	/**
-	 * @see JoinColumn#name()
-	 */
-	public String getSourceEntityColumnName() {
-		return name;
-	}
+  /**
+   * @see JoinColumn#name()
+   */
+  public String getSourceEntityColumnName() {
+    return sourceColumnName;
+  }
 
-	public void setSourceEntityColumnName(final String name) {
-		this.name = name;
-	}
+  public void setSourceEntityColumnName(final String name) {
+    this.sourceColumnName = name;
+  }
 
-	/**
-	 * @see JoinColumn#referencedColumnName()
-	 */
-	public String getTargetColumnName() {
-		return referencedColumnName;
-	}
+  /**
+   * @see JoinColumn#referencedColumnName()
+   */
+  public String getTargetColumnName() {
+    return targetColumnName;
+  }
 
-	/**
-	 *
-	 * @param referencedColumnName The name or target entity or join table column.
-	 */
-	public void setTargetColumnName(final String referencedColumnName) {
-		this.referencedColumnName = referencedColumnName;
-	}
+  /**
+   *
+   * @param referencedColumnName The name or target entity or join table column.
+   */
+  public void setTargetColumnName(final String referencedColumnName) {
+    this.targetColumnName = referencedColumnName;
+  }
 
 }

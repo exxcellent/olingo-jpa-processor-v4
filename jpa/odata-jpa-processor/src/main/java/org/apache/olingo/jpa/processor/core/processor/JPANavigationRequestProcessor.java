@@ -10,7 +10,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
+import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -28,42 +28,47 @@ import org.apache.olingo.server.api.uri.UriResource;
 @Deprecated
 class JPANavigationRequestProcessor extends JPAAbstractRequestProcessor implements JPARequestProcessor {
 
-	private final ServiceMetadata serviceMetadata;
+  private final ServiceMetadata serviceMetadata;
 
-	public JPANavigationRequestProcessor(final OData odata, final ServiceMetadata serviceMetadata,
-	        final JPAODataContext context, final JPAODataRequestContextAccess requestContext) {
-		super(odata, context, requestContext);
-		this.serviceMetadata = serviceMetadata;
-	}
+  public JPANavigationRequestProcessor(final OData odata, final ServiceMetadata serviceMetadata,
+      final JPAODataContext context, final JPAODataRequestContextAccess requestContext) {
+    super(odata, context, requestContext);
+    this.serviceMetadata = serviceMetadata;
+  }
 
-	@Override
-	public void retrieveData(final ODataRequest request, final ODataResponse response, final ContentType responseFormat)
-	        throws ODataApplicationException, ODataLibraryException {
+  @Override
+  public void retrieveData(final ODataRequest request, final ODataResponse response, final ContentType responseFormat)
+      throws ODataApplicationException, ODataLibraryException {
 
-		final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
-		final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
+    final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+    final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
 
-		// Create a JPQL Query and execute it
-		JPAEntityQuery query = null;
-		try {
-			query = new JPAEntityQuery(targetEdmEntitySet, context, uriInfo, em, serviceMetadata);
-		} catch (final ODataJPAModelException e) {
-			throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-			        HttpStatusCode.INTERNAL_SERVER_ERROR, e);
-		}
+    // Create a JPQL Query and execute it
+    EntityQueryBuilder query = null;
+    try {
+      query = new EntityQueryBuilder(/* targetEdmEntitySet.getEntityType(), */ context, uriInfo, em, serviceMetadata);
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+          HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+    }
 
-		final EntityCollection entityCollection = query.execute(true);
+    try {
+      final EntityCollection entityCollection = query.execute(true);
+      if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
+        final SerializerResult serializerResult = serializer.serialize(request, entityCollection);
+        createSuccessResonce(response, responseFormat, serializerResult);
+      } else {
+        // 404 Not Found indicates that the resource specified by the request URL does not exist. The response body MAY
+        // provide additional information.
+        // A request returns 204 No Content if the requested resource has the null value, or if the service applies a
+        // return=minimal preference. In this case, the response body MUST be empty.
+        // Assumption 404 is handled by Olingo during URL parsing
+        response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
+      }
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+          HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+    }
 
-		if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
-			final SerializerResult serializerResult = serializer.serialize(request, entityCollection);
-			createSuccessResonce(response, responseFormat, serializerResult);
-		} else {
-			// 404 Not Found indicates that the resource specified by the request URL does not exist. The response body MAY
-			// provide additional information.
-			// A request returns 204 No Content if the requested resource has the null value, or if the service applies a
-			// return=minimal preference. In this case, the response body MUST be empty.
-			// Assumption 404 is handled by Olingo during URL parsing
-			response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
-		}
-	}
+  }
 }

@@ -4,6 +4,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Subquery;
 
+import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor;
@@ -13,17 +16,22 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 public class JPALambdaAllOperation extends JPALambdaOperation {
 
-  JPALambdaAllOperation(final JPAAbstractFilterProcessor jpaComplier, final Member member) {
+  JPALambdaAllOperation(final JPAEntityFilterProcessor jpaComplier, final Member member) {
     super(jpaComplier, member);
   }
 
   public Subquery<?> getNotExistsQuery() throws ODataApplicationException {
-    return buildFilterSubQueries(new NotExpression(determineExpression()));
+    try {
+      return buildFilterSubQueries(new NotExpression(determineExpression()));
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
+          HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+    }
   }
 
   @Override
   public Expression<Boolean> get() throws ODataApplicationException {
-    final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+    final CriteriaBuilder cb = getQueryBuilder().getEntityManager().getCriteriaBuilder();
     return cb.and(cb.exists(buildFilterSubQueries()), cb.not(cb.exists(getNotExistsQuery())));
   }
 

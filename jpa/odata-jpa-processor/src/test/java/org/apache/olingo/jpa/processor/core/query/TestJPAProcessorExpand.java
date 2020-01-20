@@ -30,8 +30,8 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySet() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations?$orderby=ID&$expand=Roles");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("ID").expand("Roles");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();
@@ -46,9 +46,9 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandOneEntity() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations('2')?$expand=Roles");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("2").expand(
+        "Roles");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getValue();
@@ -438,14 +438,22 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandAllNavigationPathOfPath() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE32',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=*");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE32");
+    mapKeys.put("CodeID", "NUTS2");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expand("*");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getValue();
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
+    assertEquals(org.get("ParentDivisionCode"), parent.get("DivisionCode"));
+    assertEquals(org.get("CodePublisher"), parent.get("CodePublisher"));
+    assertEquals(org.get("ParentCodeID"), parent.get("CodeID"));
     final ArrayNode children = (ArrayNode) org.get("Children");
     assertEquals(7, children.size());
   }
@@ -482,8 +490,9 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandAllNavigationPathWithComplex() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations('3')?$expand=*");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3").expand(
+        "*");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getValue();
@@ -495,9 +504,8 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandCompleteEntitySet2() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions?$expand=Parent");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").expand("Parent");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
@@ -547,6 +555,72 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(((ArrayNode) person.get("PhoneNumbers")).get(0).get("phoneNumber"));
     assertEquals(((ArrayNode) person.get("PhoneNumbersAsString")).size(),
         ((ArrayNode) person.get("PhoneNumbers")).size());
+  }
+
+  @Test
+  public void testExpandEntitiesWithGeneratedValueAttribute() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
+        .expand("targets");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode entities = helper.getValues();
+    assertTrue(entities.size() > 0);
+  }
+
+  @Test
+  public void testExpandBidirectionalSingleEntityWithGeneratedValueAttribute() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
+        .appendKeySegment(Integer.valueOf(1))
+        .select("ID")
+        .expand("targets");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ObjectNode entity = helper.getValue();
+    assertNotNull(entity);
+    final ArrayNode targets = (ArrayNode) entity.get("targets");
+    assertTrue(targets.size() > 0);
+    assertTrue(targets.get(0).get("ID").asInt() > 0);
+  }
+
+  @Test
+  public void testExpandUnidirectionalSingleEntityWithGeneratedValueAttribute() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
+        .appendKeySegment(Integer.valueOf(1))
+        .expand("unidirectionalTargets");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ObjectNode entity = helper.getValue();
+    assertNotNull(entity);
+    final ArrayNode targets = (ArrayNode) entity.get("unidirectionalTargets");
+    assertNotNull(targets);
+    assertTrue(targets.size() > 0);
+    assertTrue(targets.get(0).get("ID").asInt() > 0);
+  }
+
+  @Test
+  public void testExpandUnidirectionalEntitySet() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").orderBy(
+        "ID desc")
+        .expand("unidirectionalTargets");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode entities = helper.getValues();
+    assertNotNull(entities);
+    assertEquals(2, entities.size());
+    // 'source 2' has 2 entries
+    assertTrue(entities.get(0).get("ID").asInt() == 4);
+    assertTrue(((ArrayNode) entities.get(0).get("unidirectionalTargets")).size() == 1);
+    // 'source 1' has 2 entries
+    assertTrue(entities.get(1).get("ID").asInt() == 1);
+    assertTrue(((ArrayNode) entities.get(1).get("unidirectionalTargets")).size() == 2);
   }
 
 }

@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.entity;
 
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.From;
 
 import org.apache.olingo.server.api.ODataApplicationException;
 
@@ -12,12 +12,12 @@ import org.apache.olingo.server.api.ODataApplicationException;
  */
 public interface DataAccessConditioner<X> {
 
-	/**
-	 *
-	 * @param from
-	 *            The JPA 'from' table.
-	 * @return Additional WHERE clause expression or <code>null</code>.
-	 */
-	public javax.persistence.criteria.Expression<Boolean> buildSelectCondition(EntityManager em, Root<X> from)
-	        throws ODataApplicationException;
+  /**
+   *
+   * @param from
+   *            The JPA 'from' table.
+   * @return Additional WHERE clause expression or <code>null</code>.
+   */
+  public javax.persistence.criteria.Expression<Boolean> buildSelectCondition(EntityManager em, From<X, X> from)
+      throws ODataApplicationException;
 }

@@ -295,28 +295,31 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
     final JoinColumns annoJoinColumns = annotatedElement.getAnnotation(JoinColumns.class);
     final JoinColumn annoJoinColumn = annotatedElement.getAnnotation(JoinColumn.class);
     if (annoJoinTable != null) {
+      // using JoinTable -> unidirectional
       if (isNonEmptyString(mappedBy)) {
         LOG.log(Level.WARNING,
             "Association with 'mappedBy' and @JoinTable declaration at same time found... @JoinTable wins!");
       }
       joinConfiguration.useJoinTable = true;
-      handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinTable.joinColumns(),
-          relationshipLabel);
+      handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinTable.joinColumns(), sourceJpaAttribute
+          .getPersistentAttributeType(), relationshipLabel);
       handleTargetJoinColumnAnnotations(joinConfiguration, annoJoinTable.inverseJoinColumns(), relationshipLabel);
     } else if (annoJoinColumns != null) {
+      // using multiple join columns -> unidirectional
       if (isNonEmptyString(mappedBy)) {
         LOG.log(Level.WARNING,
             "Association with 'mappedBy' and @JoinColumns declaration at same time found... @JoinColumns wins!");
       }
-      handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinColumns.value(),
-          relationshipLabel);
+      handleSourceJoinColumnAnnotations(joinConfiguration, annoJoinColumns.value(), sourceJpaAttribute
+          .getPersistentAttributeType(), relationshipLabel);
     } else if (annoJoinColumn != null) {
+      // single join column -> unidirectional
       if (isNonEmptyString(mappedBy)) {
         LOG.log(Level.WARNING,
             "Association with 'mappedBy' and @JoinColumn declaration at same time found... @JoinColumn wins!");
       }
-      handleSourceJoinColumnAnnotations(joinConfiguration, new JoinColumn[] { annoJoinColumn },
-          relationshipLabel);
+      handleSourceJoinColumnAnnotations(joinConfiguration, new JoinColumn[] { annoJoinColumn }, sourceJpaAttribute
+          .getPersistentAttributeType(), relationshipLabel);
     } else if (isNonEmptyString(mappedBy) && targetType != null) {
       // find the join columns on opposite side and fill up with informations on our
       // (source) side
@@ -386,13 +389,21 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
   }
 
   private static void handleSourceJoinColumnAnnotations(final JoinConfiguration joinConfiguration,
-      final JoinColumn[] annoJoinColumns, final String relationshipLabel)
+      final JoinColumn[] annoJoinColumns, final PersistentAttributeType relationshipType,
+      final String relationshipLabel)
           throws ODataJPAModelException {
     int implicitColumns = 0;
+    // be aware: the presence of JoinColumn(s) means that the relationship is unidirectional (no 'mappedBy')
     for (final JoinColumn column : annoJoinColumns) {
       final IntermediateJoinColumn intermediateColumn;
       if (!joinConfiguration.useJoinTable) {
-        intermediateColumn = new IntermediateJoinColumn(column);
+        switch (relationshipType) {
+        case ONE_TO_MANY:
+          intermediateColumn = new IntermediateJoinColumn(column.referencedColumnName(), column.name());
+          break;
+        default:
+          intermediateColumn = new IntermediateJoinColumn(column);
+        }
       } else {
         intermediateColumn = new IntermediateJoinColumn(column.referencedColumnName(), column.name());
       }

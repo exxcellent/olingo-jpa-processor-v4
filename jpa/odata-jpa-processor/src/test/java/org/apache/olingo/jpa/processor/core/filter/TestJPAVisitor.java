@@ -14,7 +14,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -27,55 +27,53 @@ import org.junit.Test;
 
 public class TestJPAVisitor {
 
-	private JPAAbstractFilterProcessor compiler;
-	@SuppressWarnings("rawtypes")
-	private JPAAbstractQuery query;
-	private JPAVisitor cut;
-	private AbstractJPADatabaseProcessor converter;
+  private JPAEntityFilterProcessor compiler;
+  private JPAQueryBuilderIfc query;
+  private JPAVisitor cut;
+  private AbstractJPADatabaseProcessor converter;
 
-	@SuppressWarnings("unchecked")
-	@Before
-	public void setUp() {
-		converter = new JPA_DefaultDatabaseProcessor();
-		converter.initialize(mock(CriteriaBuilder.class));
+  @Before
+  public void setUp() {
+    converter = new JPA_DefaultDatabaseProcessor();
+    converter.initialize(mock(CriteriaBuilder.class));
 
-		compiler = mock(JPAAbstractFilterProcessor.class);
-		query = mock(JPAAbstractQuery.class);
+    compiler = mock(JPAEntityFilterProcessor.class);
+    query = mock(JPAQueryBuilderIfc.class);
 
-		when(compiler.getConverter()).thenReturn(converter);
-		when(compiler.getParent()).thenReturn(query);
+    when(compiler.getConverter()).thenReturn(converter);
+    when(compiler.getParent()).thenReturn(query);
 
-		cut = new JPAVisitor(compiler);
-	}
+    cut = new JPAVisitor(compiler);
+  }
 
-	//return new JPAFunctionOperator(jpaFunction, odataParams, this.jpaComplier.getParent().getRoot(), jpaComplier.getConverter().cb);
+  //return new JPAFunctionOperator(jpaFunction, odataParams, this.jpaComplier.getParent().getRoot(), jpaComplier.getConverter().cb);
 
-	@Test
-	public void createFunctionOperation() throws ExpressionVisitException, ODataApplicationException {
+  @Test
+  public void createFunctionOperation() throws ExpressionVisitException, ODataApplicationException {
 
-		//  final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
-		final Member member = mock(Member.class);
-		final UriInfoResource info = mock(UriInfoResource.class);
-		final UriResourceFunction uriFunction = mock(UriResourceFunction.class);
+    //  final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
+    final Member member = mock(Member.class);
+    final UriInfoResource info = mock(UriInfoResource.class);
+    final UriResourceFunction uriFunction = mock(UriResourceFunction.class);
 
-		final List<UriResource> resources = new ArrayList<UriResource>();
-		resources.add(uriFunction);
+    final List<UriResource> resources = new ArrayList<UriResource>();
+    resources.add(uriFunction);
 
-		when(member.getResourcePath()).thenReturn(info);
-		when(info.getUriResourceParts()).thenReturn(resources);
-		//  final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource).getFunction());
-		final IntermediateServiceDocument sd = mock(IntermediateServiceDocument.class);
-		final JPAFunction jpaFunction = mock(JPAFunction.class);
-		final EdmFunction edmFunction = mock(EdmFunction.class);
+    when(member.getResourcePath()).thenReturn(info);
+    when(info.getUriResourceParts()).thenReturn(resources);
+    //  final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource).getFunction());
+    final IntermediateServiceDocument sd = mock(IntermediateServiceDocument.class);
+    final JPAFunction jpaFunction = mock(JPAFunction.class);
+    final EdmFunction edmFunction = mock(EdmFunction.class);
 
-		when(uriFunction.getFunction()).thenReturn(edmFunction);
-		when(compiler.getSd()).thenReturn(sd);
-		when(sd.getFunction(edmFunction)).thenReturn(jpaFunction);
-		when(uriFunction.getParameters()).thenReturn(new ArrayList<UriParameter>());
+    when(uriFunction.getFunction()).thenReturn(edmFunction);
+    when(compiler.getSd()).thenReturn(sd);
+    when(sd.getFunction(edmFunction)).thenReturn(jpaFunction);
+    when(uriFunction.getParameters()).thenReturn(new ArrayList<UriParameter>());
 
-		if (!(cut.visitMember(member) instanceof JPAFunctionOperator)) {
-			fail();
-		}
-	}
+    if (!(cut.visitMember(member) instanceof JPAFunctionOperator)) {
+      fail();
+    }
+  }
 
 }
