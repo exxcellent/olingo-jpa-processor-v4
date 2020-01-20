@@ -147,7 +147,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
         final IdClass idClassAnnotation = jpaManagedType.getJavaType().getAnnotation(IdClass.class);
         if (idClassAnnotation != null) {
           if (jpaManagedType.getClass().getName().startsWith("org.hibernate")) {
-            LOG.log(Level.WARNING, "invalid metamodel of Hibernate found for " + getInternalName()
+            LOG.log(Level.WARNING, "invalid metamodel of Hibernate detected for " + getInternalName()
             + ", no idType or invalid... use workaround");
           }
           return idClassAnnotation.value();
@@ -158,18 +158,6 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
       return idType.getJavaType();
     }
     throw new IllegalStateException("no key/pk/id class defined");
-  }
-
-  @Override
-  public List<JPASelector> getSearchablePath() throws ODataJPAModelException {
-    final List<JPASelector> allPath = getPathList();
-    final List<JPASelector> searchablePath = new ArrayList<JPASelector>(allPath.size());
-    for (final JPASelector p : allPath) {
-      if (p.getLeaf().isSearchable()) {
-        searchablePath.add(p);
-      }
-    }
-    return searchablePath;
   }
 
   @Override

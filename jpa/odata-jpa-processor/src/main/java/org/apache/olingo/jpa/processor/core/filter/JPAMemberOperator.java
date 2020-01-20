@@ -11,7 +11,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
@@ -21,12 +20,12 @@ public class JPAMemberOperator<T> implements JPAExpression<T> {
   private final JPAStructuredType jpaEntityType;
   private final From<?, ?> root;
 
-  JPAMemberOperator(final JPAStructuredType jpaEntityType, final JPAAbstractQuery<?, ?> parent,
-      final Member member) {
+  JPAMemberOperator(final JPAStructuredType jpaEntityType, final From<?, ?> root, final Member member) {
     super();
     this.member = member;
     this.jpaEntityType = jpaEntityType;
-    this.root = parent.getRoot();
+    assert jpaEntityType != null;
+    this.root = root;
   }
 
   public JPASimpleAttribute determineAttribute() throws ODataApplicationException {
@@ -45,7 +44,7 @@ public class JPAMemberOperator<T> implements JPAExpression<T> {
   }
 
   private JPASelector determineAttributePath() throws ODataApplicationException {
-    final String path = Util.determineProptertyNavigationPath(member.getResourcePath().getUriResourceParts());
+    final String path = Util.determinePropertyNavigationPath(member.getResourcePath().getUriResourceParts());
     JPASelector selectItemPath = null;
     try {
       selectItemPath = jpaEntityType.getPath(path);

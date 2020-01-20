@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -110,8 +111,9 @@ public class TestDataAccessConditioner extends TestBase {
   @Test
   public void testSearchOption() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyOrganizations;
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "GenericBusinessPartners?$search=DEU");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").search("DEU");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode partners = helper.getValues();
     assertEquals(1, partners.size());

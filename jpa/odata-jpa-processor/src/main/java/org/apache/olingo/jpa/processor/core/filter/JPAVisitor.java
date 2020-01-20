@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
 
 import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
@@ -12,6 +11,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
+import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -31,12 +31,12 @@ import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
 
 class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 
-  private final JPAAbstractFilterProcessor jpaComplier;
+  private final JPAEntityFilterProcessor jpaComplier;
 
   /**
    * @param jpaFilterCrossComplier
    */
-  JPAVisitor(final JPAAbstractFilterProcessor jpaFilterCrossComplier) {
+  JPAVisitor(final JPAEntityFilterProcessor jpaFilterCrossComplier) {
     this.jpaComplier = jpaFilterCrossComplier;
   }
 
@@ -165,7 +165,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     } else if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAll) {
       return new JPALambdaAllOperation(this.jpaComplier, member);
     } else if (isAggregation(member.getResourcePath())) {
-      return new JPAAggregationOperationCountImp(jpaComplier.getParent().getRoot(), jpaComplier.getConverter());
+      return new JPAAggregationOperationCountImp(jpaComplier.getParent(), jpaComplier.getConverter());
     } else if (isCustomFunction(member.getResourcePath())) {
       final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
       final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource)
@@ -174,7 +174,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       return new JPAFunctionOperator(this, odataParams, jpaFunction);
       // , this.jpaComplier.getParent().getRoot(), jpaComplier.getConverter().cb);
     }
-    return new JPAMemberOperator(this.jpaComplier.getJpaEntityType(), this.jpaComplier.getParent(), member);
+    return new JPAMemberOperator(this.jpaComplier.getJpaEntityType(), this.jpaComplier.getParent().getQueryResultFrom(),
+        member);
   }
 
   @Override
@@ -250,8 +251,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     return jpaComplier.getSd();
   }
 
-  From<?, ?> getRoot() {
-    return jpaComplier.getParent().getRoot();
+  public JPAQueryBuilderIfc getParent() {
+    return jpaComplier.getParent();
   }
 
   public OData getOdata() {

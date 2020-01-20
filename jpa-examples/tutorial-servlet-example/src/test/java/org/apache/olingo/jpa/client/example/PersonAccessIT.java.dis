@@ -1,0 +1,29 @@
+package org.apache.olingo.jpa.client.example;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.apache.olingo.jpa.processor.core.testmodel.PersonAccess;
+import org.apache.olingo.jpa.processor.core.testmodel.PersonDto;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+public class PersonAccessIT {
+
+  private PersonAccess endpoint;
+
+  @Before
+  public void setup() throws URISyntaxException {
+    final TestODataEndpointWrapper testOData = new TestODataEndpointWrapper();
+    endpoint = new PersonAccess(new URI(testOData.getTargetUri()));
+  }
+
+  @Test
+  public void testReadBusinessPartnerResource() throws Exception {
+    final PersonDto person = endpoint.retrieve("99");
+    Assert.assertEquals("99", person.getID());
+  }
+
+
+}

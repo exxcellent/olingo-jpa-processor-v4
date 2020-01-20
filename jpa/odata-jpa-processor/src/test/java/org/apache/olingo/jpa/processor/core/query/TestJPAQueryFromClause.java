@@ -24,7 +24,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
-import org.apache.olingo.jpa.processor.core.util.EdmEntitySetDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -33,9 +32,9 @@ import org.junit.Test;
 
 public class TestJPAQueryFromClause extends TestBase {
 
-  private JPAEntityQuery cut;
+  private EntityQueryBuilder cut;
   @SuppressWarnings("unused")
-  private Root<?> root;
+  private From<?, ?> root;
   private JPAEntityType jpaEntityType;
 
   @Before
@@ -44,9 +43,10 @@ public class TestJPAQueryFromClause extends TestBase {
     jpaEntityType = helper.getJPAEntityType("Organizations");
     final JPAODataContext context = new JPAODataContextAccessDouble(
         new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter, createHeaders());
-    cut = new JPAEntityQuery(new EdmEntitySetDouble(nameBuilder, "Organizations"), context, null,
+    cut = new EntityQueryBuilder(/* new EdmEntitySetDouble(nameBuilder, "Organizations").getEntityType(), */ context,
+        createTestUriInfo("Organizations"),
         persistenceAdapter.createEntityManager(), null);
-    root = cut.getRoot();
+    root = cut.getQueryResultFrom();
   }
 
   @Test

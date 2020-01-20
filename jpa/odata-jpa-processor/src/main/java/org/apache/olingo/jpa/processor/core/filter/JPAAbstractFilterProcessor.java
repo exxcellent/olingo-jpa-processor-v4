@@ -10,82 +10,68 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
 abstract class JPAAbstractFilterProcessor {
-	private final JPAStructuredType jpaEntityType;
-	private final VisitableExpression expression;
+  private final JPAStructuredType jpaEntityType;
+  private final VisitableExpression expression;
 
-	public JPAAbstractFilterProcessor(final JPAStructuredType jpaEntityType, final VisitableExpression expression) {
-		super();
-		this.jpaEntityType = jpaEntityType;
-		this.expression = expression;
-	}
+  protected JPAAbstractFilterProcessor(final JPAStructuredType jpaEntityType, final VisitableExpression expression) {
+    super();
+    this.jpaEntityType = jpaEntityType;
+    this.expression = expression;
+  }
 
-	public JPAAbstractFilterProcessor(final JPAStructuredType jpaEntityType, final UriInfoResource uriResource) {
-		super();
-		this.jpaEntityType = jpaEntityType;
-		if (uriResource != null && uriResource.getFilterOption() != null) {
-			this.expression = uriResource.getFilterOption().getExpression();
-		} else {
-			this.expression = null;
-		}
-	}
+  public VisitableExpression getExpression() {
+    return expression;
+  }
 
-	public VisitableExpression getExpression() {
-		return expression;
-	}
+  public final JPAStructuredType getJpaEntityType() {
+    return jpaEntityType;
+  }
 
-	public final JPAStructuredType getJpaEntityType() {
-		return jpaEntityType;
-	}
+  /**
+   * Parse the filter query into a JPA criteria API expression.
+   *
+   * @return A composite expression representing the filter query part (WHERE
+   *         clause).
+   */
+  public abstract Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException;
 
-	/**
-	 * Parse the filter query into a JPA criteria API expression.
-	 *
-	 * @return A composite expression representing the filter query part (WHERE
-	 *         clause).
-	 */
-	public abstract Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException;
+  protected abstract List<UriResource> getUriResourceParts();
 
-	protected abstract JPAAbstractQuery<?, ?> getParent();
+  protected abstract IntermediateServiceDocument getSd();
 
-	protected abstract List<UriResource> getUriResourceParts();
+  protected abstract OData getOdata();
 
-	protected abstract IntermediateServiceDocument getSd();
+  protected abstract EntityManager getEntityManager();
 
-	protected abstract OData getOdata();
+  protected abstract JPAODataDatabaseProcessor getConverter();
 
-	protected abstract EntityManager getEntityManager();
-
-	protected abstract JPAODataDatabaseProcessor getConverter();
-
-	/**
-	 * Returns a list of all filter elements of type Member. This could be used e.g.
-	 * to determine if a join is required
-	 */
-	public final List<JPASelector> getMember() {
-		final JPAMemberVisitor visitor = new JPAMemberVisitor(jpaEntityType);
-		if (expression != null) {
-			try {
-				expression.accept(visitor);
-			} catch (final ExpressionVisitException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (final ODataApplicationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return Collections.unmodifiableList(visitor.get());
-		} else {
-			return Collections.emptyList();
-		}
-	}
+  /**
+   * Returns a list of all filter elements of type Member. This could be used e.g.
+   * to determine if a join is required
+   */
+  public final List<JPASelector> getMember() {
+    final JPAMemberVisitor visitor = new JPAMemberVisitor(jpaEntityType);
+    if (expression != null) {
+      try {
+        expression.accept(visitor);
+      } catch (final ExpressionVisitException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (final ODataApplicationException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return Collections.unmodifiableList(visitor.get());
+    } else {
+      return Collections.emptyList();
+    }
+  }
 
 }

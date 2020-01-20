@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
+import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 
 public interface JPAExtention {
   /**
@@ -11,5 +11,5 @@ public interface JPAExtention {
    * the first/least/max row per group in SQL</a>
    * @return query result
    */
-  JPAQueryEntityResult executeExpandTopSkipQuery();
+  QueryEntityResult executeExpandTopSkipQuery();
 }

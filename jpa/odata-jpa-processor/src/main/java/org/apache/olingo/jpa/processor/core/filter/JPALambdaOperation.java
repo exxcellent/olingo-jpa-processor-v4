@@ -3,14 +3,15 @@ package org.apache.olingo.jpa.processor.core.filter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.Subquery;
 
+import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractRelationshipQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.query.FilterSubQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
+import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -26,51 +27,56 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 
   protected final UriInfoResource member;
 
-  JPALambdaOperation(final JPAAbstractFilterProcessor jpaComplier, final UriInfoResource member) {
+  JPALambdaOperation(final JPAEntityFilterProcessor jpaComplier, final UriInfoResource member) {
     super(jpaComplier);
     this.member = member;
   }
 
-  public JPALambdaOperation(final JPAAbstractFilterProcessor jpaComplier, final Member member) {
+  public JPALambdaOperation(final JPAEntityFilterProcessor jpaComplier, final Member member) {
     super(jpaComplier);
     this.member = member.getResourcePath();
   }
 
   @Override
   protected Subquery<?> buildFilterSubQueries() throws ODataApplicationException {
-    return buildFilterSubQueries(determineExpression());
+    try {
+      return buildFilterSubQueries(determineExpression());
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
+          HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+    }
   }
 
-  protected final Subquery<?> buildFilterSubQueries(final Expression expression) throws ODataApplicationException {
+  protected final Subquery<?> buildFilterSubQueries(final Expression expression) throws ODataApplicationException,
+  ODataJPAModelException {
     final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(getUriResourceParts());
     allUriResourceParts.addAll(member.getUriResourceParts());
 
     final IntermediateServiceDocument sd = getIntermediateServiceDocument();
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
-    JPAAbstractQuery<?, ?> parent = getOwnerQuery();
-    final List<JPAAbstractRelationshipQuery<?, ?>> queryList = new ArrayList<>(
-        naviPathList.size());
+    JPAQueryBuilderIfc parent = getQueryBuilder();
+    final List<FilterSubQueryBuilder> queryList = new ArrayList<>(naviPathList.size());
 
     // 2. Create the queries and roots
-    final EntityManager em = getEntityManager();
     final OData odata = getOdata();
     for (int i = naviPathList.size() - 1; i >= 0; i--) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
+      FilterSubQueryBuilder query;
       if (i == 0) {
-        queryList.add(
-            new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-                naviInfo.getNavigationPath(), parent, em, expression));
+        query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+            naviInfo.getNavigationPath(), parent, expression);
       } else {
-        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em));
+        query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+            naviInfo.getNavigationPath(), parent);
       }
+      queryList.add(query);
       parent = queryList.get(queryList.size() - 1);
     }
     // 3. Create select statements
     Subquery<?> childQuery = null;
     for (int i = queryList.size() - 1; i >= 0; i--) {
-      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+      childQuery = queryList.get(i).buildSubQuery(childQuery);
     }
     return childQuery;
   }

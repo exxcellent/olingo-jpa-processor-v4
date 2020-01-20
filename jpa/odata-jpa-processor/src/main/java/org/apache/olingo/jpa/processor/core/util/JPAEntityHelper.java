@@ -22,6 +22,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter.ParameterKind;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -90,7 +91,8 @@ public class JPAEntityHelper {
    * @see #lookupJPAEntity(JPAEntityType, Entity)
    */
   @SuppressWarnings("unchecked")
-  public final <R> R invokeBoundActionMethod(final JPAEntityType jpaType, final Entity oDataEntity, final JPAAction jpaAction,
+  public final <R> R invokeBoundActionMethod(final JPAStructuredType jpaType, final Entity oDataEntity,
+      final JPAAction jpaAction,
       final Map<String, Parameter> parameters) throws ODataJPAModelException, ODataJPAConversionException, ODataApplicationException {
     final Object jpaEntity = lookupJPAEntity(jpaType, oDataEntity);
     if (jpaEntity == null) {
@@ -188,7 +190,7 @@ public class JPAEntityHelper {
     throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, persistenceType.getName());
   }
 
-	/**
+  /**
    * Lookup (load/search) for a JPA entity based on the identifier taken from the given OData
    * entity. The JPA entity will assigned to the current {@link EntityManager
    * entity manager}.
@@ -200,7 +202,8 @@ public class JPAEntityHelper {
    * @see javax.persistence.EntityManager#find(Class, Object)
    */
   @SuppressWarnings("unchecked")
-  public final <O> O lookupJPAEntity(final JPAEntityType jpaType, final Entity oDataEntity) throws ODataJPAModelException {
+  public final <O> O lookupJPAEntity(final JPAStructuredType jpaType, final Entity oDataEntity)
+      throws ODataJPAModelException {
     final List<Object> listPrimaryKeyValues = new LinkedList<>();
     try {
       for (final JPAAttribute<?> jpaAttribute : jpaType.getKeyAttributes(false)) {

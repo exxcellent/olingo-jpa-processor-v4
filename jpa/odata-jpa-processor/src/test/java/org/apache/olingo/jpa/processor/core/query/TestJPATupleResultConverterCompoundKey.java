@@ -13,7 +13,7 @@ import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
-import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
+import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.core.util.ServiceMetadataDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TupleDouble;
@@ -43,10 +43,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
   public void checkConvertsOneResultsTwoKeys() throws ODataApplicationException, ODataJPAModelException {
     // .../BusinessPartnerRoles(BusinessPartnerID='3',RoleCategory='C')
 
-    final HashMap<String, List<Tuple>> resultContainer = new HashMap<String, List<Tuple>>(1);
-    resultContainer.put("root", tupleResult);
-
-    final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(resultContainer, Long.valueOf(0),
+    final QueryEntityResult queryResult = new QueryEntityResult(tupleResult,
         helper.getJPAEntityType("BusinessPartnerRoles"));
     cut = new JPATuple2EntityConverter(
         helper.serviceDocument,
@@ -77,10 +74,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
   public void checkConvertsOneResultsEmbeddedKey() throws ODataApplicationException, ODataJPAModelException {
     // .../AdministrativeDivisionDescriptions(CodePublisher='ISO', CodeID='3166-1', DivisionCode='DEU',Language='en')
 
-    final HashMap<String, List<Tuple>> resultContainer = new HashMap<String, List<Tuple>>(1);
-    resultContainer.put("root", tupleResult);
-
-    final JPAQueryEntityResult queryResult = new JPAQueryEntityResult(resultContainer, Long.parseLong("1"),
+    final QueryEntityResult queryResult = new QueryEntityResult(tupleResult,
         helper.getJPAEntityType("AdministrativeDivisionDescriptions"));
     cut = new JPATuple2EntityConverter(
         helper.serviceDocument,

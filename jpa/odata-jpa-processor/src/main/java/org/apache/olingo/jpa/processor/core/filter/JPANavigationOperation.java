@@ -3,15 +3,17 @@ package org.apache.olingo.jpa.processor.core.filter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmType;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAFilterQuery;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.query.FilterSubQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
+import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -49,7 +51,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
   final JPALiteralOperand operand;
   private final UriResourceKind aggregationType;
 
-  JPANavigationOperation(final JPAAbstractFilterProcessor jpaComplier, final BinaryOperatorKind operator,
+  JPANavigationOperation(final JPAEntityFilterProcessor jpaComplier, final BinaryOperatorKind operator,
       final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 
     super(jpaComplier);
@@ -71,7 +73,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     if (aggregationType != null) {
       return (Expression<Boolean>) buildFilterSubQueries().getRoots().toArray()[0];
     }
-    return getEntityManager().getCriteriaBuilder().exists(buildFilterSubQueries());
+    return getCriteriaBuilder().exists(buildFilterSubQueries());
   }
 
   @Override
@@ -82,31 +84,37 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     final IntermediateServiceDocument sd = getIntermediateServiceDocument();
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
-    JPAAbstractQuery<?, ?> parent = getOwnerQuery();
-    final List<JPAFilterQuery> queryList = new ArrayList<JPAFilterQuery>();
+    JPAQueryBuilderIfc parent = getQueryBuilder();
+    final List<FilterSubQueryBuilder> queryList = new ArrayList<FilterSubQueryBuilder>();
 
     // 2. Create the queries and roots
 
     // for (int i = 0; i < naviPathList.size(); i++) {
-    final EntityManager em = getEntityManager();
     final OData odata = getOdata();
     for (int i = naviPathList.size() - 1; i >= 0; i--) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
-      if (i == 0 && aggregationType == null) {
-        final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getODataLiteral(),
-            operator);
-        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em, expression));
-      } else {
-        queryList.add(new JPAFilterQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em));
+      try {
+        FilterSubQueryBuilder query;
+        if (i == 0 && aggregationType == null) {
+          final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getODataLiteral(),
+              operator);
+          query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+              naviInfo.getNavigationPath(), parent, expression);
+        } else {
+          query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+              naviInfo.getNavigationPath(), parent);
+        }
+        queryList.add(query);
+      } catch (final ODataJPAModelException e) {
+        throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
+            HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
       parent = queryList.get(queryList.size() - 1);
     }
     // 3. Create select statements
     Subquery<?> childQuery = null;
     for (int i = queryList.size() - 1; i >= 0; i--) {
-      childQuery = queryList.get(i).getSubQueryExists(childQuery);
+      childQuery = queryList.get(i).buildSubQuery(childQuery);
     }
     return childQuery;
   }

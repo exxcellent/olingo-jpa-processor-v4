@@ -16,7 +16,7 @@ import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
-import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
+import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.core.util.ServiceMetadataDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TupleDouble;
@@ -34,18 +34,16 @@ public class TestJPATupleResultConverter extends TestBase {
   private List<Tuple> tupleResult;
   private UriHelperDouble uriHelper;
   private Map<String, String> keyPredicates;
-  private JPAQueryEntityResult jpaQueryResult;
+  private QueryEntityResult jpaQueryResult;
 
   @Before
   public void setup() throws ODataException {
     helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
     tupleResult = new ArrayList<Tuple>();
-    final HashMap<String, List<Tuple>> result = new HashMap<String, List<Tuple>>(1);
-    result.put(JPAQueryEntityResult.ROOT_RESULT, tupleResult);
     uriHelper = new UriHelperDouble();
     keyPredicates = new HashMap<String, String>();
     uriHelper.setKeyPredicates(keyPredicates, "ID");
-    jpaQueryResult = new JPAQueryEntityResult(result, Long.valueOf(0), helper.getJPAEntityType("Organizations"));
+    jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType("Organizations"));
     cut = new JPATuple2EntityConverter(
         helper.serviceDocument,
         jpaQueryResult.getEntityType(),
@@ -191,10 +189,8 @@ public class TestJPATupleResultConverter extends TestBase {
   public void checkConvertMediaStreamStaticMime() throws ODataJPAModelException, NumberFormatException,
   ODataApplicationException {
 
-    final HashMap<String, List<Tuple>> result = new HashMap<String, List<Tuple>>(1);
-    result.put("root", tupleResult);
     uriHelper.setKeyPredicates(keyPredicates, "PID");
-    jpaQueryResult = new JPAQueryEntityResult(result, Long.valueOf(1), helper.getJPAEntityType("PersonImages"));
+    jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType("PersonImages"));
     final JPATuple2EntityConverter converter = new JPATuple2EntityConverter(
         helper.serviceDocument,
         jpaQueryResult.getEntityType(),
@@ -215,9 +211,7 @@ public class TestJPATupleResultConverter extends TestBase {
   public void checkConvertMediaStreamDynamicMime() throws ODataJPAModelException, NumberFormatException,
   ODataApplicationException {
 
-    final HashMap<String, List<Tuple>> result = new HashMap<String, List<Tuple>>(1);
-    result.put("root", tupleResult);
-    jpaQueryResult = new JPAQueryEntityResult(result, Long.valueOf(1), helper.getJPAEntityType("OrganizationImages"));
+    jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType("OrganizationImages"));
     final JPATuple2EntityConverter converter = new JPATuple2EntityConverter(
         helper.serviceDocument,
         jpaQueryResult.getEntityType(),

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -22,10 +23,16 @@ import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
 import org.apache.olingo.client.core.uri.URIBuilderImpl;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
+import org.apache.olingo.server.api.ODataRequest;
+import org.apache.olingo.server.api.ODataResponse;
+import org.apache.olingo.server.api.ODataServerError;
+import org.apache.olingo.server.api.processor.DefaultProcessor;
+import org.apache.olingo.server.api.processor.ErrorProcessor;
 import org.apache.olingo.server.api.processor.Processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,10 +43,25 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class IntegrationTestHelper {
 
+  private static class TestErrorProcessor extends DefaultProcessor implements ErrorProcessor {
+
+    Logger LOG = Logger.getLogger(ErrorProcessor.class.getName());
+
+    @Override
+    public void processError(final ODataRequest request, final ODataResponse response,
+        final ODataServerError serverError, final ContentType responseFormat) {
+      LOG.log(Level.SEVERE, serverError.getMessage(), serverError.getException());
+      super.processError(request, response, serverError, responseFormat);
+    }
+
+  }
+  // ----------------------------------------------------------------------------------
+  private final Logger LOG = Logger.getLogger(IntegrationTestHelper.class.getName());
+
   public final HttpServletRequestDouble req;
   public HttpServletResponseDouble resp = null;
   private final JPAAdapter persistenceAdapter;
-  public static final String SERVLET_PATH = "/Olingo.svc";
+  static final String SERVLET_PATH = "/Olingo.svc";
   static final String uriPrefix = "http://localhost:8080/Test" + SERVLET_PATH + "/";
   private boolean executed = false;
   private SecurityInceptor securityInceptor = null;
@@ -63,7 +85,7 @@ public class IntegrationTestHelper {
    */
   @Deprecated
   public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
-      final String urlPath, final String requestBody, final HttpMethod requestMethod)
+      final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
     this(persistenceAdapter, wrapUrl(urlPath), requestBody, requestMethod);
@@ -86,11 +108,11 @@ public class IntegrationTestHelper {
    * @see TestBase#newUriBuilder()
    */
   public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
-      final URIBuilder uriBuilder, final String requestBody, final HttpMethod requestMethod)
+      final URIBuilder uriBuilder, final StringBuffer requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
     super();
-    this.req = new HttpServletRequestDouble(uriBuilder.build(), requestBody);
+    this.req = new HttpServletRequestDouble(uriBuilder, requestBody);
     this.req.setMethod(requestMethod);
     this.persistenceAdapter = persistenceAdapter;
     if (persistenceAdapter == null) {
@@ -125,8 +147,7 @@ public class IntegrationTestHelper {
     if (securityInceptor != null) {
       handler.setSecurityInceptor(securityInceptor);
     }
-    Logger.getLogger(IntegrationTestHelper.class.getName()).info("Execute " + req.getRequestTestExecutionURI()
-    .toString() + "...");
+    LOG.info("Execute " + req.getRequestTestExecutionURI().toString() + "...");
     handler.process(req, resp);
     executed = true;
     assertEquals(parseResponse(), status, getStatus());
