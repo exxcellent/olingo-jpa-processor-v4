@@ -1,10 +1,9 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -23,26 +22,42 @@ import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.apache.olingo.server.api.uri.queryoption.SkipOption;
 import org.apache.olingo.server.api.uri.queryoption.SkipTokenOption;
 import org.apache.olingo.server.api.uri.queryoption.TopOption;
+import org.apache.olingo.server.core.uri.UriResourceNavigationPropertyImpl;
 
 // TODO In case of second level $expand expandItem.getResourcePath() returns an empty UriInfoResource => Bug or
 // Feature?
+/**
+ * Helper class to fake an expand item as {@link UriInfoResource}.
+ *
+ */
 public class JPAExpandItemWrapper implements UriInfoResource {
   private final ExpandItem item;
-  private final JPAEntityType jpaEntityType;
-  private final EdmEntitySet targetEntitySet;
+  private final List<UriResource> starExpandResourcePathFake;
 
-  public JPAExpandItemWrapper(final IntermediateServiceDocument sd, final ExpandItem item) throws ODataApplicationException {
+  public JPAExpandItemWrapper(final List<UriResource> startResourceList, final ExpandItem item)
+      throws ODataApplicationException {
     super();
     this.item = item;
-    this.targetEntitySet = Util.determineTargetEntitySet(getUriResourceParts());
-    this.jpaEntityType = sd.getEntityType(Util.determineTargetEntityType(getUriResourceParts()));
+    assert item.getResourcePath() != null;
+    starExpandResourcePathFake = new LinkedList<UriResource>();
+    starExpandResourcePathFake.addAll(startResourceList);
+    starExpandResourcePathFake.addAll(item.getResourcePath().getUriResourceParts());
   }
 
-  public JPAExpandItemWrapper(final ExpandItem item, final JPAEntityType jpaEntityType) {
+  /**
+   * Called for * $expand without resource parts.
+   */
+  public JPAExpandItemWrapper(final List<UriResource> startResourceList, final ExpandItem item,
+      final EdmNavigationProperty property) {
     super();
+    assert property != null;
     this.item = item;
-    this.targetEntitySet = Util.determineTargetEntitySet(getUriResourceParts());
-    this.jpaEntityType = jpaEntityType;
+    assert item.getResourcePath() == null;
+    // simulate a resource navigation for $expand
+    final UriResourceNavigationPropertyImpl fake = new UriResourceNavigationPropertyImpl(property);
+    starExpandResourcePathFake = new LinkedList<UriResource>();
+    starExpandResourcePathFake.addAll(startResourceList);
+    starExpandResourcePathFake.add(fake);
   }
 
   @Override
@@ -107,7 +122,7 @@ public class JPAExpandItemWrapper implements UriInfoResource {
 
   @Override
   public List<UriResource> getUriResourceParts() {
-    return item.getResourcePath() != null ? item.getResourcePath().getUriResourceParts() : null;
+    return starExpandResourcePathFake;
   }
 
   @Override
@@ -115,18 +130,9 @@ public class JPAExpandItemWrapper implements UriInfoResource {
     return null;
   }
 
-  @Deprecated
-  public JPAEntityType getEntityType() {
-    return jpaEntityType;
-  }
-
-  public EdmEntitySet getTargetEntitySet() {
-    return targetEntitySet;
-  }
-
   @Override
   public ApplyOption getApplyOption() {
-    return null;
+    return item.getApplyOption();
   }
 
   @Override

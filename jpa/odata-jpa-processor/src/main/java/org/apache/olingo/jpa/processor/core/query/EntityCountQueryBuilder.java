@@ -6,9 +6,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
-import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
@@ -16,28 +16,41 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 
-public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Long>, Long> {
+/**
+ * <pre>
+ * URL example:
+ *
+ * .../Organizations/$count
+ * .../Organizations('3')/Roles/$count
+ *
+ * This is NOT covered:
+ * .../Organizations?$count=true
+ * This example is wrong because the entity collection self is loaded, but the count added to response, so the
+ * {@link EntityQueryBuilder} will handle that
+ * </pre>
+ */
+public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQuery<Long>, Long> {
 
   private final CriteriaQuery<Long> cq;
   private final Root<?> root;
 
-  public JPAEntityCountQuery(final EdmEntityType edmEntityType, final JPAODataContext context,
-      final UriInfo uriInfo, final EntityManager em)
-          throws ODataApplicationException, ODataJPAModelException {
-    super(edmEntityType, context, uriInfo, em);
+  public EntityCountQueryBuilder(final JPAODataContext context, final UriInfo uriInfo, final EntityManager em)
+      throws ODataApplicationException, ODataJPAModelException {
+    super(context, uriInfo, em);
     cq = getCriteriaBuilder().createQuery(Long.class);
-    root = cq.from(getQueryScopeType().getTypeClass());
+    root = cq.from(getQueryStartType().getTypeClass());
     // now we are ready
     initializeQuery();
   }
 
   @Override
-  public final CriteriaQuery<Long> getQuery() {
-    return cq;
+  public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+    return cq.subquery(subqueryResultType);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getQueryScopeFrom() {
+  public From<?, ?> getQueryStartFrom() {
     return root;
   }
 
@@ -58,15 +71,9 @@ public class JPAEntityCountQuery extends JPAAbstractEntityQuery<CriteriaQuery<Lo
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    * @throws ExpressionVisitException
-   * @see JPAEntityQuery#execute(boolean)
+   * @see EntityQueryBuilder#execute(boolean)
    */
   public final EntityCollection execute() throws ODataApplicationException, ODataJPAModelException {
-    /*
-     * URL example:
-     * .../Organizations?$count=true
-     * .../Organizations/count
-     * .../Organizations('3')/Roles/$count
-     */
 
     final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
     /* final Map<String, From<?, ?>> resultsetAffectingTables = */ createFromClause(orderByNaviAttributes);

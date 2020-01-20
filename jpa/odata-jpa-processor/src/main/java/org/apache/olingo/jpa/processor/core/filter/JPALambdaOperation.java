@@ -3,16 +3,15 @@ package org.apache.olingo.jpa.processor.core.filter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAFilterNavigationSubQuery;
+import org.apache.olingo.jpa.processor.core.query.FilterSubQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
+import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -28,12 +27,12 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 
   protected final UriInfoResource member;
 
-  JPALambdaOperation(final JPAAbstractFilterProcessor jpaComplier, final UriInfoResource member) {
+  JPALambdaOperation(final JPAEntityFilterProcessor jpaComplier, final UriInfoResource member) {
     super(jpaComplier);
     this.member = member;
   }
 
-  public JPALambdaOperation(final JPAAbstractFilterProcessor jpaComplier, final Member member) {
+  public JPALambdaOperation(final JPAEntityFilterProcessor jpaComplier, final Member member) {
     super(jpaComplier);
     this.member = member.getResourcePath();
   }
@@ -56,21 +55,20 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
     final IntermediateServiceDocument sd = getIntermediateServiceDocument();
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
-    JPAAbstractQuery<?, ?> parent = getOwnerQuery();
-    final List<JPAFilterNavigationSubQuery> queryList = new ArrayList<>(naviPathList.size());
+    JPAQueryBuilderIfc parent = getQueryBuilder();
+    final List<FilterSubQueryBuilder> queryList = new ArrayList<>(naviPathList.size());
 
     // 2. Create the queries and roots
-    final EntityManager em = getEntityManager();
     final OData odata = getOdata();
     for (int i = naviPathList.size() - 1; i >= 0; i--) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
-      JPAFilterNavigationSubQuery query;
+      FilterSubQueryBuilder query;
       if (i == 0) {
-        query = new JPAFilterNavigationSubQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em, expression);
+        query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+            naviInfo.getNavigationPath(), parent, expression);
       } else {
-        query = new JPAFilterNavigationSubQuery(odata, sd, naviInfo.getNavigationUriResource(),
-            naviInfo.getNavigationPath(), parent, em);
+        query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+            naviInfo.getNavigationPath(), parent);
       }
       queryList.add(query);
       parent = queryList.get(queryList.size() - 1);

@@ -1,8 +1,5 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import java.util.Locale;
-
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CollectionJoin;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
@@ -12,42 +9,28 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.SetJoin;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.commons.api.edm.EdmType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.server.api.ODataApplicationException;
 
-abstract class JPAAbstractSubQuery extends JPAAbstractQuery<Subquery<Integer>, Integer> {
+abstract class AbstractSubQueryBuilder extends AbstractQueryBuilder {
 
   private final Subquery<Integer> subQuery;
-  private final JPAAbstractQuery<?, ?> parentCall;
+  private final JPAQueryBuilderIfc parentQueryBuilder;
 
-  public JPAAbstractSubQuery(final IntermediateServiceDocument sd, final EdmType edmType, final EntityManager em,
-      final JPAAbstractQuery<?, ?> parent) throws ODataApplicationException, ODataJPAModelException {
-    super(sd, edmType, em);
-    this.parentCall = parent;
-    this.subQuery = parentCall.getQuery().subquery(Integer.class);
+  public AbstractSubQueryBuilder(final JPAQueryBuilderIfc parent) throws ODataApplicationException,
+  ODataJPAModelException {
+    super(parent.getEntityManager());
+    this.parentQueryBuilder = parent;
+    this.subQuery = parentQueryBuilder.createSubquery(Integer.class);
   }
 
-  @Override
-  final public Subquery<Integer> getQuery() {
+  final protected Subquery<Integer> getSubQuery() {
     return subQuery;
   }
 
-  @Override
-  public final <T> From<T, T> getQueryScopeFrom() {
-    // no change so we can take the parent scope
-    return parentCall.getQueryScopeFrom();
+  protected final JPAQueryBuilderIfc getOwningQueryBuilder() {
+    return parentQueryBuilder;
   }
-
-  @Override
-  public JPAEntityType getQueryResultType() {
-    // should be the same if no JOIN in FROM part comes up
-    return parentCall.getQueryResultType();
-  }
-
 
   /**
    *
@@ -57,8 +40,7 @@ abstract class JPAAbstractSubQuery extends JPAAbstractQuery<Subquery<Integer>, I
    */
   @SuppressWarnings("unchecked")
   protected final From<?, ?> createSubqueryResultFrom() {
-    // 1. correlate wih parent
-    final From<?, ?> fromParent = parentCall.getQueryResultFrom();
+    final From<?, ?> fromParent = parentQueryBuilder.getQueryResultFrom();
     if (Root.class.isInstance(fromParent)) {
       return subQuery.correlate(Root.class.cast(fromParent));
     } else if (CollectionJoin.class.isInstance(fromParent)) {
@@ -75,15 +57,5 @@ abstract class JPAAbstractSubQuery extends JPAAbstractQuery<Subquery<Integer>, I
       throw new IllegalStateException("Unexpected '" + From.class.getSimpleName() + "' type: " + fromParent.getClass()
       .getSimpleName());
     }
-  }
-
-  @Override
-  final protected Locale getLocale() {
-    return parentCall.getLocale();
-  }
-
-  @Override
-  final JPAODataContext getContext() {
-    return parentCall.getContext();
   }
 }

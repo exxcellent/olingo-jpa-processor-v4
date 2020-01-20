@@ -5,25 +5,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Subquery;
 
+import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.filter.JPAFilterExpression;
 import org.apache.olingo.jpa.processor.core.filter.JPAMemberOperator;
-import org.apache.olingo.jpa.processor.core.filter.JPANavigationFilterProcessor;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -35,45 +37,46 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Binary;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
-public class JPAFilterNavigationSubQuery extends JPAAbstractSubQuery {
+public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements JPAQueryBuilderIfc {
 
-  private final JPANavigationFilterProcessor filter;
+  private final JPAEntityFilterProcessor filter;
   private final List<UriParameter> keyPredicates;
   private final JPANavigationPath navigationPath;
-  private From<?, ?> subqueryResultFrom = null;
+  private final JPAEntityType entityType;
+  private final EdmType edmType;
+  private final From<?, ?> subqueryResultFrom;
 
-  public JPAFilterNavigationSubQuery(final OData odata, final IntermediateServiceDocument sd,
-      final UriResourcePartTyped navigationResource, final JPANavigationPath association,
-      final JPAAbstractQuery<?, ?> parent, final EntityManager em)
+  public FilterSubQueryBuilder(final OData odata, final List<UriResource> allUriResourceParts,
+      final UriResourcePartTyped navigationResource,
+      final JPANavigationPath association, final JPAQueryBuilderIfc parent)
           throws ODataApplicationException, ODataJPAModelException {
-    this(odata, sd, navigationResource, association, parent, em, null);
+    this(odata, allUriResourceParts, navigationResource, association, parent, null);
   }
 
-  public JPAFilterNavigationSubQuery(final OData odata, final IntermediateServiceDocument sd,
-      final UriResourcePartTyped navigationResource, final JPANavigationPath association,
-      final JPAAbstractQuery<?, ?> parent, final EntityManager em,
-      final VisitableExpression expression) throws ODataApplicationException, ODataJPAModelException {
-    super(sd, navigationResource.getType(), em, parent);
+  public FilterSubQueryBuilder(final OData odata, final List<UriResource> allUriResourceParts,
+      final UriResourcePartTyped navigationResource,
+      final JPANavigationPath association,
+      final JPAQueryBuilderIfc parent, final VisitableExpression expression) throws ODataApplicationException,
+  ODataJPAModelException {
+    super(parent);
+    final IntermediateServiceDocument sd = parent.getContext().getEdmProvider().getServiceDocument();
     if (expression != null) {
       // the target of the navigation is the type context for the filter processor
-      this.filter = new JPANavigationFilterProcessor(odata, sd, em,
-          association.getLeaf().getStructuredType() /* getQueryResultType() */,
-          parent.getContext().getDatabaseProcessor(), null, this, expression);
+      this.filter = new JPAEntityFilterProcessor(odata, sd,
+          getEntityManager(),
+          association.getLeaf().getStructuredType(), parent.getContext().getDatabaseProcessor(), allUriResourceParts,
+          expression, this);
     } else {
       this.filter = null;
     }
+    this.edmType = navigationResource.getType();
+    this.entityType = sd.getEntityType(edmType);
     this.keyPredicates = determineKeyPredicates(navigationResource);
     this.navigationPath = association;
-    if (navigationPath == null) {
+    if (navigationPath == null || navigationPath.getPathElements().isEmpty()) {
       throw new IllegalArgumentException("selector required");
     }
 
-    // context should be already prepared for filter queries
-    initializeQuery();
-  }
-
-  @Override
-  protected void initializeQuery() throws ODataJPAModelException, ODataApplicationException {
     // 1. correlated root for the subquery part
     final From<?, ?> parentCorrelatedFrom = createSubqueryResultFrom();
     // 2. join in subquery
@@ -82,16 +85,29 @@ public class JPAFilterNavigationSubQuery extends JPAAbstractSubQuery {
       subFrom = subFrom.join(a.getInternalName());
     }
     subqueryResultFrom = subFrom;
-    super.initializeQuery();
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> From<T, T> getQueryResultFrom() {
-    return (From<T, T>) subqueryResultFrom;
+  public final <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+    return getSubQuery().subquery(subqueryResultType);
   }
 
-  private Expression<Boolean> createSubqueryWhereByAssociation()
+  @Override
+  public final JPAODataContext getContext() {
+    return getOwningQueryBuilder().getContext();
+  }
+
+  @Override
+  public final JPAEntityType getQueryResultType() {
+    return entityType;
+  }
+
+  @Override
+  public final From<?, ?> getQueryResultFrom() {
+    return subqueryResultFrom;
+  }
+
+  private Expression<Boolean> createSubqueryWhereByFilter()
       throws ODataApplicationException, ODataJPAModelException {
     if (filter != null && getAggregationType(this.filter.getExpression()) == null) {
       try {
@@ -107,16 +123,14 @@ public class JPAFilterNavigationSubQuery extends JPAAbstractSubQuery {
   }
 
   @SuppressWarnings("unchecked")
-  public final <T extends Object> Subquery<T> buildSubQuery(final Subquery<?> childQuery)
+  public final Subquery<Integer> buildSubQuery(final Subquery<?> childQuery)
       throws ODataApplicationException {
-
-    assertInitialized();
 
     try {
 
-      final Subquery<Integer> subQuery = getQuery();
+      final Subquery<Integer> subQuery = getSubQuery();
 
-      final Expression<Boolean> subqueryWhere = createSubqueryWhereByAssociation();
+      final Expression<Boolean> subqueryWhere = createSubqueryWhereByFilter();
 
       Expression<Boolean> whereCondition = extendWhereByKey(subqueryResultFrom, getQueryResultType(),
           this.keyPredicates);
@@ -139,17 +153,17 @@ public class JPAFilterNavigationSubQuery extends JPAAbstractSubQuery {
       final List<Expression<?>> groupByColumns = handleAggregation(subQuery, subqueryResultFrom);
       if (groupByColumns.isEmpty()) {
         // EXISTS subselect needs only a marker select for existence
-        ((Subquery<T>) subQuery).select((Expression<T>) getCriteriaBuilder().literal(Integer.valueOf(1)));
+        subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
       } else if (groupByColumns.size() == 1) {
         // good case
-        ((Subquery<T>) subQuery).select((Expression<T>) groupByColumns.get(0));
+        subQuery.select((Expression<Integer>) groupByColumns.get(0));
       } else {
         // a subquery can select only one column, so we have a problem...
         LOG.log(Level.SEVERE,
             "This subquery is using a 'group by' with multiple columns, but can select only one... take the first one only!");
-        ((Subquery<T>) subQuery).select((Expression<T>) groupByColumns.get(0));
+        subQuery.select((Expression<Integer>) groupByColumns.get(0));
       }
-      return (Subquery<T>) subQuery;
+      return subQuery;
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_RESULT_NAVI_PROPERTY_UNKNOWN,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e, navigationPath.getAlias());
@@ -209,4 +223,5 @@ public class JPAFilterNavigationSubQuery extends JPAAbstractSubQuery {
     }
     return null;
   }
+
 }

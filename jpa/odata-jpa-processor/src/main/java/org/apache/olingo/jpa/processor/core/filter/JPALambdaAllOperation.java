@@ -16,7 +16,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 public class JPALambdaAllOperation extends JPALambdaOperation {
 
-  JPALambdaAllOperation(final JPAAbstractFilterProcessor jpaComplier, final Member member) {
+  JPALambdaAllOperation(final JPAEntityFilterProcessor jpaComplier, final Member member) {
     super(jpaComplier, member);
   }
 
@@ -31,7 +31,7 @@ public class JPALambdaAllOperation extends JPALambdaOperation {
 
   @Override
   public Expression<Boolean> get() throws ODataApplicationException {
-    final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+    final CriteriaBuilder cb = getQueryBuilder().getEntityManager().getCriteriaBuilder();
     return cb.and(cb.exists(buildFilterSubQueries()), cb.not(cb.exists(getNotExistsQuery())));
   }
 

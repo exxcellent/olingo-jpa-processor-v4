@@ -24,20 +24,15 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
-import org.apache.olingo.jpa.processor.core.util.EdmEntitySetDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfo;
-import org.apache.olingo.server.api.uri.UriInfoKind;
-import org.apache.olingo.server.core.uri.UriInfoImpl;
-import org.apache.olingo.server.core.uri.UriResourceEntitySetImpl;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAQueryFromClause extends TestBase {
 
-  private JPAEntityQuery cut;
+  private EntityQueryBuilder cut;
   @SuppressWarnings("unused")
   private From<?, ?> root;
   private JPAEntityType jpaEntityType;
@@ -48,19 +43,10 @@ public class TestJPAQueryFromClause extends TestBase {
     jpaEntityType = helper.getJPAEntityType("Organizations");
     final JPAODataContext context = new JPAODataContextAccessDouble(
         new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()), persistenceAdapter, createHeaders());
-    cut = new JPAEntityQuery(new EdmEntitySetDouble(nameBuilder, "Organizations").getEntityType(), context,
+    cut = new EntityQueryBuilder(/* new EdmEntitySetDouble(nameBuilder, "Organizations").getEntityType(), */ context,
         createTestUriInfo("Organizations"),
         persistenceAdapter.createEntityManager(), null);
     root = cut.getQueryResultFrom();
-  }
-
-  private UriInfo createTestUriInfo(final String entitySetName) {
-    final UriInfoImpl impl = new UriInfoImpl();
-    impl.setKind(UriInfoKind.resource);
-    final UriResourceEntitySetImpl ri = new UriResourceEntitySetImpl(new EdmEntitySetDouble(nameBuilder,
-        "Organizations"));
-    impl.addResourcePart(ri);
-    return impl;
   }
 
   @Test

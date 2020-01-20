@@ -5,15 +5,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.commons.api.edm.EdmEntityType;
+import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAElementCollectionPathImpl;
@@ -29,6 +34,7 @@ import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.UriResourceLambdaVariable;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePartTyped;
+import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 import org.apache.olingo.server.api.uri.UriResourceValue;
 import org.apache.olingo.server.api.uri.queryoption.ExpandItem;
@@ -38,10 +44,15 @@ public class Util {
 
   public static final String VALUE_RESOURCE = "$VALUE";
 
+  private final static Logger LOG = Logger.getLogger(Util.class.getName());
+
   /**
    * Select the first {@link UriResourceEntitySet} in resource path.
    */
   public static UriResourceEntitySet determineStartingEntityUriResource(final UriInfoResource uriInfo) {
+    if (uriInfo == null || uriInfo.getUriResourceParts() == null) {
+      return null;
+    }
     for (final UriResource resourceItem : uriInfo.getUriResourceParts()) {
       switch (resourceItem.getKind()) {
       case entitySet:
@@ -126,44 +137,6 @@ public class Util {
   }
 
   /**
-   * Finds an entity type from last navigation property
-   */
-  public static EdmEntityType determineTargetEntityType(final List<UriResource> resources) {
-    EdmEntityType targetEdmEntity = null;
-
-    for (final UriResource resourceItem : resources) {
-      if (resourceItem.getKind() == UriResourceKind.navigationProperty) {
-        // first try the simple way like in the example
-        targetEdmEntity = (EdmEntityType) ((UriResourceNavigation) resourceItem).getType();
-      }
-    }
-    return targetEdmEntity;
-  }
-
-  /**
-   * Finds an entity type with which a navigation may starts. Can be used e.g. for filter:
-   * AdministrativeDivisions?$filter=Parent/CodeID eq 'NUTS1' returns AdministrativeDivision;
-   * AdministrativeDivisions(...)/Parent?$filter=Parent/CodeID eq 'NUTS1' returns "Parent"
-   * @deprecated Seems not to work properly
-   */
-  @Deprecated
-  public static EdmEntityType determineStartEntityType(final List<UriResource> resources) {
-    EdmEntityType targetEdmEntity = null;
-
-    for (final UriResource resourceItem : resources) {
-      if (resourceItem.getKind() == UriResourceKind.navigationProperty) {
-        // first try the simple way like in the example
-        targetEdmEntity = (EdmEntityType) ((UriResourceNavigation) resourceItem).getType();
-      }
-      if (resourceItem.getKind() == UriResourceKind.entitySet) {
-        // first try the simple way like in the example
-        targetEdmEntity = ((UriResourceEntitySet) resourceItem).getEntityType();
-      }
-    }
-    return targetEdmEntity;
-  }
-
-  /**
    * Used for Serializer
    */
   public static UriResourceProperty determineStartNavigationPath(final List<UriResource> resources) {
@@ -212,6 +185,8 @@ public class Util {
     try {
       if (naviStart instanceof UriResourceEntitySet) {
         return sd.getEntityType(naviStart.getType()).getAssociationPath(associationName);
+      } else if (naviStart instanceof UriResourceProperty) {
+        return null;
       } else {
         return sd.getEntityType(((UriResourceNavigation) naviStart).getProperty().getType())
             .getAssociationPath(associationName);
@@ -227,60 +202,71 @@ public class Util {
 
     final Map<JPAExpandItemWrapper, JPAAssociationPath> pathList =
         new HashMap<JPAExpandItemWrapper, JPAAssociationPath>();
+    if (startResourceList == null || startResourceList.isEmpty() || expandOption == null) {
+      return pathList;
+    }
+
     final StringBuffer associationNamePrefix = new StringBuffer();
 
-    UriResource startResourceItem = null;
-    if (startResourceList != null && expandOption != null) {
-      // Example1 : /Organizations('3')/AdministrativeInformation?$expand=Created/User
-      // Example2 : /Organizations('3')/AdministrativeInformation?$expand=*
-      // Association name needs AdministrativeInformation as prefix
-      for (int i = startResourceList.size() - 1; i >= 0; i--) {
-        startResourceItem = startResourceList.get(i);
-        if (startResourceItem instanceof UriResourceEntitySet || startResourceItem instanceof UriResourceNavigation) {
-          break;
-        }
-        associationNamePrefix.insert(0, JPAAssociationPath.PATH_SEPERATOR);
-        associationNamePrefix.insert(0, ((UriResourceProperty) startResourceItem).getProperty().getName());
+    UriResourcePartTyped startResourceItem = null;
+
+    // Example1 : /Organizations('3')/AdministrativeInformation?$expand=Created/User
+    // Example2 : /Organizations('3')/AdministrativeInformation?$expand=*
+    // Association name needs AdministrativeInformation as prefix
+    for (int i = startResourceList.size() - 1; i >= 0; i--) {
+      final UriResource resource = startResourceList.get(i);
+      if (resource instanceof UriResourceEntitySet || resource instanceof UriResourceNavigation) {
+        startResourceItem = (UriResourcePartTyped) resource;
+        break;
       }
-      // Example1 : ?$expand=Created/User (Property/NavigationProperty)
-      // Example2 : ?$expand=Parent/CodeID (NavigationProperty/Property)
-      // Example3 : ?$expand=Parent,Children (NavigationProperty, NavigationProperty)
-      // Example4 : ?$expand=*
-      // Example4 : ?$expand=*/$ref,Parent
-      StringBuffer associationName;
-      for (final ExpandItem item : expandOption.getExpandItems()) {
-        if (item.isStar()) {
-          final EdmEntitySet edmEntitySet = determineTargetEntitySet(startResourceList);
-          try {
-            final JPAEntityType jpaEntityType = sd.getEntitySetType(edmEntitySet.getName());
-            final List<JPAAssociationPath> associationPaths = jpaEntityType.getAssociationPathList();
-            for (final JPAAssociationPath path : associationPaths) {
-              pathList.put(new JPAExpandItemWrapper(item, (JPAEntityType) path.getTargetType()), path);
+      associationNamePrefix.insert(0, JPAAssociationPath.PATH_SEPERATOR);
+      associationNamePrefix.insert(0, ((UriResourceProperty) resource).getProperty().getName());
+    }
+    // Example1 : ?$expand=Created/User (Property/NavigationProperty)
+    // Example2 : ?$expand=Parent/CodeID (NavigationProperty/Property)
+    // Example3 : ?$expand=Parent,Children (NavigationProperty, NavigationProperty)
+    // Example4 : ?$expand=*
+    // Example4 : ?$expand=*/$ref,Parent
+    StringBuffer associationName;
+    for (final ExpandItem item : expandOption.getExpandItems()) {
+      if (item.isStar()) {
+        final EdmEntitySet edmEntitySet = determineTargetEntitySet(startResourceList);
+        try {
+          final JPAEntityType jpaEntityType = sd.getEntitySetType(edmEntitySet.getName());
+          final List<JPAAssociationPath> associationPaths = jpaEntityType.getAssociationPathList();
+          for (final JPAAssociationPath path : associationPaths) {
+            final JPAAssociationAttribute asso = jpaEntityType.getAssociationByPath(path);
+            // relevant for $expand are only direct relationships without longer paths coming from nested complex
+            // types
+            if (asso == null) {
+              continue;
             }
-          } catch (final ODataJPAModelException e) {
-            throw new ODataJPAUtilException(ODataJPAUtilException.MessageKeys.UNKNOWN_ENTITY_TYPE,
-                HttpStatusCode.BAD_REQUEST);
+            final EdmNavigationProperty navProperty = edmEntitySet.getEntityType().getNavigationProperty(asso
+                .getExternalName());
+            pathList.put(new JPAExpandItemWrapper(startResourceList, item, navProperty), path);
           }
-        } else {
-          final List<UriResource> targetResourceList = item.getResourcePath().getUriResourceParts();
-          associationName = new StringBuffer();
-          associationName.append(associationNamePrefix);
-          UriResource targetResourceItem = null;
-          for (int i = 0; i < targetResourceList.size(); i++) {
-            targetResourceItem = targetResourceList.get(i);
-            if (targetResourceItem.getKind() != UriResourceKind.navigationProperty) {
-              // if (i < targetResourceList.size() - 1) {
-              associationName.append(((UriResourceProperty) targetResourceItem).getProperty().getName());
-              associationName.append(JPAAssociationPath.PATH_SEPERATOR);
-            } else {
-              associationName.append(((UriResourceNavigation) targetResourceItem).getProperty().getName());
-              break;
-            }
-          }
-          pathList.put(new JPAExpandItemWrapper(sd, item), determineAssoziationPath(sd,
-              ((UriResourcePartTyped) startResourceItem),
-              associationName.toString()));
+        } catch (final ODataJPAModelException e) {
+          throw new ODataJPAUtilException(ODataJPAUtilException.MessageKeys.UNKNOWN_ENTITY_TYPE,
+              HttpStatusCode.BAD_REQUEST);
         }
+      } else {
+        final List<UriResource> targetResourceList = item.getResourcePath().getUriResourceParts();
+        associationName = new StringBuffer();
+        associationName.append(associationNamePrefix);
+        UriResource targetResourceItem = null;
+        for (int i = 0; i < targetResourceList.size(); i++) {
+          targetResourceItem = targetResourceList.get(i);
+          if (targetResourceItem.getKind() != UriResourceKind.navigationProperty) {
+            // if (i < targetResourceList.size() - 1) {
+            associationName.append(((UriResourceProperty) targetResourceItem).getProperty().getName());
+            associationName.append(JPAAssociationPath.PATH_SEPERATOR);
+          } else {
+            associationName.append(((UriResourceNavigation) targetResourceItem).getProperty().getName());
+            break;
+          }
+        }
+        pathList.put(new JPAExpandItemWrapper(startResourceList, item), determineAssoziationPath(sd, startResourceItem,
+            associationName.toString()));
       }
     }
     return pathList;
@@ -322,28 +308,33 @@ public class Util {
           }
           final JPAAssociationPath association = determineAssoziationPath(sd, startType,
               assoPathName);
-          pathList.add(/* 0, */
-              new JPANavigationPropertyInfo((UriResourcePartTyped) resourcePart, association));
+          if (association != null) {
+            pathList.add(new JPANavigationPropertyInfo((UriResourcePartTyped) resourcePart, association));
+          }
         }
         startType = navigation;
         complexTypeNavigation = null;// reset
-      } else if (resourcePart instanceof UriResourceComplexProperty) {
-        final UriResourceComplexProperty navigation = (UriResourceComplexProperty) resourcePart;
+      } else if (resourcePart instanceof UriResourceProperty) {
+        final UriResourceProperty property = (UriResourceProperty) resourcePart;
         if (startType == null) {
-          throw new IllegalStateException("'UriResourceComplexProperty' navigation found without start type "
-              + navigation.getProperty().getName());
+          throw new IllegalStateException(
+              "'UriResource(Complex/Primitive)Property' navigation found without start type "
+                  + property.getProperty().getName());
         }
-        if (navigation.isCollection()) {
+        if (property.isCollection()) {
           // handle @ElementCollection
           final JPAEntityType et = sd.getEntityType(startType.getType());
+          if (et == null) {
+            LOG.log(Level.SEVERE,
+                "Resource path contains a (@ElementCollection?) navigation (" + property.getSegmentValue()
+                    + ") to an simple type. This state should not reached... a bug?!");
+            break;
+          }
           try {
-            final JPASelector selector = et.getPath(navigation.getProperty().getName());
+            final JPASelector selector = et.getPath(property.getProperty().getName());
             final JPANavigationPath association = new JPAElementCollectionPathImpl(selector);
-            // use startType to determine entity result type, because we are used in a
-            // JPAFilterQuery using 'startType' as result, because navigation is in further
-            // subqueries
-            pathList.add(/* 0, */ new JPANavigationPropertyInfo((UriResourcePartTyped) resourcePart, association));
-            startType = navigation;
+            pathList.add(new JPANavigationPropertyInfo((UriResourcePartTyped) resourcePart, association));
+            startType = property;
             complexTypeNavigation = null;// reset
           } catch (final ODataJPAModelException e) {
             throw new ODataJPAUtilException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
@@ -355,7 +346,7 @@ public class Util {
           if (complexTypeNavigation.length() > 0) {
             complexTypeNavigation.append(JPAAssociationPath.PATH_SEPERATOR);
           }
-          complexTypeNavigation.append(navigation.getProperty().getName());
+          complexTypeNavigation.append(property.getProperty().getName());
         }
       }
     }
@@ -371,7 +362,10 @@ public class Util {
     if (hasRelationshipNavigation(uriResourceParts)) {
       return true;
     }
-    return hasComplexPropertyCollectionNavigation(uriResourceParts);
+    if (hasComplexPropertyCollectionNavigation(uriResourceParts)) {
+      return true;
+    }
+    return hasPrimitivePropertyCollectionNavigation(uriResourceParts);
   }
 
   /**
@@ -409,5 +403,41 @@ public class Util {
       }
     }
     return false;
+  }
+
+  /**
+   * Detect a special variant of relationship: the navigation of 1:n to an primitive
+   * type as target.
+   *
+   * @return TRUE if list of resource parts contains a navigation to an collection
+   * of embedded primitive type
+   * @see javax.persistence.ElementCollection
+   */
+  private static boolean hasPrimitivePropertyCollectionNavigation(final List<UriResource> uriResourceParts) {
+    if (uriResourceParts == null) {
+      return false;
+    }
+    for (final UriResource resourcePart : uriResourceParts) {
+      if (resourcePart instanceof UriResourcePrimitiveProperty
+          && ((UriResourcePrimitiveProperty) resourcePart).isCollection()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   *
+   * @return The list of selectors for all key attributes (exploded!).
+   * @see JPAEntityType#getKeyAttributes(boolean)
+   */
+  public static List<JPASelector> buildKeyPath(final JPAStructuredType jpaType) throws ODataJPAModelException {
+    final List<? extends JPAAttribute<?>> jpaKeyList = jpaType.getKeyAttributes(true);
+    final List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
+    for (final JPAAttribute<?> key : jpaKeyList) {
+      final JPASelector keyPath = jpaType.getPath(key.getExternalName());
+      jpaPathList.add(keyPath);
+    }
+    return jpaPathList;
   }
 }

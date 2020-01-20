@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Subquery;
@@ -12,8 +13,8 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.commons.core.Decoder;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
@@ -29,38 +30,24 @@ import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
  * @author Ralf Zozmann
  *
  */
-class JPASearchSubQuery extends JPAAbstractSubQuery {
+class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
 
-  private From<?, ?> subqueryResultFrom = null;
   private final UriInfoResource uriResource;
   private final JPAODataDatabaseProcessor dbProcessor;
+  private final From<?, ?> subqueryResultFrom;
 
-  public JPASearchSubQuery(final JPAAbstractEntityQuery<?, ?> parent) throws ODataApplicationException,
+  public SearchSubQueryBuilder(final AbstractCriteriaQueryBuilder<?, ?> parent) throws ODataApplicationException,
   ODataJPAModelException {
-    super(parent.getServiceDocument(), parent.getQueryResultUriInfoResource().getType(), parent.getEntityManager(),
-        parent);
+    super(parent);
     this.uriResource = parent.getUriInfoResource();
     this.dbProcessor = parent.getContext().getDatabaseProcessor();
 
-    // context should be already prepared for filter queries
-    initializeQuery();
-  }
-
-  @Override
-  protected void initializeQuery() throws ODataJPAModelException, ODataApplicationException {
     this.subqueryResultFrom = createSubqueryResultFrom();
-    super.initializeQuery();
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <T> From<T, T> getQueryResultFrom() {
-    assertInitialized();
-    return (From<T, T>) subqueryResultFrom;
   }
 
   public final Subquery<Integer> getSubQueryExists()
       throws ODataApplicationException {
+
     final SearchOption searchOption = uriResource.getSearchOption();
     if (searchOption == null || searchOption.getSearchExpression() == null) {
       return null;
@@ -70,7 +57,7 @@ class JPASearchSubQuery extends JPAAbstractSubQuery {
     }
     try {
       boolean attributesWithSearchableAnnotationFound = true;
-      final JPAEntityType jpaEntityType = getQueryResultType();
+      final JPAStructuredType jpaEntityType = getOwningQueryBuilder().getQueryResultType();
       List<JPASelector> searchableAttributes = jpaEntityType.getSearchablePath();
       if (searchableAttributes.isEmpty()) {
         LOG.log(Level.WARNING, "Entity " + jpaEntityType.getExternalName() + " has not attributes marked with @"
@@ -78,11 +65,6 @@ class JPASearchSubQuery extends JPAAbstractSubQuery {
         searchableAttributes = jpaEntityType.getPathList();
         attributesWithSearchableAnnotationFound = false;
       }
-
-      final Subquery<Integer> subQuery = getQuery();
-
-      // EXISTS subselect needs only a marker select for existence
-      subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
 
       SearchTerm term = searchOption.getSearchExpression().asSearchTerm();
 
@@ -100,16 +82,32 @@ class JPASearchSubQuery extends JPAAbstractSubQuery {
           }
           continue;
         }
-        final Path<?> path = convertToCriteriaPath(subqueryResultFrom, searchableAttribute);
-        path.alias(searchableAttribute.getAlias());
+        final Path<?> path = convertToCriteriaPath(subqueryResultFrom, searchableAttribute, null);
         columnList.add(path);
       }
 
-      final javax.persistence.criteria.Expression<Boolean> whereCondition = dbProcessor.createSearchExpression(term, columnList);
-      if (whereCondition == null) {
+      final Subquery<Integer> subQuery = getSubQuery();
+
+      // TODO remove in a proper working Hibernate version > 5.4.10?!
+      // this is an workaround for buggy Hibernate not producing a invalid SQL (the <from> is missing without that
+      // explicit thing)
+      Expression<Boolean> joinDummyFrom = null;
+      if (getEntityManager().getClass().getName().startsWith("org.hibernate")) {
+        LOG.log(Level.WARNING, "Buggy Hibernate detected, use workaround for subquery of $search!");
+        final From<?, ?> dummyFrom = subQuery.from(jpaEntityType.getTypeClass());
+        joinDummyFrom = getCriteriaBuilder().equal(subqueryResultFrom, dummyFrom);
+      }
+
+      // EXISTS subselect needs only a marker select for existence
+      subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
+
+      final Expression<Boolean> searchCondition = dbProcessor.createSearchExpression(term, columnList);
+      if (searchCondition == null) {
         throw new ODataJPADBAdaptorException(ODataJPADBAdaptorException.MessageKeys.NOT_SUPPORTED_SEARCH,
             HttpStatusCode.INTERNAL_SERVER_ERROR);
       }
+
+      final Expression<Boolean> whereCondition = combineAND(joinDummyFrom, searchCondition);
       subQuery.where(whereCondition);
       return subQuery;
     } catch (final ODataJPAModelException e) {

@@ -10,9 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import javax.persistence.Tuple;
 import javax.persistence.TupleElement;
@@ -34,8 +32,10 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
-import org.apache.olingo.jpa.processor.core.query.result.JPAQueryElementCollectionResult;
-import org.apache.olingo.jpa.processor.core.query.result.JPAQueryEntityResult;
+import org.apache.olingo.jpa.processor.core.query.result.AbstractEntityQueryResult;
+import org.apache.olingo.jpa.processor.core.query.result.ExpandQueryEntityResult;
+import org.apache.olingo.jpa.processor.core.query.result.QueryElementCollectionResult;
+import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.serializer.SerializerException;
@@ -84,7 +84,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
    * The given row is converted into a OData entity and added to the map of
    * already processed entities.<br/>
    * If the <code>row</code> is defining a entity that is already part of entity
-   * collection (that happens if the {@link JPAQueryEntityResult} is built from joined
+   * collection (that happens if the {@link QueryEntityResult} is built from joined
    * tables) then the entity values are merged into the exiting entity and hat
    * already processed entity is returned; otherwise a new entity is created.
    *
@@ -93,7 +93,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
    *            entities. The key in the map is the
    *            stringified entity id.
    */
-  protected final Entity convertTuple2ODataEntity(final Tuple row, final JPAQueryEntityResult jpaQueryResult)
+  protected final Entity convertTuple2ODataEntity(final Tuple row, final AbstractEntityQueryResult jpaQueryResult)
       throws ODataJPAModelException, ODataJPAConversionException {
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
     final Entity odataEntity = new Entity();
@@ -175,7 +175,7 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
         final List<JPASimpleAttribute> keys = asso.getSourceType().getKeyAttributes(true);
         //        final List<JPASimpleAttribute> keys = asso.getTargetType().getKeyAttributes(true);
         for (final JPASimpleAttribute jpaAttribute : keys) {
-          alias = JPAAbstractEntityQuery.buildTargetJoinAlias(asso, jpaAttribute);
+          alias = AbstractCriteriaQueryBuilder.buildTargetJoinAlias(asso, jpaAttribute);
           buffer.append(JPASelector.PATH_SEPERATOR);
           buffer.append(row.get(alias));
         }
@@ -197,19 +197,22 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
    * Create entries for all @ElementCollection attributes and assign they as
    * {@link Property} to given <i>entity</i>.
    *
-   * @param entity
+   * @param entityODataTarget
    *            The entity to create element collection properties for
    * @throws ODataApplicationException
    */
-  private void createElementCollections(final Entity entity, final Tuple owningEntityRow,
-      final JPAQueryEntityResult jpaQueryResult) throws ODataJPAModelException, ODataJPAConversionException {
-    final Map<JPAAttribute<?>, JPAQueryElementCollectionResult> elementCollections = jpaQueryResult
+  private void createElementCollections(final Entity entityODataTarget, final Tuple owningEntityRow,
+      final AbstractEntityQueryResult jpaQueryResult) throws ODataJPAModelException, ODataJPAConversionException {
+    final Map<JPAAttribute<?>, QueryElementCollectionResult> elementCollections = jpaQueryResult
         .getElementCollections();
-    for (final Entry<JPAAttribute<?>, JPAQueryElementCollectionResult> entry : elementCollections.entrySet()) {
+    for (final Entry<JPAAttribute<?>, QueryElementCollectionResult> entry : elementCollections.entrySet()) {
 
-      final Set<String> setKeyColumnAliases = entry.getValue().getKeyColumns().stream().map(x -> x.getAlias())
-          .collect(Collectors.toSet());
-      final String key = buildOwningEntityKey(owningEntityRow, entry.getValue().getKeyColumns());
+      //      final Set<String> setKeyColumnAliases = entry.getValue().getKeyColumns().stream().map(x -> x.getAlias())
+      //          .collect(Collectors.toSet());
+      //      final String key = buildOwningEntityKey(owningEntityRow, entry.getValue().getKeyColumns());
+
+      final String key = entry.getValue().getNavigationKeyBuilder().buildKeyForNavigationOwningRow(owningEntityRow);
+
       final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
       int index = -1;
       final List<Tuple> tuples = entry.getValue().getDirectMappingsResult(key);
@@ -219,35 +222,37 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
       for (final Tuple row : tuples) {
         index++;
         for (final TupleElement<?> element : row.getElements()) {
-          if ((!entry.getKey().isComplex()
-              || entry.getKey().getStructuredType().getPath(element.getAlias()) == null)
-              && setKeyColumnAliases.contains(element.getAlias())) {
-            // ignore columns values only part of result set, because we had to select the
-            // key columns for joining
-            continue;
-          }
+          //          if ((!entry.getKey().isComplex()
+          //              || entry.getKey().getStructuredType().getPath(element.getAlias()) == null)
+          //              && setKeyColumnAliases.contains(element.getAlias())) {
+          //            // ignore columns values only part of result set, because we had to select the
+          //            // key columns for joining
+          //            continue;
+          //          }
           /* final Property property = */ convertJPAValue2ODataAttribute(row.get(element.getAlias()),
               element.getAlias(), "", jpaConversionTargetEntity, complexValueBuffer, index,
-              entity.getProperties());
+              entityODataTarget.getProperties());
         }
 
       }
     }
   }
 
-  private Collection<? extends Link> createExpand(final Tuple owningEntityRow, final JPAQueryEntityResult jpaQueryResult)
-      throws ODataJPAModelException, ODataJPAConversionException {
-    final Map<JPAAssociationPath, JPAQueryEntityResult> children = jpaQueryResult.getExpandChildren();
+  private Collection<? extends Link> createExpand(final Tuple owningEntityRow,
+      final AbstractEntityQueryResult jpaQueryResult)
+          throws ODataJPAModelException, ODataJPAConversionException {
+    final Map<JPAAssociationPath, ExpandQueryEntityResult> children = jpaQueryResult.getExpandChildren();
     if (children == null) {
       return Collections.emptyList();
     }
     final List<Link> entityExpandLinks = new ArrayList<Link>(children.size());
-    for (final Entry<JPAAssociationPath, JPAQueryEntityResult> entry : children.entrySet()) {
+    for (final Entry<JPAAssociationPath, ExpandQueryEntityResult> entry : children.entrySet()) {
       if (jpaConversionTargetEntity.getDeclaredAssociation(entry.getKey()) == null) {
         continue;
       }
       final JPATupleExpandResultConverter converter = new JPATupleExpandResultConverter(
-          entry.getValue().getEntityType(), owningEntityRow, entry.getKey(), uriHelper,
+          entry.getValue().getEntityType(), owningEntityRow, entry
+          .getKey(), uriHelper,
           getIntermediateServiceDocument(), getServiceMetadata());
       final Link expand = converter.convertTuples2ExpandLink(entry.getValue());
       // TODO Check how to convert Organizations('3')/AdministrativeInformation?$expand=Created/User

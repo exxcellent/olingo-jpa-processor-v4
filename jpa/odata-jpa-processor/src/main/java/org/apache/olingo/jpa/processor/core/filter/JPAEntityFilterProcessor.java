@@ -8,13 +8,14 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAAbstractCriteriaQuery;
+import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor;
+import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
 /**
  * Cross compiles Olingo generated AST of an OData filter into JPA criteria builder where condition.
@@ -34,75 +35,85 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor
  */
 //TODO handle $it ...
 public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
-	private final JPAODataDatabaseProcessor converter;
-	// TODO Check if it is allowed to select via navigation
-	// ...Organizations?$select=Roles/RoleCategory eq 'C'
-	// see also https://issues.apache.org/jira/browse/OLINGO-414
-	final EntityManager em;
-	final OData odata;
-	final IntermediateServiceDocument sd;
-	final List<UriResource> uriResourceParts;
-	final JPAAbstractCriteriaQuery<?, ?> parent;
+  private final JPAODataDatabaseProcessor converter;
+  // TODO Check if it is allowed to select via navigation
+  // ...Organizations?$select=Roles/RoleCategory eq 'C'
+  // see also https://issues.apache.org/jira/browse/OLINGO-414
+  final EntityManager em;
+  final OData odata;
+  final IntermediateServiceDocument sd;
+  final List<UriResource> uriResourceParts;
+  final JPAQueryBuilderIfc parent;
 
-	public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-			final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
-			final UriInfoResource uriResource, final JPAAbstractCriteriaQuery<?, ?> parent) {
+  public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
+      final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
+      final UriInfoResource uriResource, final JPAQueryBuilderIfc parent) {
+    this(odata, sd, em, jpaEntityType, converter, uriResource.getUriResourceParts(), extractFilterExpression(
+        uriResource), parent);
+  }
 
-		super(jpaEntityType, uriResource);
+  public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
+      final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
+      final List<UriResource> resourcePath,
+      final VisitableExpression expression, final JPAQueryBuilderIfc parent) {
 
-		if (uriResource != null) {
-			this.uriResourceParts = uriResource.getUriResourceParts();
-		} else {
-			this.uriResourceParts = null;
-		}
-		this.converter = converter;
-		this.em = em;
-		this.odata = odata;
-		this.sd = sd;
-		this.parent = parent;
-	}
+    super(jpaEntityType, expression);
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
+    this.uriResourceParts = resourcePath;
+    this.converter = converter;
+    this.em = em;
+    this.odata = odata;
+    this.sd = sd;
+    this.parent = parent;
+  }
 
-		if (getExpression() == null) {
-			return null;
-		}
-		final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
-		final Expression<Boolean> finalExpression = (Expression<Boolean>) getExpression().accept(visitor).get();
+  public static VisitableExpression extractFilterExpression(final UriInfoResource uriResource) {
+    if (uriResource.getFilterOption() == null) {
+      return null;
+    }
+    return uriResource.getFilterOption().getExpression();
+  }
 
-		return finalExpression;
-	}
+  @Override
+  @SuppressWarnings("unchecked")
+  public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
 
-	@Override
-	public JPAODataDatabaseProcessor getConverter() {
-		return converter;
-	}
+    if (getExpression() == null) {
+      return null;
+    }
+    final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
+    final Expression<Boolean> finalExpression = (Expression<Boolean>) getExpression().accept(visitor).get();
 
-	@Override
-	public EntityManager getEntityManager() {
-		return em;
-	}
+    return finalExpression;
+  }
 
-	@Override
-	public OData getOdata() {
-		return odata;
-	}
+  @Override
+  public JPAODataDatabaseProcessor getConverter() {
+    return converter;
+  }
 
-	@Override
-	public IntermediateServiceDocument getSd() {
-		return sd;
-	}
+  @Override
+  public EntityManager getEntityManager() {
+    return em;
+  }
 
-	@Override
-	public List<UriResource> getUriResourceParts() {
-		return uriResourceParts;
-	}
+  @Override
+  public OData getOdata() {
+    return odata;
+  }
 
-	@Override
-	public JPAAbstractCriteriaQuery<?, ?> getParent() {
-		return parent;
-	}
+  @Override
+  public IntermediateServiceDocument getSd() {
+    return sd;
+  }
+
+  @Override
+  public List<UriResource> getUriResourceParts() {
+    return uriResourceParts;
+  }
+
+  public JPAQueryBuilderIfc getParent() {
+    return parent;
+  }
 
 }

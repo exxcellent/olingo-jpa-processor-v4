@@ -32,6 +32,7 @@ import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
@@ -40,7 +41,7 @@ import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionExceptio
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
+import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
 import org.apache.olingo.server.api.OData;
@@ -321,11 +322,10 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
     final List<Object> results = new LinkedList<>();
     if (jpaAction.isBound()) {
       // determine entity context
-      JPAEntityQuery query = null;
-      final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
+      EntityQueryBuilder query = null;
       final EntityCollection entityCollection;
       try {
-        query = new JPAEntityQuery(targetEdmEntitySet.getEntityType(), context, uriInfo, em, getServiceMetadata());
+        query = new EntityQueryBuilder(context, uriInfo, em, getServiceMetadata());
         // we do not expand the entities
         entityCollection = query.execute(false);
       } catch (final ODataJPAModelException e) {
@@ -334,7 +334,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
             HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
 
-      final JPAEntityType jpaType = query.getQueryResultType();
+      final JPAStructuredType jpaType = query.getQueryResultType();
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
           final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),

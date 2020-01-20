@@ -18,8 +18,12 @@
 	</layout>
   </appender>
 
-  <logger name="org.apache.olingo" level="DEBUG"/>
-  <logger name="org.eclipse.persistence.session" level="DEBUG"/>
+	<logger name="org.hibernate.type.descriptor.sql.BasicBinder">
+		<!-- required to get SQL params in Hibernate -->
+	    <level value="TRACE" />
+	</logger>
+	<logger name="org.apache.olingo" level="DEBUG"/>
+	<logger name="org.eclipse.persistence.session" level="DEBUG"/>
 
   <root level="INFO">
   	<!-- this definition will work only for true slf4j loggers, JUL will log directly to the appender -->

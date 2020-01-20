@@ -24,8 +24,8 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityCountQuery;
-import org.apache.olingo.jpa.processor.core.query.JPAEntityQuery;
+import org.apache.olingo.jpa.processor.core.query.EntityCountQueryBuilder;
+import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPAInstanceResultConverter;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCollection;
@@ -323,13 +323,13 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       try {
         if (uriInfo.getCountOption() != null && uriInfo.getCountOption().getValue()) {
           // count entities
-          final JPAEntityCountQuery query = new JPAEntityCountQuery(targetEdmEntitySet.getEntityType(), context,
+          final EntityCountQueryBuilder query = new EntityCountQueryBuilder(/* targetEdmEntitySet.getEntityType(), */ context,
               uriInfo, em);
           return query.execute();
         } else {
           // load entities
-          final JPAEntityQuery query = new JPAEntityQuery(targetEdmEntitySet.getEntityType(), context, uriInfo, em,
-              serviceMetadata);
+          final EntityQueryBuilder query = new EntityQueryBuilder(/* targetEdmEntitySet.getEntityType(), */ context, uriInfo,
+              em, serviceMetadata);
           return query.execute(true);
         }
 

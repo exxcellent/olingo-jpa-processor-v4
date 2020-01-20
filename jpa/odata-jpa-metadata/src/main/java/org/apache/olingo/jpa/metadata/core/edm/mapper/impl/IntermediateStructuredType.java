@@ -210,6 +210,18 @@ implements JPAStructuredType {
   }
 
   @Override
+  public List<JPASelector> getSearchablePath() throws ODataJPAModelException {
+    final List<JPASelector> allPath = getPathList();
+    final List<JPASelector> searchablePath = new ArrayList<JPASelector>(allPath.size());
+    for (final JPASelector p : allPath) {
+      if (p.getLeaf().isSearchable()) {
+        searchablePath.add(p);
+      }
+    }
+    return searchablePath;
+  }
+
+  @Override
   public Class<?> getTypeClass() {
     return this.jpaManagedType.getJavaType();
   }
