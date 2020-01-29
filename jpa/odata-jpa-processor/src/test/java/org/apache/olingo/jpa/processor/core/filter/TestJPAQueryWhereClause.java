@@ -93,9 +93,8 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterOneNotEqual() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations?$filter=ID ne '3'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("ID ne '3'");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();
@@ -458,10 +457,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterConcat() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Persons?$filter=concat(concat(LastName,','),FirstName) eq 'Mustermann,Max'");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").filter(
+        "concat(concat(LastName,','),FirstName) eq 'Mustermann,Max'");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getValues();
@@ -593,8 +591,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterNavigationPropertyToManyValueAll() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations?$select=ID&$filter=Roles/all(d:d/RoleCategory eq 'A')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").select("ID").filter(
+        "Roles/all(d:d/RoleCategory eq 'A')");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getValues();
