@@ -1,6 +1,5 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -100,18 +99,8 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
         .getExternalName() + (attribute.getStructuredType() != null ? " (" + attribute.getStructuredType()
         .getExternalName() + ")" : ""));
     try {
-      // this will cause a Join...
-      final List<Selection<?>> joinSelections = createSelectClause(paths);
-
-      // TODO remove
-      final List<? extends JPAAttribute<?>> jpaKeyList = getQueryResultType().getKeyAttributes(true);
-      final List<JPASelector> listKeyPaths = new ArrayList<JPASelector>(jpaKeyList.size());
-      for (final JPAAttribute<?> key : jpaKeyList) {
-        final JPASelector keyPath = getQueryResultType().getPath(key.getExternalName());
-        listKeyPaths.add(keyPath);
-      }
-
-      cq.multiselect(joinSelections);
+      final List<Selection<?>> selections = createSelectClause(paths);
+      cq.multiselect(selections);
       final Expression<Boolean> where = createWhere();
       if (where != null) {
         cq.where(where);

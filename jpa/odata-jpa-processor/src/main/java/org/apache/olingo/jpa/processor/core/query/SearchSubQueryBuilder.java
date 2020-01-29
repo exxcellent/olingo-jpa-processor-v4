@@ -66,6 +66,20 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
         attributesWithSearchableAnnotationFound = false;
       }
 
+      final Subquery<Integer> subQuery = getSubQuery();
+
+      // TODO remove in a proper working Hibernate version > 5.4.10?!
+      // this is an workaround for buggy Hibernate not producing a invalid SQL (the <from> is missing without that
+      // explicit thing)
+      Expression<Boolean> joinDummyFromCorrelation = null;
+      From<?, ?> scopeFrom = subqueryResultFrom;
+      if (getEntityManager().getClass().getName().startsWith("org.hibernate")) {
+        LOG.log(Level.WARNING, "Buggy Hibernate detected, use workaround for subquery of $search!");
+        final From<?, ?> dummyFrom = subQuery.from(jpaEntityType.getTypeClass());
+        scopeFrom = dummyFrom;
+        joinDummyFromCorrelation = getCriteriaBuilder().equal(subqueryResultFrom, dummyFrom);
+      }
+
       SearchTerm term = searchOption.getSearchExpression().asSearchTerm();
 
       // use double decoding to workaround OLINGO-1239
@@ -82,20 +96,8 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
           }
           continue;
         }
-        final Path<?> path = convertToCriteriaPath(subqueryResultFrom, searchableAttribute, null);
+        final Path<?> path = convertToCriteriaAliasPath(scopeFrom, searchableAttribute, null);
         columnList.add(path);
-      }
-
-      final Subquery<Integer> subQuery = getSubQuery();
-
-      // TODO remove in a proper working Hibernate version > 5.4.10?!
-      // this is an workaround for buggy Hibernate not producing a invalid SQL (the <from> is missing without that
-      // explicit thing)
-      Expression<Boolean> joinDummyFrom = null;
-      if (getEntityManager().getClass().getName().startsWith("org.hibernate")) {
-        LOG.log(Level.WARNING, "Buggy Hibernate detected, use workaround for subquery of $search!");
-        final From<?, ?> dummyFrom = subQuery.from(jpaEntityType.getTypeClass());
-        joinDummyFrom = getCriteriaBuilder().equal(subqueryResultFrom, dummyFrom);
       }
 
       // EXISTS subselect needs only a marker select for existence
@@ -107,7 +109,7 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
             HttpStatusCode.INTERNAL_SERVER_ERROR);
       }
 
-      final Expression<Boolean> whereCondition = combineAND(joinDummyFrom, searchCondition);
+      final Expression<Boolean> whereCondition = combineAND(joinDummyFromCorrelation, searchCondition);
       subQuery.where(whereCondition);
       return subQuery;
     } catch (final ODataJPAModelException e) {

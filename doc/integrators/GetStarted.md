@@ -9,7 +9,7 @@ There are some assumptions to enable this JPA adapter library for your project:
 
 # Dependency handling
 ## 1. Configure repository to resolve artifacts
-* You need to add a repository configuration to download the dependencies as part of your Maven build.
+* You need to add a repository configuration to download the dependencies as part of your Maven build. With [https://packagecloud.io/exxcellent/olingo-jpa-processor-v4/maven2](https://packagecloud.io/exxcellent/olingo-jpa-processor-v4/maven2) you can use an maven repository containing binaries for evluation purposes. Be aware: This repository contains almost only the latest version and all content is absolute volatile!
 * You should have a project specific _settings.xml_.
 * The repository can be configured like a mirror:
 
@@ -19,7 +19,7 @@ There are some assumptions to enable this JPA adapter library for your project:
     <mirror>
       <id>my_mirror</id>
       <name>my internal repository</name>
-      <url>http://nexus.anywhere.org/repository/maven-public/</url>
+      <url>https://packagecloud.io/exxcellent/olingo-jpa-processor-v4/maven2</url>
       <mirrorOf>external:*</mirrorOf>
     </mirror>
   </mirrors>

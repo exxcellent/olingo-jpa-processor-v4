@@ -100,7 +100,7 @@ class NavigationBuilder extends AbstractQueryBuilder {
     final List<JPASelector> listAssociationJoinKeyPaths = navigationKeyBuilder.getNavigationKeyPaths();
     final List<Selection<?>> joinSelections = new LinkedList<Selection<?>>();
     for (final JPASelector jPath : listAssociationJoinKeyPaths) {
-      final Path<?> p = convertToCriteriaPath(joinedParentResultFrom, jPath, navigationKeyBuilder.getNavigationAliasPrefix());
+      final Path<?> p = convertToCriteriaAliasPath(joinedParentResultFrom, jPath, navigationKeyBuilder.getNavigationAliasPrefix());
       if (p == null) {
         continue;
       }

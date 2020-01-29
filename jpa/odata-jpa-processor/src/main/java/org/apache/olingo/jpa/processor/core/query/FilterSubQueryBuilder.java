@@ -14,7 +14,6 @@ import javax.persistence.criteria.Subquery;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
@@ -80,11 +79,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements JP
     // 1. correlated root for the subquery part
     final From<?, ?> parentCorrelatedFrom = createSubqueryResultFrom();
     // 2. join in subquery
-    From<?, ?> subFrom = parentCorrelatedFrom;
-    for (final JPAAttribute<?> a : navigationPath.getPathElements()) {
-      subFrom = subFrom.join(a.getInternalName());
-    }
-    subqueryResultFrom = subFrom;
+    subqueryResultFrom = buildJoinPath(parentCorrelatedFrom, navigationPath);
   }
 
   @Override

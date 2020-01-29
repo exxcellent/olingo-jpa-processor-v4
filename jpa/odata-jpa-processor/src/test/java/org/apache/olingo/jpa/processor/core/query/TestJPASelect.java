@@ -59,7 +59,29 @@ public class TestJPASelect extends TestBase {
     assertEquals(88, adds.size());
     // Not selected non key attributes must not be set
     assertNull(adds.get(0).get("Name"));
+  }
 
+  @Test
+  public void testEmbeddedComingFromOtherTable() throws IOException, ODataException {
+    // skip test with Hibernate
+    assumeTrue(
+        "Hibernate will produce an invalid query, because an @Embedded with @AttributeOveride's targeting another table will not create a JOIN",
+        getJPAProvider() != JPAProvider.Hibernate);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EntityWithSecondaryTableAndEmbeddedSet")
+        .appendKeySegment("97");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode entity = helper.getValue();
+    assertNotNull(entity);
+    assertEquals("97", entity.get("ID").asText());
+    assertEquals("Müller", entity.get("lastName").asText());
+    // simple attribute from other table
+    assertEquals("MY DATA", entity.get("data").asText());
+    // complex values from other table
+    assertEquals("99", entity.get("editInformation").get("Created").get("By").asText());
+    assertEquals("98", entity.get("editInformation").get("Updated").get("By").asText());
   }
 
   @Test

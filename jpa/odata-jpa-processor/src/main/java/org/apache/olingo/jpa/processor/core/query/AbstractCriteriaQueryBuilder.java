@@ -52,7 +52,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
 public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>, DT> extends AbstractQueryBuilder
-    implements
+implements
 JPAQueryBuilderIfc {
 
   protected static enum InitializationState {
@@ -511,7 +511,7 @@ JPAQueryBuilderIfc {
       final List<JPASelector> listAssociationJoinKeyPaths = jpaStartNavigationKeyBuilder.getNavigationKeyPaths();
       for (final JPASelector jPath : listAssociationJoinKeyPaths) {
         // use FROM of starting entity, because the keys are all from that starting entity
-        final Path<?> p = convertToCriteriaPath(getQueryStartFrom(), jPath, jpaStartNavigationKeyBuilder
+        final Path<?> p = convertToCriteriaAliasPath(getQueryStartFrom(), jPath, jpaStartNavigationKeyBuilder
             .getNavigationAliasPrefix());
         if (p == null) {
           continue;
@@ -522,7 +522,7 @@ JPAQueryBuilderIfc {
 
     // Build select clause
     for (final JPASelector jpaPath : jpaPathList) {
-      final Path<?> p = convertToCriteriaPath(getQueryResultFrom(), jpaPath, null);
+      final Path<?> p = convertToCriteriaAliasPath(getQueryResultFrom(), jpaPath, null);
       if (p == null) {
         continue;
       }

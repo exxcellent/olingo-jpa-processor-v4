@@ -2,13 +2,16 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.EntityManager;
+import javax.persistence.SecondaryTable;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -17,6 +20,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
@@ -129,15 +133,27 @@ abstract class AbstractQueryBuilder {
     if (joins == null || joins.length == 0) {
       return from;
     }
-    From<?, ?> current = from;
-    for (final JPAAttribute<?> join : joins) {
-      if (join.isComplex()) {
-        current = current.join(join.getInternalName(), JoinType.INNER);
-      } else {
-        current = current.join(join.getInternalName(), JoinType.LEFT);
+    // validate requested join path
+    for (final JPAAttribute<?> pathAttribute : joins) {
+      if (pathAttribute.isAssociation()) {
+        continue;
       }
+      if (pathAttribute.isCollection()) {
+        continue;
+      }
+      if (pathAttribute.isComplex()) {
+        continue;
+      }
+      throw new IllegalStateException("Attribute/Path " + pathAttribute.getInternalName()
+      + " is neither association nor collection or complex type");
     }
-    return current;
+
+    Path<?> current = from;
+    for (final JPAAttribute<?> pathAttribute : joins) {
+      current = buildPath(current, pathAttribute);
+    }
+    // safe to cast, because we have validated before
+    return (From<?, ?>) current;
   }
 
   protected static List<UriParameter> determineKeyPredicates(final UriResource uriResourceItem)
@@ -151,32 +167,46 @@ abstract class AbstractQueryBuilder {
     return Collections.emptyList();
   }
 
+  private static Path<?> buildPath(final Path<?> from, final JPAAttribute<?> jpaPathElement) {
+    Join<?, ?> existingJoin;
+    // only @ElementCollection and true relationships should be handled as JOIN, a single complex type (@Embedded) must
+    // taken as simple attribute as JPA specification says
+    if (From.class.isInstance(from) && jpaPathElement.isComplex() || jpaPathElement.isCollection()) {
+      existingJoin = findAlreadyDefinedJoin((From<?, ?>) from, jpaPathElement);
+      if (existingJoin != null) {
+        return existingJoin;
+      } else {
+        if (jpaPathElement.isCollection() && !jpaPathElement.isAssociation()) {
+          // @ElementCollection are always optional for the root entity, but loaded in a separate call... so we can use
+          // INNER JOIN also to avoid empty results
+          return ((From<?, ?>) from).join(jpaPathElement.getInternalName());
+        } else {
+          // association (real navigations) must be existing (INNER JOIN)
+          // @Embedded types cannot be null per JPA specification, so we have to use an INNER JOIN
+          return ((From<?, ?>) from).join(jpaPathElement.getInternalName());
+        }
+      }
+    } else {
+      return from.get(jpaPathElement.getInternalName());
+    }
+  }
+
   /**
    *
    * @param aliasPrefix If <code>null</code> the selector alias will be used without prefix
    */
-  protected final Path<?> convertToCriteriaPath(final From<?, ?> from, final JPASelector jpaPath,
+  protected final Path<?> convertToCriteriaAliasPath(final From<?, ?> from, final JPASelector jpaPath,
       final String aliasPrefix) {
     if (JPAAssociationPath.class.isInstance(jpaPath)) {
       throw new IllegalStateException("Handling of joins for associations must be happen outside this method");
     }
     Path<?> p = from;
-    Join<?, ?> existingJoin;
     for (final JPAAttribute<?> jpaPathElement : jpaPath.getPathElements()) {
-      if (jpaPathElement.isCollection() && From.class.isInstance(p)) {
-        existingJoin = findAlreadyDefinedJoin((From<?, ?>) p, jpaPathElement);
-        if (existingJoin != null) {
-          p = existingJoin;
-        } else {
-          // @ElementCollection's are loaded in separate queries, so an INNER JOIN is ok
-          // to suppress results for not existing joined rows
-          p = from.join(jpaPathElement.getInternalName(), JoinType.INNER);
-        }
-      } else {
-        p = p.get(jpaPathElement.getInternalName());
-
-      }
+      p = buildPath(p, jpaPathElement);
+      // single @Embedded -> must create a JOIN
+      validateCorrectAttributeOverride(from, p, jpaPathElement);
     }
+
     if (p != null) {
       if (aliasPrefix == null) {
         p.alias(jpaPath.getAlias());
@@ -189,6 +219,65 @@ abstract class AbstractQueryBuilder {
   }
 
   /**
+   * Normally only Hibernate will produce invalid queries covered by this check
+   */
+  private void validateCorrectAttributeOverride(final From<?, ?> from, final Path<?> path,
+      final JPAAttribute<?> jpaPathElement) {
+    if (path == null) {
+      return;
+    }
+    if (!JPATypedElement.class.isInstance(jpaPathElement)) {
+    }
+    if (jpaPathElement.isCollection()) {
+      return;
+    }
+    // only check the entry path element -> the complex one
+    if (!jpaPathElement.isComplex()) {
+      return;
+    }
+    if (jpaPathElement.isKey()) {
+      return;
+    }
+    // with a JOIN no problem is present
+    if (Join.class.isInstance(path)) {
+      return;
+    }
+    // an (complex) attribute using @AttributeOverride's pointing to another table, must also declare that other table
+    // as @SecondaryTable for the entity...
+    // but only EclipseLink will produce a proper working JOIN
+    final SecondaryTable st = from.getJavaType().getAnnotation(SecondaryTable.class);
+    if (st == null) {
+      return;
+    }
+    final JPATypedElement attribute = JPATypedElement.class.cast(jpaPathElement);
+    final AttributeOverrides overrides = attribute.getAnnotation(AttributeOverrides.class);
+    final AttributeOverride override = attribute.getAnnotation(AttributeOverride.class);
+    AttributeOverride[] arrDefs;
+    if (overrides != null) {
+      arrDefs = overrides.value();
+    } else if (override != null) {
+      arrDefs = new AttributeOverride[] { override };
+    } else {
+      return;
+    }
+    boolean failPresent = false;
+    for (final AttributeOverride o : arrDefs) {
+      if (o.column() != null && o.column().table().equals(st.name())) {
+        failPresent = true;
+        break;
+      }
+    }
+    if (!failPresent) {
+      return;
+    }
+    LOG.log(Level.WARNING, "Dubious scenario detected: The attribute " + from.getJavaType().getSimpleName() + "#"
+        + jpaPathElement.getInternalName()
+        + " seems to be mapped using another table (@" + SecondaryTable.class.getSimpleName()
+        + "), but the Criteria API selection path results not in a '" + Join.class.getSimpleName()
+        + "'. Maybe the produced query will be invalid!");
+  }
+
+  /**
    * Find an already created {@link Join} expression for the given attribute. The
    * given attribute must be:
    * <ul>
@@ -198,7 +287,7 @@ abstract class AbstractQueryBuilder {
    *
    * @return The already existing {@link Join} or <code>null</code>.
    */
-  private Join<?, ?> findAlreadyDefinedJoin(final From<?, ?> parentCriteriaPath,
+  private static Join<?, ?> findAlreadyDefinedJoin(final From<?, ?> parentCriteriaPath,
       final JPAAttribute<?> jpaPathElement) {
     for (final Join<?, ?> join : parentCriteriaPath.getJoins()) {
       if (jpaPathElement.getInternalName().equals(join.getAttribute().getName())) {
