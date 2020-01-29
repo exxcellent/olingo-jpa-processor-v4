@@ -774,6 +774,18 @@ insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 1);
 -- illegal entry, because points from 'RelationshipTargetEntity' to 'RelationshipSourceEntity'
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 4); 
 
+-- EclipseLink doesn't support full qualified names
+CREATE TABLE "jpa::SecondaryTableExampleWithSimpleName" (
+	"ID" VARCHAR(32) NOT NULL , 
+	"DATA" VARCHAR(128) NOT NULL , 
+	"CreatedBy" VARCHAR(32) NOT NULL ,
+	"CreatedAt" TIMESTAMP,   
+	"UpdatedBy" VARCHAR(32),
+	"UpdatedAt" TIMESTAMP,
+	 PRIMARY KEY ("ID")
+);
+
+insert into "jpa::SecondaryTableExampleWithSimpleName" values ('97', 'MY DATA', '99', null, '98', '2019-01-20 09:21:23'); 	
 
 --CREATE FUNCTION IS_PRIME(number Integer) RETURNS BOOLEAN
 --       PARAMETER STYLE JAVA NO SQL LANGUAGE JAVA 

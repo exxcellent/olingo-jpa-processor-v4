@@ -29,6 +29,7 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.AbstractRelationshipEntity</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntity</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipTargetEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.EntityWithSecondaryTableAndEmbedded</class>
 		
 		<properties>
 			<!--  EclipselInk properties -->

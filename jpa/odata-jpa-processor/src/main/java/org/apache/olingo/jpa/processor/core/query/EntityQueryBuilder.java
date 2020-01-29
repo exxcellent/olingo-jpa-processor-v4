@@ -238,7 +238,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final List<javax.persistence.criteria.Expression<?>> groupBy = new ArrayList<javax.persistence.criteria.Expression<?>>();
 
     for (final JPASelector jpaPath : selectionPathList) {
-      final Path<?> path = convertToCriteriaPath(getQueryResultFrom(), jpaPath, null);
+      final Path<?> path = convertToCriteriaAliasPath(getQueryResultFrom(), jpaPath, null);
       if (path == null) {
         continue;
       }

@@ -526,16 +526,16 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandAllLoadingNotMappedPersonFromPersonImage() throws IOException, ODataException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").expand(
-        "PersonReferenceWithoutMappedAttribute");
+        "PersonReferenceWithoutMappedAttribute").orderBy("PID asc");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode pis = helper.getValues();
     assertEquals(2, pis.size());
     final ObjectNode pi1 = (ObjectNode) pis.get(0);
     final ObjectNode pi2 = (ObjectNode) pis.get(1);
-    assertNotEquals(pi1.get("PID"), pi2.get("PID"));
-    assertNotEquals(pi1.get("PersonReferenceWithoutMappedAttribute").get("ID"),
-        pi2.get("PersonReferenceWithoutMappedAttribute").get("ID"));
+    assertNotEquals(pi1.get("PID").asText(), pi2.get("PID").asText());
+    assertNotEquals(pi1.get("PersonReferenceWithoutMappedAttribute").get("ID").asText(),
+        pi2.get("PersonReferenceWithoutMappedAttribute").get("ID").asText());
   }
 
   @Test
