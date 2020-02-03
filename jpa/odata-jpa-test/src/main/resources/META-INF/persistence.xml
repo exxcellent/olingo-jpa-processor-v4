@@ -76,6 +76,7 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.AbstractRelationshipEntity</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntity</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.RelationshipTargetEntity</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.EntityWithSecondaryTableAndEmbedded</class>
 		
 		<!-- Embeddables, only required by openJPA -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData</class>

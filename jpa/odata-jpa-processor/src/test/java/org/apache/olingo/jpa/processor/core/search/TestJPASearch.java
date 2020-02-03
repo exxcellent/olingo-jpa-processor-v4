@@ -39,9 +39,28 @@ public class TestJPASearch extends TestBase {
     assertEquals(10, ents.size());
   }
 
+  /**
+   * The attributes used for $search must be derived also from a (@Embedded) complex type
+   */
+  @Test
+  public void testAllAttributesDerivedFromEmbeddable() throws IOException, ODataException {
+    assumeTrue(
+        "Hibernate produces an SQL selecting the search columns from the wrong table",
+        getJPAProvider() != JPAProvider.Hibernate);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EntityWithSecondaryTableAndEmbeddedSet")
+        .search("\"96\"");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode ents = helper.getValues();
+    assertEquals(1, ents.size());
+    assertTrue(ents.get(0).get("ID").asText().endsWith("1"));
+    assertTrue(ents.get(0).get("data").asText().endsWith("other DATA"));
+  }
+
   @Test
   public void testMultipleAttributesSearchWithPhrase() throws IOException, ODataException {
-    // skip test with Hibernate
     assumeTrue(
         "Hibernate has a stupid parameter binding check not accepting '%001%' as pattern for java.net.URL attribute",
         getJPAProvider() != JPAProvider.Hibernate);
