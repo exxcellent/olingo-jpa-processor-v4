@@ -30,6 +30,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
   private List<Tuple> tupleResult;
   private UriHelperDouble uriHelper;
   private Map<String, String> keyPredicates;
+  private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {

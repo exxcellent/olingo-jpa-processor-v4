@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,6 +38,10 @@ class AccessAPIWriter extends AbstractWriter {
 
   private static final String METHOD_EXTRACT_VALUE = "extractValue";
   private static final String METHOD_EXTRACT_COLLECTIONVALUE = "extractCollectionValue";
+  private static final List<EdmPrimitiveTypeKind> SUPPORTED_PRIMITIVE_TYPES = Arrays.asList(
+      EdmPrimitiveTypeKind.Boolean, EdmPrimitiveTypeKind.Byte, EdmPrimitiveTypeKind.DateTimeOffset,
+      EdmPrimitiveTypeKind.Decimal, EdmPrimitiveTypeKind.Double, EdmPrimitiveTypeKind.Int16, EdmPrimitiveTypeKind.Int32,
+      EdmPrimitiveTypeKind.Int64, EdmPrimitiveTypeKind.String);
 
   private static class KeySorter implements Comparator<JPASimpleAttribute> {
     @Override
@@ -104,9 +109,27 @@ class AccessAPIWriter extends AbstractWriter {
 
   public void writeProtocolCode() throws IOException, ODataJPAModelException {
     // TODO
-    generate_ExtractCollectionValue_HelperMethod();
+    if (entityContainsCollectionAttribute()) {
+      generate_ExtractCollectionValue_HelperMethod();
+    }
     generate_ExtractValue_HelperMethod();
+    generate_ConvertValue_HelperMethods();
     generateGetEntity();
+  }
+
+  private boolean entityContainsCollectionAttribute() throws ODataJPAModelException {
+    for (final JPAAssociationAttribute prop : type.getAssociations()) {
+      if (prop.isCollection()) {
+        return true;
+      }
+    }
+    // simple properties
+    for (final JPASimpleAttribute attribute : type.getAttributes()) {
+      if (attribute.isCollection()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void generateGetEntity() throws IOException, ODataJPAModelException {
@@ -175,6 +198,45 @@ class AccessAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
   }
 
+  private void generate_ConvertValue_HelperMethods() throws ODataJPAModelException, IOException {
+    // simple properties
+    for (final JPASimpleAttribute attribute : type.getAttributes()) {
+      if (attribute.isCollection()) {
+        continue;
+      }
+      generate_ConvertValue_HelperMethod(attribute);
+    }
+
+  }
+
+  /**
+   *
+   * @return Method signature or <code>null</code> if no method is generated.
+   */
+  private String generate_ConvertValue_HelperMethod(final JPASimpleAttribute attribute)
+      throws ODataJPAModelException, IOException {
+    EdmPrimitiveTypeKind odataType;
+    try {
+      odataType = TypeMapping.convertToEdmSimpleType(attribute);
+    } catch (final ODataJPAModelException e) {
+      return null;
+    }
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
+    final String methodName = "convert" + odataType.name() + "2" + propClientType.replace(".", "");
+    // TODO
+    write(NEWLINE + "\t" + "private " + propClientType + " " + methodName + "("
+        + ClientProperty.class.getName() + " property, "
+        + "final Integer maxLength, final Integer precision, final Integer scale) throws "
+        + ODataException.class.getName() + " {");
+
+    write(NEWLINE + "\t" + "return null;");// TODO
+
+    write(NEWLINE + "\t" + "}");
+    write(NEWLINE);
+
+    return methodName;
+  }
+
   private void generate_ExtractValue_HelperMethod() throws ODataJPAModelException, IOException {
     write(NEWLINE);
     write(NEWLINE + "\t" + "@SuppressWarnings({ \"unchecked\", \"rawtypes\" })");
@@ -187,6 +249,10 @@ class AccessAPIWriter extends AbstractWriter {
     // enum handling code
     // enums are generated as duplicate on client side (code) so we can reference directly the enum class
     write(NEWLINE + "\t" + "\t" + "\t" + "final String sV = clientValue.asEnum().getValue();");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return (R)Enum.valueOf((Class<Enum>)resultTypeClass, sV);");
+    write(NEWLINE + "\t" + "\t" + "} else if(resultTypeClass.isEnum()) {");
+    // if client side type is NOT enum, but JPA type... so it's safe to cast to string
+    write(NEWLINE + "\t" + "\t" + "\t" + "\t" + "String sV = (String)clientValue.asPrimitive().toValue();");
     write(NEWLINE + "\t" + "\t" + "\t" + "return (R)Enum.valueOf((Class<Enum>)resultTypeClass, sV);");
     write(NEWLINE + "\t" + "\t" + "} else {");
     // primitive type handling code

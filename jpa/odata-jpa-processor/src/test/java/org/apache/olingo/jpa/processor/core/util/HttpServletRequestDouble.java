@@ -411,7 +411,7 @@ public class HttpServletRequestDouble implements HttpServletRequest {
 
   @Override
   public String getServletPath() {
-    return IntegrationTestHelper.SERVLET_PATH;
+    return TestBase.SERVLET_PATH;
   }
 
   @Override

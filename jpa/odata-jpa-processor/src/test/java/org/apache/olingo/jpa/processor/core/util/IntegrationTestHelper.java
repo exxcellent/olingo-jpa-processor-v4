@@ -61,8 +61,7 @@ public class IntegrationTestHelper {
   public final HttpServletRequestDouble req;
   public HttpServletResponseDouble resp = null;
   private final JPAAdapter persistenceAdapter;
-  static final String SERVLET_PATH = "/Olingo.svc";
-  static final String uriPrefix = "http://localhost:8080/Test" + SERVLET_PATH + "/";
+  static final String uriPrefix = "http://localhost:8080/Test" + TestBase.SERVLET_PATH + "/";
   private boolean executed = false;
   private SecurityInceptor securityInceptor = null;
 

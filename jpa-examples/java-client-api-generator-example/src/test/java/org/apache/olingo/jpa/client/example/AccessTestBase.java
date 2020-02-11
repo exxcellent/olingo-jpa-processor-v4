@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonAccess;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 
 import javassist.util.proxy.MethodFilter;
@@ -59,7 +58,7 @@ class AccessTestBase extends TestBase {
 
   static {
     try {
-      URI = new URI("LocalFakeCall" + IntegrationTestHelper.SERVLET_PATH);
+      URI = new URI("LocalFakeCall" + TestBase.SERVLET_PATH);
     } catch (final URISyntaxException e) {
       new RuntimeException(e);
     }

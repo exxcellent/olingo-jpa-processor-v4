@@ -35,6 +35,7 @@ public class TestJPATupleResultConverter extends TestBase {
   private UriHelperDouble uriHelper;
   private Map<String, String> keyPredicates;
   private QueryEntityResult jpaQueryResult;
+  private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {

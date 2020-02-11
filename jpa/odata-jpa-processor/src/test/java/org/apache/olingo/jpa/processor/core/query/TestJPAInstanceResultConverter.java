@@ -27,6 +27,7 @@ public class TestJPAInstanceResultConverter extends TestBase {
   private JPAInstanceResultConverter cut;
   private List<Object> jpaQueryResult;
   private UriHelperDouble uriHelper;
+  private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {

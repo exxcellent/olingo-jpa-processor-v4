@@ -13,7 +13,6 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
@@ -27,13 +26,14 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public abstract class TestBase {
 
+  public static final String SERVLET_PATH = "/Olingo.svc";
+
   static {
     // enable logging redirect
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
   }
 
-  protected TestHelper helper;
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
   protected TestGenericJPAPersistenceAdapter persistenceAdapter;
   protected JPAEdmProvider jpaEdm;

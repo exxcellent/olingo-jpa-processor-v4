@@ -36,6 +36,7 @@ public class TestJPAQueryFromClause extends TestBase {
   @SuppressWarnings("unused")
   private From<?, ?> root;
   private JPAEntityType jpaEntityType;
+  private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {
