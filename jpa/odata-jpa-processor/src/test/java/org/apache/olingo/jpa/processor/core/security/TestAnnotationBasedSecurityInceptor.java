@@ -116,7 +116,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 		        "DefaultResourceSecurityDtos");
 		helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(helper.getValues().size() == 1);
+		assertTrue(helper.getJsonObjectValues().size() == 1);
 	}
 
 	@Test
@@ -128,7 +128,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 		helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
 		helper.setUser(new PrincipalMock("user123"));
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(helper.getValue().get("Id").asInt() == 2);
+		assertTrue(helper.getJsonObjectValue().get("Id").asInt() == 2);
 	}
 
 	@Test
@@ -140,7 +140,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 		helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
 		helper.setUser(new PrincipalMock("user123", new String[] { "role.patch" }));
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(helper.getValue().get("Id").asInt() == 2);
+		assertTrue(helper.getJsonObjectValue().get("Id").asInt() == 2);
 	}
 
 	@Test
@@ -164,7 +164,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 		        HttpMethod.POST);
 		helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(helper.getValue().get("value").asInt() == 42);
+		assertTrue(helper.getJsonObjectValue().get("value").asInt() == 42);
 	}
 
 	@Test
@@ -178,7 +178,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 		final String userName = "abcUser";
 		helper.setUser(new PrincipalMock(userName));
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(userName.equals(helper.getValue().get("value").asText()));
+		assertTrue(userName.equals(helper.getJsonObjectValue().get("value").asText()));
 
 	}
 

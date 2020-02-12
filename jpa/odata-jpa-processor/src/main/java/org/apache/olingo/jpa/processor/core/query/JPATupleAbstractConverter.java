@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.Tuple;
 import javax.persistence.TupleElement;
@@ -25,6 +26,7 @@ import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
@@ -46,6 +48,8 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
   public static final String ACCESS_MODIFIER_GET = "get";
   public static final String ACCESS_MODIFIER_SET = "set";
   public static final String ACCESS_MODIFIER_IS = "is";
+
+  private final static Logger LOG = Logger.getLogger(JPATupleAbstractConverter.class.getName());
 
   private final IntermediateServiceDocument sd;
   private final ServiceMetadata serviceMetadata;
@@ -80,6 +84,19 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
     return jpaConversionTargetEntity;
   }
 
+  private String determineContentType(final JPAEntityType jpaEntity, final Tuple row) throws ODataJPAModelException {
+    if (jpaEntity.getContentType() != null && !jpaEntity.getContentType().isEmpty()) {
+      return jpaEntity.getContentType();
+    } else {
+      Object rowElement = null;
+      for (final JPAElement element : jpaEntity.getContentTypeAttributePath().getPathElements()) {
+        rowElement = row.get(element.getExternalName());
+      }
+
+      return rowElement.toString();
+    }
+  }
+
   /**
    * The given row is converted into a OData entity and added to the map of
    * already processed entities.<br/>
@@ -98,6 +115,24 @@ public abstract class JPATupleAbstractConverter extends AbstractConverter {
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
     final Entity odataEntity = new Entity();
     odataEntity.setType(jpaConversionTargetEntity.getExternalFQN().getFullQualifiedNameAsString());
+
+    final JPAEntityType jpaEntityType = getJpaEntityType();
+    final JPAEntityType jpaEntityType2 = jpaQueryResult.getEntityType();
+    if (jpaEntityType != jpaEntityType2) {
+      throw new IllegalStateException();
+    }
+    try {
+      if (jpaEntityType.hasStream()) {
+        odataEntity.setMediaContentType(determineContentType(jpaEntityType, row));
+      } else {
+        // for XML type must not be null
+        odataEntity.setMediaContentType("");
+      }
+    } catch (final ODataJPAModelException e) {
+      LOG.log(Level.WARNING, "Couldn't set media stream on entity type " + jpaEntityType.getExternalName(),
+          e);
+    }
+
     final List<Property> properties = odataEntity.getProperties();
     // TODO store @Version to fill ETag Header
     for (final TupleElement<?> element : row.getElements()) {

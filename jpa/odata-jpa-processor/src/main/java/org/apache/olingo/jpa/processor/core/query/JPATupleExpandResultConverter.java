@@ -46,7 +46,7 @@ class JPATupleExpandResultConverter extends JPATupleAbstractConverter {
       if (expandCollection.getEntities() != null && !expandCollection.getEntities().isEmpty()) {
         final Entity expandEntity = expandCollection.getEntities().get(0);
         link.setInlineEntity(expandEntity);
-        // TODO link.setHref(expandCollection.getId().toASCIIString());
+        link.setHref(createId(expandEntity, jpaExpandResult.getEntityType(), getUriHelper()).toASCIIString());
       }
     }
     return link;

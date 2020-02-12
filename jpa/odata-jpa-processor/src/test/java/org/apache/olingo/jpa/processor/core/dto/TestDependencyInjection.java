@@ -106,7 +106,7 @@ public class TestDependencyInjection extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Dtos");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(helper.getValues().size() == 2);
+    assertTrue(helper.getJsonObjectValues().size() == 2);
   }
 
   @Test

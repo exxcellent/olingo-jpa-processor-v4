@@ -109,7 +109,7 @@ public class TestJPAActions extends TestBase {
         "Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode object = helper.getValue();
+    final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
     assertEquals("DEU", object.get("value").asText());
   }
@@ -141,7 +141,7 @@ public class TestJPAActions extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "createOrganization", requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode object = helper.getValue();
+    final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
     assertEquals(testId, object.get("ID").asText());
     assertTrue(object.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
@@ -167,7 +167,7 @@ public class TestJPAActions extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "createOrganization", requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode object = helper.getValue();
+    final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
     assertEquals(testId, object.get("ID").asText());
     assertTrue(object.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
@@ -191,7 +191,7 @@ public class TestJPAActions extends TestBase {
         "Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode object = helper.getValue();
+    final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
     assertEquals(testValue, object.get("value").asText());
   }
@@ -315,7 +315,7 @@ public class TestJPAActions extends TestBase {
         "unboundActionWithStringCollectionResult", null, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode objects = helper.getValues();
+    final ArrayNode objects = helper.getJsonObjectValues();
     assertTrue(objects.size() == 2);
   }
 
@@ -349,7 +349,7 @@ public class TestJPAActions extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, null,
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(helper.getValues().size() == 2);
+    assertTrue(helper.getJsonObjectValues().size() == 2);
   }
 
   @Test
@@ -362,8 +362,8 @@ public class TestJPAActions extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(helper.getValues().size() == 2);
-    assertTrue(((ObjectNode) helper.getValues().get(0)).get("SystemRequirements").size() == 3);
+    assertTrue(helper.getJsonObjectValues().size() == 2);
+    assertTrue(((ObjectNode) helper.getJsonObjectValues().get(0)).get("SystemRequirements").size() == 3);
   }
 
   @Test
@@ -402,8 +402,8 @@ public class TestJPAActions extends TestBase {
     helper.setRequestContentType("multipart/form-data; boundary=" + boundary);// global content type
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(((ArrayNode) helper.getValue().get("value")).get(0).asText().equals(fileName));
-    assertTrue(((ArrayNode) helper.getValue().get("value")).get(1).asInt() == binaryData.getBytes().length);
+    assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(0).asText().equals(fileName));
+    assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(1).asInt() == binaryData.getBytes().length);
   }
 
   @Test

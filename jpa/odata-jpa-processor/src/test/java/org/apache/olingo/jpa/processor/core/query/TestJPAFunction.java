@@ -50,7 +50,7 @@ public class TestJPAFunction extends TestBase {
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		assertTrue(helper.getValues().size() > 0);
+		assertTrue(helper.getJsonObjectValues().size() > 0);
 	}
 
 	/**

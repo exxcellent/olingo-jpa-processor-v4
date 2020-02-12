@@ -25,7 +25,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("Third Org.", org.get("value").asText());
   }
 
@@ -38,7 +38,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("Vereinigte Staaten von Amerika", org.get("value").asText());
   }
 
@@ -50,7 +50,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("USA", org.get("Country").asText());
   }
 
@@ -62,7 +62,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     final JsonNode created = org.get("Created");
     assertEquals("98", created.get("By").asText());
   }
@@ -77,7 +77,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("Max", org.get("value").asText());
   }
 
@@ -89,7 +89,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals(3, org.size()); // Node "@odata.context" is also counted
     assertEquals("USA", org.get("Country").asText());
     assertEquals("US-UT", org.get("Region").asText());
@@ -103,7 +103,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("USA", org.get("Country").asText());
   }
 
@@ -115,7 +115,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("US-UT", org.get("value").asText());
     assertEquals("../../$metadata#Organizations/Address/Region", org.get("@odata.context").asText());
   }

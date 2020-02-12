@@ -57,7 +57,7 @@ public class TestODataBasics extends TestBase {
 
 		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$entity?$id=Persons('99')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		final ObjectNode person = helper.getValue();
+		final ObjectNode person = helper.getJsonObjectValue();
 		assertNotNull(person);
 	}
 

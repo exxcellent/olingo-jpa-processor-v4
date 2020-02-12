@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientEntitySet;
 import org.apache.olingo.client.api.uri.QueryOption;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -34,7 +36,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     ObjectNode org = (ObjectNode) orgs.get(0);
     ArrayNode roles = (ArrayNode) org.get("Roles");
     assertEquals(1, roles.size());
@@ -51,7 +53,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     final ArrayNode roles = (ArrayNode) org.get("Roles");
     assertEquals(2, roles.size());
     int found = 0;
@@ -72,7 +74,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode divsion = helper.getValue();
+    final ObjectNode divsion = helper.getJsonObjectValue();
     final ObjectNode parent = (ObjectNode) divsion.get("Parent");
     assertEquals("BE2", parent.get("DivisionCode").asText());
 
@@ -85,7 +87,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode asc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode divsion = helper.getValue();
+    final ObjectNode divsion = helper.getJsonObjectValue();
     final ArrayNode parent = (ArrayNode) divsion.get("Children");
     assertEquals(8, parent.size());
     assertEquals("BE251", parent.get(0).get("DivisionCode").asText());
@@ -99,7 +101,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations?$orderby=Name1&$select=Name1&$expand=Roles");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(9);
     final ArrayNode roles = (ArrayNode) org.get("Roles");
     assertEquals(3, roles.size());
@@ -114,7 +116,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations('3')/AdministrativeInformation/Created?$select=At&$expand=User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode created = helper.getValue();
+    final ObjectNode created = helper.getJsonObjectValue();
     // ObjectNode created = (ObjectNode) admin.get("Created");
     assertNotNull(created.get("User"));
   }
@@ -127,7 +129,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations('3')/AdministrativeInformation/Created?$expand=User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     final ObjectNode created = (ObjectNode) org.get("Created");
     @SuppressWarnings("unused")
     final ObjectNode user = (ObjectNode) created.get("User");
@@ -141,7 +143,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations('3')/Address?$expand=AdministrativeDivision");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     final ObjectNode created = (ObjectNode) org.get("AdministrativeDivision");
     assertEquals("USA", created.get("ParentDivisionCode").asText());
   }
@@ -154,7 +156,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations('3')?$expand=AdministrativeInformation/Created/User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     final ObjectNode admin = (ObjectNode) org.get("AdministrativeInformation");
     final ObjectNode created = (ObjectNode) admin.get("Created");
     assertNotNull(created.get("User"));
@@ -169,7 +171,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations('3')/AdministrativeInformation?$expand=Created/User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode admin = helper.getValue();
+    final ObjectNode admin = helper.getJsonObjectValue();
     final ObjectNode created = (ObjectNode) admin.get("Created");
     assertNotNull(created.get("User"));
   }
@@ -182,7 +184,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations?$expand=AdministrativeInformation/Created/User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
     final ObjectNode admin = (ObjectNode) org.get("AdministrativeInformation");
     final ObjectNode created = (ObjectNode) admin.get("Created");
@@ -196,7 +198,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE253',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($expand=Children)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("Children"));
     final ArrayNode children = (ArrayNode) parent.get("Children");
@@ -210,7 +212,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='33016',CodeID='LAU2',CodePublisher='Eurostat')?$expand=Parent($expand=Parent($expand=Parent))");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("Parent"));
     assertNotNull(parent.get("Parent").get("CodeID"));
@@ -233,7 +235,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations('3')/Address?$select=Country&$expand=AdministrativeDivision($expand=Parent)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ObjectNode admin = (ObjectNode) div.get("AdministrativeDivision");
     assertNotNull(admin);
     final ObjectNode parent = (ObjectNode) admin.get("Parent");
@@ -247,7 +249,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE253',CodeID='3',CodePublisher='NUTS')?$expand=Parent/Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("Parent").get("CodeID"));
     assertEquals("1", parent.get("Parent").get("CodeID").asText());
@@ -260,7 +262,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE253',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent/CodeID");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("CodeID"));
     assertEquals("NUTS2", parent.get("CodeID").asText());
@@ -274,7 +276,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode desc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
     assertEquals(5, children.size());
     assertEquals("BE25", children.get(0).get("DivisionCode").asText());
@@ -286,7 +288,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode asc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
     assertEquals(5, children.size());
     assertEquals("BE21", children.get(0).get("DivisionCode").asText());
@@ -298,7 +300,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($top=2;$orderby=DivisionCode desc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
     assertEquals(2, children.size());
     assertEquals("BE25", children.get(0).get("DivisionCode").asText());
@@ -310,7 +312,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($top=2;$skip=2;$orderby=DivisionCode desc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode div = helper.getValue();
+    final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
     assertEquals(2, children.size());
     assertEquals("BE23", children.get(0).get("DivisionCode").asText());
@@ -324,7 +326,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "Organizations?$count=true&$expand=Roles($count=true)&$orderby=Roles/$count desc");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
     assertNotNull(org.get("Roles"));
     @SuppressWarnings("unused")
@@ -340,7 +342,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
     assertEquals("3", org.get("ID").asText());
     assertNotNull(org.get("Roles"));
@@ -357,7 +359,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode division = helper.getValue();
+    final ObjectNode division = helper.getJsonObjectValue();
     assertEquals("BE25", division.get("DivisionCode").asText());
     assertNotNull(division.get("Children"));
     final ArrayNode children = (ArrayNode) division.get("Children");
@@ -376,7 +378,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode relSources = helper.getValues();
+    final ArrayNode relSources = helper.getJsonObjectValues();
     assertTrue(relSources.size() == 2);
     assertTrue(((ArrayNode) relSources.get(0).get("targets")).size() > 0);
   }
@@ -393,7 +395,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode relSources = helper.getValues();
+    final ArrayNode relSources = helper.getJsonObjectValues();
     assertTrue(relSources.size() == 2);
     assertTrue(((ArrayNode) relSources.get(0).get("targets")).size() > 0);
   }
@@ -406,7 +408,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
     assertEquals("1", org.get("ID").asText());
     assertNotNull(org.get("Roles"));
@@ -428,7 +430,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
@@ -447,7 +449,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
@@ -465,7 +467,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "AdministrativeDivisions(DivisionCode='38025',CodeID='LAU2',CodePublisher='Eurostat')?$expand=Parent($levels=1)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
@@ -480,7 +482,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "/AdministrativeDivisions(DivisionCode='BE241',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($levels=max)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
@@ -495,7 +497,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertNotNull(org.get("Roles"));
     assertNotNull(org.get("PhoneNumbers"));
     assertNotNull(org.get("Locations"));
@@ -517,7 +519,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode pi = helper.getValue();
+    final ObjectNode pi = helper.getJsonObjectValue();
     assertNotNull(pi.get("PersonReferenceWithoutMappedAttribute"));
     assertNotEquals(NullNode.getInstance(), pi.get("PersonReferenceWithoutMappedAttribute"));
   }
@@ -529,7 +531,7 @@ public class TestJPAProcessorExpand extends TestBase {
         "PersonReferenceWithoutMappedAttribute").orderBy("PID asc");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode pis = helper.getValues();
+    final ArrayNode pis = helper.getJsonObjectValues();
     assertEquals(2, pis.size());
     final ObjectNode pi1 = (ObjectNode) pis.get(0);
     final ObjectNode pi2 = (ObjectNode) pis.get(1);
@@ -546,7 +548,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode personImage = helper.getValue();
+    final ObjectNode personImage = helper.getJsonObjectValue();
     assertEquals(99, personImage.get("PID").asLong());
     final ObjectNode person = (ObjectNode) personImage.get("PersonReferenceWithoutMappedAttribute");
     assertNotNull(person);
@@ -565,7 +567,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertTrue(entities.size() > 0);
   }
 
@@ -579,7 +581,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode entity = helper.getValue();
+    final ObjectNode entity = helper.getJsonObjectValue();
     assertNotNull(entity);
     final ArrayNode targets = (ArrayNode) entity.get("targets");
     assertTrue(targets.size() > 0);
@@ -595,7 +597,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode entity = helper.getValue();
+    final ObjectNode entity = helper.getJsonObjectValue();
     assertNotNull(entity);
     final ArrayNode targets = (ArrayNode) entity.get("unidirectionalTargets");
     assertNotNull(targets);
@@ -612,7 +614,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertNotNull(entities);
     assertEquals(2, entities.size());
     // 'source 2' has 2 entries
@@ -623,4 +625,36 @@ public class TestJPAProcessorExpand extends TestBase {
     assertTrue(((ArrayNode) entities.get(1).get("unidirectionalTargets")).size() == 2);
   }
 
+  /**
+   * Test whether the response is conform to Olingo client side parser
+   */
+  @Test
+  public void testExpandEntityForOneToOneUnidirectional() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("9")
+        .expand("ImageUnidirectional");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ClientEntity entity = helper.getOlingoEntityValue();
+    assertNotNull(entity);
+  }
+
+  /**
+   * Test whether the response is conform to Olingo client side parser
+   */
+  @Test
+  public void testExpandEntitySetForOneToOneUnidirectional() throws IOException, ODataException {
+
+    // filter for the only entity having an image
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("ID eq '9'").expand(
+        "ImageUnidirectional");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
+    assertNotNull(set);
+  }
 }

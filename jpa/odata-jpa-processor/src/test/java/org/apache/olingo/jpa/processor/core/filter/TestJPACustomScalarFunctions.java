@@ -46,7 +46,7 @@ public class TestJPACustomScalarFunctions {
         "org.apache.olingo.jpa.PopulationDensity(Area=$it/Area,Population=$it/Population) gt 1");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode values = helper.getValues();
+    final ArrayNode values = helper.getJsonObjectValues();
 
     assertEquals(0, values.size());
   }
@@ -59,7 +59,7 @@ public class TestJPACustomScalarFunctions {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
     assertEquals("35002", orgs.get(0).get("DivisionCode").asText());
   }
@@ -72,7 +72,7 @@ public class TestJPACustomScalarFunctions {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(59, orgs.size());
   }
 
@@ -84,7 +84,7 @@ public class TestJPACustomScalarFunctions {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(29, orgs.size());
   }
 
@@ -96,7 +96,7 @@ public class TestJPACustomScalarFunctions {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(7, orgs.size());
   }
 
@@ -108,7 +108,7 @@ public class TestJPACustomScalarFunctions {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(7, orgs.size());
   }
 

@@ -48,7 +48,7 @@ public class TestDataAccessConditioner extends TestBase {
 
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "GenericBusinessPartners('3')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode orgUnrestricted = helper.getValue();
+    final ObjectNode orgUnrestricted = helper.getJsonObjectValue();
     assertNotNull(orgUnrestricted);
 
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyPersons;
@@ -63,7 +63,7 @@ public class TestDataAccessConditioner extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "BusinessPartnerImages('97')/BusinessPartnerPerson");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode personUnrestricted = helper.getValue();
+    final ObjectNode personUnrestricted = helper.getJsonObjectValue();
     assertNotNull(personUnrestricted);
 
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyOrganizations;
@@ -78,13 +78,13 @@ public class TestDataAccessConditioner extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "GenericBusinessPartners?$filter=Image/PID eq '97'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode personImagesUnrestricted = helper.getValues();
+    final ArrayNode personImagesUnrestricted = helper.getJsonObjectValues();
     assertEquals(1, personImagesUnrestricted.size());
 
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyOrganizations;
     // execute again -> must now not be found, because Person is not of type '1' so we cannot have a Image
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode personImagesRestricted = helper.getValues();
+    final ArrayNode personImagesRestricted = helper.getJsonObjectValues();
     assertEquals(0, personImagesRestricted.size());
   }
 
@@ -115,7 +115,7 @@ public class TestDataAccessConditioner extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").search("DEU");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode partners = helper.getValues();
+    final ArrayNode partners = helper.getJsonObjectValues();
     assertEquals(1, partners.size());
 
   }

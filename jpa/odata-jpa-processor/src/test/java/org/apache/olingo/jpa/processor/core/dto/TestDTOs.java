@@ -60,8 +60,8 @@ public class TestDTOs extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(helper.getValues().size() > 0);
-    assertEquals(System.getProperty("java.version"), helper.getValues().get(0).get("JavaVersion").asText());
+    assertTrue(helper.getJsonObjectValues().size() > 0);
+    assertEquals(System.getProperty("java.version"), helper.getJsonObjectValues().get(0).get("JavaVersion").asText());
   }
 
   @Test
@@ -88,7 +88,7 @@ public class TestDTOs extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder,
         requestBody, HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertEquals(sId, helper.getValue().get("Id").asText());
+    assertEquals(sId, helper.getJsonObjectValue().get("Id").asText());
   }
 
 }
