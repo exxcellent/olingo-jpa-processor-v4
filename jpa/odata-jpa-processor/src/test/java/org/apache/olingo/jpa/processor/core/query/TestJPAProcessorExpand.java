@@ -438,8 +438,10 @@ public class TestJPAProcessorExpand extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations")
         .expand("Roles").orderBy("ID");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
+    // check json reponse
     final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
     assertEquals("1", org.get("ID").asText());
@@ -448,6 +450,10 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(1, roles.size());
     final ObjectNode firstRole = (ObjectNode) roles.get(0);
     assertEquals("A", firstRole.get("RoleCategory").asText());
+
+    // Olingo client response
+    final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
+    assertNotNull(set);
   }
 
   @Test
@@ -677,7 +683,7 @@ public class TestJPAProcessorExpand extends TestBase {
    * Test whether the response is conform to Olingo client side parser
    */
   @Test
-  public void testExpandEntitySetForOneToOneUnidirectional() throws IOException, ODataException {
+  public void testExpandEntitySetForOneToOneUnidirectional1() throws IOException, ODataException {
 
     // filter for the only entity having an image
     final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
@@ -696,6 +702,27 @@ public class TestJPAProcessorExpand extends TestBase {
     // only Organization('9') should match
     assertTrue(set.getEntities().size() == 1);
     assertEquals(set.getEntities().get(0).getProperty("ID").getPrimitiveValue().toCastValue(String.class), "9");
+  }
 
+  @Test
+  public void testExpandEntitySetForOneToOneUnidirectional2() throws IOException, ODataException {
+
+    // skip first 2 orgs with ID '1' and '10'
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").expand("ImageUnidirectional")
+        .orderBy("ID asc").skip(2);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
+    assertNotNull(set);
+    assertEquals("The number of existing/expected organizations", 8, set.getEntities().size());
+    assertEquals("9", set.getEntities().get(7).getProperty("ID").getPrimitiveValue().toCastValue(String.class));
+    // Organization('9') must have OrganizationImage
+    assertNotNull(set.getEntities().get(7).getNavigationLink("ImageUnidirectional"));
+    assertEquals("9", set.getEntities().get(7).getNavigationLink("ImageUnidirectional").asInlineEntity().getEntity()
+        .getProperty("ID").getPrimitiveValue().toCastValue(String.class));
+    // all other must not have an OrganizationImage
+    assertNull(set.getEntities().get(3).getNavigationLink("ImageUnidirectional"));
   }
 }

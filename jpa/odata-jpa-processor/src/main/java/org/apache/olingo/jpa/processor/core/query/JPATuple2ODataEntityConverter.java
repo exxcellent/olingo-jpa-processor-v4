@@ -157,6 +157,9 @@ class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
     }
     // TODO Check how to convert Organizations('3')/AdministrativeInformation?$expand=Created/User
     final Link expand = convertTuples2ExpandLink(owningEntityRow, expandResult);
+    if (expand == null) {
+      return Collections.emptyList();
+    }
     return Collections.singletonList(expand);
   }
 
@@ -193,11 +196,14 @@ class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
       throws ODataJPAModelException, ODataJPAConversionException {
 
     final JPAAssociationPath assoziation = jpaExpandResult.getNavigationPath();
+    final EntityCollection expandCollection = createEntityCollection(owningEntityRow, jpaExpandResult);
+    if (expandCollection.getEntities().isEmpty()) {
+      return null;
+    }
     final Link link = new Link();
     link.setTitle(assoziation.getLeaf().getExternalName());
     link.setRel(Constants.NS_ASSOCIATION_LINK_REL + link.getTitle());
     link.setType(Constants.ENTITY_NAVIGATION_LINK_TYPE);
-    final EntityCollection expandCollection = createEntityCollection(owningEntityRow, jpaExpandResult);
     if (assoziation.getLeaf().isCollection()) {
       link.setInlineEntitySet(expandCollection);
       expandCollection.setCount(Integer.valueOf(expandCollection.getEntities().size()));

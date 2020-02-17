@@ -20,7 +20,7 @@
 
 		<slf4j.version>1.7.29</slf4j.version>
 		<logback.version>1.2.3</logback.version>
-		<olingo.version>4.7.0</olingo.version>
+		<olingo.version>4.7.1</olingo.version>
 		<jetty.version>9.4.24.v20191120</jetty.version>
         <jersey.version>2.29.1</jersey.version>
 		<jackson.version>2.10.1</jackson.version>
