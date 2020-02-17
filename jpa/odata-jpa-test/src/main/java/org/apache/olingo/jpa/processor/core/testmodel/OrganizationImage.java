@@ -3,6 +3,7 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 import java.net.URL;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -11,6 +12,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 
 @Entity(name = "OrganizationImage")
@@ -28,7 +30,8 @@ public class OrganizationImage implements BPImageIfc {
   @Column(name = "\"MimeType\"")
   private String mimeType;
 
-  @Column(name = "\"ThumbnailUrl\"", length = 4000)
+  @Column(name = "\"ThumbnailUrl\"", length = 250)
+  @Convert(converter = JPAUrlConverter.class)
   @EdmAttributeConversion(odataType = EdmPrimitiveTypeKind.String, converter = EdmUrlConverter.class)
   private URL thumbnailUrl;
 

@@ -24,7 +24,7 @@ public class TestJPAEnumFilter extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode dces = helper.getValues();
+    final ArrayNode dces = helper.getJsonObjectValues();
     assertEquals(1, dces.size());
     assertEquals("CE", dces.get(0).get("AStringMappedEnum").asText());
   }
@@ -37,7 +37,7 @@ public class TestJPAEnumFilter extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode dces = helper.getValues();
+    final ArrayNode dces = helper.getJsonObjectValues();
     assertTrue(dces.size() > 0);
   }
 
@@ -49,7 +49,7 @@ public class TestJPAEnumFilter extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode dces = helper.getValues();
+    final ArrayNode dces = helper.getJsonObjectValues();
     assertEquals(1, dces.size());
     assertEquals("NANOS", dces.get(0).get("AOrdinalMappedEnum").asText());
   }

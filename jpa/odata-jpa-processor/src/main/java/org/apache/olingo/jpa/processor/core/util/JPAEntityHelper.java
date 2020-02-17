@@ -28,7 +28,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
-import org.apache.olingo.jpa.processor.core.query.ValueConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
@@ -43,18 +42,15 @@ public class JPAEntityHelper {
   private final Logger log = Logger.getLogger(JPAEntityHelper.class.getName());
   private final EntityManager em;
   private final IntermediateServiceDocument sd;
-  private final ServiceMetadata serviceMetadata;
-  private final UriHelper uriHelper;
   private final DependencyInjector dependencyInjector;
-  private final ValueConverter attributeConverter = new ValueConverter();;
+  private final EntityConverter entityConverter;
 
   public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata,
-      final UriHelper uriHelper, final DependencyInjector dependencyInjector) {
+      final UriHelper uriHelper, final DependencyInjector dependencyInjector) throws ODataJPAModelException {
     this.em = em;
     this.sd = sd;
-    this.serviceMetadata = serviceMetadata;
-    this.uriHelper = uriHelper;
     this.dependencyInjector = dependencyInjector;
+    entityConverter = new EntityConverter(uriHelper, sd, serviceMetadata);
   }
 
   @SuppressWarnings("unchecked")
@@ -151,7 +147,7 @@ public class JPAEntityHelper {
         args[i] = p.getValue();
         break;
       case ENUM:
-        args[i] = attributeConverter.convertOData2JPAPropertyValue(jpaParameter, p);
+        args[i] = entityConverter.convertOData2JPAPropertyValue(jpaParameter, p);
         break;
       case COLLECTION_PRIMITIVE:
         args[i] = p.asCollection();
@@ -163,9 +159,7 @@ public class JPAEntityHelper {
         final Entity entity = p.asEntity();
         final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
         final JPAEntityType jpaType = determineJPAEntityType(sd, persistenceType);
-
-        final EntityConverter entityConverter = new EntityConverter(jpaType, uriHelper, sd, serviceMetadata);
-        final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity);
+        final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity, jpaType);
         args[i] = jpaEntity;
         break;
       default:
@@ -213,7 +207,7 @@ public class JPAEntityHelper {
         if (jpaAttribute.isAssociation()) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
         }
-        final Object value = attributeConverter.transferOData2JPAProperty(null, jpaType, jpaAttribute,
+        final Object value = entityConverter.transferOData2JPAProperty(null, jpaType, jpaAttribute,
             oDataEntity.getProperties());
         if (value == null) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER);

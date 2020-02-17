@@ -30,7 +30,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
   }
 
@@ -40,7 +40,7 @@ public class TestJPAQueryNavigation extends TestBase {
         .appendNavigationSegment("Image1");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode img = helper.getValue();
+    final ObjectNode img = helper.getJsonObjectValue();
     assertNotNull(img);
     assertEquals(99, img.get("PID").asLong());
   }
@@ -51,7 +51,7 @@ public class TestJPAQueryNavigation extends TestBase {
         .appendNavigationSegment("PersonReferenceWithoutMappedAttribute");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode person = helper.getValue();
+    final ObjectNode person = helper.getJsonObjectValue();
     assertNotNull(person);
     assertEquals(2, ((ArrayNode) person.get("PhoneNumbers")).size());
   }
@@ -63,7 +63,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode img = helper.getValue();
+    final ObjectNode img = helper.getJsonObjectValue();
     assertNotNull(img);
     assertEquals(97, img.get("PID").asLong());
   }
@@ -78,7 +78,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode img = helper.getValue();
+    final ObjectNode img = helper.getJsonObjectValue();
     assertEquals(97, img.get("ID").asLong());
   }
 
@@ -88,7 +88,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("Third Org.", org.get("Name1").asText());
   }
 
@@ -99,7 +99,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
     assertEquals("C", orgs.get(0).get("RoleCategory").asText());
     assertEquals("A", orgs.get(2).get("RoleCategory").asText());
@@ -112,7 +112,7 @@ public class TestJPAQueryNavigation extends TestBase {
         "BusinessPartnerRoles(BusinessPartnerID='2',RoleCategory='A')/BusinessPartner");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("2", org.get("ID").asText());
   }
 
@@ -123,7 +123,7 @@ public class TestJPAQueryNavigation extends TestBase {
         "Organizations('3')/AdministrativeInformation/Created/By");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("99", org.get("value").asText());
   }
 
@@ -135,7 +135,7 @@ public class TestJPAQueryNavigation extends TestBase {
         "Organizations('3')/AdministrativeInformation/Created/User/Address/AdministrativeDivision");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("3166-1", org.get("ParentCodeID").asText());
   }
 
@@ -146,7 +146,7 @@ public class TestJPAQueryNavigation extends TestBase {
         "AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("NUTS2", org.get("CodeID").asText());
     assertEquals("BE35", org.get("DivisionCode").asText());
   }
@@ -162,7 +162,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("NUTS1", org.get("CodeID").asText());
     assertEquals("BE3", org.get("DivisionCode").asText());
   }
@@ -178,7 +178,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
     assertEquals("NUTS2", orgs.get(0).get("CodeID").asText());
     assertEquals("BE25", orgs.get(0).get("DivisionCode").asText());
@@ -200,7 +200,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(8, orgs.size());
     assertEquals("NUTS3", orgs.get(0).get("CodeID").asText());
     assertEquals("BE258", orgs.get(0).get("DivisionCode").asText());
@@ -229,7 +229,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("NUTS3", ad.get("CodeID").asText());
     assertEquals("BE258", ad.get("DivisionCode").asText());
@@ -251,7 +251,7 @@ public class TestJPAQueryNavigation extends TestBase {
             "Parent");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("3166-1", ad.get("CodeID").asText());
   }
@@ -263,7 +263,7 @@ public class TestJPAQueryNavigation extends TestBase {
             "Children");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode ads = helper.getValues();
+    final ArrayNode ads = helper.getJsonObjectValues();
     assertNotNull(ads);
     assertEquals(0, ads.size());
   }
@@ -275,7 +275,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("3166-2", ad.get("CodeID").asText());
   }
@@ -287,7 +287,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("223", ad.get("HouseNumber").asText());
   }
@@ -298,7 +298,7 @@ public class TestJPAQueryNavigation extends TestBase {
         .appendNavigationSegment("Locations");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode ads = helper.getValues();
+    final ArrayNode ads = helper.getJsonObjectValues();
     assertNotNull(ads);
     assertEquals(2, ads.size());
   }

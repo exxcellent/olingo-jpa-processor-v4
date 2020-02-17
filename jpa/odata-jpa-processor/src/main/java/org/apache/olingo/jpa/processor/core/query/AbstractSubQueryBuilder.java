@@ -15,9 +15,9 @@ import org.apache.olingo.server.api.ODataApplicationException;
 abstract class AbstractSubQueryBuilder extends AbstractQueryBuilder {
 
   private final Subquery<Integer> subQuery;
-  private final JPAQueryBuilderIfc parentQueryBuilder;
+  private final FilterContextQueryBuilderIfc parentQueryBuilder;
 
-  public AbstractSubQueryBuilder(final JPAQueryBuilderIfc parent) throws ODataApplicationException,
+  public AbstractSubQueryBuilder(final FilterContextQueryBuilderIfc parent) throws ODataApplicationException,
   ODataJPAModelException {
     super(parent.getEntityManager());
     this.parentQueryBuilder = parent;
@@ -28,7 +28,7 @@ abstract class AbstractSubQueryBuilder extends AbstractQueryBuilder {
     return subQuery;
   }
 
-  protected final JPAQueryBuilderIfc getOwningQueryBuilder() {
+  protected final FilterContextQueryBuilderIfc getOwningQueryBuilder() {
     return parentQueryBuilder;
   }
 

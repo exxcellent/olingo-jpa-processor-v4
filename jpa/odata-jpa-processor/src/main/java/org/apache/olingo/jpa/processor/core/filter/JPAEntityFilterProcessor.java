@@ -8,10 +8,9 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor;
@@ -43,19 +42,12 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
   final OData odata;
   final IntermediateServiceDocument sd;
   final List<UriResource> uriResourceParts;
-  final JPAQueryBuilderIfc parent;
-
-  public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
-      final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
-      final UriInfoResource uriResource, final JPAQueryBuilderIfc parent) {
-    this(odata, sd, em, jpaEntityType, converter, uriResource.getUriResourceParts(), extractFilterExpression(
-        uriResource), parent);
-  }
+  final FilterContextQueryBuilderIfc parent;
 
   public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
       final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
       final List<UriResource> resourcePath,
-      final VisitableExpression expression, final JPAQueryBuilderIfc parent) {
+      final VisitableExpression expression, final FilterContextQueryBuilderIfc parent) {
 
     super(jpaEntityType, expression);
 
@@ -65,13 +57,6 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
     this.odata = odata;
     this.sd = sd;
     this.parent = parent;
-  }
-
-  public static VisitableExpression extractFilterExpression(final UriInfoResource uriResource) {
-    if (uriResource.getFilterOption() == null) {
-      return null;
-    }
-    return uriResource.getFilterOption().getExpression();
   }
 
   @Override
@@ -112,7 +97,7 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
     return uriResourceParts;
   }
 
-  public JPAQueryBuilderIfc getParent() {
+  public FilterContextQueryBuilderIfc getParent() {
     return parent;
   }
 

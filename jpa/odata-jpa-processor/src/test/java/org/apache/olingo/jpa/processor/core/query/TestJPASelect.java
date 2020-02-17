@@ -27,7 +27,7 @@ public class TestJPASelect extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode p = helper.getValue();
+    final ObjectNode p = helper.getJsonObjectValue();
     assertEquals(99, p.get("ID").asLong());
     assertEquals(2, ((ArrayNode) p.get("PhoneNumbers")).size());
     assertNotNull(((ArrayNode) p.get("PhoneNumbers")).get(0).get("phoneNumber"));
@@ -44,7 +44,7 @@ public class TestJPASelect extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode p = helper.getValue();
+    final ObjectNode p = helper.getJsonObjectValue();
     assertEquals(1, p.get("ID").asLong());
   }
 
@@ -55,7 +55,7 @@ public class TestJPASelect extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode adds = helper.getValues();
+    final ArrayNode adds = helper.getJsonObjectValues();
     assertEquals(88, adds.size());
     // Not selected non key attributes must not be set
     assertNull(adds.get(0).get("Name"));
@@ -73,7 +73,7 @@ public class TestJPASelect extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode entity = helper.getValue();
+    final ObjectNode entity = helper.getJsonObjectValue();
     assertNotNull(entity);
     assertEquals("97", entity.get("ID").asText());
     assertEquals("Müller", entity.get("lastName").asText());
@@ -91,7 +91,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(1)).appendNavigationSegment("targets");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(2, targets.size());
   }
 
@@ -101,7 +101,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(3)).appendNavigationSegment("SOURCE");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode source = helper.getValue();
+    final ObjectNode source = helper.getJsonObjectValue();
     assertNotNull(source);
     assertEquals(1, source.get("ID").asInt());
   }
@@ -119,7 +119,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(1)).appendNavigationSegment("leftM2Ns");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(1, targets.size());
   }
 
@@ -129,7 +129,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(5)).appendNavigationSegment("RightM2Ns");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(1, targets.size());
   }
 
@@ -139,7 +139,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(5)).appendNavigationSegment("One2ManyTest");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(1, targets.size());
   }
 
@@ -149,7 +149,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(2)).appendNavigationSegment("SecondLeftM2Ns");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(1, targets.size());
   }
 
@@ -159,7 +159,7 @@ public class TestJPASelect extends TestBase {
         Integer.valueOf(4)).appendNavigationSegment("SecondRightM2Ns");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(3, targets.size());
   }
 
@@ -169,7 +169,7 @@ public class TestJPASelect extends TestBase {
         .appendNavigationSegment("Locations");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode targets = helper.getValues();
+    final ArrayNode targets = helper.getJsonObjectValues();
     assertEquals(2, targets.size());
   }
 

@@ -26,7 +26,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertTrue(orgs.size() > 0);
 
   }
@@ -38,7 +38,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
     assertEquals("3", orgs.get(0).get("ID").asText());
   }
@@ -50,7 +50,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=Country eq 'DEU'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
     assertEquals("10", orgs.get(0).get("ID").asText());
   }
@@ -63,7 +63,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=LocationName eq 'Deutschland'&$select=ID");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
     assertEquals("10", orgs.get(0).get("ID").asText());
   }
@@ -75,7 +75,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=DivisionCode eq CountryCode");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(4, orgs.size());
   }
 
@@ -86,7 +86,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter='3' eq ID");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
     assertEquals("3", orgs.get(0).get("ID").asText());
   }
@@ -97,7 +97,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(9, orgs.size());
   }
 
@@ -108,7 +108,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=ID ge '5'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size()); // '10' is smaller than '5' when comparing strings!
   }
 
@@ -119,7 +119,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=DivisionCode lt CountryCode");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(228, orgs.size());
   }
 
@@ -130,7 +130,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=ID gt '5'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(4, orgs.size()); // '10' is smaller than '5' when comparing strings!
   }
 
@@ -141,7 +141,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=ID lt '5'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
   }
 
@@ -151,7 +151,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=ID le '5'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(6, orgs.size());
   }
 
@@ -162,7 +162,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=Area ge 119330610");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(4, orgs.size());
   }
 
@@ -173,7 +173,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and CodeID eq 'NUTS2'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(11, orgs.size());
   }
 
@@ -184,7 +184,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=ID eq '5' or ID eq '10'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -195,7 +195,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=not (Area lt 50000000)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(24, orgs.size());
   }
 
@@ -206,7 +206,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and CodeID eq 'NUTS2' and DivisionCode eq 'BE25'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
     assertEquals("BEL", orgs.get(0).get("CountryCode").asText());
   }
@@ -218,7 +218,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and (DivisionCode eq 'BE25' or  DivisionCode eq 'BE24')&$orderby=DivisionCode desc");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
     assertEquals("BE25", orgs.get(0).get("DivisionCode").asText());
   }
@@ -230,7 +230,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=CodePublisher eq 'Eurostat' and DivisionCode eq 'BE25' or  CodeID eq '3166-1'&$orderby=DivisionCode desc");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
     assertEquals("USA", orgs.get(0).get("DivisionCode").asText());
   }
@@ -242,7 +242,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=Area add 7000000 ge 50000000");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(31, orgs.size());
   }
 
@@ -253,7 +253,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=Area sub 7000000 ge 60000000");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(15, orgs.size());
   }
 
@@ -266,7 +266,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=Area gt 0 and Area div Population ge 6000");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(9, orgs.size());
   }
 
@@ -277,7 +277,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=Area mul Population gt 0");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(64, orgs.size());
   }
 
@@ -288,7 +288,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=Area gt 0 and Area mod 3578335 eq 0");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -299,7 +299,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisionDescriptions?$filter=length(Name) eq 10");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(11, orgs.size());
   }
 
@@ -310,7 +310,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Persons?$filter=AdministrativeInformation/Created/At lt now()");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(4, orgs.size());
   }
 
@@ -321,7 +321,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=contains(CodeID,'166')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(110, orgs.size());
   }
 
@@ -332,7 +332,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=endswith(CodeID,'166-1')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(4, orgs.size());
   }
 
@@ -343,7 +343,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=startswith(DivisionCode,'DE-')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(16, orgs.size());
   }
 
@@ -354,7 +354,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=indexof(DivisionCode,'3') eq 4");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(7, orgs.size());
   }
 
@@ -365,7 +365,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and length(Name) gt 6 and substring(Name,6) eq 'Dakota'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -377,7 +377,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -389,7 +389,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -403,7 +403,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -415,7 +415,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -427,7 +427,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -439,7 +439,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
   }
 
@@ -451,7 +451,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -462,7 +462,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -474,7 +474,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertTrue(orgs.size() > 0);
   }
 
@@ -485,7 +485,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertTrue(orgs.size() > 0);
   }
 
@@ -496,7 +496,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode relSources = helper.getValues();
+    final ArrayNode relSources = helper.getJsonObjectValues();
     assertTrue(relSources.size() == 2);
     assertTrue(relSources.get(0).get("targets") == null);// AsIs
     assertTrue(relSources.get(0).get("Targets") == null);// upperCamelCase (not valid)
@@ -509,7 +509,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode relSources = helper.getValues();
+    final ArrayNode relSources = helper.getJsonObjectValues();
     assertTrue(relSources.size() == 1);
     assertEquals("USA", relSources.get(0).get("Country").asText());
   }
@@ -522,7 +522,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode relSources = helper.getValues();
+    final ArrayNode relSources = helper.getJsonObjectValues();
     assertTrue(relSources.size() == 1);
     assertTrue(relSources.get(0).withArray("PhoneNumbersAsString").size() == 2);
     assertTrue(relSources.get(0).withArray("PhoneNumbers").size() == 2);
@@ -535,7 +535,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=Roles/any(d:d/RoleCategory eq 'A')");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
   }
 
@@ -546,7 +546,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$select=ID&$filter=Roles/any(d:d/RoleCategory eq 'A' and d/BusinessPartnerID eq '1')");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -557,7 +557,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Name1 ne 'foo' and Roles/all(d:d/RoleCategory eq 'A')").select("ID");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -574,7 +574,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Name1 ne 'foo' AND Name1 ne 'bar'").select("ID");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -584,7 +584,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Roles/any()");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -596,7 +596,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 
@@ -608,7 +608,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$select=ID&$filter=Roles/$count eq 1");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -619,7 +619,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$select=ID&$filter=AdministrativeInformation/Created/User/Roles/$count ge 2");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(8, orgs.size());
   }
 
@@ -629,7 +629,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Parent/CodeID eq 'NUTS1'");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(11, orgs.size());
   }
 
@@ -639,7 +639,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE34'");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   };
 
@@ -649,7 +649,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Parent/Parent/CodeID eq 'NUTS1' and DivisionCode eq 'BE212'");
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   };
 
@@ -659,7 +659,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "Organizations?$filter=AdministrativeInformation/Created/By eq '99'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(8, orgs.size());
   };
 
@@ -669,7 +669,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "Organizations?$filter=AdministrativeInformation/Created/By eq 'NonExistingUserId'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode values = helper.getValues();
+    final ArrayNode values = helper.getJsonObjectValues();
 
     assertEquals(0, values.size());
   };
@@ -683,7 +683,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=Address/RegionName eq 'Kalifornien'");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
   };
 
@@ -696,7 +696,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=Address/RegionName eq 'Kalifornien'&$select=ID");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
   };
 
@@ -709,7 +709,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=AdministrativeInformation/Created/User/LocationName eq 'Schweiz'");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   };
 
@@ -722,7 +722,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$filter=AdministrativeInformation/Created/User/LocationName eq 'Schweiz'&$select=ID");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   };
 
@@ -734,7 +734,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
   }
 
@@ -745,7 +745,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "DatatypeConversionEntities?$filter=contains(cast(AIntegerYear, Edm.String), '90')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
   }
 
@@ -766,7 +766,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "AdministrativeDivisions?$filter=contains(toupper(CodePublisher), 'ST')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(122, entities.size());
   }
 
@@ -775,7 +775,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "DatatypeConversionEntities?$filter=ATime1 eq 22:21:20");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
   }
 
@@ -784,7 +784,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "DatatypeConversionEntities?$filter=ADate2 eq 1600-12-01");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
   }
 
@@ -793,7 +793,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "DatatypeConversionEntities?$filter=contains(cast(ATimestamp1SqlTimestamp, Edm.String), '09:21:00')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
   }
 
@@ -808,7 +808,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "DatatypeConversionEntities?$filter=date(ATimestamp1SqlTimestamp) ge 2010-01-01");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(2, entities.size());
   }
 
@@ -817,7 +817,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         "DatatypeConversionEntities?$filter=ABoolean eq true");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getValues();
+    final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
   }
 
@@ -828,7 +828,7 @@ public class TestJPAQueryWhereClause extends TestBase {
         "Organizations?$select=ID,Country&$filter=Locations/any(d:d/Name eq 'Texas')");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }
 

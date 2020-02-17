@@ -7,7 +7,7 @@ import javax.persistence.criteria.Subquery;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 
-public interface JPAQueryBuilderIfc {
+public interface FilterContextQueryBuilderIfc {
 
   public JPAODataContext getContext();
 

@@ -14,7 +14,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -28,7 +28,7 @@ import org.junit.Test;
 public class TestJPAVisitor {
 
   private JPAEntityFilterProcessor compiler;
-  private JPAQueryBuilderIfc query;
+  private FilterContextQueryBuilderIfc query;
   private JPAVisitor cut;
   private AbstractJPADatabaseProcessor converter;
 
@@ -38,7 +38,7 @@ public class TestJPAVisitor {
     converter.initialize(mock(CriteriaBuilder.class));
 
     compiler = mock(JPAEntityFilterProcessor.class);
-    query = mock(JPAQueryBuilderIfc.class);
+    query = mock(FilterContextQueryBuilderIfc.class);
 
     when(compiler.getConverter()).thenReturn(converter);
     when(compiler.getParent()).thenReturn(query);

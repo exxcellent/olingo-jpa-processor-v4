@@ -11,6 +11,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
+import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -46,7 +47,7 @@ class JPANavigationRequestProcessor extends JPAAbstractRequestProcessor implemen
     // Create a JPQL Query and execute it
     EntityQueryBuilder query = null;
     try {
-      query = new EntityQueryBuilder(/* targetEdmEntitySet.getEntityType(), */ context, uriInfo, em, serviceMetadata);
+      query = new EntityQueryBuilder(context, new NavigationRoot(uriInfo), em, serviceMetadata);
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e);

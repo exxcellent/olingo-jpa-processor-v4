@@ -34,7 +34,7 @@ public class TestJPASearch extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     // Nameline1 should match for all Organizations
     assertEquals(10, ents.size());
   }
@@ -53,7 +53,7 @@ public class TestJPASearch extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     assertEquals(1, ents.size());
     assertTrue(ents.get(0).get("ID").asText().endsWith("1"));
     assertTrue(ents.get(0).get("data").asText().endsWith("other DATA"));
@@ -70,7 +70,7 @@ public class TestJPASearch extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     // should have 1 result for matching UUID
     assertEquals(1, ents.size());
     assertTrue(ents.get(0).get("Uuid").asText().endsWith("001"));
@@ -117,7 +117,7 @@ public class TestJPASearch extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     assertEquals(1, ents.size());
     assertEquals("Bezirk Löwen", ents.get(0).get("Name").asText());
   }

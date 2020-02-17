@@ -30,7 +30,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
   public static final int NO_POSTAL_ADDRESS_FIELDS = 7; // TODO 8
   public static final int NO_ADMIN_INFO_FIELDS = 2;
-  private JPATuple2EntityConverter cut;
+  private JPATuple2ODataEntityConverter cut;
   private List<Tuple> tupleResult;
   private UriHelperDouble uriHelper;
   private Map<String, String> keyPredicates;
@@ -44,16 +44,15 @@ public class TestJPATupleResultConverter extends TestBase {
     keyPredicates = new HashMap<String, String>();
     uriHelper.setKeyPredicates(keyPredicates, "ID");
     jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType("Organizations"));
-    cut = new JPATuple2EntityConverter(
+    cut = new JPATuple2ODataEntityConverter(
         helper.serviceDocument,
-        jpaQueryResult.getEntityType(),
         uriHelper,
         new ServiceMetadataDouble(nameBuilder, "Organization"));
   }
 
   @Test
   public void checkConvertsEmptyResult() throws Exception {
-    assertNotNull(cut.convertQueryResult(jpaQueryResult));
+    assertNotNull(cut.convertDBTuple2OData(jpaQueryResult));
   }
 
   @Test
@@ -65,7 +64,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
     keyPredicates.put("1", "Organizations('1')");
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(1, act.getEntities().size());
     assertEquals("1", act.getEntities().get(0).getProperty("ID").getValue().toString());
   }
@@ -78,7 +77,7 @@ public class TestJPATupleResultConverter extends TestBase {
     result.put("ID", new String("1"));
     tupleResult.add(new TupleDouble(result));
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(1, act.getEntities().size());
     assertEquals("Organizations" + "('1')", act.getEntities().get(0).getId().getPath());
   }
@@ -98,7 +97,7 @@ public class TestJPATupleResultConverter extends TestBase {
     keyPredicates.put("1", "Organizations('1')");
     keyPredicates.put("5", "Organizations('5')");
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(2, act.getEntities().size());
     assertEquals("1", act.getEntities().get(0).getProperty("ID").getValue().toString());
     assertEquals("5", act.getEntities().get(1).getProperty("ID").getValue().toString());
@@ -113,7 +112,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
     keyPredicates.put("1", "Organizations('1')");
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(1, act.getEntities().size());
     assertEquals("1", act.getEntities().get(0).getProperty("ID").getValue().toString());
     assertEquals("Willi", act.getEntities().get(0).getProperty("Name1").getValue().toString());
@@ -135,7 +134,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
     keyPredicates.put("1", "Organizations('1')");
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(1, act.getEntities().size());
 
     assertEquals(ValueType.COMPLEX, act.getEntities().get(0).getProperty("Address").getValueType());
@@ -160,7 +159,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
     keyPredicates.put("1", "Organizations('1')");
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(1, act.getEntities().size());
     // Check first level
     assertEquals(ValueType.COMPLEX, act.getEntities().get(0).getProperty("AdministrativeInformation").getValueType());
@@ -179,7 +178,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
     keyPredicates.put("1", "Organizations('1')");
 
-    final EntityCollection act = cut.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(jpaQueryResult);
     assertEquals(1, act.getEntities().size());
     assertEquals("CA", ((ComplexValue) act.getEntities().get(0).getProperty("Address").getValue()).getValue().get(0)
         .getValue().toString());
@@ -191,9 +190,8 @@ public class TestJPATupleResultConverter extends TestBase {
 
     uriHelper.setKeyPredicates(keyPredicates, "PID");
     jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType("PersonImages"));
-    final JPATuple2EntityConverter converter = new JPATuple2EntityConverter(
+    final JPATuple2ODataEntityConverter converter = new JPATuple2ODataEntityConverter(
         helper.serviceDocument,
-        jpaQueryResult.getEntityType(),
         uriHelper,
         new ServiceMetadataDouble(nameBuilder, "PersonImages"));
 
@@ -203,7 +201,7 @@ public class TestJPATupleResultConverter extends TestBase {
     entityResult.put("Image", image);
     tupleResult.add(new TupleDouble(entityResult));
 
-    final EntityCollection act = converter.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = converter.convertDBTuple2OData(jpaQueryResult);
     assertEquals("image/png", act.getEntities().get(0).getMediaContentType());
   }
 
@@ -212,9 +210,8 @@ public class TestJPATupleResultConverter extends TestBase {
   ODataApplicationException {
 
     jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType("OrganizationImages"));
-    final JPATuple2EntityConverter converter = new JPATuple2EntityConverter(
+    final JPATuple2ODataEntityConverter converter = new JPATuple2ODataEntityConverter(
         helper.serviceDocument,
-        jpaQueryResult.getEntityType(),
         uriHelper,
         new ServiceMetadataDouble(nameBuilder, "OrganizationImages"));
 
@@ -225,7 +222,7 @@ public class TestJPATupleResultConverter extends TestBase {
     entityResult.put("MimeType", "image/svg+xml");
     tupleResult.add(new TupleDouble(entityResult));
 
-    final EntityCollection act = converter.convertQueryResult(jpaQueryResult);
+    final EntityCollection act = converter.convertDBTuple2OData(jpaQueryResult);
     assertEquals("image/svg+xml", act.getEntities().get(0).getMediaContentType());
     assertEquals(2, act.getEntities().get(0).getProperties().size());
   }

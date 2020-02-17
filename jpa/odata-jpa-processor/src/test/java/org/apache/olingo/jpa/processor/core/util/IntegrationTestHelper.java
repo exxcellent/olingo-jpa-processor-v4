@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,11 +21,20 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.olingo.client.api.ODataClient;
+import org.apache.olingo.client.api.data.ResWrap;
+import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientEntitySet;
+import org.apache.olingo.client.api.serialization.ClientODataDeserializer;
+import org.apache.olingo.client.api.serialization.ODataDeserializerException;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
+import org.apache.olingo.client.core.ODataClientFactory;
 import org.apache.olingo.client.core.uri.URIBuilderImpl;
+import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
+import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
@@ -124,6 +135,13 @@ public class IntegrationTestHelper {
     req.setContentType(type);
   }
 
+  /**
+   * set the content type in request to define the format of response.
+   */
+  public void setRequestedResponseContentType(final String type) {
+    req.setHeader(HttpHeader.ACCEPT, type);
+  }
+
   public void setSecurityInceptor(final SecurityInceptor securityInceptor) {
     this.securityInceptor = securityInceptor;
   }
@@ -132,7 +150,7 @@ public class IntegrationTestHelper {
     req.setUserPrincipal(principal);
   }
 
-  public void execute(final int status) throws ODataException {
+  public void execute(final int status) throws ODataException, UnsupportedEncodingException {
     this.resp = new HttpServletResponseDouble();
     final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
@@ -147,11 +165,10 @@ public class IntegrationTestHelper {
     if (securityInceptor != null) {
       handler.setSecurityInceptor(securityInceptor);
     }
-    LOG.info("Execute " + req.getRequestTestExecutionURI().toString() + "...");
+    LOG.info("Execute " + URLDecoder.decode(req.getRequestTestExecutionURI().toString(), "UTF-8") + "...");
     handler.process(req, resp);
     executed = true;
     assertEquals(parseResponse(), status, getStatus());
-
   }
 
   private String parseResponse() {
@@ -220,7 +237,7 @@ public class IntegrationTestHelper {
     }
   }
 
-  public ArrayNode getValues() throws JsonProcessingException, IOException {
+  public ArrayNode getJsonObjectValues() throws JsonProcessingException, IOException, ODataDeserializerException {
     if (!executed) {
       throw new IllegalStateException("call execute() before");
     }
@@ -233,7 +250,7 @@ public class IntegrationTestHelper {
     return values;
   }
 
-  public ObjectNode getValue() throws JsonProcessingException, IOException {
+  public ObjectNode getJsonObjectValue() throws JsonProcessingException, IOException, ODataDeserializerException {
     if (!executed) {
       throw new IllegalStateException("call execute() before");
     }
@@ -243,6 +260,31 @@ public class IntegrationTestHelper {
       fail("Wrong result type; ObjectNode expected");
     }
     return (ObjectNode) value;
+  }
+
+  public ClientEntitySet getOlingoEntityCollectionValues() throws ODataDeserializerException {
+    if (!executed) {
+      throw new IllegalStateException("call execute() before");
+    }
+
+    final ODataClient client = ODataClientFactory.getClient();
+    final ClientODataDeserializer deserialzer = client.getDeserializer(ContentType.parse(resp.getContentType()));
+    final ResWrap<EntityCollection> resources = deserialzer.toEntitySet(resp.getInputStream());
+    return client.getBinder().getODataEntitySet(resources);
+  }
+
+  /**
+   * Entity object parsed by Olingo.
+   */
+  public ClientEntity getOlingoEntityValue() throws ODataDeserializerException {
+    if (!executed) {
+      throw new IllegalStateException("call execute() before");
+    }
+
+    final ODataClient client = ODataClientFactory.getClient();
+    final ClientODataDeserializer deserialzer = client.getDeserializer(ContentType.parse(resp.getContentType()));
+    final ResWrap<org.apache.olingo.commons.api.data.Entity> resource = deserialzer.toEntity(resp.getInputStream());
+    return client.getBinder().getODataEntity(resource);
   }
 
   public int getBatchResultStatus(final int i) throws IOException {

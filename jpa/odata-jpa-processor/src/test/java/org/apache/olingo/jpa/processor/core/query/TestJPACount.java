@@ -36,7 +36,7 @@ public class TestJPACount extends TestBase {
     //    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
     //        "Persons?$expand=Roles($count=true)&$orderby=Country asc");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode persons = helper.getValues();
+    final ArrayNode persons = helper.getJsonObjectValues();
     assertEquals(4, persons.size());
     final ObjectNode person = (ObjectNode) persons.get(3);
     assertEquals("DEU", person.get("Country").asText());
@@ -55,7 +55,7 @@ public class TestJPACount extends TestBase {
     //    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
     //        "Organizations?$skip=2&$top=5&$orderby=ID&$expand=Roles/$count");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
     final ObjectNode org = (ObjectNode) orgs.get(1); // after skipping '1' and '10' this should be '3'
     assertEquals("3", org.get("ID").asText());

@@ -16,10 +16,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.queryoption.SearchOption;
 import org.apache.olingo.server.api.uri.queryoption.search.SearchTerm;
 import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
@@ -32,15 +31,16 @@ import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
  */
 class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
 
-  private final UriInfoResource uriResource;
-  private final JPAODataDatabaseProcessor dbProcessor;
+  private final SearchOption searchOption;
+  private final JPAODataContext context;
   private final From<?, ?> subqueryResultFrom;
 
-  public SearchSubQueryBuilder(final AbstractCriteriaQueryBuilder<?, ?> parent) throws ODataApplicationException,
-  ODataJPAModelException {
+  public SearchSubQueryBuilder(final FilterContextQueryBuilderIfc parent, final SearchOption searchOption)
+      throws ODataApplicationException,
+      ODataJPAModelException {
     super(parent);
-    this.uriResource = parent.getUriInfoResource();
-    this.dbProcessor = parent.getContext().getDatabaseProcessor();
+    this.searchOption = searchOption;
+    this.context = parent.getContext();
 
     this.subqueryResultFrom = createSubqueryResultFrom();
   }
@@ -48,7 +48,6 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
   public final Subquery<Integer> getSubQueryExists()
       throws ODataApplicationException {
 
-    final SearchOption searchOption = uriResource.getSearchOption();
     if (searchOption == null || searchOption.getSearchExpression() == null) {
       return null;
     }
@@ -103,7 +102,8 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
       // EXISTS subselect needs only a marker select for existence
       subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
 
-      final Expression<Boolean> searchCondition = dbProcessor.createSearchExpression(term, columnList);
+      final Expression<Boolean> searchCondition = context.getDatabaseProcessor().createSearchExpression(term,
+          columnList);
       if (searchCondition == null) {
         throw new ODataJPADBAdaptorException(ODataJPADBAdaptorException.MessageKeys.NOT_SUPPORTED_SEARCH,
             HttpStatusCode.INTERNAL_SERVER_ERROR);

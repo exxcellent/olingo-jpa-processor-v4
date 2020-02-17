@@ -13,7 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDo
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.FilterSubQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
-import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -84,7 +84,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     final IntermediateServiceDocument sd = getIntermediateServiceDocument();
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
-    JPAQueryBuilderIfc parent = getQueryBuilder();
+    FilterContextQueryBuilderIfc parent = getQueryBuilder();
     final List<FilterSubQueryBuilder> queryList = new ArrayList<FilterSubQueryBuilder>();
 
     // 2. Create the queries and roots

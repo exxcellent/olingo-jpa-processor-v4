@@ -67,7 +67,7 @@ public class TestObjectCreation extends TestBase {
         requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.CREATED.getStatusCode());
 
-    final ObjectNode object = helper.getValue();
+    final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
     assertNotNull(object.get("ID").asText());
     assertEquals(name, object.get("Name").asText());

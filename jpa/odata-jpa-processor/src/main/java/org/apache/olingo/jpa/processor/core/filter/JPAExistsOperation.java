@@ -10,7 +10,7 @@ import javax.persistence.criteria.Subquery;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
-import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResource;
@@ -18,7 +18,7 @@ import org.apache.olingo.server.api.uri.UriResource;
 abstract class JPAExistsOperation implements JPAExpression<Boolean> {
 
   private final List<UriResource> uriResourceParts;
-  private final JPAQueryBuilderIfc queryBuilder;
+  private final FilterContextQueryBuilderIfc queryBuilder;
   private final IntermediateServiceDocument sd;
   private final EntityManager em;
   private final OData odata;
@@ -36,7 +36,7 @@ abstract class JPAExistsOperation implements JPAExpression<Boolean> {
     return uriResourceParts;
   }
 
-  protected final JPAQueryBuilderIfc getQueryBuilder() {
+  protected final FilterContextQueryBuilderIfc getQueryBuilder() {
     return queryBuilder;
   }
 

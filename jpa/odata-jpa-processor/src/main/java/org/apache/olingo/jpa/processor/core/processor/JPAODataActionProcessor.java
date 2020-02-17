@@ -42,6 +42,7 @@ import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
+import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
 import org.apache.olingo.server.api.OData;
@@ -325,7 +326,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       EntityQueryBuilder query = null;
       final EntityCollection entityCollection;
       try {
-        query = new EntityQueryBuilder(context, uriInfo, em, getServiceMetadata());
+        query = new EntityQueryBuilder(context, new NavigationRoot(uriInfo), em, getServiceMetadata());
         // we do not expand the entities
         entityCollection = query.execute(false);
       } catch (final ODataJPAModelException e) {
@@ -392,19 +393,18 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
 
     try {
       // the given type may be a super class of the real object type, so we have to derive the entity type from the object (instance)
-      final EntityConverter entityConverter = new EntityConverter(acr.resultType, uriHelper, sd,
-          getServiceMetadata());
+      final EntityConverter entityConverter = new EntityConverter(uriHelper, sd, getServiceMetadata());
 
-      Collection<Object> jpaEntities;
+      Collection<Object> jpaInstances;
       for (final Object resultEntry : acr.resultValues) {
         // build a temporary list, also for single result entities
         if (resultContainsCollections) {
-          jpaEntities = (Collection<Object>) resultEntry;
+          jpaInstances = (Collection<Object>) resultEntry;
         } else {
-          jpaEntities = Collections.singletonList(resultEntry);
+          jpaInstances = Collections.singletonList(resultEntry);
         }
-        for (final Object japEntity : jpaEntities) {
-          final Entity entity = entityConverter.convertJPA2ODataEntity(japEntity);
+        for (final Object jpaInstance : jpaInstances) {
+          final Entity entity = entityConverter.convertJPA2ODataEntity(acr.resultType, jpaInstance);
           odataEntityCollection.getEntities().add(entity);
         }
       }
