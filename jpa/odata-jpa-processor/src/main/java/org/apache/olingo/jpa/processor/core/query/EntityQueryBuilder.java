@@ -73,7 +73,8 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  public EntityQueryBuilder(final JPAODataContext context, final UriInfoResource uriInfo, final EntityManager em,
+  public EntityQueryBuilder(final JPAODataContext context, final NavigationIfc uriInfo,
+      final EntityManager em,
       final ServiceMetadata serviceMetadata)
           throws ODataApplicationException, ODataJPAModelException {
     super(context, uriInfo, em);
@@ -112,7 +113,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
   protected final QueryEntityResult executeInternal(final boolean processExpandOption)
       throws ODataApplicationException, ODataJPAModelException {
-    final UriInfoResource uriResource = getUriInfoResource();
+    final UriInfoResource uriResource = getNavigation().getLastStep();
     // Pre-process URI parameter, so they can be used at different places
     // TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
@@ -154,7 +155,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     if (processExpandOption && !intermediateResult.isEmpty()) {
       // generate expand queries only for non empty entity result list
-      queryResult.putExpandResults(readExpandEntities(null, uriResource));
+      queryResult.putExpandResults(readExpandEntities(null));
     }
     return queryResult;
   }
@@ -163,16 +164,16 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     // Convert tuple result into an OData Result
     EntityCollection entityCollection;
     try {
-      entityCollection = new JPATuple2EntityConverter(getContext().getEdmProvider().getServiceDocument(),
-          result.getEntityType(), getOData().createUriHelper(), serviceMetadata)
-          .convertQueryResult(result);
+      entityCollection = new JPATuple2ODataEntityConverter(getContext().getEdmProvider().getServiceDocument(),
+          getOData().createUriHelper(), serviceMetadata)
+          .convertDBTuple2OData(result);
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e);
     }
 
     // Count results if requested
-    final CountOption countOption = getUriInfoResource().getCountOption();
+    final CountOption countOption = getNavigation().getLastStep().getCountOption();
     if (countOption != null && countOption.getValue()) {
       entityCollection.setCount(Integer.valueOf(entityCollection.getEntities().size()));
     }
@@ -205,27 +206,30 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataJPAModelException
    */
   private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities(
-      final List<JPANavigationPropertyInfo> parentHops, final UriInfoResource uriInfo)
+      final List<JPANavigationPropertyInfo> parentHops)
           throws ODataApplicationException, ODataJPAModelException {
 
     final Map<JPAAssociationPath, ExpandQueryEntityResult> allExpResults =
         new HashMap<JPAAssociationPath, ExpandQueryEntityResult>();
     // x/a?$expand=b/c($expand=d,e/f)
 
-    final Map<JPAExpandItemWrapper, JPAAssociationPath> expandMapList = Util.determineExpands(getServiceDocument(),
-        uriInfo.getUriResourceParts(), uriInfo.getExpandOption());
+    final NavigationIfc uriInfo = getNavigation();
+
+    final Map<NavigationViaExpand, JPAAssociationPath> expandMapList = Util.determineExpands(
+        getServiceDocument(), uriInfo);
 
     final JPAODataContext context = getContext();
     final EntityManager em = getEntityManager();
 
-    for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> itemExpand : expandMapList.entrySet()) {
+    for (final Entry<NavigationViaExpand, JPAAssociationPath> itemExpand : expandMapList.entrySet()) {
       // an expand is handled as navigation to that entity type, so we can (re)use the entity query
       final EntityQueryBuilder expandQuery = new EntityQueryBuilder(context, itemExpand.getKey(), em, serviceMetadata);
       LOG.log(Level.FINE, "Process $expand for: " + getQueryResultNavigationKeyBuilder().getNavigationLabel() + "#"
           + itemExpand.getValue().getAlias());
       final QueryEntityResult expandResult = expandQuery.executeInternal(true);
       // convert result list to expand entity navigation key mapping structure
-      allExpResults.put(itemExpand.getValue(), new ExpandQueryEntityResult(expandResult, expandQuery
+      allExpResults.put(itemExpand.getValue(), new ExpandQueryEntityResult(itemExpand.getValue(), expandResult,
+          expandQuery
           .getLastAffectingNavigationKeyBuilder()));
     }
 
@@ -509,7 +513,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       // create separate SELECT for every entry (affected attribute)
       final JPAAttribute<?> attribute = entry.getKey();
       final ElementCollectionQueryBuilder query = new ElementCollectionQueryBuilder(owningType, attribute,
-          entry.getValue(), getContext(), getUriInfoResource(), getEntityManager());
+          entry.getValue(), getContext(), getNavigation(), getEntityManager());
       final QueryElementCollectionResult result = query.execute();
       allResults.put(attribute, result);
     }

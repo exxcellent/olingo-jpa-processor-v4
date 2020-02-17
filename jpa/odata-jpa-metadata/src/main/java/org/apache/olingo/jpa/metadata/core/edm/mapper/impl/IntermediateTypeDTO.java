@@ -309,12 +309,6 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
   }
 
   @Override
-  public JPAAssociationPath getDeclaredAssociation(final JPAAssociationPath associationPath)
-      throws ODataJPAModelException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public JPAAssociationPath getDeclaredAssociation(final String externalName) throws ODataJPAModelException {
     lazyBuildCompleteAssociationPathMap();
     for (final String internalName : declaredNaviPropertiesList.keySet()) {

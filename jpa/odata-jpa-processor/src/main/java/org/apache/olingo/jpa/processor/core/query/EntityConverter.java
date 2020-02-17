@@ -34,19 +34,19 @@ import org.apache.olingo.server.api.uri.UriHelper;
  * @author Ralf Zozmann
  *
  */
-public class EntityConverter extends JPATupleAbstractConverter {
+public class EntityConverter extends AbstractEntityConverter {
 
-  public EntityConverter(final JPAEntityType jpaConversionTargetEntity, final UriHelper uriHelper,
+  public EntityConverter(final UriHelper uriHelper,
       final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata)
           throws ODataJPAModelException {
-    super(jpaConversionTargetEntity, uriHelper, sd, serviceMetadata);
+    super(uriHelper, sd, serviceMetadata);
   }
 
   /**
    * Convert a OData entity into a JPA entity.
    */
-  public Object convertOData2JPAEntity(final Entity entity) throws ODataJPAModelException, ODataJPAConversionException {
-    final JPAStructuredType jpaEntityType = getJpaEntityType();
+  public Object convertOData2JPAEntity(final Entity entity, final JPAStructuredType jpaEntityType)
+      throws ODataJPAModelException, ODataJPAConversionException {
     if (!jpaEntityType.getExternalFQN().getFullQualifiedNameAsString().equals(entity.getType())) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE,
           jpaEntityType.getExternalFQN().getFullQualifiedNameAsString());
@@ -67,11 +67,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
    * OData entity representation.
    *
    */
-  public Entity convertJPA2ODataEntity(final Object jpaEntity) throws ODataJPAModelException, ODataJPAConversionException {
-    return convertJPA2ODataEntity(getJpaEntityType(), jpaEntity);
-  }
-
-  private Entity convertJPA2ODataEntity(final JPAEntityType jpaType, final Object jpaEntity)
+  public Entity convertJPA2ODataEntity(final JPAEntityType jpaType, final Object jpaEntity)
       throws ODataJPAModelException, ODataJPAConversionException {
 
     final Entity odataEntity = new Entity();
@@ -97,7 +93,7 @@ public class EntityConverter extends JPATupleAbstractConverter {
     }
     odataEntity.getNavigationLinks().addAll(convertAssociations(jpaType, jpaEntity));
 
-    odataEntity.setId(createId(odataEntity, jpaType, getUriHelper()));
+    odataEntity.setId(createId(odataEntity, jpaType));
 
     return odataEntity;
   }

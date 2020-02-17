@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
-import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.queryoption.ApplyOption;
@@ -24,44 +24,59 @@ import org.apache.olingo.server.api.uri.queryoption.SkipTokenOption;
 import org.apache.olingo.server.api.uri.queryoption.TopOption;
 import org.apache.olingo.server.core.uri.UriResourceNavigationPropertyImpl;
 
-// TODO In case of second level $expand expandItem.getResourcePath() returns an empty UriInfoResource => Bug or
-// Feature?
 /**
- * Helper class to fake an expand item as {@link UriInfoResource}.
+ * Wrapper to handle $filter, $expand and resource parts in a proper way, because for an {@link ExpandItem} the options
+ * are not on the expected level.
  *
  */
-public class JPAExpandItemWrapper implements UriInfoResource {
-  private final ExpandItem item;
-  private final List<UriResource> starExpandResourcePathFake;
+class ExpandWrapper implements UriInfoResource {
 
-  public JPAExpandItemWrapper(final List<UriResource> startResourceList, final ExpandItem item)
-      throws ODataApplicationException {
+  private final ExpandItem item;
+  private final List<UriResource> resourceParts;
+
+  ExpandWrapper(final ExpandItem item) {
     super();
     this.item = item;
     assert item.getResourcePath() != null;
-    starExpandResourcePathFake = new LinkedList<UriResource>();
-    starExpandResourcePathFake.addAll(startResourceList);
-    starExpandResourcePathFake.addAll(item.getResourcePath().getUriResourceParts());
+    resourceParts = new LinkedList<UriResource>(item.getResourcePath().getUriResourceParts());
   }
 
   /**
-   * Called for * $expand without resource parts.
+   * Called for * $expand without separate {@link ExpandItem#getResourcePath() resource parts}.
    */
-  public JPAExpandItemWrapper(final List<UriResource> startResourceList, final ExpandItem item,
-      final EdmNavigationProperty property) {
+  public ExpandWrapper(final ExpandItem item, final EdmNavigationProperty property) {
     super();
-    assert property != null;
     this.item = item;
     assert item.getResourcePath() == null;
-    // simulate a resource navigation for $expand
+    assert property != null;
     final UriResourceNavigationPropertyImpl fake = new UriResourceNavigationPropertyImpl(property);
-    starExpandResourcePathFake = new LinkedList<UriResource>();
-    starExpandResourcePathFake.addAll(startResourceList);
-    starExpandResourcePathFake.add(fake);
+    resourceParts = new ArrayList<UriResource>(1);
+    // simulate a property navigation for $expand without resources
+    resourceParts.add(fake);
+  }
+
+  @Override
+  public List<UriResource> getUriResourceParts() {
+    return resourceParts;
+  }
+
+  @Override
+  public ApplyOption getApplyOption() {
+    return item.getApplyOption();
+  }
+
+  @Override
+  public CountOption getCountOption() {
+    return item.getCountOption();
   }
 
   @Override
   public List<CustomQueryOption> getCustomQueryOptions() {
+    return null;
+  }
+
+  @Override
+  public DeltaTokenOption getDeltaTokenOption() {
     return null;
   }
 
@@ -83,11 +98,6 @@ public class JPAExpandItemWrapper implements UriInfoResource {
   @Override
   public IdOption getIdOption() {
     return null;
-  }
-
-  @Override
-  public CountOption getCountOption() {
-    return item.getCountOption();
   }
 
   @Override
@@ -121,22 +131,7 @@ public class JPAExpandItemWrapper implements UriInfoResource {
   }
 
   @Override
-  public List<UriResource> getUriResourceParts() {
-    return starExpandResourcePathFake;
-  }
-
-  @Override
   public String getValueForAlias(final String alias) {
-    return null;
-  }
-
-  @Override
-  public ApplyOption getApplyOption() {
-    return item.getApplyOption();
-  }
-
-  @Override
-  public DeltaTokenOption getDeltaTokenOption() {
     return null;
   }
 }

@@ -4,15 +4,15 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.ODataApplicationException;
 
 class JPAAggregationOperationCountImp implements JPAAggregationOperation {
 
-  private final JPAQueryBuilderIfc parent;
+  private final FilterContextQueryBuilderIfc parent;
   private final JPAODataDatabaseProcessor converter;
 
-  public JPAAggregationOperationCountImp(final JPAQueryBuilderIfc parent,
+  public JPAAggregationOperationCountImp(final FilterContextQueryBuilderIfc parent,
       final JPAODataDatabaseProcessor converter) {
     this.parent = parent;
     this.converter = converter;
@@ -28,7 +28,7 @@ class JPAAggregationOperationCountImp implements JPAAggregationOperation {
     return JPAFilterAggregationType.COUNT;
   }
 
-  public JPAQueryBuilderIfc getParent() {
+  public FilterContextQueryBuilderIfc getParent() {
     return parent;
   }
 

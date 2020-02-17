@@ -21,7 +21,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 
 @SuppressWarnings("rawtypes")
-public class JPALiteralOperand implements JPAExpressionElement<Comparable> {
+public class JPALiteralOperand implements JPAExpressionElement<Object> {
 
   private static class AnonymousSimpleTypeElement implements JPATypedElement {
 
@@ -83,9 +83,9 @@ public class JPALiteralOperand implements JPAExpressionElement<Comparable> {
     this.cb = cb;
   }
 
-  private Expression<Comparable> wrapIntoExpression(final Comparable<Object> value) {
+  private Expression<Object> wrapIntoExpression(final Object value) {
     if (value == null) {
-      return cb.nullLiteral(Comparable.class);
+      return cb.nullLiteral(Object.class);
     }
     return cb.literal(value);
   }
@@ -97,7 +97,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Comparable> {
   }
 
   @SuppressWarnings("unchecked")
-  public Expression<Comparable> getLiteralExpression()
+  public Expression<Object> getLiteralExpression()
       throws ODataApplicationException {
     return wrapIntoExpression(get());
   }
@@ -111,7 +111,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Comparable> {
    * @return The literal value represented by an instance of the requested target
    *         type.
    */
-  public Expression<Comparable> getLiteralExpression(final EdmPrimitiveTypeKind requestedTargetEdmTypeKind)
+  public Expression<Object> getLiteralExpression(final EdmPrimitiveTypeKind requestedTargetEdmTypeKind)
       throws ODataApplicationException {
     // try to convert/cast the literal into an object of requested type
     final JPATypedElement typeInformation = new AnonymousSimpleTypeElement(requestedTargetEdmTypeKind);
@@ -123,7 +123,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Comparable> {
    * Converts a literal value into system type of attribute
    */
   @SuppressWarnings({ "unchecked" })
-  public Expression<Comparable> getLiteralExpression(final JPATypedElement attribute)
+  public Expression<Object> getLiteralExpression(final JPATypedElement attribute)
       throws ODataApplicationException {
 
     if (isNullLiteral()) {
@@ -131,14 +131,13 @@ public class JPALiteralOperand implements JPAExpressionElement<Comparable> {
     }
     if (attribute.getType().isEnum()) {
       final Enum<?> enumValue = getEnumValue(attribute);
-      return wrapIntoExpression((Comparable<Object>) enumValue);
+      return wrapIntoExpression(enumValue);
     }
     try {
       // normal primitive type handling
       final EdmPrimitiveTypeKind edmTypeKind = TypeMapping.convertToEdmSimpleType(attribute);
       final Object odataValue = convert2Value(edmTypeKind, attribute);
-      final Comparable<Object> convertedValue = (Comparable<Object>) CONVERTER.convertOData2JPAValue(attribute,
-          odataValue);
+      final Object convertedValue = CONVERTER.convertOData2JPAValue(attribute, odataValue);
       return wrapIntoExpression(convertedValue);
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAFilterException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);

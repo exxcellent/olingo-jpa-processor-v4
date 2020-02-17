@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -148,7 +150,7 @@ public class IntegrationTestHelper {
     req.setUserPrincipal(principal);
   }
 
-  public void execute(final int status) throws ODataException {
+  public void execute(final int status) throws ODataException, UnsupportedEncodingException {
     this.resp = new HttpServletResponseDouble();
     final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
@@ -163,7 +165,7 @@ public class IntegrationTestHelper {
     if (securityInceptor != null) {
       handler.setSecurityInceptor(securityInceptor);
     }
-    LOG.info("Execute " + req.getRequestTestExecutionURI().toString() + "...");
+    LOG.info("Execute " + URLDecoder.decode(req.getRequestTestExecutionURI().toString(), "UTF-8") + "...");
     handler.process(req, resp);
     executed = true;
     assertEquals(parseResponse(), status, getStatus());

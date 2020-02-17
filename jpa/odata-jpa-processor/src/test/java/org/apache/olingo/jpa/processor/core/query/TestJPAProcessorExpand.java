@@ -3,10 +3,12 @@ package org.apache.olingo.jpa.processor.core.query;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -135,17 +137,17 @@ public class TestJPAProcessorExpand extends TestBase {
     final ObjectNode user = (ObjectNode) created.get("User");
   }
 
-  @Ignore("AdministrativeDivision not available at Address")
   @Test
   public void testExpandEntityViaComplexProperty() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations('3')/Address?$expand=AdministrativeDivision");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment(
+        "3").appendNavigationSegment("Address").expand("AdministrativeDivision");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getJsonObjectValue();
-    final ObjectNode created = (ObjectNode) org.get("AdministrativeDivision");
-    assertEquals("USA", created.get("ParentDivisionCode").asText());
+    final ObjectNode address = helper.getJsonObjectValue();
+    assertEquals("223", address.get("HouseNumber").asText());
+    final ObjectNode ad = (ObjectNode) address.get("AdministrativeDivision");
+    assertEquals("USA", ad.get("ParentDivisionCode").asText());
   }
 
   @Ignore // TODO Check if metadata are generated correct
@@ -194,8 +196,15 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testNestedExpandNestedExpand2LevelsSelf() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE253',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($expand=Children)");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE253");
+    mapKeys.put("CodeID", "NUTS3");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.EXPAND, "Children");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expandWithOptions("Parent", expandOptionsTargets);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -236,6 +245,8 @@ public class TestJPAProcessorExpand extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
+    assertEquals("USA", div.get("Country").asText());
+    assertNull(div.get("CityName"));
     final ObjectNode admin = (ObjectNode) div.get("AdministrativeDivision");
     assertNotNull(admin);
     final ObjectNode parent = (ObjectNode) admin.get("Parent");
@@ -255,25 +266,39 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals("1", parent.get("Parent").get("CodeID").asText());
   }
 
-  @Ignore // TODO check with Olingo looks like OData does not support this
   @Test
   public void testExpandWithNavigationToProperty() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE253',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent/CodeID");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE253");
+    mapKeys.put("CodeID", "NUTS3");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.SELECT, "CodeID");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expandWithOptions("Parent", expandOptionsTargets);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
+    assertNotNull(div.get("Area"));
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("CodeID"));
     assertEquals("NUTS2", parent.get("CodeID").asText());
-    // TODO: Check how to create the response correctly
-    // assertEquals(1, parent.size());
+    // only the keys must be selected (see $select)
+    assertNull(parent.get("Area"));
   }
 
   @Test
   public void testExpandWithOrderByDesc() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode desc)");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE2");
+    mapKeys.put("CodeID", "NUTS1");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.ORDERBY, "DivisionCode desc");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expandWithOptions("Children", expandOptionsTargets);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -284,8 +309,15 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithOrderByAsc() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode asc)");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE2");
+    mapKeys.put("CodeID", "NUTS1");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.ORDERBY, "DivisionCode asc");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expandWithOptions("Children", expandOptionsTargets);
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -648,13 +680,22 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandEntitySetForOneToOneUnidirectional() throws IOException, ODataException {
 
     // filter for the only entity having an image
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("ID eq '9'").expand(
-        "ImageUnidirectional");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.FILTER, "ThumbnailUrl ne 'http://nowhere.com'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter(
+        "Name1 eq 'Ninth Org.'")
+        .expandWithOptions(
+            "ImageUnidirectional", expandOptionsTargets).expandWithOptions("Address/AdministrativeDivision", Collections
+                .emptyMap());
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
     assertNotNull(set);
+    // only Organization('9') should match
+    assertTrue(set.getEntities().size() == 1);
+    assertEquals(set.getEntities().get(0).getProperty("ID").getPrimitiveValue().toCastValue(String.class), "9");
+
   }
 }

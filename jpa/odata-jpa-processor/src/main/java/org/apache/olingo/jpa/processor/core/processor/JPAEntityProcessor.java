@@ -27,6 +27,7 @@ import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.EntityCountQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPAInstanceResultConverter;
+import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCollection;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCount;
@@ -105,8 +106,8 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       final DeserializerResult deserializerResult = deserializer.entity(request.getBody(), edmType);
       Entity odataEntity = deserializerResult.getEntity();
 
-      final EntityConverter entityConverter = new EntityConverter(jpaEntityType, odata.createUriHelper(), sd, serviceMetadata);
-      final Object persistenceJPAEntity = entityConverter.convertOData2JPAEntity(odataEntity);
+      final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
+      final Object persistenceJPAEntity = entityConverter.convertOData2JPAEntity(odataEntity, jpaEntityType);
 
       final DTOEntityHelper helper = new DTOEntityHelper(context, serviceMetadata, uriInfo);
       if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
@@ -116,7 +117,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
 
       em.persist(persistenceJPAEntity);
       // convert reverse to get also generated fields
-      odataEntity = entityConverter.convertJPA2ODataEntity(persistenceJPAEntity);
+      odataEntity = entityConverter.convertJPA2ODataEntity(jpaEntityType, persistenceJPAEntity);
 
       response.setHeader("Location", request.getRawBaseUri() + "/" + odataEntity.getId().toASCIIString()); // set always
       if (hasPreference(request, "return", "minimal")) {
@@ -210,13 +211,15 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
           throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
               HttpStatusCode.INTERNAL_SERVER_ERROR);
         }
-        final EntityConverter entityConverter = new EntityConverter(jpaEntityType, odata.createUriHelper(), sd, serviceMetadata);
-        final Object persistenceModifiedEntity = entityConverter.convertOData2JPAEntity(odataEntityMerged);
+        final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
+        final Object persistenceModifiedEntity = entityConverter.convertOData2JPAEntity(odataEntityMerged,
+            jpaEntityType);
         // FIXME we cannot use em.merge(), because relationships are removed...
         final Object persistenceMergedEntity = em.merge(persistenceModifiedEntity);
 
         // convert reverse to get also generated fields
-        final Entity odataEntityUpdated = entityConverter.convertJPA2ODataEntity(persistenceMergedEntity);
+        final Entity odataEntityUpdated = entityConverter.convertJPA2ODataEntity(jpaEntityType,
+            persistenceMergedEntity);
 
         // full response containing complete entity content
         final EntityCollection entityCollectionResult = new EntityCollection();
@@ -323,13 +326,13 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       try {
         if (uriInfo.getCountOption() != null && uriInfo.getCountOption().getValue()) {
           // count entities
-          final EntityCountQueryBuilder query = new EntityCountQueryBuilder(/* targetEdmEntitySet.getEntityType(), */ context,
-              uriInfo, em);
+          final EntityCountQueryBuilder query = new EntityCountQueryBuilder(context, new NavigationRoot(
+              uriInfo), em);
           return query.execute();
         } else {
           // load entities
-          final EntityQueryBuilder query = new EntityQueryBuilder(/* targetEdmEntitySet.getEntityType(), */ context, uriInfo,
-              em, serviceMetadata);
+          final EntityQueryBuilder query = new EntityQueryBuilder(context, new NavigationRoot(uriInfo), em,
+              serviceMetadata);
           return query.execute(true);
         }
 

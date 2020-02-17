@@ -14,10 +14,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
+import org.apache.olingo.jpa.processor.core.query.NavigationIfc;
+import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriInfoKind;
 import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.UriResourceEntitySetImpl;
@@ -97,12 +98,12 @@ public abstract class TestBase {
     return new URIBuilderImpl(new ConfigurationImpl(), IntegrationTestHelper.uriPrefix);
   }
 
-  protected UriInfo createTestUriInfo(final String entitySetName) {
+  protected NavigationIfc createTestUriInfo(final String entitySetName) {
     final UriInfoImpl impl = new UriInfoImpl();
     impl.setKind(UriInfoKind.resource);
     final UriResourceEntitySetImpl ri = new UriResourceEntitySetImpl(new EdmEntitySetDouble(nameBuilder,
         entitySetName));
     impl.addResourcePart(ri);
-    return impl;
+    return new NavigationRoot(impl);
   }
 }

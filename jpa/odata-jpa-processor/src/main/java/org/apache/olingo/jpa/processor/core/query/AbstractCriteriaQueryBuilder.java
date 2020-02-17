@@ -43,51 +43,90 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
+import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
+import org.apache.olingo.server.api.uri.queryoption.SearchOption;
 import org.apache.olingo.server.api.uri.queryoption.SkipOption;
 import org.apache.olingo.server.api.uri.queryoption.TopOption;
 import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
+import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
-public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>, DT> extends AbstractQueryBuilder
-implements
-JPAQueryBuilderIfc {
+public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>, DT> extends AbstractQueryBuilder {
 
   protected static enum InitializationState {
     NotInitialized, Initialized;
   }
 
+  /**
+   * Helper class to access the right entity ('FROM') for filter expression
+   *
+   */
+  protected class FilterQueryBuilderContext implements FilterContextQueryBuilderIfc {
+
+    private final JPAEntityType scopeEntity;
+    private final From<?, ?> filterFrom;
+
+    FilterQueryBuilderContext(final JPAEntityType filterEntity, final From<?, ?> filterFrom) {
+      this.scopeEntity = filterEntity;
+      this.filterFrom = filterFrom;
+    }
+
+    @Override
+    public JPAODataContext getContext() {
+      return AbstractCriteriaQueryBuilder.this.context;
+    }
+
+    @Override
+    public EntityManager getEntityManager() {
+      return AbstractCriteriaQueryBuilder.this.getEntityManager();
+    }
+
+    @Override
+    public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+      return AbstractCriteriaQueryBuilder.this.createSubquery(subqueryResultType);
+    }
+
+    @Override
+    public JPAEntityType getQueryResultType() {
+      return scopeEntity;
+    }
+
+    @Override
+    public From<?, ?> getQueryResultFrom() {
+      return filterFrom;
+    }
+
+  }
+
   private final JPAODataContext context;
-  private final UriInfoResource uriResource;
+  private final NavigationIfc uriNavigation;
   private final EdmType edmType;
-  private final JPAEntityFilterProcessor filter;
-  private final JPAEntityType jpaStartEntityType;
   private final UriResourceEntitySet queryStartUriResource;
+  private final JPAEntityType jpaStartEntityType;
   private final List<UriParameter> keyPredicates;
   private final NavigationKeyBuilder jpaStartNavigationKeyBuilder;
   private List<NavigationBuilder> navigationQueryList = null;
   private InitializationState initStateType = InitializationState.NotInitialized;
 
-  protected AbstractCriteriaQueryBuilder(final JPAODataContext context, final UriInfoResource uriInfo, final EntityManager em)
-      throws ODataApplicationException, ODataJPAModelException {
+  protected AbstractCriteriaQueryBuilder(final JPAODataContext context, final NavigationIfc uriInfo,
+      final EntityManager em)
+          throws ODataApplicationException, ODataJPAModelException {
     super(em);
-    this.uriResource = uriInfo;
+    this.uriNavigation = uriInfo;
     this.context = context;
-    this.queryStartUriResource = Util.determineStartingEntityUriResource(uriInfo);
+    this.queryStartUriResource = Util.determineStartingEntityUriResource(uriInfo.getFirstStep());
     assert queryStartUriResource != null;
     this.keyPredicates = determineKeyPredicates(queryStartUriResource);
     this.edmType = queryStartUriResource.getType();
     this.jpaStartEntityType = context.getEdmProvider().getServiceDocument().getEntityType(edmType);
     assert jpaStartEntityType != null;
     jpaStartNavigationKeyBuilder = new NavigationKeyBuilder(jpaStartEntityType);
-    this.filter = new JPAEntityFilterProcessor(context.getOdata(), context.getEdmProvider().getServiceDocument(), em,
-        jpaStartEntityType, context.getDatabaseProcessor(), extractNavigableResourcePath(context.getEdmProvider()
-            .getServiceDocument(), uriInfo),
-        JPAEntityFilterProcessor.extractFilterExpression(
-            uriInfo), this);
   }
+
+  protected abstract <T> Subquery<T> createSubquery(Class<T> subqueryResultType);
 
   protected void assertInitialized() {
     if (initStateType != InitializationState.Initialized) {
@@ -103,8 +142,7 @@ JPAQueryBuilderIfc {
     return context.getOdata();
   }
 
-  @Override
-  public final JPAODataContext getContext() {
+  protected final JPAODataContext getContext() {
     return context;
   }
 
@@ -114,12 +152,12 @@ JPAQueryBuilderIfc {
    * simple/complex properties at end of path.
    */
   private static List<UriResource> extractNavigableResourcePath(final IntermediateServiceDocument sd,
-      final UriInfoResource uriInfo) throws ODataApplicationException {
-    if (!Util.hasNavigation(uriInfo.getUriResourceParts())) {
-      return uriInfo.getUriResourceParts();
+      final List<UriResource> resourceParts) throws ODataApplicationException {
+    if (!Util.hasNavigation(resourceParts)) {
+      return resourceParts;
     }
-    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, uriInfo.getUriResourceParts());
-    return uriInfo.getUriResourceParts().subList(0, naviPathList.size());
+    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, resourceParts);
+    return resourceParts.subList(0, naviPathList.size());
   }
 
   /**
@@ -182,8 +220,8 @@ JPAQueryBuilderIfc {
     return jpaStartEntityType;
   }
 
-  protected final UriInfoResource getUriInfoResource() {
-    return uriResource;
+  protected final NavigationIfc getNavigation() {
+    return uriNavigation;
   }
 
   /**
@@ -192,7 +230,6 @@ JPAQueryBuilderIfc {
    */
   public abstract <T> From<T, T> getQueryStartFrom();
 
-  @Override
   @SuppressWarnings("unchecked")
   public final From<DT, DT> getQueryResultFrom() {
     assertInitialized();
@@ -205,7 +242,6 @@ JPAQueryBuilderIfc {
     return (From<DT, DT>) last.getQueryResultFrom();
   }
 
-  @Override
   public final JPAEntityType getQueryResultType() {
     assertInitialized();
     final NavigationBuilder last = determineLastWorkingNavigationBuilder();
@@ -239,7 +275,7 @@ JPAQueryBuilderIfc {
   }
 
   private Integer determineSkipValue() throws ODataJPAQueryException {
-    final UriInfoResource uriResource = getUriInfoResource();
+    final UriInfoResource uriResource = getNavigation().getLastStep();
     final SkipOption skipOption = uriResource.getSkipOption();
     if (skipOption == null) {
       return null;
@@ -254,7 +290,7 @@ JPAQueryBuilderIfc {
   }
 
   private Integer determineTopValue() throws ODataJPAQueryException {
-    final UriInfoResource uriResource = getUriInfoResource();
+    final UriInfoResource uriResource = getNavigation().getLastStep();
     final TopOption topOption = uriResource.getTopOption();
     if (topOption == null) {
       return null;
@@ -304,13 +340,14 @@ JPAQueryBuilderIfc {
   }
 
   private List<NavigationBuilder> createNavigationElements() throws ODataJPAModelException, ODataApplicationException {
-    final List<UriResource> resourceParts = uriResource.getUriResourceParts();
+
+    final List<UriResource> resourceParts = uriNavigation.getUriResourceParts();
 
     // 1. Determine all relevant associations
     final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(getServiceDocument(), resourceParts);
 
     // 2. Create the queries and roots
-    final List<NavigationBuilder> navigationQueryList = new ArrayList<NavigationBuilder>(uriResource
+    final List<NavigationBuilder> navigationQueryList = new ArrayList<NavigationBuilder>(uriNavigation
         .getUriResourceParts().size());
     From<?, ?> parentFrom = getQueryStartFrom();// ==scope before navigation
     NavigationKeyBuilder keyBuilderParent = jpaStartNavigationKeyBuilder;
@@ -320,9 +357,8 @@ JPAQueryBuilderIfc {
             + naviInfo.getNavigationUriResource().getType().getName() + "' not found. Cannot resolve target entity");
         continue;
       }
-
-      final NavigationBuilder navQuery = new NavigationBuilder(naviInfo.getNavigationUriResource(), naviInfo
-          .getNavigationPath(), parentFrom, keyBuilderParent, getEntityManager());
+      final NavigationBuilder navQuery = new NavigationBuilder(context, naviInfo.getNavigationUriResource(), naviInfo
+          .getNavigationPath(), parentFrom, keyBuilderParent, getEntityManager(), null);
       navigationQueryList.add(navQuery);
       parentFrom = navQuery.getQueryResultFrom();
       keyBuilderParent = navQuery.getNavigationKeyBuilder();
@@ -342,6 +378,24 @@ JPAQueryBuilderIfc {
     return dac.buildSelectCondition(getEntityManager(), (From<Object, Object>) getQueryResultFrom());
   }
 
+  private final javax.persistence.criteria.Expression<Boolean> createWhereFromFilter(
+      final FilterContextQueryBuilderIfc filterContext, final List<UriResource> navPath, final FilterOption filterOption)
+          throws ExpressionVisitException, ODataApplicationException {
+
+    // determine the navigation builder matching the filter affecting path element
+    final VisitableExpression filterExpression = filterOption.getExpression();
+    if (filterExpression == null) {
+      return null;
+    }
+
+    final JPAEntityFilterProcessor filter = new JPAEntityFilterProcessor(getContext().getOdata(), getContext()
+        .getEdmProvider().getServiceDocument(), getEntityManager(),
+        filterContext.getQueryResultType(), getContext().getDatabaseProcessor(), navPath, filterExpression,
+        filterContext);
+
+    return filter.compile();
+  }
+
   protected javax.persistence.criteria.Expression<Boolean> createWhere() throws ODataApplicationException,
   ODataJPAModelException {
 
@@ -353,8 +407,49 @@ JPAQueryBuilderIfc {
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part2-url-conventions/odata-v4.0-errata02-os-part2-url-conventions-complete.html#_Toc406398094
     // https://tools.oasis-open.org/version-control/browse/wsvn/odata/trunk/spec/ABNF/odata-abnf-construction-rules.txt
+
     try {
-      whereCondition = combineAND(whereCondition, filter.compile());
+      // 1. check filter for current entity
+      final FilterOption filterOption = uriNavigation.getFilterOption(queryStartUriResource);
+      if (filterOption != null/* isLastNavigableElementInUriResource(uriInfo, queryStartUriResource) */) {
+        // no navigation, so we may have an filter directly for this entity
+        final List<UriResource> navPath = extractNavigableResourcePath(context.getEdmProvider().getServiceDocument(),
+            uriNavigation.getFirstStep().getUriResourceParts());
+        final FilterQueryBuilderContext filterContext = new FilterQueryBuilderContext(jpaStartEntityType,
+            getQueryStartFrom());
+        final javax.persistence.criteria.Expression<Boolean> filterCondition = createWhereFromFilter(filterContext,
+            navPath,
+            filterOption);
+        whereCondition = combineAND(whereCondition, filterCondition);
+      }
+      // 2. check filter for navigation elements also
+      for (final NavigationBuilder navQuery : navigationQueryList) {
+        if (!navQuery.isWorking()) {
+          continue;
+        }
+        final FilterOption navFilterOption = uriNavigation.getFilterOption(navQuery.getNavigationUriInfoResource());
+        if (navFilterOption == null) {
+          continue;
+        }
+        // TODO type cast ok? -> prefer JPAStructuredType
+        final FilterQueryBuilderContext navFilterContext = new FilterQueryBuilderContext((JPAEntityType) navQuery
+            .getQueryResultType(),
+            navQuery.getQueryResultFrom());
+        // build a navigation (sub) path up to the navigation element resource
+        final List<UriResource> navResourcePath = new LinkedList<UriResource>();
+        for (final UriResource current : uriNavigation.getUriResourceParts()) {
+          navResourcePath.add(current);
+          if (current == navQuery.getNavigationUriInfoResource()) {
+            break;
+          }
+        }
+        final List<UriResource> navFilterPath = extractNavigableResourcePath(context.getEdmProvider()
+            .getServiceDocument(), navResourcePath);
+
+        final javax.persistence.criteria.Expression<Boolean> navFilterCondition = createWhereFromFilter(
+            navFilterContext, navFilterPath, navFilterOption);
+        whereCondition = combineAND(whereCondition, navFilterCondition);
+      }
     } catch (final ExpressionVisitException e) {
       throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_FILTER_ERROR,
           HttpStatusCode.BAD_REQUEST, e);
@@ -362,10 +457,8 @@ JPAQueryBuilderIfc {
 
     final javax.persistence.criteria.Expression<Boolean> existsSubQuery = buildNavigationWhereClause();
     whereCondition = combineAND(whereCondition, existsSubQuery);
-
-    if (uriResource.getSearchOption() != null && uriResource.getSearchOption().getSearchExpression() != null) {
-      whereCondition = combineAND(whereCondition, createWhereFromSearchOption());
-    }
+    whereCondition = combineAND(whereCondition, createWhereFromSearchOption(uriNavigation.getLastStep()
+        .getSearchOption()));
 
     return whereCondition;
   }
@@ -435,9 +528,12 @@ JPAQueryBuilderIfc {
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  private javax.persistence.criteria.Expression<Boolean> createWhereFromSearchOption() throws ODataApplicationException,
-  ODataJPAModelException {
-    final SearchSubQueryBuilder searchQuery = new SearchSubQueryBuilder(this);
+  private javax.persistence.criteria.Expression<Boolean> createWhereFromSearchOption(final SearchOption searchOption)
+      throws ODataApplicationException,
+      ODataJPAModelException {
+    final FilterQueryBuilderContext filterHelper = new FilterQueryBuilderContext(getQueryResultType(),
+        getQueryResultFrom());
+    final SearchSubQueryBuilder searchQuery = new SearchSubQueryBuilder(filterHelper, searchOption);
     final Subquery<?> subquery = searchQuery.getSubQueryExists();
     if (subquery == null) {
       return null;
@@ -449,7 +545,7 @@ JPAQueryBuilderIfc {
 
     // TODO useless functionality, because we are joining already all navigation parts?!
 
-    final OrderByOption orderBy = uriResource.getOrderByOption();
+    final OrderByOption orderBy = uriNavigation.getLastStep().getOrderByOption();
     if (orderBy == null) {
       return Collections.emptyList();
     }

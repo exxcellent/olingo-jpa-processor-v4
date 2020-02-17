@@ -26,7 +26,7 @@ import org.junit.Test;
 public class TestJPATupleResultConverterCompoundKey extends TestBase {
   public static final int NO_POSTAL_ADDRESS_FIELDS = 8;
   public static final int NO_ADMIN_INFO_FIELDS = 2;
-  private JPATuple2EntityConverter cut;
+  private JPATuple2ODataEntityConverter cut;
   private List<Tuple> tupleResult;
   private UriHelperDouble uriHelper;
   private Map<String, String> keyPredicates;
@@ -45,9 +45,8 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 
     final QueryEntityResult queryResult = new QueryEntityResult(tupleResult,
         helper.getJPAEntityType("BusinessPartnerRoles"));
-    cut = new JPATuple2EntityConverter(
+    cut = new JPATuple2ODataEntityConverter(
         helper.serviceDocument,
-        queryResult.getEntityType(),
         uriHelper,
         new ServiceMetadataDouble(nameBuilder, "BusinessPartnerRole"));
 
@@ -61,7 +60,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
     uriHelper.setKeyPredicates(keyPredicates, "BusinessPartnerID");
     keyPredicates.put("3", "BusinessPartnerID='3',RoleCategory='C'");
 
-    final EntityCollection act = cut.convertQueryResult(queryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(queryResult);
     assertEquals(1, act.getEntities().size());
     assertEquals("3", act.getEntities().get(0).getProperty("BusinessPartnerID").getValue().toString());
     assertEquals("C", act.getEntities().get(0).getProperty("RoleCategory").getValue().toString());
@@ -76,9 +75,8 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 
     final QueryEntityResult queryResult = new QueryEntityResult(tupleResult,
         helper.getJPAEntityType("AdministrativeDivisionDescriptions"));
-    cut = new JPATuple2EntityConverter(
+    cut = new JPATuple2ODataEntityConverter(
         helper.serviceDocument,
-        queryResult.getEntityType(),
         uriHelper,
         new ServiceMetadataDouble());
 
@@ -93,7 +91,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
     uriHelper.setKeyPredicates(keyPredicates, "DivisionCode");
     keyPredicates.put("DEU", "CodePublisher='ISO',CodeID='3166-1',DivisionCode='DEU',Language='en'");
 
-    final EntityCollection act = cut.convertQueryResult(queryResult);
+    final EntityCollection act = cut.convertDBTuple2OData(queryResult);
     assertEquals(1, act.getEntities().size());
     assertEquals("ISO", act.getEntities().get(0).getProperty("CodePublisher").getValue().toString());
     assertEquals("en", act.getEntities().get(0).getProperty("Language").getValue().toString());
