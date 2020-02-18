@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
@@ -21,6 +22,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -32,6 +34,23 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
   public static final String ACCESS_MODIFIER_GET = "get";
   public static final String ACCESS_MODIFIER_SET = "set";
   public static final String ACCESS_MODIFIER_IS = "is";
+
+  protected final static Logger LOG = Logger.getLogger(AbstractEntityConverter.class.getName());
+
+  protected static enum KeyPredicateStrategy {
+    /**
+     * Allow missing key fields, the id will not be unique and may have side effects to serialization.
+     */
+    ALLOW_NULL,
+    /**
+     * Throw exception for empty id's.
+     */
+    FORCE_EXISTING,
+    /**
+     * Generate an volatile id on demand if missing.
+     */
+    AUTOGENERATE_MISSING;
+  }
 
   private final IntermediateServiceDocument sd;
   private final ServiceMetadata serviceMetadata;
@@ -50,8 +69,18 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
     return uriHelper;
   }
 
-  protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType)
-      throws ODataJPAModelException {
+  protected final IntermediateServiceDocument getIntermediateServiceDocument() {
+    return sd;
+  }
+
+  /**
+   *
+   * @param keyStrategy Define strategy to work with entities without key attribute or key values.
+   * @return The id URI or <code>null</code>
+   */
+  protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType,
+      final KeyPredicateStrategy keyStrategy)
+          throws ODataJPAModelException {
 
     final EdmEntityType edmType = serviceMetadata.getEdm()
         .getEntityType(jpaEntityType.getExternalFQN());
@@ -61,8 +90,25 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
 
       final String setName = sd.getEntitySet(jpaEntityType).getExternalName();
       final StringBuffer uriString = new StringBuffer(setName);
+      final String idPart = uriHelper.buildKeyPredicate(edmType, odataEntity);
       uriString.append("(");
-      uriString.append(uriHelper.buildKeyPredicate(edmType, odataEntity));
+      if (idPart != null && !idPart.isEmpty()) {
+        uriString.append(idPart);
+      } else {
+        switch (keyStrategy) {
+        case FORCE_EXISTING:
+          throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM, "Entity has no key, but is required: "
+              + odataEntity.toString());
+        case AUTOGENERATE_MISSING:
+          LOG.log(Level.FINER, "Found entity without key attributes, will create generated id: " + odataEntity
+              .toString());
+          uriString.append("generated-".concat(Long.toString(System.currentTimeMillis()).concat("-").concat(Integer
+              .toString(odataEntity.hashCode()))));
+          break;
+        default:
+          // accept null
+        }
+      }
       uriString.append(")");
       return new URI(uriString.toString());
     } catch (final URISyntaxException e) {

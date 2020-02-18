@@ -26,11 +26,12 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
+import org.apache.olingo.server.api.uri.UriInfoResource;
 
 /**
  *
@@ -42,15 +43,17 @@ public class JPAEntityHelper {
   private final Logger log = Logger.getLogger(JPAEntityHelper.class.getName());
   private final EntityManager em;
   private final IntermediateServiceDocument sd;
-  private final DependencyInjector dependencyInjector;
+  private final JPAODataSessionContextAccess context;
   private final EntityConverter entityConverter;
+  private final DTOEntityHelper dtoHelper;
 
-  public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final ServiceMetadata serviceMetadata,
-      final UriHelper uriHelper, final DependencyInjector dependencyInjector) throws ODataJPAModelException {
+  public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final UriInfoResource uriInfo,
+      final UriHelper uriHelper, final JPAODataSessionContextAccess context) throws ODataJPAModelException {
     this.em = em;
     this.sd = sd;
-    this.dependencyInjector = dependencyInjector;
-    entityConverter = new EntityConverter(uriHelper, sd, serviceMetadata);
+    this.context = context;
+    entityConverter = new EntityConverter(uriHelper, sd, context.getServiceMetaData());
+    dtoHelper = new DTOEntityHelper(context, uriInfo);
   }
 
   @SuppressWarnings("unchecked")
@@ -119,6 +122,7 @@ public class JPAEntityHelper {
   private Object[] buildArguments(final JPAAction jpaAction, final Map<String, Parameter> odataParameterValues)
       throws ODataJPAModelException, ODataJPAConversionException {
 
+    final DependencyInjector dependencyInjector = context.getDependencyInjector();
     final List<JPAOperationParameter> actionParameters = jpaAction.getParameters();
     final Object[] args = new Object[actionParameters.size()];
     for (int i = 0; i < actionParameters.size(); i++) {
@@ -157,8 +161,13 @@ public class JPAEntityHelper {
         break;
       case ENTITY:
         final Entity entity = p.asEntity();
-        final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
-        final JPAEntityType jpaType = determineJPAEntityType(sd, persistenceType);
+        JPAEntityType jpaType;
+        if (dtoHelper.isTargetingDTO(jpaParameter.getType())) {
+          jpaType = sd.getEntityType(new FullQualifiedName(jpaParameter.getType().getName()));
+        } else {
+          final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
+          jpaType = determineJPAEntityType(sd, persistenceType);
+        }
         final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity, jpaType);
         args[i] = jpaEntity;
         break;
@@ -205,10 +214,9 @@ public class JPAEntityHelper {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
         }
         if (jpaAttribute.isAssociation()) {
-          throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
+          throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
         }
-        final Object value = entityConverter.transferOData2JPAProperty(null, jpaType, jpaAttribute,
-            oDataEntity.getProperties());
+        final Object value = entityConverter.transferOData2JPAProperty(null, jpaAttribute, oDataEntity.getProperties());
         if (value == null) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER);
         }

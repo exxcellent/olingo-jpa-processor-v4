@@ -140,7 +140,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       final EntityCollection entityCollection = convert2Entities(resultIsCollection, acr);
       final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
       final UriHelper uriHelper = odata.createUriHelper();
-      // assuming the complete action result should be exapnded and serialized back to client
+      // assuming the complete action result should be expanded and serialized back to client
       ExpandOption resultExpand;
       if (uriInfo.getExpandOption() == null) {
         resultExpand = new ExpandOptionImpl();
@@ -338,8 +338,8 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       final JPAStructuredType jpaType = query.getQueryResultType();
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
-          final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-              getOData().createUriHelper(), context.getDependencyInjector());
+          final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData()
+              .createUriHelper(), context);
           for (final Entity entity : entityCollection.getEntities()) {
             // call action in context of entity
             final Object resultAction = invoker.invokeBoundActionMethod(jpaType, entity, jpaAction,
@@ -357,8 +357,8 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       }
     } else {
       try {
-        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-            getOData().createUriHelper(), context.getDependencyInjector());
+        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData().createUriHelper(),
+            context);
         final Object resultAction = invoker.invokeUnboundActionMethod(jpaAction, parameters);
         if (resultAction != null) {
           results.add(resultAction);

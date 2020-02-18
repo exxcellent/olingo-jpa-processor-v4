@@ -41,7 +41,7 @@ public final class ExpandQueryEntityResult extends AbstractEntityQueryResult {
    * @see NavigationKeyBuilder#buildKeyForNavigationTargetRow(Tuple)
    * @see getResultNavigationKeyPath()
    */
-  public List<Tuple> getDirectMappingsResult(final String owningEntityKey) {
+  public List<Tuple> getAssociationResult(final String owningEntityKey) {
     return resultValues.get(owningEntityKey);
   }
 

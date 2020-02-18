@@ -10,6 +10,7 @@ import java.util.Collections;
 
 import javax.persistence.Id;
 
+import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
@@ -25,6 +26,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfoHandler;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructure;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
@@ -105,8 +107,11 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
     requestBody.append("}");
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Persons('99')/" + Constant.PUNIT_NAME + ".extractCountryCode", requestBody, HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
+        .appendActionCallSegment(Constant.PUNIT_NAME + ".extractCountryCode");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode object = helper.getJsonObjectValue();
@@ -120,10 +125,11 @@ public class TestJPAActions extends TestBase {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "unboundVoidAction", null, HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("unboundVoidAction");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, null,
+        HttpMethod.POST);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
-
   }
 
   @Test
@@ -132,14 +138,16 @@ public class TestJPAActions extends TestBase {
 
     persistenceAdapter.registerDTO(ActionDTO.class);
 
-    final StringBuffer requestBody = new StringBuffer("{");
     final String testId = "3";
+    final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"demoId\": \"" + testId + "\",");
     requestBody.append("\"withElementCollection\": false,");
     requestBody.append("\"withAssociation\": false");
     requestBody.append("}");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "createOrganization", requestBody, HttpMethod.POST);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
@@ -164,17 +172,29 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"withElementCollection\": true,");
     requestBody.append("\"withAssociation\": true");
     requestBody.append("}");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "createOrganization", requestBody, HttpMethod.POST);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
+    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
+    helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode object = helper.getJsonObjectValue();
-    assertNotNull(object);
-    assertEquals(testId, object.get("ID").asText());
-    assertTrue(object.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
-    assertNotNull(object.get("PhoneNumbersAsString"));
-    assertNotNull(object.get("PhoneNumbers"));
-    assertTrue(((ArrayNode) object.get("PhoneNumbers")).size() == 1);
-    assertTrue(((ArrayNode) object.get("PhoneNumbersAsString")).size() == 2);
+
+    // check json reponse
+    final ObjectNode organization = helper.getJsonObjectValue();
+    assertNotNull(organization);
+    assertEquals(testId, organization.get("ID").asText());
+    assertTrue(organization.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
+    assertNotNull(organization.get("PhoneNumbersAsString"));
+    assertNotNull(organization.get("PhoneNumbers"));
+    assertTrue(((ArrayNode) organization.get("PhoneNumbers")).size() == 1);
+    assertTrue(((ArrayNode) organization.get("PhoneNumbersAsString")).size() == 2);
+    assertEquals(1, ((ArrayNode) organization.get("Roles")).size());
+    // Olingo client response
+    final ClientEntity olingoEntity = helper.getOlingoEntityValue();
+    assertNotNull(olingoEntity);
+    assertEquals("TEST", olingoEntity.getNavigationLink("Roles").asInlineEntitySet().getEntitySet().getEntities().get(0)
+        .getProperty(
+            "RoleCategory").getPrimitiveValue().toCastValue(String.class));
   }
 
   @Test
@@ -420,6 +440,33 @@ public class TestJPAActions extends TestBase {
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
         uriBuilder, requestBody, HttpMethod.POST);
 
+    helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+  }
+
+  @Test
+  public void testNestedStructureTransferBackendToFrontend() throws IOException, ODataException, NoSuchMethodException {
+
+    persistenceAdapter.registerDTO(NestedStructure.class);
+
+    StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("\"numberOfLevels\": 4");
+    requestBody.append("}");
+    URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
+    IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final String jsonRaw = helper.getRawResult();
+    // Olingo client response as validation check
+    final ClientEntity olingoEntity = helper.getOlingoEntityValue();
+    assertNotNull(olingoEntity);
+
+    // reuse created structure to as parameter for another action
+    requestBody = new StringBuffer("{");
+    requestBody.append("\"structure\": " + jsonRaw);
+    requestBody.append("}");
+    uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
+    helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 

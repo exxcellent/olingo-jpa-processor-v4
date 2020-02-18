@@ -16,12 +16,12 @@ There are some limitations to an DTO:
 * Navigation or any other relationship types to other entities are not allowed
 * DTO's cannot be referenced from JPA entities
 * The common JPA annotations to define an entity are not supported
-* A DTO can't define OData actions or functions.
+* A DTO can define OData actions or functions. If only actions will be called then the _handler_ declaration may be omitted.
 * Inheritance is not allowed for an DTO.
 * The DTOmust have a public default constructor to create new instances.
 * Properties must be defined as attributes, declarations from getter/setter methods are not supported.
 * The DTO must be located in another package than the JPA model classes to target a separate name space.
-* Allowed operations on a DTO are GET (read) and PUT (write)
+* Allowed operations on a DTO are GET (read) and PUT (write), handled by the _handler_. 
 
 Example:
 
@@ -43,7 +43,7 @@ public class Address {
 
 ```
 
-1. Mark the PJO class with the @ODataDTO annotation and declare the handler.
+1. Mark the POJO class with the @ODataDTO annotation and declare the handler.
 1. Define a attribute of supported type, a id/key attribute can be defined via the common JPA annotation @Id.
 
 ## 1.2. Use the DTO

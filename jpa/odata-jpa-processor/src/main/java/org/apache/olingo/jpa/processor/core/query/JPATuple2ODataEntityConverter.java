@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.persistence.Tuple;
 import javax.persistence.TupleElement;
@@ -37,7 +36,6 @@ import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
 
 class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
-  private final static Logger LOG = Logger.getLogger(AbstractEntityConverter.class.getName());
 
   public JPATuple2ODataEntityConverter(final IntermediateServiceDocument sd, final UriHelper uriHelper,
       final ServiceMetadata serviceMetadata) throws ODataJPAModelException,
@@ -56,6 +54,7 @@ class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
     return odataEntityCollection;
   }
 
+  @SuppressWarnings("null")
   private String determineContentType(final JPAEntityType jpaEntity, final Tuple row) throws ODataJPAModelException {
     if (jpaEntity.getContentType() != null && !jpaEntity.getContentType().isEmpty()) {
       return jpaEntity.getContentType();
@@ -111,7 +110,15 @@ class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
 
     createElementCollections(odataEntity, row, jpaQueryResult);
 
-    odataEntity.setId(createId(odataEntity, jpaEntityType));
+    // entities loaded from DB should have an id as default..
+    KeyPredicateStrategy idStrategy = KeyPredicateStrategy.FORCE_EXISTING;
+    // but for simple entities the id may be null
+    if (jpaQueryResult.getElementCollections().isEmpty() && jpaQueryResult.getExpandChildren().isEmpty()) {
+      idStrategy = KeyPredicateStrategy.ALLOW_NULL;
+    }
+
+    odataEntity.setId(createId(odataEntity, jpaEntityType, idStrategy));
+
     // expands for (direct) relationship attributes
     for (final JPAAssociationPath association : jpaEntityType.getAssociationPathList()) {
       if (association.getPathElements().size() > 1) {
@@ -207,7 +214,6 @@ class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
     if (assoziation.getLeaf().isCollection()) {
       link.setInlineEntitySet(expandCollection);
       expandCollection.setCount(Integer.valueOf(expandCollection.getEntities().size()));
-      // TODO link.setHref(parentUri.toASCIIString());
     } else {
       if (expandCollection.getEntities() != null && !expandCollection.getEntities().isEmpty()) {
         final Entity expandEntity = expandCollection.getEntities().get(0);
@@ -225,15 +231,13 @@ class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
     final String owningEntityKey = jpaExpandResult.getNavigationKeyBuilder().buildKeyForNavigationOwningRow(
         owningEntityRow);
     final EntityCollection odataEntityCollection = new EntityCollection();
-    final List<Tuple> subResult = jpaExpandResult.getDirectMappingsResult(owningEntityKey);
+    final List<Tuple> subResult = jpaExpandResult.getAssociationResult(owningEntityKey);
     if (subResult != null) {
-
       for (final Tuple row : subResult) {
         final Entity entity = convertTuple2ODataEntity(row, jpaExpandResult);
         odataEntityCollection.getEntities().add(entity);
       }
     }
-    // TODO odataEntityCollection.setId(createId());
     return odataEntityCollection;
   }
 

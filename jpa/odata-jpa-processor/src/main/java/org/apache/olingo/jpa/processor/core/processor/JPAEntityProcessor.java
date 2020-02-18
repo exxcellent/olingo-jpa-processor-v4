@@ -109,7 +109,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
       final Object persistenceJPAEntity = entityConverter.convertOData2JPAEntity(odataEntity, jpaEntityType);
 
-      final DTOEntityHelper helper = new DTOEntityHelper(context, serviceMetadata, uriInfo);
+      final DTOEntityHelper helper = new DTOEntityHelper(context, uriInfo);
       if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
         throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_CREATE,
             HttpStatusCode.BAD_REQUEST);
@@ -153,7 +153,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
     final ServiceMetadata serviceMetadata = getServiceMetadata();
 
     // DTO?
-    final DTOEntityHelper helper = new DTOEntityHelper(context, serviceMetadata, uriInfo);
+    final DTOEntityHelper helper = new DTOEntityHelper(context, uriInfo);
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       try {
         final JPAEntityType jpaEntityType = context.getEdmProvider().getServiceDocument()
@@ -203,8 +203,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
         final Entity odataEntityMerged = mergeEntities(odataEntityPatchData,
             entityCollectionCompleteEntities.getEntities().get(0));
 
-        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-            odata.createUriHelper(), context.getDependencyInjector());
+        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, odata.createUriHelper(), context);
         // load the entity as JPA instance from DB, using the ID from resource path
         final Object persistenceEntity = invoker.lookupJPAEntity(jpaEntityType, odataEntityMerged);
         if (persistenceEntity == null) {
@@ -252,8 +251,8 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
       final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
       try {
-        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, getServiceMetadata(),
-            getOData().createUriHelper(), context.getDependencyInjector());
+        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData().createUriHelper(),
+            context);
         final JPAEntityType jpaType = sd.getEntitySetType(targetEdmEntitySet.getName());
         for (final Entity entity : entityCollection.getEntities()) {
           final Object persistenceEntity = invoker.lookupJPAEntity(jpaType, entity);
@@ -318,7 +317,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
     }
 
     final ServiceMetadata serviceMetadata = getServiceMetadata();
-    final DTOEntityHelper helper = new DTOEntityHelper(context, serviceMetadata, uriInfo);
+    final DTOEntityHelper helper = new DTOEntityHelper(context, uriInfo);
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       return helper.loadEntities(targetEdmEntitySet);
     } else {

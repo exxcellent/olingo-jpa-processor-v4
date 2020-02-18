@@ -6,20 +6,24 @@ import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
 import org.apache.olingo.server.api.OData;
+import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.debug.DebugSupport;
 
 public interface JPAODataSessionContextAccess {
 
-	public OData getOdata();
-	public JPAODataDatabaseProcessor getDatabaseProcessor();
+  public OData getOdata();
 
-	public JPAServiceDebugger getServiceDebugger();
+  public ServiceMetadata getServiceMetaData();
 
-	public DebugSupport getDebugSupport();
+  public JPAODataDatabaseProcessor getDatabaseProcessor();
 
-	public JPAEdmProvider getEdmProvider();
+  public JPAServiceDebugger getServiceDebugger();
 
-	public List<EdmxReference> getReferences();
+  public DebugSupport getDebugSupport();
 
-	public DependencyInjector getDependencyInjector();
+  public JPAEdmProvider getEdmProvider();
+
+  public List<EdmxReference> getReferences();
+
+  public DependencyInjector getDependencyInjector();
 }
