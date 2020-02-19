@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 
@@ -10,6 +11,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ImageLoader;
 import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
+import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -151,6 +153,9 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
   @Test
   public void testNavigationToComplexAttributeValue() throws IOException, ODataException {
+    // skip test with Hibernate
+    assumeTrue("Hibernate produce invalid SQL", getJPAProvider() != JPAProvider.Hibernate);
+
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("4")
@@ -165,6 +170,9 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
   @Test
   public void testNavigationToPrimitiveAttributeValue() throws IOException, ODataException {
+    // skip test with Hibernate
+    assumeTrue("Hibernate produce invalid SQL", getJPAProvider() != JPAProvider.Hibernate);
+
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("4")
