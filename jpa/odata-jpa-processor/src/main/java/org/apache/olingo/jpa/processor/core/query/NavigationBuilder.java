@@ -14,13 +14,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
-import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 
 /**
  * Creates additional FROM clauses and WHERE conditions for navigation (of one association) as part of an existing
@@ -29,22 +27,18 @@ import org.apache.olingo.server.api.uri.queryoption.FilterOption;
  */
 class NavigationBuilder extends AbstractQueryBuilder {
 
-  private final JPAODataContext context;
   private final List<UriParameter> keyPredicates;
   private final UriResourcePartTyped navigationResource;
   private final From<?, ?> joinedParentResultFrom;
   private final JPAStructuredType resultEntityType;
   private final NavigationKeyBuilder navigationKeyBuilder;
-  private final FilterOption filterOption;
 
-  public <T extends Object> NavigationBuilder(final JPAODataContext context,
+  public <T extends Object> NavigationBuilder(
       final UriResourcePartTyped navigationResource, final JPANavigationPath association,
-      final From<?, ?> parentFrom, final NavigationKeyBuilder parentNavigationKeyBuilder, final EntityManager em,
-      final FilterOption filterOption)
+      final From<?, ?> parentFrom, final NavigationKeyBuilder parentNavigationKeyBuilder, final EntityManager em)
           throws ODataApplicationException, ODataJPAModelException {
 
     super(em);
-    this.context = context;
     if (UriResourceProperty.class.isInstance(navigationResource)) {
       // if the navigation is something of type 'property' then we are working for an @ElementCollection
       // in such a case we have to delegate all calls to the parent 'navigation builder', because all selection paths
@@ -54,7 +48,6 @@ class NavigationBuilder extends AbstractQueryBuilder {
       this.navigationResource = null;
       this.navigationKeyBuilder = null;
       this.joinedParentResultFrom = null;
-      this.filterOption = null;
     } else {
       this.navigationResource = navigationResource;
       this.keyPredicates = determineKeyPredicates(navigationResource);
@@ -64,7 +57,6 @@ class NavigationBuilder extends AbstractQueryBuilder {
       // if parent is an navigation query the 'scope from' must be the target of navigation (== result from)
       this.joinedParentResultFrom = buildJoinPath(parentFrom, association);
       this.navigationKeyBuilder = parentNavigationKeyBuilder.buildChildNavigation(association, resultEntityType);
-      this.filterOption = filterOption;
     }
   }
 

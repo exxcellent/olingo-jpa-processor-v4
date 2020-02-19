@@ -134,13 +134,14 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals(93316, act.length, 0);
   }
 
-  @Ignore
+  // TODO
+  @Ignore("MediaEntityProcessor required")
   @Test
   public void testNavigationToStreamValueVia() throws IOException, ODataException {
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
-        .appendNavigationSegment("Image").appendValueSegment();
+        .appendNavigationSegment("Image1").appendValueSegment();
     final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -148,7 +149,6 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals(93316, act.length, 0);
   }
 
-  @Ignore
   @Test
   public void testNavigationToComplexAttributeValue() throws IOException, ODataException {
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
@@ -163,7 +163,6 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals("98", act);
   }
 
-  @Ignore
   @Test
   public void testNavigationToPrimitiveAttributeValue() throws IOException, ODataException {
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");

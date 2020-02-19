@@ -357,8 +357,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
             + naviInfo.getNavigationUriResource().getType().getName() + "' not found. Cannot resolve target entity");
         continue;
       }
-      final NavigationBuilder navQuery = new NavigationBuilder(context, naviInfo.getNavigationUriResource(), naviInfo
-          .getNavigationPath(), parentFrom, keyBuilderParent, getEntityManager(), null);
+      final NavigationBuilder navQuery = new NavigationBuilder(naviInfo.getNavigationUriResource(), naviInfo
+          .getNavigationPath(), parentFrom, keyBuilderParent, getEntityManager());
       navigationQueryList.add(navQuery);
       parentFrom = navQuery.getQueryResultFrom();
       keyBuilderParent = navQuery.getNavigationKeyBuilder();
