@@ -1,11 +1,12 @@
 # Table of conent
-1. [Integrate](GetStarted.md) OData-JPA bridge into project  
-1. Start OData-JPA bridge as [standalone servlet](AsWar.md)  
+1. [Integrate](GetStarted.md) OData-JPA-Adapter into project  
+1. Start OData-JPA-Adapter as [standalone servlet](AsWar.md)  
     * [Servlet security](ServletSecurity.md)
     * [Dependency Injection](DependencyInjection.md)
-1. Extend the OData-JPA bridge  
+1. Extend the OData-JPA-Adapter  
     * Use [DTO's](DTOConcept.md) instead of JPA mapped entities      
     * Call Java methods as OData [action](Actions.md)  
+    * Upload files via [Multipart/form-data](Actions.md#UploadFilesViaMultipartFormData)  
 1. Detailed informations  
     * More [hints](MoreHints.md)  
 

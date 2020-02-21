@@ -114,6 +114,9 @@ at the entity class</body>
 @EdmAttributeConversion attribute
 annotations at the entity class</body>
     </ownedComment>
+    <ownedComment xmi:type="uml:Comment" xmi:id="_lwaT0FR8EeqP7uV_FazTVw">
+      <body>User Serializer of Olingo</body>
+    </ownedComment>
     <lifeline xmi:type="uml:Lifeline" xmi:id="_cvBa8Dv9Eemf8LIIhaiJTw" name="Database" coveredBy="__JOlUDv9Eemf8LIIhaiJTw __JNXMDv9Eemf8LIIhaiJTw _03kygDwBEemf8LIIhaiJTw"/>
     <lifeline xmi:type="uml:Lifeline" xmi:id="_vNQQ0Dv9Eemf8LIIhaiJTw" name="JPA-Provider" coveredBy="_sIQR8DwBEemf8LIIhaiJTw _03kygTwBEemf8LIIhaiJTw _R8k6IDv_Eemf8LIIhaiJTw _ZfsGQDv_Eemf8LIIhaiJTw _QcRdoDwCEemf8LIIhaiJTw _Y1A_UDwEEemf8LIIhaiJTw _hkyy4TwEEemf8LIIhaiJTw _QcRdoTwCEemf8LIIhaiJTw _yAWJ4DwFEemf8LIIhaiJTw _2TAykDv9Eemf8LIIhaiJTw _GFFHsDv_Eemf8LIIhaiJTw"/>
     <lifeline xmi:type="uml:Lifeline" xmi:id="_cAo1gDv-Eemf8LIIhaiJTw" name="EntityProcessor#readEntity()" coveredBy="_pYdxQDwJEemsR5-XbbkIew _Q-gdcDwBEemf8LIIhaiJTw _63qI0DwFEemf8LIIhaiJTw _yAWw8DwFEemf8LIIhaiJTw _dv66cTwBEemf8LIIhaiJTw _ZfsGQTv_Eemf8LIIhaiJTw _ed6eUTwAEemf8LIIhaiJTw _Q---kTwBEemf8LIIhaiJTw _ed7FYDwAEemf8LIIhaiJTw _wApKsTv_Eemf8LIIhaiJTw _wApxwDv_Eemf8LIIhaiJTw"/>
@@ -181,5 +184,63 @@ annotations at the entity class</body>
     <message xmi:type="uml:Message" xmi:id="_EhjbQDwGEemf8LIIhaiJTw" name="Result" messageSort="reply" receiveEvent="_EhkCUDwGEemf8LIIhaiJTw"/>
     <message xmi:type="uml:Message" xmi:id="_m7WggDwHEemsR5-XbbkIew" name="Call converters" receiveEvent="_m7Y8wDwHEemsR5-XbbkIew"/>
     <message xmi:type="uml:Message" xmi:id="_pYbVADwJEemsR5-XbbkIew" name=" " messageSort="reply" receiveEvent="_pYdxQDwJEemsR5-XbbkIew" sendEvent="_pYdKMDwJEemsR5-XbbkIew"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Interaction" xmi:id="_5e_pMFR6EeqP7uV_FazTVw" name="Call Bound Action">
+    <ownedComment xmi:type="uml:Comment" xmi:id="_TNn4oFR9EeqP7uV_FazTVw">
+      <body>Use Deserializer of Olingo</body>
+    </ownedComment>
+    <ownedComment xmi:type="uml:Comment" xmi:id="_TGgHgFR-EeqP7uV_FazTVw">
+      <body>Do the same as in 'Retrieve Data'</body>
+    </ownedComment>
+    <ownedComment xmi:type="uml:Comment" xmi:id="_nuK5oFR_EeqP7uV_FazTVw" annotatedElement="_X6UmYFR_EeqP7uV_FazTVw">
+      <body>For every entity</body>
+    </ownedComment>
+    <ownedComment xmi:type="uml:Comment" xmi:id="_tiqyYFSAEeqP7uV_FazTVw">
+      <body>Use Serializer of Olingo</body>
+    </ownedComment>
+    <ownedComment xmi:type="uml:Comment" xmi:id="_fxed8FSBEeqP7uV_FazTVw">
+      <body>If result is of type &lt;entity>
+then convert the Entities
+to OData representation</body>
+    </ownedComment>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_OgrAUFSIEeqP7uV_FazTVw" name="" type="_5e_pMFR6EeqP7uV_FazTVw"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_OgtckFSIEeqP7uV_FazTVw" name="" type="_5e_pMFR6EeqP7uV_FazTVw"/>
+    <generalOrdering xmi:type="uml:GeneralOrdering" xmi:id="_X6UmYFR_EeqP7uV_FazTVw" name="For every entity" after="_ThMC8FR_EeqP7uV_FazTVw" before="_ThMC8VR_EeqP7uV_FazTVw"/>
+    <lifeline xmi:type="uml:Lifeline" xmi:id="_EStDYFR7EeqP7uV_FazTVw" name="Client" coveredBy="_vSNPoFR7EeqP7uV_FazTVw _vSqioFR7EeqP7uV_FazTVw"/>
+    <lifeline xmi:type="uml:Lifeline" xmi:id="_WiMSoFR7EeqP7uV_FazTVw" name="...ActionProcessor#processAction...()" coveredBy="_vSNPoVR7EeqP7uV_FazTVw _MF-ggFR9EeqP7uV_FazTVw _MF_HkFR9EeqP7uV_FazTVw _l6ZrYFR-EeqP7uV_FazTVw _l66BsFR-EeqP7uV_FazTVw _ThMC8FR_EeqP7uV_FazTVw _ThJmsFR_EeqP7uV_FazTVw _xIyZ8FR_EeqP7uV_FazTVw _xJb6MFR_EeqP7uV_FazTVw _ThMC8VR_EeqP7uV_FazTVw _S3Cn0FSBEeqP7uV_FazTVw _S3DO4FSBEeqP7uV_FazTVw _vSp7kFR7EeqP7uV_FazTVw _vSh_wFR7EeqP7uV_FazTVw"/>
+    <lifeline xmi:type="uml:Lifeline" xmi:id="_-VV3oFR7EeqP7uV_FazTVw" name="&lt;JPA Entity class>" coveredBy="_xIyZ8VR_EeqP7uV_FazTVw _xJbTIVR_EeqP7uV_FazTVw _xJYP0FR_EeqP7uV_FazTVw"/>
+    <lifeline xmi:type="uml:Lifeline" xmi:id="_DmzKMFR8EeqP7uV_FazTVw" name="JPA-Provider" coveredBy="_l6aScFR-EeqP7uV_FazTVw _l65aoVR-EeqP7uV_FazTVw _l62XUFR-EeqP7uV_FazTVw"/>
+    <lifeline xmi:type="uml:Lifeline" xmi:id="_OgqZQFSIEeqP7uV_FazTVw" name="" represents="_OgrAUFSIEeqP7uV_FazTVw"/>
+    <lifeline xmi:type="uml:Lifeline" xmi:id="_Ogs1gFSIEeqP7uV_FazTVw" name="" represents="_OgtckFSIEeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_vSNPoFR7EeqP7uV_FazTVw" name="Message3SendEvent" covered="_EStDYFR7EeqP7uV_FazTVw" message="_vSIXIFR7EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_vSNPoVR7EeqP7uV_FazTVw" name="Message3ReceiveEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_vSIXIFR7EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:BehaviorExecutionSpecification" xmi:id="_vSh_wFR7EeqP7uV_FazTVw" name="BehaviorExecutionSpecification6" covered="_WiMSoFR7EeqP7uV_FazTVw" finish="_vSp7kFR7EeqP7uV_FazTVw" start="_vSNPoVR7EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_MF-ggFR9EeqP7uV_FazTVw" name="Message13SendEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_MF95cFR9EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_MF_HkFR9EeqP7uV_FazTVw" name="Message13ReceiveEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_MF95cFR9EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_l6ZrYFR-EeqP7uV_FazTVw" name="Message23SendEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_l6ZEUFR-EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_l6aScFR-EeqP7uV_FazTVw" name="Message23ReceiveEvent" covered="_DmzKMFR8EeqP7uV_FazTVw" message="_l6ZEUFR-EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:BehaviorExecutionSpecification" xmi:id="_l62XUFR-EeqP7uV_FazTVw" name="BehaviorExecutionSpecification26" covered="_DmzKMFR8EeqP7uV_FazTVw" finish="_l65aoVR-EeqP7uV_FazTVw" start="_l6aScFR-EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_l65aoVR-EeqP7uV_FazTVw" name="Message28SendEvent" covered="_DmzKMFR8EeqP7uV_FazTVw" message="_l65aoFR-EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_l66BsFR-EeqP7uV_FazTVw" name="Message28ReceiveEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_l65aoFR-EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:ExecutionOccurrenceSpecification" xmi:id="_ThMC8FR_EeqP7uV_FazTVw" name="BehaviorExecutionSpecification25Start" covered="_WiMSoFR7EeqP7uV_FazTVw" toBefore="_X6UmYFR_EeqP7uV_FazTVw" execution="_ThJmsFR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:BehaviorExecutionSpecification" xmi:id="_ThJmsFR_EeqP7uV_FazTVw" name="BehaviorExecutionSpecification25" covered="_WiMSoFR7EeqP7uV_FazTVw" finish="_ThMC8VR_EeqP7uV_FazTVw" start="_ThMC8FR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_xIyZ8FR_EeqP7uV_FazTVw" name="Message30SendEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_xIxL0FR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_xIyZ8VR_EeqP7uV_FazTVw" name="Message30ReceiveEvent" covered="_-VV3oFR7EeqP7uV_FazTVw" message="_xIxL0FR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:BehaviorExecutionSpecification" xmi:id="_xJYP0FR_EeqP7uV_FazTVw" name="BehaviorExecutionSpecification33" covered="_-VV3oFR7EeqP7uV_FazTVw" finish="_xJbTIVR_EeqP7uV_FazTVw" start="_xIyZ8VR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_xJbTIVR_EeqP7uV_FazTVw" name="Message35SendEvent" covered="_-VV3oFR7EeqP7uV_FazTVw" message="_xJbTIFR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_xJb6MFR_EeqP7uV_FazTVw" name="Message35ReceiveEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_xJbTIFR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:ExecutionOccurrenceSpecification" xmi:id="_ThMC8VR_EeqP7uV_FazTVw" name="BehaviorExecutionSpecification25Finish" covered="_WiMSoFR7EeqP7uV_FazTVw" toAfter="_X6UmYFR_EeqP7uV_FazTVw" execution="_ThJmsFR_EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_S3Cn0FSBEeqP7uV_FazTVw" name="Message37SendEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_S3CAwFSBEeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_S3DO4FSBEeqP7uV_FazTVw" name="Message37ReceiveEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_S3CAwFSBEeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_vSp7kFR7EeqP7uV_FazTVw" name="Message8SendEvent" covered="_WiMSoFR7EeqP7uV_FazTVw" message="_vSpUgFR7EeqP7uV_FazTVw"/>
+    <fragment xmi:type="uml:MessageOccurrenceSpecification" xmi:id="_vSqioFR7EeqP7uV_FazTVw" name="Message8ReceiveEvent" covered="_EStDYFR7EeqP7uV_FazTVw" message="_vSpUgFR7EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_vSIXIFR7EeqP7uV_FazTVw" name="..." receiveEvent="_vSNPoVR7EeqP7uV_FazTVw" sendEvent="_vSNPoFR7EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_vSpUgFR7EeqP7uV_FazTVw" name="Result" messageSort="reply" receiveEvent="_vSqioFR7EeqP7uV_FazTVw" sendEvent="_vSp7kFR7EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_MF95cFR9EeqP7uV_FazTVw" name="Parse Action Parameters" messageSort="asynchCall" receiveEvent="_MF_HkFR9EeqP7uV_FazTVw" sendEvent="_MF-ggFR9EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_l6ZEUFR-EeqP7uV_FazTVw" name="Load Enties from Database" receiveEvent="_l6aScFR-EeqP7uV_FazTVw" sendEvent="_l6ZrYFR-EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_l65aoFR-EeqP7uV_FazTVw" name="Collection of entities" messageSort="reply" receiveEvent="_l66BsFR-EeqP7uV_FazTVw" sendEvent="_l65aoVR-EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_xIxL0FR_EeqP7uV_FazTVw" name="Invoke Action" receiveEvent="_xIyZ8VR_EeqP7uV_FazTVw" sendEvent="_xIyZ8FR_EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_xJbTIFR_EeqP7uV_FazTVw" name="Action Result" messageSort="reply" receiveEvent="_xJb6MFR_EeqP7uV_FazTVw" sendEvent="_xJbTIVR_EeqP7uV_FazTVw"/>
+    <message xmi:type="uml:Message" xmi:id="_S3CAwFSBEeqP7uV_FazTVw" name="[Convert entities]" messageSort="asynchCall" receiveEvent="_S3DO4FSBEeqP7uV_FazTVw" sendEvent="_S3Cn0FSBEeqP7uV_FazTVw"/>
   </packagedElement>
 </uml:Model>
