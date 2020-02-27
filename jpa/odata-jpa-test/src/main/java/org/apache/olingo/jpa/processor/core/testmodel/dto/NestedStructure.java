@@ -1,5 +1,7 @@
 package org.apache.olingo.jpa.processor.core.testmodel.dto;
 
+import javax.persistence.Id;
+
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
@@ -15,9 +17,16 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 edmEntitySetName = "NestedStructures")
 public class NestedStructure {
 
+  private static long idSequence = 1;
+  @Id
+  private final long id;
   int levelCurrent = 1;
   int childDepth;
   NestedStructure child = null;
+
+  public NestedStructure() {
+    this.id = idSequence++;
+  }
 
   /**
    * Unbound oData action to produce nested structure of requested depth.

@@ -77,18 +77,6 @@ abstract class IntermediateModelElement implements JPAElement {
     // return returnNullIfEmpty(extractionTarget);
   }
 
-  protected IntermediateModelElement findModelElementByEdmItem(final String edmEntityItemName,
-      final Map<String, ?> buffer) throws ODataJPAModelException {
-    for (final String internalName : buffer.keySet()) {
-      final IntermediateModelElement modelElement = (IntermediateModelElement) buffer.get(internalName);
-      if (edmEntityItemName.equals(modelElement.getExternalName())) {
-        return modelElement;
-      }
-    }
-    return null;
-
-  }
-
   protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
     return list == null || list.isEmpty() ? null : list;
   }

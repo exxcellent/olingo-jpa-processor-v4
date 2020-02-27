@@ -9,7 +9,7 @@ import java.util.Collections;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class TestJPACount extends TestBase {
   @Test
   public void testSimpleCount() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").count();
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertEquals(4, Integer.parseInt(helper.getRawResult()));
   }
@@ -31,7 +31,7 @@ public class TestJPACount extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").expandWithOptions("Roles", false,
         true, Collections.emptyMap()).orderBy("ID asc");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     //    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
     //        "Persons?$expand=Roles($count=true)&$orderby=Country asc");
@@ -51,7 +51,7 @@ public class TestJPACount extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").skip(2).top(5)
         .expandWithOptions("Roles", false,
             true, Collections.emptyMap()).orderBy("ID");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     //    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
     //        "Organizations?$skip=2&$top=5&$orderby=ID&$expand=Roles/$count");
     helper.execute(HttpStatusCode.OK.getStatusCode());

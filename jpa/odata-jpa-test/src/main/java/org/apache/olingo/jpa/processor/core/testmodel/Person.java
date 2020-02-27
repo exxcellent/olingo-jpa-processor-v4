@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -53,13 +54,13 @@ public class Person extends BusinessPartner {
   @Column(name = "\"BirthDay\"", columnDefinition = "date")
   private LocalDate birthDay;
 
-  @OneToOne(mappedBy = "owningPerson", targetEntity = PersonImage.class)
+  @OneToOne(mappedBy = "owningPerson", targetEntity = PersonImage.class, cascade = CascadeType.ALL)
   private BPImageIfc image1;
 
   @OneToOne(mappedBy = "personReferenceWithoutMappedAttribute")
   private PersonImage image2;
 
-  // This collection is defined to be used as always empty, so we should use it
+  // This collection (, not Set!) is defined to be used as always empty, so we should use it
   // with persons having no Phone entry
   @ElementCollection
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\"", referencedColumnName = "\"ID\"", updatable = false, insertable = false))

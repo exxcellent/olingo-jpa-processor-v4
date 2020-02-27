@@ -49,7 +49,7 @@ public class DTOEntityHelper {
 
   private ODataDTO determineODataDTOAnnotation(final EdmEntitySet targetEdmEntitySet) throws ODataJPAModelException {
     final JPAEntityType jpaEntityType = provider.getServiceDocument()
-        .getEntitySetType(targetEdmEntitySet.getName());
+        .getEntityType(targetEdmEntitySet.getName());
     if (jpaEntityType == null) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE);
     }
@@ -96,7 +96,7 @@ public class DTOEntityHelper {
         return odataEntityCollection;
       }
       final JPAEntityType jpaEntityType = provider.getServiceDocument()
-          .getEntitySetType(targetEdmEntitySet.getName());
+          .getEntityType(targetEdmEntitySet.getName());
 
       final EntityConverter converter = new EntityConverter(context.getOdata().createUriHelper(),
           provider.getServiceDocument(), context.getServiceMetaData());
@@ -120,7 +120,7 @@ public class DTOEntityHelper {
       @SuppressWarnings("unchecked")
       final ODataDTOHandler<Object> handler = (ODataDTOHandler<Object>) buildHandlerInstance(targetEdmEntitySet);
       final JPAEntityType jpaEntityType = provider.getServiceDocument()
-          .getEntitySetType(targetEdmEntitySet.getName());
+          .getEntityType(targetEdmEntitySet.getName());
       final EntityConverter converter = new EntityConverter(context.getOdata().createUriHelper(),
           provider.getServiceDocument(), context.getServiceMetaData());
       final Object dto = converter.convertOData2JPAEntity(odataEntity, jpaEntityType);

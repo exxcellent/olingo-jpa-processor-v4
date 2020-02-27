@@ -9,6 +9,7 @@ import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -19,7 +20,7 @@ import org.apache.olingo.server.api.etag.CustomETagSupport;
  * @author Oliver Grande
  *
  */
-class IntermediateEntitySet extends IntermediateModelElement implements CustomETagSupport {
+class IntermediateEntitySet extends IntermediateModelElement implements JPAEntitySet, CustomETagSupport {
   private final static Logger LOG = Logger.getLogger(IntermediateEntitySet.class.getName());
 
   private final JPAEntityType entityType;

@@ -23,7 +23,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.junit.Before;
@@ -104,7 +104,7 @@ public class TestDependencyInjection extends TestBase {
   public void testReadDTO() throws IOException, ODataException, SQLException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Dtos");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() == 2);
   }
@@ -118,7 +118,7 @@ public class TestDependencyInjection extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Dtos").appendKeySegment(Integer.valueOf(iId));
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
         HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }

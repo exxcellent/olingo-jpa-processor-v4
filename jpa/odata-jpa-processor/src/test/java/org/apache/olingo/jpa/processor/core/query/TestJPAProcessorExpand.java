@@ -18,7 +18,7 @@ import org.apache.olingo.client.api.uri.QueryOption;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.Ignore;
@@ -35,7 +35,7 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandEntitySet() throws IOException, ODataException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("ID").expand("Roles");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -52,7 +52,7 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandOneEntity() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("2").expand(
         "Roles");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -72,7 +72,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandOneEntityCompoundKey() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -85,7 +85,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandOneEntityCompoundKeyCollection() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode asc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -99,7 +99,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySetWithOutParentKeySelection() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations?$orderby=Name1&$select=Name1&$expand=Roles");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -114,7 +114,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySetViaNonKeyField_FieldNotSelected() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations('3')/AdministrativeInformation/Created?$select=At&$expand=User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -127,7 +127,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi2Hops() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations('3')/AdministrativeInformation/Created?$expand=User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -141,7 +141,7 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandEntityViaComplexProperty() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment(
         "3").appendNavigationSegment("Address").expand("AdministrativeDivision");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode address = helper.getJsonObjectValue();
@@ -154,7 +154,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi0Hops() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations('3')?$expand=AdministrativeInformation/Created/User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -169,7 +169,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi1Hop() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations('3')/AdministrativeInformation?$expand=Created/User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -182,7 +182,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi0HopsCollection() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations?$expand=AdministrativeInformation/Created/User");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -204,7 +204,7 @@ public class TestJPAProcessorExpand extends TestBase {
     expandOptionsTargets.put(QueryOption.EXPAND, "Children");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         mapKeys).expandWithOptions("Parent", expandOptionsTargets);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -217,7 +217,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testNestedExpandNestedExpand3LevelsSelf() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='33016',CodeID='LAU2',CodePublisher='Eurostat')?$expand=Parent($expand=Parent($expand=Parent))");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -240,7 +240,7 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testNestedExpandNestedExpand2LevelsMixed() throws IOException, ODataException {
     // see example:
     // https://services.odata.org/V4/Northwind/Northwind.svc/Customers('ALFKI')/Orders?$select=ShipCity&$expand=Order_Details
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations('3')/Address?$select=Country&$expand=AdministrativeDivision($expand=Parent)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -256,7 +256,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Ignore // TODO check how the result should look like
   @Test
   public void testExpandWithNavigationToEntity() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE253',CodeID='3',CodePublisher='NUTS')?$expand=Parent/Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -276,7 +276,7 @@ public class TestJPAProcessorExpand extends TestBase {
     expandOptionsTargets.put(QueryOption.SELECT, "CodeID");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         mapKeys).expandWithOptions("Parent", expandOptionsTargets);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -298,7 +298,7 @@ public class TestJPAProcessorExpand extends TestBase {
     expandOptionsTargets.put(QueryOption.ORDERBY, "DivisionCode desc");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         mapKeys).expandWithOptions("Children", expandOptionsTargets);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -317,7 +317,7 @@ public class TestJPAProcessorExpand extends TestBase {
     expandOptionsTargets.put(QueryOption.ORDERBY, "DivisionCode asc");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         mapKeys).expandWithOptions("Children", expandOptionsTargets);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -328,7 +328,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithOrderByDescTop() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($top=2;$orderby=DivisionCode desc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -340,7 +340,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithOrderByDescTopSkip() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($top=2;$skip=2;$orderby=DivisionCode desc)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -354,7 +354,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Ignore
   @Test
   public void testExpandWithCount() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations?$count=true&$expand=Roles($count=true)&$orderby=Roles/$count desc");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -369,7 +369,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Ignore("TODO")
   @Test
   public void testExpandWithOrderByDescTopSkipAndExternalOrderBy() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations?$count=true&$expand=Roles($orderby=RoleCategory desc)&$orderby=Roles/$count desc");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -386,7 +386,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithFilter() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Children($filter=DivisionCode eq 'BE252')");
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -407,7 +407,7 @@ public class TestJPAProcessorExpand extends TestBase {
     expandOptionsTargets.put(QueryOption.FILTER, "contains(Name, 'rel')");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
         .expandWithOptions("targets", expandOptionsTargets).top(3);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode relSources = helper.getJsonObjectValues();
@@ -424,7 +424,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").filter(
         "targets/any(d:contains(d/Name, 'rel'))")
         .expand("targets").top(3);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode relSources = helper.getJsonObjectValues();
@@ -437,7 +437,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations")
         .expand("Roles").orderBy("ID");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -465,7 +465,7 @@ public class TestJPAProcessorExpand extends TestBase {
     mapKeys.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         mapKeys).expand("Parent", "Children");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -484,7 +484,7 @@ public class TestJPAProcessorExpand extends TestBase {
     mapKeys.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         mapKeys).expand("*");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -501,7 +501,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Ignore
   @Test
   public void testExpandLevel1() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='38025',CodeID='LAU2',CodePublisher='Eurostat')?$expand=Parent($levels=1)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -516,7 +516,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Ignore
   @Test
   public void testExpandLevelMax() throws IOException, ODataException {
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "/AdministrativeDivisions(DivisionCode='BE241',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($levels=max)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -532,7 +532,7 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandAllNavigationPathWithComplex() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3").expand(
         "*");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -545,7 +545,7 @@ public class TestJPAProcessorExpand extends TestBase {
   @Test
   public void testExpandCompleteEntitySet2() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").expand("Parent");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
@@ -554,7 +554,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").appendKeySegment("99").expand(
         "PersonReferenceWithoutMappedAttribute");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode pi = helper.getJsonObjectValue();
@@ -567,7 +567,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").expand(
         "PersonReferenceWithoutMappedAttribute").orderBy("PID asc");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode pis = helper.getJsonObjectValues();
     assertEquals(2, pis.size());
@@ -583,7 +583,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").appendKeySegment("99").expand(
         "PersonReferenceWithoutMappedAttribute");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode personImage = helper.getJsonObjectValue();
@@ -602,7 +602,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
         .expand("targets");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode entities = helper.getJsonObjectValues();
@@ -616,7 +616,7 @@ public class TestJPAProcessorExpand extends TestBase {
         .appendKeySegment(Integer.valueOf(1))
         .select("ID")
         .expand("targets");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode entity = helper.getJsonObjectValue();
@@ -632,7 +632,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
         .appendKeySegment(Integer.valueOf(1))
         .expand("unidirectionalTargets");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode entity = helper.getJsonObjectValue();
@@ -649,7 +649,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").orderBy(
         "ID desc")
         .expand("unidirectionalTargets");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode entities = helper.getJsonObjectValues();
@@ -671,7 +671,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("9")
         .expand("ImageUnidirectional");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -693,7 +693,7 @@ public class TestJPAProcessorExpand extends TestBase {
         .expandWithOptions(
             "ImageUnidirectional", expandOptionsTargets).expandWithOptions("Address/AdministrativeDivision", Collections
                 .emptyMap());
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -710,7 +710,7 @@ public class TestJPAProcessorExpand extends TestBase {
     // skip first 2 orgs with ID '1' and '10'
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").expand("ImageUnidirectional")
         .orderBy("ID asc").skip(2);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 

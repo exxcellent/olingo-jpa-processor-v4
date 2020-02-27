@@ -18,7 +18,7 @@
 		<java.source.version>1.8</java.source.version>
 		<java.target.version>1.8</java.target.version>
 
-		<slf4j.version>1.7.29</slf4j.version>
+		<slf4j.version>1.7.30</slf4j.version>
 		<logback.version>1.2.3</logback.version>
 		<olingo.version>4.7.1</olingo.version>
 		<jetty.version>9.4.24.v20191120</jetty.version>

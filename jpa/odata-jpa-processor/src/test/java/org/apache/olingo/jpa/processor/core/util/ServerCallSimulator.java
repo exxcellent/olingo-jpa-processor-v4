@@ -52,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class IntegrationTestHelper {
+public class ServerCallSimulator {
 
   private static class TestErrorProcessor extends DefaultProcessor implements ErrorProcessor {
 
@@ -67,7 +67,7 @@ public class IntegrationTestHelper {
 
   }
   // ----------------------------------------------------------------------------------
-  private final Logger LOG = Logger.getLogger(IntegrationTestHelper.class.getName());
+  private final Logger LOG = Logger.getLogger(ServerCallSimulator.class.getName());
 
   public final HttpServletRequestDouble req;
   public HttpServletResponseDouble resp = null;
@@ -85,7 +85,7 @@ public class IntegrationTestHelper {
    *             tests.
    */
   @Deprecated
-  public IntegrationTestHelper(final JPAAdapter persistenceAdapter, final String urlPath)
+  public ServerCallSimulator(final JPAAdapter persistenceAdapter, final String urlPath)
       throws IOException, ODataException {
     this(persistenceAdapter, urlPath, null, HttpMethod.GET);
   }
@@ -95,7 +95,7 @@ public class IntegrationTestHelper {
    *             client side behaviour of tests.
    */
   @Deprecated
-  public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
+  public ServerCallSimulator(final JPAAdapter persistenceAdapter,
       final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
@@ -104,13 +104,13 @@ public class IntegrationTestHelper {
   }
 
   private static URIBuilder wrapUrl(final String urlPath) {
-    return new URIBuilderImpl(new ConfigurationImpl(), IntegrationTestHelper.uriPrefix + urlPath.replace(" ", "%20"));
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix + urlPath.replace(" ", "%20"));
   }
 
   /**
    * @see #IntegrationTestHelper(JPAAdapter, URIBuilder, StringBuffer, HttpMethod)
    */
-  public IntegrationTestHelper(final JPAAdapter persistenceAdapter, final URIBuilder uriBuilder)
+  public ServerCallSimulator(final JPAAdapter persistenceAdapter, final URIBuilder uriBuilder)
       throws IOException, ODataException {
     this(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
   }
@@ -118,7 +118,7 @@ public class IntegrationTestHelper {
   /**
    * @see TestBase#newUriBuilder()
    */
-  public IntegrationTestHelper(final JPAAdapter persistenceAdapter,
+  public ServerCallSimulator(final JPAAdapter persistenceAdapter,
       final URIBuilder uriBuilder, final StringBuffer requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {

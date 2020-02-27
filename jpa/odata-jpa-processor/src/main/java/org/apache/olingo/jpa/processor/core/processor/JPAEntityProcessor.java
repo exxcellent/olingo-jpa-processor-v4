@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 
+import org.apache.olingo.commons.api.data.ContextURL;
+import org.apache.olingo.commons.api.data.ContextURL.Suffix;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -45,13 +47,20 @@ import org.apache.olingo.server.api.deserializer.DeserializerResult;
 import org.apache.olingo.server.api.deserializer.ODataDeserializer;
 import org.apache.olingo.server.api.processor.CountEntityCollectionProcessor;
 import org.apache.olingo.server.api.processor.EntityProcessor;
+import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
+import org.apache.olingo.server.api.serializer.ODataSerializer;
 import org.apache.olingo.server.api.serializer.SerializerResult;
+import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceKind;
+import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.queryoption.CountOptionImpl;
+import org.apache.olingo.server.core.uri.queryoption.ExpandItemImpl;
+import org.apache.olingo.server.core.uri.queryoption.ExpandOptionImpl;
+import org.apache.olingo.server.core.uri.queryoption.LevelsOptionImpl;
 
 public class JPAEntityProcessor extends AbstractProcessor implements EntityProcessor, CountEntityCollectionProcessor {
 
@@ -97,7 +106,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
     final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
     try {
       final JPAEntityType jpaEntityType = context.getEdmProvider().getServiceDocument()
-          .getEntitySetType(targetEdmEntitySet.getName());
+          .getEntityType(targetEdmEntitySet.getName());
       final OData odata = getOData();
       final ServiceMetadata serviceMetadata = getServiceMetadata();
       final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
@@ -109,13 +118,20 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
       final Object persistenceJPAEntity = entityConverter.convertOData2JPAEntity(odataEntity, jpaEntityType);
 
-      final DTOEntityHelper helper = new DTOEntityHelper(context, uriInfo);
-      if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
+      final DTOEntityHelper dtoHelper = new DTOEntityHelper(context, uriInfo);
+      if (dtoHelper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
         throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_CREATE,
             HttpStatusCode.BAD_REQUEST);
       }
 
       em.persist(persistenceJPAEntity);
+      // force writing to DB...
+      log.log(Level.FINER, "Flush new created entity of type " + jpaEntityType.getInternalName() + " to DB...");
+      em.flush();
+      // ...so as to reload with data from DB, also filling values not given with 'create request', but derived from DB
+      log.log(Level.FINER, "Reload new created entity of type " + jpaEntityType.getInternalName()
+      + " from DB to get also dervied values not given in creation request...");
+      em.refresh(persistenceJPAEntity);
       // convert reverse to get also generated fields
       odataEntity = entityConverter.convertJPA2ODataEntity(jpaEntityType, persistenceJPAEntity);
 
@@ -125,12 +141,27 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
         request.setHeader(HttpHeader.ODATA_ENTITY_ID, odataEntity.getId().toASCIIString());
       } else {
         // full response containing complete entity content
-        final JPASerializer serializer = new JPASerializeEntity(getServiceMetadata(), getOData(),
-            responseFormat, uriInfo);
-        final EntityCollection entityCollection = new EntityCollection();
-        entityCollection.getEntities().add(odataEntity);
-        // serialize the first (and only) entry
-        final SerializerResult serializerResult = serializer.serialize(request, entityCollection);
+        // assuming the complete action result should be expanded and serialized back to client
+        ExpandOption resultExpand;
+        if (uriInfo.getExpandOption() == null) {
+          resultExpand = new ExpandOptionImpl();
+          final ExpandItemImpl expand = new ExpandItemImpl();
+          expand.setIsStar(true);
+          expand.setSystemQueryOption(new LevelsOptionImpl().setMax());
+          ((ExpandOptionImpl) resultExpand).addExpandItem(expand);
+        } else {
+          resultExpand = uriInfo.getExpandOption();
+        }
+        final UriHelper uriHelper = odata.createUriHelper();
+        final EdmEntityType type = targetEdmEntitySet.getEntityType();
+        final String selectList = uriHelper.buildContextURLSelectList(type, resultExpand, uriInfo.getSelectOption());
+        final ContextURL contextUrl = ContextURL.with().entitySet(targetEdmEntitySet).suffix(Suffix.ENTITY).selectList(
+            selectList).build();
+        final ODataSerializer serializer = odata.createSerializer(responseFormat);
+        final EntitySerializerOptions options = EntitySerializerOptions.with().contextURL(contextUrl).select(uriInfo
+            .getSelectOption()).expand(resultExpand).build();
+        final SerializerResult serializerResult = serializer.entity(getServiceMetadata(), type, odataEntity, options);
+
         response.setContent(serializerResult.getContent());
         response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
         response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
@@ -157,7 +188,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       try {
         final JPAEntityType jpaEntityType = context.getEdmProvider().getServiceDocument()
-            .getEntitySetType(targetEdmEntitySet.getName());
+            .getEntityType(targetEdmEntitySet.getName());
         final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
         final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
         final DeserializerResult deserializerResult = deserializer.entity(request.getBody(), edmType);
@@ -193,7 +224,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
     } else {
       try {
         final JPAEntityType jpaEntityType = context.getEdmProvider().getServiceDocument()
-            .getEntitySetType(targetEdmEntitySet.getName());
+            .getEntityType(targetEdmEntitySet.getName());
         final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
 
         final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
@@ -253,7 +284,7 @@ public class JPAEntityProcessor extends AbstractProcessor implements EntityProce
       try {
         final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData().createUriHelper(),
             context);
-        final JPAEntityType jpaType = sd.getEntitySetType(targetEdmEntitySet.getName());
+        final JPAEntityType jpaType = sd.getEntityType(targetEdmEntitySet.getName());
         for (final Entity entity : entityCollection.getEntities()) {
           final Object persistenceEntity = invoker.lookupJPAEntity(jpaType, entity);
           em.remove(persistenceEntity);

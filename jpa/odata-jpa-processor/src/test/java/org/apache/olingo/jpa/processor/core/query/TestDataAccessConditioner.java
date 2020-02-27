@@ -11,7 +11,7 @@ import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner.GenericBusinessPartnerDataAccessConditioner;
 import org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner.GenericBusinessPartnerDataAccessConditioner.SelectionStrategy;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
@@ -31,7 +31,7 @@ public class TestDataAccessConditioner extends TestBase {
   public void testGETCount() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "GenericBusinessPartners/$count");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners/$count");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     // we have 14 entries in BusinessPartner table
     assertEquals(14, Integer.parseInt(helper.getRawResult()));
@@ -46,7 +46,7 @@ public class TestDataAccessConditioner extends TestBase {
   public void testGETSelect() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "GenericBusinessPartners('3')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners('3')");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode orgUnrestricted = helper.getJsonObjectValue();
     assertNotNull(orgUnrestricted);
@@ -60,7 +60,7 @@ public class TestDataAccessConditioner extends TestBase {
   public void testGETNavigation() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "BusinessPartnerImages('97')/BusinessPartnerPerson");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode personUnrestricted = helper.getJsonObjectValue();
@@ -75,7 +75,7 @@ public class TestDataAccessConditioner extends TestBase {
   public void testGETFilter() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "GenericBusinessPartners?$filter=Image/PID eq '97'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode personImagesUnrestricted = helper.getJsonObjectValues();
@@ -91,7 +91,7 @@ public class TestDataAccessConditioner extends TestBase {
   @Test
   public void testDELETE() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyOrganizations;
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "GenericBusinessPartners('7')", null,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners('7')", null,
         HttpMethod.DELETE);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
@@ -100,7 +100,7 @@ public class TestDataAccessConditioner extends TestBase {
   @Test
   public void testInvalidDELETE() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyPersons;
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "GenericBusinessPartners('8')", null,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners('8')", null,
         HttpMethod.DELETE);
     helper.execute(HttpStatusCode.NOT_FOUND.getStatusCode());
   }
@@ -113,7 +113,7 @@ public class TestDataAccessConditioner extends TestBase {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyOrganizations;
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").search("DEU");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode partners = helper.getJsonObjectValues();
     assertEquals(1, partners.size());

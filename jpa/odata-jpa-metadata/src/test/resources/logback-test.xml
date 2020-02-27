@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+		<resetJUL>true</resetJUL>
+	</contextListener> 
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	  <!-- filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+	    <evaluator name="suppress-metadata">
+	      <expression>logger.contains("org.eclipse.persistence.session") &amp;&amp; (logger.contains(".metadata") || logger.contains(".connection") || logger.contains(".transaction") || logger.contains(".cache") || logger.contains(".weaver") || logger.contains(".metamodel"))</expression>
+	    </evaluator>
+	    <OnMismatch>NEUTRAL</OnMismatch>
+	    <OnMatch>DENY</OnMatch>
+	  </filter-->    
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+		     <pattern>%-5level - %logger{15}: %msg ex{2}%nopex%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="org.apache.olingo" level="DEBUG"/>
+	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType" level="ERROR"/>
+	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateProperty" level="WARN"/>
+	<logger name="org.apache.olingo.jpa.processor.core.processor.AbstractProcessor" level="TRACE"/>
+	<logger name="org.eclipse.persistence.session" level="DEBUG"/>
+	<logger name="com.googlecode.flyway" level="WARN"/>
+	<logger name="org.jboss.logging" level="WARN"/>
+	<logger name="org.hibernate" level="WARN"/>
+	<!-- required to get SQL params in Hibernate -->
+	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+	<root level="DEBUG">
+		<!-- this definition will work only for true slf4j loggers, JUL will log directly to the appender -->
+	  <appender-ref ref="STDOUT" />
+	</root>
+</configuration>

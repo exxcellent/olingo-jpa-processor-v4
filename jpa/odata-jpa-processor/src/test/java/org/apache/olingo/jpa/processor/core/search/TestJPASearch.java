@@ -15,7 +15,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.commons.core.Encoder;
 import org.apache.olingo.jpa.processor.core.database.JPA_HANADatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
@@ -31,7 +31,7 @@ public class TestJPASearch extends TestBase {
   public void testAllAttributesSimpleCase() throws IOException, ODataException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").search("Org");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode ents = helper.getJsonObjectValues();
@@ -50,7 +50,7 @@ public class TestJPASearch extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EntityWithSecondaryTableAndEmbeddedSet")
         .search("\"96\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode ents = helper.getJsonObjectValues();
@@ -67,7 +67,7 @@ public class TestJPASearch extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "\"001\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode ents = helper.getJsonObjectValues();
@@ -81,7 +81,7 @@ public class TestJPASearch extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "anywhere OR \"888\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder);
     // not supported -> TODO
     helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -104,7 +104,7 @@ public class TestJPASearch extends TestBase {
         properties, new JPA_HANADatabaseProcessor());
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "AnyWhere");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
@@ -114,7 +114,7 @@ public class TestJPASearch extends TestBase {
     // double encoding required because OLINGO-1239
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisionDescriptions").search(
         "\"" + Encoder.encode(Encoder.encode("ö")) + "\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode ents = helper.getJsonObjectValues();

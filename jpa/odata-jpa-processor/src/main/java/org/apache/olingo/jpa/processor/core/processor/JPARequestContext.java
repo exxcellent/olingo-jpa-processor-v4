@@ -6,6 +6,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataRequestContextAccess;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializer;
 import org.apache.olingo.server.api.uri.UriInfo;
 
+@Deprecated
 public class JPARequestContext implements JPAODataRequestContextAccess {
   private final EntityManager em;
   private final UriInfo uriInfo;

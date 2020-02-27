@@ -13,7 +13,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
@@ -38,7 +38,7 @@ public class TestDTOs extends TestBase {
     myPersistenceAdapter.registerDTO(TestDTOs.class);
     // must throw an exception on further processing
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-    final IntegrationTestHelper helper = new IntegrationTestHelper(myPersistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(myPersistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
@@ -46,7 +46,7 @@ public class TestDTOs extends TestBase {
   public void testDTOMetadata() throws IOException, ODataException, SQLException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final String json = helper.getRawResult();
     assertTrue(!json.isEmpty());
@@ -58,7 +58,7 @@ public class TestDTOs extends TestBase {
   public void testGetDTO() throws IOException, ODataException, SQLException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() > 0);
     assertEquals(System.getProperty("java.version"), helper.getJsonObjectValues().get(0).get("JavaVersion").asText());
@@ -69,7 +69,7 @@ public class TestDTOs extends TestBase {
     // our example DTO handler will not support loading of a DTO with a specific ID
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(Integer
         .valueOf(1));
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
   }
 
@@ -85,7 +85,7 @@ public class TestDTOs extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(Integer
         .valueOf(iId));
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
         requestBody, HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertEquals(sId, helper.getJsonObjectValue().get("Id").asText());

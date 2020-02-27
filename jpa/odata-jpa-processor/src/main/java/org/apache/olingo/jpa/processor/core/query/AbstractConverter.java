@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -565,6 +566,10 @@ public abstract class AbstractConverter {
    *             If construction of new instance failed.
    */
   protected Object newJPAInstance(final JPAStructuredType jpaEntityType) throws ODataJPAModelException {
+
+    if (Modifier.isAbstract(jpaEntityType.getTypeClass().getModifiers())) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, jpaEntityType.getInternalName()+" is abstract");
+    }
     try {
       return jpaEntityType.getTypeClass().newInstance();
     } catch (InstantiationException | IllegalAccessException e) {

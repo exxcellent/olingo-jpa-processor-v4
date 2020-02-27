@@ -23,7 +23,6 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
 import org.apache.olingo.jpa.processor.core.util.EdmEntityTypeDouble;
@@ -61,7 +60,6 @@ public class TestJPAQuerySelectClause extends TestBase {
 
   @Before
   public void setup() throws ODataException {
-    helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
     jpaEntityType = helper.getJPAEntityType("BusinessPartners");
     context = new JPAODataContextAccessDouble(
         new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()),

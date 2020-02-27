@@ -1,9 +1,11 @@
 package org.apache.olingo.jpa.processor.core.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
@@ -19,6 +21,8 @@ import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
+import org.apache.olingo.server.api.OData;
+import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriInfoKind;
 import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.UriResourceEntitySetImpl;
@@ -32,12 +36,15 @@ public abstract class TestBase {
     // enable logging redirect
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
+    java.util.logging.LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
   }
 
   protected TestHelper helper;
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
   protected TestGenericJPAPersistenceAdapter persistenceAdapter;
   protected JPAEdmProvider jpaEdm;
+  protected OData odata;
+  protected ServiceMetadata serviceMetaData;
 
   /**
    * Execute every test class with a fresh created database
@@ -50,7 +57,10 @@ public abstract class TestBase {
   @Before
   public final void setupTest() throws ODataException {
     persistenceAdapter = createPersistenceAdapter();
-    jpaEdm = new JPAEdmProvider(persistenceAdapter.getNamespace(), persistenceAdapter.getMetamodel());
+    helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
+    jpaEdm = helper.getEdmProvider();
+    odata = OData.newInstance();
+    serviceMetaData = odata.createServiceMetadata(jpaEdm, Collections.emptyList());
   }
 
   /**
@@ -67,7 +77,7 @@ public abstract class TestBase {
    */
   @SuppressWarnings("unchecked")
   protected <T extends JPAEntityType> T registerDTO(final Class<?> dtoClass) throws ODataJPAModelException {
-    return (T) jpaEdm.getServiceDocument().createDTOType(dtoClass);
+    return (T) helper.getEdmProvider().getServiceDocument().createDTOType(dtoClass);
   }
 
   protected JPAProvider getJPAProvider() {
@@ -95,7 +105,7 @@ public abstract class TestBase {
   }
 
   public static URIBuilder newUriBuilder() {
-    return new URIBuilderImpl(new ConfigurationImpl(), IntegrationTestHelper.uriPrefix);
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix);
   }
 
   protected NavigationIfc createTestUriInfo(final String entitySetName) {

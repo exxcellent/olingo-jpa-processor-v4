@@ -1,0 +1,1 @@
+This module is using the logback-test.xml from odata-jps-metadata module (because is in the same classpath at runtime)

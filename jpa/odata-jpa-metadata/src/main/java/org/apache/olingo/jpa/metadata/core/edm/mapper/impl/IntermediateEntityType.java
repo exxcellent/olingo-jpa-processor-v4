@@ -40,7 +40,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> implements JPAEntityType {
 
-  private CsdlEntityType edmEntityType;
+  private CsdlEntityType csdlEntityType;
   private boolean hasEtag = false;
   private final DataAccessConditioner<?> dac;
   private final String entitySetName;
@@ -237,17 +237,17 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
   @Override
   protected void lazyBuildEdmItem() throws ODataJPAModelException {
     initializeType();
-    if (edmEntityType == null) {
-      edmEntityType = new CsdlEntityType();
-      edmEntityType.setName(getExternalName());
-      edmEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
-      edmEntityType.setNavigationProperties(
+    if (csdlEntityType == null) {
+      csdlEntityType = new CsdlEntityType();
+      csdlEntityType.setName(getExternalName());
+      csdlEntityType.setProperties((List<CsdlProperty>) extractEdmProperties(declaredPropertiesList));
+      csdlEntityType.setNavigationProperties(
           (List<CsdlNavigationProperty>) extractEdmProperties(
               declaredNaviPropertiesList));
-      edmEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
-      edmEntityType.setAbstract(isAbstract());
-      edmEntityType.setBaseType(determineBaseType());
-      edmEntityType.setHasStream(determineHasStream());
+      csdlEntityType.setKey(extractEdmKeyElements(declaredPropertiesList));
+      csdlEntityType.setAbstract(isAbstract());
+      csdlEntityType.setBaseType(determineBaseType());
+      csdlEntityType.setHasStream(determineHasStream());
       determineHasEtag();
       // TODO determine OpenType
     }
@@ -300,7 +300,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
   @Override
   public CsdlEntityType getEdmItem() throws ODataJPAModelException {
     lazyBuildEdmItem();
-    return edmEntityType;
+    return csdlEntityType;
   }
 
   @Override

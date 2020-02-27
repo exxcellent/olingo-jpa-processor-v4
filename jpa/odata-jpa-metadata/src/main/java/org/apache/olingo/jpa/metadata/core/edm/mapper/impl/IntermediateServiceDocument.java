@@ -18,6 +18,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -35,7 +36,7 @@ public class IntermediateServiceDocument {
   private final Object lock = new Object();
   private final Map<String, AbstractJPASchema> schemaListInternalKey = new HashMap<>();
   private boolean dependendSchemaCreationRequired = false;
-  private final IntermediateEntityContainer container;
+  private final IntermediateEntityContainer intermediateContainer;
 
   /**
    *
@@ -45,7 +46,22 @@ public class IntermediateServiceDocument {
    */
   public IntermediateServiceDocument(final String namespaceDefault) throws ODataJPAModelException {
     super();
-    this.container = new IntermediateEntityContainer(new JPAEdmNameBuilder(namespaceDefault), this);
+    this.intermediateContainer = new IntermediateEntityContainer(new JPAEdmNameBuilder(namespaceDefault), this);
+  }
+
+  private void invokeEverySchema() {
+    final List<AbstractJPASchema> existingSchemas = new ArrayList<>(schemaListInternalKey.values());
+    for (final AbstractJPASchema schema : existingSchemas) {
+      if (schema instanceof IntermediateMetamodelSchema) {
+        // only schemas working on javax.persistence.metamodel.Metamodel can be source
+        // of additional custom schemas
+        try {
+          schema.getEdmItem();
+        } catch (final ODataJPAModelException e) {
+          throw new IllegalStateException(e);
+        }
+      }
+    }
   }
 
   private final void resolveSchemas() {
@@ -59,22 +75,10 @@ public class IntermediateServiceDocument {
       // we have to do something very tricky/dirty:
       // some custom schemas are created on demand while traversing the metamodel from
       // JPA
-      // so we have trigger here the creation of all meta informations (including
-      // schema creation)
-      final List<AbstractJPASchema> existingSchemas = new ArrayList<>(schemaListInternalKey.values());
-      for (final AbstractJPASchema schema : existingSchemas) {
-        if (schema instanceof IntermediateMetamodelSchema) {
-          // only schemas working on javax.persistence.metamodel.Metamodel can be source
-          // of additional custom schemas
-          try {
-            schema.getEdmItem();
-          } catch (final ODataJPAModelException e) {
-            throw new IllegalStateException(e);
-          }
-        }
-      }
+      // so we have trigger here the creation of all meta informations (including schema creation)
+      invokeEverySchema();
       // recursive second strike to touch also new (on demand) created schemas
-      resolveSchemas();
+      invokeEverySchema();
     }
   }
 
@@ -83,11 +87,11 @@ public class IntermediateServiceDocument {
    * @return The only entity container of OData service.
    */
   public CsdlEntityContainer getEntityContainer() throws ODataJPAModelException {
-    return container.getEdmItem();
+    return intermediateContainer.getEdmItem();
   }
 
   public CsdlEntityContainerInfo getEntityContainerInfo() {
-    return new CsdlEntityContainerInfo().setContainerName(container.getExternalFQN());
+    return new CsdlEntityContainerInfo().setContainerName(intermediateContainer.getExternalFQN());
   }
 
   public List<CsdlSchema> getEdmSchemas() throws ODataJPAModelException {
@@ -98,8 +102,8 @@ public class IntermediateServiceDocument {
         // assign entity container to schema... only to the schema of same name space as
         // in entity container (simply to reduce complexity of meta data)
         final CsdlSchema cdslSchema = schema.getEdmItem();
-        if (cdslSchema.getNamespace().equals(container.getExternalFQN().getNamespace())) {
-          cdslSchema.setEntityContainer(container.getEdmItem());
+        if (cdslSchema.getNamespace().equals(intermediateContainer.getExternalFQN().getNamespace())) {
+          cdslSchema.setEntityContainer(intermediateContainer.getEdmItem());
         }
         schemas.add(cdslSchema);
       }
@@ -141,12 +145,15 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  public JPAEntityType getEntitySetType(final String edmEntitySetName) throws ODataJPAModelException {
+  public JPAEntityType getEntityType(final String edmEntitySetName) throws ODataJPAModelException {
     synchronized (lock) {
-      resolveSchemas();
-      final IntermediateEntitySet entitySet = container.getEntitySet(edmEntitySetName);
-      if (entitySet != null) {
-        return entitySet.getEntityType();
+      // do not resolve the on-demand schemas here; we have to avoid recursion
+      // problems and want to optimize performance
+      for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
+        final JPAEntitySet es = schema.getEntitySet(edmEntitySetName);
+        if (es != null) {
+          return es.getEntityType();
+        }
       }
     }
     return null;
@@ -275,6 +282,8 @@ public class IntermediateServiceDocument {
         // DTO's can be defined only in custom schemas
         throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
       }
+      // this will affect the number of entity set's so we have to refresh the container
+      intermediateContainer.reset();
       return ((IntermediateCustomSchema) schema).createDTOType(clazz);
     }
   }
@@ -282,8 +291,14 @@ public class IntermediateServiceDocument {
   public JPAElement getEntitySet(final JPAEntityType entityType) throws ODataJPAModelException {
     synchronized (lock) {
       resolveSchemas();
-      return container.getEntitySet(entityType);
+      for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
+        final JPAEntitySet es = schema.getEntitySet(entityType.getEntitySetName());
+        if (es != null) {
+          return es;
+        }
+      }
     }
+    return null;
   }
 
 }

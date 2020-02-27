@@ -12,7 +12,7 @@ import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
@@ -44,7 +44,7 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=$it/Area,Population=$it/Population) gt 1");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode values = helper.getJsonObjectValues();
 
@@ -56,7 +56,7 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=$it/Area,Population=$it/Population)  mul 1000000 gt 1000 and ParentDivisionCode eq 'BE255'&orderBy=DivisionCode)");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -69,7 +69,7 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=Area,Population=Population)  mul 1000000 gt 100");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -81,7 +81,7 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=13079087,Population=$it/Population)  mul 1000000 gt 1000");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -93,7 +93,7 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=Area div 1000000,Population=Population) gt 1000");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -105,7 +105,7 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Population=Population,Area=Area) mul 1000000 gt 1000");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();

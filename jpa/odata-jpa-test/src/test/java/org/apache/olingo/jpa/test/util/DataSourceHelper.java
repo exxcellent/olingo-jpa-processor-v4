@@ -69,6 +69,8 @@ public class DataSourceHelper {
       break;
 
     case HSQLDB:
+      // HSQLDB does call LogManager.reset() and this will destroy our logging configuration
+      System.setProperty("hsqldb.reconfig_logging", "false");
       ds = new DriverDataSource(HSQLDB_DRIVER_CLASS_NAME, HSQLDB_URL, null, null, new String[0]);
       break;
     case DERBY:

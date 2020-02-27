@@ -5,6 +5,7 @@ import javax.persistence.EntityManager;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializer;
 import org.apache.olingo.server.api.uri.UriInfo;
 
+@Deprecated
 public interface JPAODataRequestContextAccess {
 
   public EntityManager getEntityManager();

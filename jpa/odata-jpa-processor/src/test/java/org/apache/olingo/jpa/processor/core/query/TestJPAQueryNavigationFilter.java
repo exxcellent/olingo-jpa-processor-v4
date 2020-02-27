@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,7 +24,7 @@ public class TestJPAQueryNavigationFilter extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").appendKeySegment("99")
         .appendNavigationSegment("PersonReferenceWithoutMappedAttribute").filter("Roles/any(d:d/RoleCategory eq 'X')");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
   }
 

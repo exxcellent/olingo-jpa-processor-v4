@@ -29,7 +29,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfoHandler
 import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructure;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
@@ -109,7 +109,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
         .appendActionCallSegment(Constant.PUNIT_NAME + ".extractCountryCode");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
         HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -126,7 +126,7 @@ public class TestJPAActions extends TestBase {
     persistenceAdapter.registerDTO(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("unboundVoidAction");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, null,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null,
         HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -146,7 +146,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode object = helper.getJsonObjectValue();
@@ -174,7 +174,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
         HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -207,7 +207,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"value\": \"" + testValue + "\"");
     requestBody.append("}");
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -219,7 +219,7 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testBoundActionForEntityWithEmbeddedId() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisionDescriptions(CodePublisher='Eurostat',CodeID='NUTS3',DivisionCode='BE212',Language='de')/"
             + Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId",
             null, HttpMethod.POST);
@@ -239,7 +239,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
     requestBody.append("}");
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "unboundActionCheckLoadingOfEmbeddedId", requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
@@ -250,7 +250,7 @@ public class TestJPAActions extends TestBase {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "throwODataApplicationException", null, HttpMethod.POST);
     helper.execute(911);
   }
@@ -265,26 +265,26 @@ public class TestJPAActions extends TestBase {
     // the action must be present in all concrete/abstract entity classes
     uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipEntities").appendKeySegment(Integer.valueOf(1))
         .appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
-    final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper1 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);
     helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
     uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").appendKeySegment(Integer.valueOf(
         1)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
-    final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper2 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);
     helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
     uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipTargetEntities").appendKeySegment(Integer.valueOf(
         2)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
-    final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper3 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);
     helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
     // must fail
     uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").appendKeySegment(Integer.valueOf(
         1)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInAbstractEntity");
-    final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper4 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);
     helper4.execute(HttpStatusCode.BAD_REQUEST.getStatusCode());
 
@@ -299,7 +299,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder1 = newUriBuilder().appendEntitySetSegment("RelationshipEntities").appendKeySegment(
         Integer.valueOf(1)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInMappedSuperclass");
-    final IntegrationTestHelper helper1 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper1 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder1,
         null, HttpMethod.POST);
     helper1.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -307,7 +307,7 @@ public class TestJPAActions extends TestBase {
     final URIBuilder uriBuilder2 = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities")
         .appendKeySegment(Integer.valueOf(1)).appendActionCallSegment(Constant.PUNIT_NAME
             + ".actionInMappedSuperclass");
-    final IntegrationTestHelper helper2 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper2 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder2, null,
         HttpMethod.POST);
     helper2.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -315,14 +315,14 @@ public class TestJPAActions extends TestBase {
     final URIBuilder uriBuilder3 = newUriBuilder().appendEntitySetSegment("RelationshipTargetEntities")
         .appendKeySegment(Integer.valueOf(2)).appendActionCallSegment(Constant.PUNIT_NAME
             + ".actionInMappedSuperclass");
-    final IntegrationTestHelper helper3 = new IntegrationTestHelper(persistenceAdapter, uriBuilder3, null,
+    final ServerCallSimulator helper3 = new ServerCallSimulator(persistenceAdapter, uriBuilder3, null,
         HttpMethod.POST);
     helper3.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
     final URIBuilder uriBuilder4 = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities")
         .appendKeySegment(Integer.valueOf(1)).appendActionCallSegment(Constant.PUNIT_NAME
             + ".actionInMappedSuperclass");
-    final IntegrationTestHelper helper4 = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper4 = new ServerCallSimulator(persistenceAdapter,
         uriBuilder4, null,
         HttpMethod.POST);
     helper4.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -331,7 +331,7 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testUnboundActionWithCollectionResult() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "unboundActionWithStringCollectionResult", null, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -344,7 +344,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("10")
         .appendActionCallSegment(Constant.PUNIT_NAME + ".addPhoneToOrganizationAndSave");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
@@ -354,7 +354,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").appendKeySegment(
         Integer.valueOf(9999)).appendActionCallSegment(Constant.PUNIT_NAME + ".actionInMappedSuperclass");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.NOT_FOUND.getStatusCode());
   }
@@ -366,7 +366,7 @@ public class TestJPAActions extends TestBase {
     persistenceAdapter.registerDTO(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithPrimitiveCollectionResult");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, null,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null,
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() == 2);
@@ -379,7 +379,7 @@ public class TestJPAActions extends TestBase {
     persistenceAdapter.registerDTO(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("fillDTOWithNestedComplexType");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() == 2);
@@ -418,7 +418,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("--").append(boundary).append("--").append(NEW_LINE);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("uploadFile");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
     helper.setRequestContentType("multipart/form-data; boundary=" + boundary);// global content type
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -437,7 +437,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("checkPersonImageWithoutEmbeddedArgument");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, requestBody, HttpMethod.POST);
 
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
@@ -452,7 +452,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"numberOfLevels\": 4");
     requestBody.append("}");
     URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
-    IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody,
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -466,7 +466,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"structure\": " + jsonRaw);
     requestBody.append("}");
     uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
-    helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 

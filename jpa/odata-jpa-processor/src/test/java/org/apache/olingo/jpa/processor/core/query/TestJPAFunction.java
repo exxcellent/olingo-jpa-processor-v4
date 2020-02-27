@@ -9,7 +9,7 @@ import javax.persistence.EntityManager;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class TestJPAFunction extends TestBase {
 	@Ignore // TODO check is path is in general allowed
 	@Test
 	public void testNavigationAfterFunctionNotAllowed() throws IOException, ODataException {
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')/Parent");
 		helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
 	}
@@ -47,7 +47,7 @@ public class TestJPAFunction extends TestBase {
 
 		createSiblingsFunction();
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
 				"Siblings(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 		assertTrue(helper.getJsonObjectValues().size() > 0);

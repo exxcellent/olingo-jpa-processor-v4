@@ -237,7 +237,7 @@ public class Util {
       if (item.isStar()) {
         final EdmEntitySet edmEntitySet = determineTargetEntitySet(startResourceList);
         try {
-          final JPAEntityType jpaEntityType = sd.getEntitySetType(edmEntitySet.getName());
+          final JPAEntityType jpaEntityType = sd.getEntityType(edmEntitySet.getName());
           final List<JPAAssociationPath> associationPaths = jpaEntityType.getAssociationPathList();
           for (final JPAAssociationPath path : associationPaths) {
             final JPAAssociationAttribute asso = jpaEntityType.getAssociationByPath(path);

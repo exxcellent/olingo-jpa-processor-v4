@@ -12,6 +12,7 @@ import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
@@ -82,19 +83,25 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
       final KeyPredicateStrategy keyStrategy)
           throws ODataJPAModelException {
 
-    final EdmEntityType edmType = serviceMetadata.getEdm()
-        .getEntityType(jpaEntityType.getExternalFQN());
     try {
       // TODO Clarify host-name and port as part of ID see
       // http://docs.oasis-open.org/odata/odata-atom-format/v4.0/cs02/odata-atom-format-v4.0-cs02.html#_Toc372792702
 
       final String setName = sd.getEntitySet(jpaEntityType).getExternalName();
-      final StringBuffer uriString = new StringBuffer(setName);
-      final String idPart = uriHelper.buildKeyPredicate(edmType, odataEntity);
-      uriString.append("(");
-      if (idPart != null && !idPart.isEmpty()) {
-        uriString.append(idPart);
+
+      final EdmEntitySet set = serviceMetadata.getEdm().getEntityContainer().getEntitySet(setName);
+      final List<String> keyNames = set.getEntityType().getKeyPredicateNames();
+
+      if (!keyNames.isEmpty()) {
+        final String uri = uriHelper.buildCanonicalURL(set, odataEntity);
+        return new URI(uri);
       } else {
+        // fallback: manually id creation
+        final StringBuffer uriBuffer = new StringBuffer(setName);
+        final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
+        final String idPart = uriHelper.buildKeyPredicate(edmType, odataEntity);
+        uriBuffer.append("(");
+        uriBuffer.append(idPart);
         switch (keyStrategy) {
         case FORCE_EXISTING:
           throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM, "Entity has no key, but is required: "
@@ -102,21 +109,21 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
         case AUTOGENERATE_MISSING:
           LOG.log(Level.FINER, "Found entity without key attributes, will create generated id: " + odataEntity
               .toString());
-          uriString.append("generated-".concat(Long.toString(System.currentTimeMillis()).concat("-").concat(Integer
+          uriBuffer.append("generated-".concat(Long.toString(System.currentTimeMillis()).concat("-").concat(Integer
               .toString(odataEntity.hashCode()))));
           break;
         default:
           // accept null
         }
+        uriBuffer.append(")");
+        return new URI(uriBuffer.toString());
       }
-      uriString.append(")");
-      return new URI(uriString.toString());
     } catch (final URISyntaxException e) {
-      throw new ODataRuntimeException("Unable to create id for entity: " + edmType.getName(), e);
+      throw new ODataRuntimeException("Unable to create id for entity: " + jpaEntityType.getInternalName(), e);
     } catch (final IllegalArgumentException e) {
       return null;
     } catch (final SerializerException e) {
-      throw new ODataRuntimeException("Unable to create id for entity: " + edmType.getName(), e);
+      throw new ODataRuntimeException("Unable to create id for entity: " + jpaEntityType.getInternalName(), e);
     }
   }
 
