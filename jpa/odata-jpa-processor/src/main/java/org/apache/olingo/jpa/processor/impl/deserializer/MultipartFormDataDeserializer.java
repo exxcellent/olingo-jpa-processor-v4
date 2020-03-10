@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.deserializer;
+package org.apache.olingo.jpa.processor.impl.deserializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

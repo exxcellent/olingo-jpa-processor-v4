@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.api;
+package org.apache.olingo.jpa.processor.impl;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -32,14 +32,7 @@ import org.apache.olingo.server.api.processor.BatchProcessor;
  */
 public class JPAODataBatchProcessor implements BatchProcessor {
 
-//  private final JPAODataContextAccess context;
-//  private final EntityManagerFactory emf;
   private OData odata;
-
-  public JPAODataBatchProcessor() {
-//    this.context = context;
-//    this.emf = emf;
-  }
 
   @Override
   public void init(final OData odata, final ServiceMetadata serviceMetadata) {
@@ -72,7 +65,6 @@ public class JPAODataBatchProcessor implements BatchProcessor {
   @Override
   public ODataResponsePart processChangeSet(final BatchFacade facade, final List<ODataRequest> requests)
       throws ODataApplicationException, ODataLibraryException {
-    // TODO handle modifying requests
     throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.BATCH_CHANGE_SET_NOT_IMPLEMENTED,
         HttpStatusCode.NOT_IMPLEMENTED);
   }

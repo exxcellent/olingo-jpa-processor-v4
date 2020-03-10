@@ -47,30 +47,29 @@ import org.apache.olingo.server.core.uri.validator.UriValidationException;
 class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandler {
 
   private final JPAODataServletHandler servletHandler;
-  private final JPAODataContextImpl context;
+  private final JPAODataGlobalContextImpl globalContext;
   private final EntityManager em;
   private final ServerCoreDebugger debugger;
+  private final JPAODataRequestContextImpl requestContext;
   private int split = 0;
 
-  public JPAODataHttpHandlerImpl(final JPAODataServletHandler servletHandler) {
+  public JPAODataHttpHandlerImpl(final JPAODataServletHandler servletHandler,
+      final JPAODataGlobalContextImpl globalContext, final HttpServletRequest request,
+      final HttpServletResponse response) throws ODataException {
     super(servletHandler.getJPAODataContext().getOdata(),
-        unwrapContext(servletHandler).getServiceMetaData(), unwrapContext(servletHandler).getServerDebugger());
+        globalContext.getServiceMetaData(), globalContext.getServerDebugger());
     this.servletHandler = servletHandler;
-    this.context = unwrapContext(servletHandler);
-    this.em = context.refreshMappingAdapter().createEntityManager();
-    this.debugger = unwrapContext(servletHandler).getServerDebugger();
+    this.globalContext = globalContext;
+    this.em = globalContext.refreshMappingAdapter().createEntityManager();
+    this.debugger = globalContext.getServerDebugger();
+    requestContext = new JPAODataRequestContextImpl(em, globalContext, request, response);
   }
 
-  private static JPAODataContextImpl unwrapContext(final JPAODataServletHandler servletHandler) {
-    return (JPAODataContextImpl) servletHandler.getJPAODataContext();
-  }
-
-  EntityManager getEntityManager() {
-    return em;
+  JPAODataRequestContextImpl getRequestContext() {
+    return requestContext;
   }
 
   protected ODataResponse processTransactional(final ODataRequest request) {
-    context.getDependencyInjector().registerDependencyMapping(EntityManager.class, em);
 
     try {
       checkSecurity(request);
@@ -81,11 +80,12 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
 
     final boolean isReadingRequest = request.getMethod() == HttpMethod.GET;
 
-    final JPAAdapter mappingAdapter = context.refreshMappingAdapter();
+    final JPAAdapter mappingAdapter = globalContext.refreshMappingAdapter();
     ODataResponse odataResponse;
     try {
       mappingAdapter.beginTransaction(em);
 
+      // call super.... to avoid DPI overlay
       odataResponse = super.process(request);
 
     } catch (final RuntimeException ex) {
@@ -110,6 +110,17 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     // give implementors the chance to modify the response (set cache control etc.)
     servletHandler.modifyResponse(odataResponse);
     return odataResponse;
+  }
+
+  @Override
+  public ODataResponse process(final ODataRequest request) {
+    // this method is also called for every part of an batch request... so we have prepare a fresh request context
+    try {
+      requestContext.startDependencyInjectorOverlay();
+      return super.process(request);
+    } finally {
+      requestContext.stopDependencyInjectorOverlay();
+    }
   }
 
   @Override
@@ -278,13 +289,15 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     if (securityInceptor == null) {
       return;
     }
-    context.getDependencyInjector().injectFields(securityInceptor);
-    final UriInfo uriInfo = new Parser(context.getServiceMetaData().getEdm(), context.getOdata())
+    requestContext.getDependencyInjector().injectFields(securityInceptor);
+    final UriInfo uriInfo = new Parser(globalContext.getServiceMetaData().getEdm(), globalContext.getOdata())
         .parseUri(request.getRawODataPath(),
             request.getRawQueryPath(), null, request.getRawBaseUri());
     securityInceptor.authorize(request, uriInfo);
     // prepare the principal for DPI in case of a happened authentication
-    final HttpServletRequest httpRequest = context.getDependencyInjector().getDependencyValue(HttpServletRequest.class);
-    context.getDependencyInjector().registerDependencyMapping(java.security.Principal.class, httpRequest.getUserPrincipal());
+    final HttpServletRequest httpRequest = requestContext.getDependencyInjector().getDependencyValue(
+        HttpServletRequest.class);
+    requestContext.getDependencyInjector().registerDependencyMapping(java.security.Principal.class, httpRequest
+        .getUserPrincipal());
   }
 }

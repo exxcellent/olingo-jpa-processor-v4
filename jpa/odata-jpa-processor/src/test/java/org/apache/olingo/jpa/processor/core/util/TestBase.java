@@ -105,7 +105,12 @@ public abstract class TestBase {
   }
 
   public static URIBuilder newUriBuilder() {
-    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix);
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix) {
+      @Override
+      protected String getOperationInvokeMarker() {
+        return "";
+      }
+    };
   }
 
   protected NavigationIfc createTestUriInfo(final String entitySetName) {

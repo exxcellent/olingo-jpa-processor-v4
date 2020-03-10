@@ -1,15 +1,24 @@
-package org.apache.olingo.jpa.processor.core.api;
+package org.apache.olingo.jpa.processor.api;
 
 import java.util.List;
 
 import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
-import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ServiceMetadata;
-import org.apache.olingo.server.api.debug.DebugSupport;
 
-public interface JPAODataSessionContextAccess {
+/**
+ * Represents the global system context.
+ *
+ */
+public interface JPAODataGlobalContext {
+
+  /**
+   *
+   * @return The dpi with (only) global context support (no request specific data)
+   */
+  public DependencyInjector getDependencyInjector();
 
   public OData getOdata();
 
@@ -17,13 +26,9 @@ public interface JPAODataSessionContextAccess {
 
   public JPAODataDatabaseProcessor getDatabaseProcessor();
 
-  public JPAServiceDebugger getServiceDebugger();
-
-  public DebugSupport getDebugSupport();
-
   public JPAEdmProvider getEdmProvider();
 
   public List<EdmxReference> getReferences();
 
-  public DependencyInjector getDependencyInjector();
+
 }

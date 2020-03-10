@@ -21,7 +21,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.query.result.QueryElementCollectionResult;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
@@ -47,7 +47,7 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
    */
   ElementCollectionQueryBuilder(final EdmStructuredType owningType,
       final JPAAttribute<?> attribute, final List<JPASelector> paths,
-      final JPAODataContext context,
+      final JPAODataGlobalContext context,
       final NavigationIfc uriInfo, final EntityManager em)
           throws ODataApplicationException, ODataJPAModelException {
     super(context, createPropertyUriResourcePath(owningType, attribute, uriInfo), em);

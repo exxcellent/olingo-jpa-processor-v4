@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.processor;
+package org.apache.olingo.jpa.processor.impl;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
 
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
@@ -34,9 +32,10 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.conversion.Transformation;
+import org.apache.olingo.jpa.processor.conversion.TransformationRequest;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
-import org.apache.olingo.jpa.processor.core.deserializer.MultipartFormDataDeserializer;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
@@ -44,7 +43,10 @@ import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.processor.core.query.Util;
+import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
+import org.apache.olingo.jpa.processor.core.util.DependencyMapping;
 import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
+import org.apache.olingo.jpa.processor.impl.deserializer.MultipartFormDataDeserializer;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataLibraryException;
@@ -63,6 +65,7 @@ import org.apache.olingo.server.api.serializer.EntityCollectionSerializerOptions
 import org.apache.olingo.server.api.serializer.EntitySerializerOptions;
 import org.apache.olingo.server.api.serializer.ODataSerializer;
 import org.apache.olingo.server.api.serializer.PrimitiveSerializerOptions;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfo;
@@ -105,8 +108,8 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
   private final Logger log = Logger.getLogger(AbstractProcessor.class.getName());
   private final JPAServiceDebugger debugger;
 
-  public JPAODataActionProcessor(final JPAODataContext context, final EntityManager em) {
-    super(context, em);
+  public JPAODataActionProcessor(final JPAODataSessionContextAccess context) {
+    super(context);
     this.debugger = context.getServiceDebugger();
   }
 
@@ -326,10 +329,16 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       EntityQueryBuilder query = null;
       final EntityCollection entityCollection;
       try {
-        query = new EntityQueryBuilder(context, new NavigationRoot(uriInfo), em, getServiceMetadata());
+        query = new EntityQueryBuilder(getGlobalContext(), new NavigationRoot(uriInfo), getEntityManager(),
+            getServiceMetadata());
         // we do not expand the entities
-        entityCollection = query.execute(false);
-      } catch (final ODataJPAModelException e) {
+        final TransformationRequest<QueryEntityResult, EntityCollection> descriptor =
+            new TransformationRequest<>(QueryEntityResult.class, EntityCollection.class);
+        final Transformation<QueryEntityResult, EntityCollection> transformation = getRequestContext()
+            .getTransformerFactory()
+            .createTransformation(descriptor, new DependencyMapping(UriInfoResource.class, uriInfo));
+        entityCollection = query.execute(false, transformation);
+      } catch (final ODataJPAModelException | SerializerException e) {
         debugger.stopRuntimeMeasurement(handle);
         throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
             HttpStatusCode.INTERNAL_SERVER_ERROR, e);
@@ -338,8 +347,8 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       final JPAStructuredType jpaType = query.getQueryResultType();
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
-          final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData()
-              .createUriHelper(), context);
+          final JPAEntityHelper invoker = new JPAEntityHelper(getEntityManager(), sd, uriInfo, getOData()
+              .createUriHelper(), getGlobalContext());
           for (final Entity entity : entityCollection.getEntities()) {
             // call action in context of entity
             final Object resultAction = invoker.invokeBoundActionMethod(jpaType, entity, jpaAction,
@@ -357,8 +366,9 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       }
     } else {
       try {
-        final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData().createUriHelper(),
-            context);
+        final JPAEntityHelper invoker = new JPAEntityHelper(getEntityManager(), sd, uriInfo, getOData()
+            .createUriHelper(),
+            getGlobalContext());
         final Object resultAction = invoker.invokeUnboundActionMethod(jpaAction, parameters);
         if (resultAction != null) {
           results.add(resultAction);

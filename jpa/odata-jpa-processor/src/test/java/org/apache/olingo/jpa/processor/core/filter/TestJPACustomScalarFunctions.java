@@ -40,6 +40,16 @@ public class TestJPACustomScalarFunctions {
   }
 
   @Test
+  public void testFunctionCall() throws IOException, ODataException {
+
+    // TODO support function calls with primitive result
+    final URIBuilder uriBuilder = TestBase.newUriBuilder().appendOperationCallSegment(
+        "PopulationDensity(Area=42,Population=12345)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
+  }
+
+  @Test
   public void testFilterOnFunction() throws IOException, ODataException {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(

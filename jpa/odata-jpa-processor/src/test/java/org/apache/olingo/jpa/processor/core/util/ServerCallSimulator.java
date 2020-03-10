@@ -17,10 +17,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.data.ResWrap;
 import org.apache.olingo.client.api.domain.ClientEntity;
@@ -36,6 +32,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpMethod;
+import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
@@ -155,9 +152,8 @@ public class ServerCallSimulator {
     final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
       @Override
-      protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-          final HttpServletResponse response, final EntityManager em) {
-        final Collection<Processor> processors = super.collectProcessors(request, response, em);
+      protected Collection<Processor> collectProcessors(final JPAODataSessionContextAccess requestContext) {
+        final Collection<Processor> processors = super.collectProcessors(requestContext);
         processors.add(new TestErrorProcessor());
         return processors;
       }

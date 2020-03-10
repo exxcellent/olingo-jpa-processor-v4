@@ -35,9 +35,9 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
 
-class JPATuple2ODataEntityConverter extends AbstractEntityConverter {
+public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConverter {
 
-  public JPATuple2ODataEntityConverter(final IntermediateServiceDocument sd, final UriHelper uriHelper,
+  public DatabaseQueryResult2ODataEntityConverter(final IntermediateServiceDocument sd, final UriHelper uriHelper,
       final ServiceMetadata serviceMetadata) throws ODataJPAModelException,
   ODataApplicationException {
     super(uriHelper, sd, serviceMetadata);

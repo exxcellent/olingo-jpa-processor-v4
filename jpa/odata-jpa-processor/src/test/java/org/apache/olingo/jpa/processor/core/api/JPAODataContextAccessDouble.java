@@ -8,19 +8,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
+import org.apache.olingo.jpa.processor.api.DependencyInjector;
+import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.conversion.TransformingFactory;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
-import org.apache.olingo.jpa.processor.core.util.DependencyInjector;
+import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.debug.DebugSupport;
 
-public class JPAODataContextAccessDouble implements JPAODataContext {
+public class JPAODataContextAccessDouble implements JPAODataSessionContextAccess {
 
   private final JPAEdmProvider edmProvider;
   private final JPAAdapter persistenceAdapter;
-  private final DependencyInjector dpi = new DependencyInjector();
+  private final DependencyInjector dpi = new DependencyInjectorImpl();
   private final Map<String, List<String>> headers;
 
   public JPAODataContextAccessDouble(final JPAEdmProvider edmProvider,
@@ -95,5 +100,17 @@ public class JPAODataContextAccessDouble implements JPAODataContext {
   @Override
   public Locale getLocale() {
     return Locale.ENGLISH;
+  }
+
+  @Override
+  public TransformingFactory getTransformerFactory() {
+    fail();
+    return null;
+  }
+
+  @Override
+  public EntityManager getEntityManager() {
+    fail();
+    return null;
   }
 }

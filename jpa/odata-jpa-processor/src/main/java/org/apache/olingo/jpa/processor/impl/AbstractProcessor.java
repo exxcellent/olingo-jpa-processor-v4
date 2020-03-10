@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.processor;
+package org.apache.olingo.jpa.processor.impl;
 
 import java.util.List;
 
@@ -7,7 +7,8 @@ import javax.persistence.EntityManager;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -21,39 +22,52 @@ import org.apache.olingo.server.api.processor.Processor;
 abstract class AbstractProcessor implements Processor {
 
   protected final IntermediateServiceDocument sd;
-  protected final JPAODataContext context;
-  protected final EntityManager em;
+  private final EntityManager em;
+  private final JPAODataSessionContextAccess requestContext;
 
-  private ServiceMetadata serviceMetadata = null;
-  private OData odata = null;
-
-  public AbstractProcessor(final JPAODataContext context, final EntityManager em) {
-    this.context = context;
-    this.em = em;
-    this.sd = context.getEdmProvider().getServiceDocument();
+  public AbstractProcessor(final JPAODataSessionContextAccess requestContext) {
+    this.requestContext = requestContext;
+    this.em = requestContext.getEntityManager();
+    this.sd = requestContext.getEdmProvider().getServiceDocument();
   }
 
+  /**
+   * This method is not longer useful, because all context information is given by constructor.
+   */
   @Override
   public final void init(final OData odata, final ServiceMetadata serviceMetadata) {
-    this.odata = odata;
-    if (odata != context.getOdata()) {
+    if (odata != requestContext.getOdata()) {
       throw new IllegalStateException("Context invalid, different instances of OData in context");
     }
-    this.serviceMetadata = serviceMetadata;
+    if (serviceMetadata != requestContext.getServiceMetaData()) {
+      throw new IllegalStateException("Context invalid, different instances of ServiceMetadata in context");
+    }
+  }
+
+  protected final EntityManager getEntityManager() {
+    return em;
+  }
+
+  protected final JPAODataGlobalContext getGlobalContext() {
+    return requestContext;
+  }
+
+  protected final JPAODataSessionContextAccess getRequestContext() {
+    return requestContext;
   }
 
   /**
    * @return The OData instance from {@link #init(OData, ServiceMetadata) init()} or <code>null</code>.
    */
-  protected OData getOData() {
-    return odata;
+  protected final OData getOData() {
+    return requestContext.getOdata();
   }
 
   /**
    * @return The service metadata from {@link #init(OData, ServiceMetadata) init()} or <code>null</code>.
    */
-  protected ServiceMetadata getServiceMetadata() {
-    return serviceMetadata;
+  protected final ServiceMetadata getServiceMetadata() {
+    return requestContext.getServiceMetaData();
   }
 
   /**

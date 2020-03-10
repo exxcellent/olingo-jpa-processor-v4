@@ -23,7 +23,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
 import org.apache.olingo.jpa.processor.core.util.EdmEntityTypeDouble;
 import org.apache.olingo.jpa.processor.core.util.EdmPropertyDouble;
@@ -56,7 +56,7 @@ public class TestJPAQuerySelectClause extends TestBase {
   private JPAEntityType jpaEntityType;
   private HashMap<String, From<?, ?>> joinTables;
   private Root<?> root;
-  private JPAODataContext context;
+  private JPAODataGlobalContext context;
 
   @Before
   public void setup() throws ODataException {

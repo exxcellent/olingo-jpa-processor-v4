@@ -16,51 +16,51 @@ import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfo;
 
 public final class JPASerializeCollection implements JPASerializer {
-	private final ServiceMetadata serviceMetadata;
-	private final UriInfo uriInfo;
-	private final UriHelper uriHelper;
-	private final ODataSerializer serializer;
+  private final ServiceMetadata serviceMetadata;
+  private final UriInfo uriInfo;
+  private final UriHelper uriHelper;
+  private final ODataSerializer serializer;
 
-	public JPASerializeCollection(final ServiceMetadata serviceMetadata, final OData odata,
-			final ContentType responseFormat, final UriInfo uriInfo) throws SerializerException {
-		this(serviceMetadata, odata.createSerializer(responseFormat), odata.createUriHelper(), uriInfo);
-	}
+  public JPASerializeCollection(final ServiceMetadata serviceMetadata, final OData odata,
+      final ContentType responseFormat, final UriInfo uriInfo) throws SerializerException {
+    this(serviceMetadata, odata.createSerializer(responseFormat), odata.createUriHelper(), uriInfo);
+  }
 
-	JPASerializeCollection(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
-			final UriHelper uriHelper, final UriInfo uriInfo) {
-		this.uriInfo = uriInfo;
-		this.serializer = serializer;
-		this.serviceMetadata = serviceMetadata;
-		this.uriHelper = uriHelper;
-	}
+  JPASerializeCollection(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
+      final UriHelper uriHelper, final UriInfo uriInfo) {
+    this.uriInfo = uriInfo;
+    this.serializer = serializer;
+    this.serviceMetadata = serviceMetadata;
+    this.uriHelper = uriHelper;
+  }
 
-	@Override
-	public SerializerResult serialize(final ODataRequest request, final EntityCollection result)
-			throws SerializerException {
+  @Override
+  public SerializerResult serialize(final ODataRequest request, final EntityCollection result)
+      throws SerializerException {
 
-		final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(uriInfo.getUriResourceParts());
+    final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(uriInfo.getUriResourceParts());
 
-		final String selectList = uriHelper.buildContextURLSelectList(targetEdmEntitySet.getEntityType(),
-				uriInfo.getExpandOption(), uriInfo.getSelectOption());
+    final String selectList = uriHelper.buildContextURLSelectList(targetEdmEntitySet.getEntityType(),
+        uriInfo.getExpandOption(), uriInfo.getSelectOption());
 
-		final ContextURL contextUrl = ContextURL.with()
-				.entitySet(targetEdmEntitySet)
-				.selectList(selectList)
-				.build();
+    final ContextURL contextUrl = ContextURL.with()
+        .entitySet(targetEdmEntitySet)
+        .selectList(selectList)
+        .build();
 
-		final String id = request.getRawBaseUri() + "/" + targetEdmEntitySet.getEntityType().getName();
-		final EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
-				.contextURL(contextUrl)
-				.id(id)
-				.count(uriInfo.getCountOption())
-				.select(uriInfo.getSelectOption())
-				.expand(uriInfo.getExpandOption())
-				.build();
+    final String id = request.getRawBaseUri() + "/" + targetEdmEntitySet.getEntityType().getName();
+    final EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
+        .contextURL(contextUrl)
+        .id(id)
+        .count(uriInfo.getCountOption())
+        .select(uriInfo.getSelectOption())
+        .expand(uriInfo.getExpandOption())
+        .build();
 
-		final SerializerResult serializerResult = serializer.entityCollection(this.serviceMetadata, targetEdmEntitySet
-				.getEntityType(), result, opts);
-		return serializerResult;
+    final SerializerResult serializerResult = serializer.entityCollection(this.serviceMetadata, targetEdmEntitySet
+        .getEntityType(), result, opts);
+    return serializerResult;
 
-	}
+  }
 
 }

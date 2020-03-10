@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -18,112 +19,118 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class TestBatchRequests extends TestBase {
 
-	@Test
-	public void testOneGetRequestGetResponce() throws IOException, ODataException {
-		final StringBuffer requestBody = createBodyOneGet();
+  @Test
+  public void testOneGetRequestGetResponce() throws IOException, ODataException {
+    final StringBuffer requestBody = createBodyOneGet();
 
-		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$batch", requestBody,
-				HttpMethod.POST);
-		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
-		final List<String> act = helper.getRawBatchResult();
-		assertNotNull(act);
-		assertTrue(!act.isEmpty());
-	}
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
+    helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
+    final List<String> act = helper.getRawBatchResult();
+    assertNotNull(act);
+    assertTrue(!act.isEmpty());
+  }
 
-	@Test
-	public void testOneGetRequestCheckStatus() throws IOException, ODataException {
-		final StringBuffer requestBody = createBodyOneGet();
+  @Test
+  public void testOneGetRequestCheckStatus() throws IOException, ODataException {
+    final StringBuffer requestBody = createBodyOneGet();
 
-		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$batch", requestBody,
-				HttpMethod.POST);
-		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
-		assertEquals(200, helper.getBatchResultStatus(1));
-	}
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
+    helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
+    assertEquals(200, helper.getBatchResultStatus(1));
+  }
 
-	@Test
-	public void testOneGetRequestCheckValue() throws IOException, ODataException {
-		final StringBuffer requestBody = createBodyOneGet();
+  @Test
+  public void testOneGetRequestCheckValue() throws IOException, ODataException {
+    final StringBuffer requestBody = createBodyOneGet();
 
-		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$batch", requestBody,
-				HttpMethod.POST);
-		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
-		final JsonNode value = helper.getBatchResult(1);
-		assertEquals("3", value.get("ID").asText());
-	}
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
+    helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
+    final JsonNode value = helper.getBatchResult(1);
+    assertEquals("3", value.get("ID").asText());
+  }
 
-	@Test
-	public void testTwoGetRequestSecondFailCheckStatus() throws IOException, ODataException {
-		final StringBuffer requestBody = createBodyTwoGetOneFail();
+  @Test
+  public void testTwoGetRequestSecondFailCheckStatus() throws IOException, ODataException {
+    final StringBuffer requestBody = createBodyTwoGetOneFail();
 
-		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$batch", requestBody,
-				HttpMethod.POST);
-		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
-		assertEquals(404, helper.getBatchResultStatus(2));
-	}
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
+    helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
+    assertEquals(404, helper.getBatchResultStatus(2));
+  }
 
-	@Test
-	public void testTwoGetRequestCheckValue() throws IOException, ODataException {
-		final StringBuffer requestBody = createBodyTwoGet();
+  @Test
+  public void testTwoGetRequestCheckValue() throws IOException, ODataException {
+    final StringBuffer requestBody = createBodyTwoGet();
 
-		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$batch", requestBody,
-				HttpMethod.POST);
-		helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
-		final JsonNode value = helper.getBatchResult(2);
-		assertEquals("5", value.get("ID").asText());
-	}
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
 
-	private StringBuffer createBodyTwoGetOneFail() {
-		final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
-		requestBody.append("Content-Type: application/http\r\n");
-		requestBody.append("Content-Transfer-Encoding: binary\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("GET Organizations('3') HTTP/1.1\r\n");
-		requestBody.append("Content-Type: application/json\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("--abc123\r\n");
-		requestBody.append("Content-Type: application/http\r\n");
-		requestBody.append("Content-Transfer-Encoding: binary\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("GET AdministrativeDivision HTTP/1.1\r\n");
-		requestBody.append("Content-Type: application/json\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("--abc123--");
-		return requestBody;
-	}
+    helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
+    final JsonNode value = helper.getBatchResult(2);
+    assertEquals("5", value.get("ID").asText());
+  }
 
-	private StringBuffer createBodyTwoGet() {
-		final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
-		requestBody.append("Content-Type: application/http\r\n");
-		requestBody.append("Content-Transfer-Encoding: binary\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("GET Organizations('3') HTTP/1.1\r\n");
-		requestBody.append("Content-Type: application/json\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("--abc123\r\n");
-		requestBody.append("Content-Type: application/http\r\n");
-		requestBody.append("Content-Transfer-Encoding: binary\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("GET Organizations('5') HTTP/1.1\r\n");
-		requestBody.append("Content-Type: application/json\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("--abc123--");
-		return requestBody;
-	}
+  private StringBuffer createBodyTwoGetOneFail() {
+    final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
+    requestBody.append("Content-Type: application/http\r\n");
+    requestBody.append("Content-Transfer-Encoding: binary\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("GET Organizations('3') HTTP/1.1\r\n");
+    requestBody.append("Content-Type: application/json\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("--abc123\r\n");
+    requestBody.append("Content-Type: application/http\r\n");
+    requestBody.append("Content-Transfer-Encoding: binary\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("GET AdministrativeDivision HTTP/1.1\r\n");
+    requestBody.append("Content-Type: application/json\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("--abc123--");
+    return requestBody;
+  }
 
-	private StringBuffer createBodyOneGet() {
-		final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
-		requestBody.append("Content-Type: application/http\r\n");
-		requestBody.append("Content-Transfer-Encoding: binary\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("GET Organizations('3') HTTP/1.1\r\n");
-		requestBody.append("Content-Type: application/json\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("\r\n");
-		requestBody.append("--abc123--");
-		return requestBody;
-	}
+  private StringBuffer createBodyTwoGet() {
+    final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
+    requestBody.append("Content-Type: application/http\r\n");
+    requestBody.append("Content-Transfer-Encoding: binary\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("GET Organizations('3') HTTP/1.1\r\n");
+    requestBody.append("Content-Type: application/json\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("--abc123\r\n");
+    requestBody.append("Content-Type: application/http\r\n");
+    requestBody.append("Content-Transfer-Encoding: binary\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("GET Organizations('5') HTTP/1.1\r\n");
+    requestBody.append("Content-Type: application/json\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("--abc123--");
+    return requestBody;
+  }
+
+  private StringBuffer createBodyOneGet() {
+    final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
+    requestBody.append("Content-Type: application/http\r\n");
+    requestBody.append("Content-Transfer-Encoding: binary\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("GET Organizations('3') HTTP/1.1\r\n");
+    requestBody.append("Content-Type: application/json\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("\r\n");
+    requestBody.append("--abc123--");
+    return requestBody;
+  }
 }
