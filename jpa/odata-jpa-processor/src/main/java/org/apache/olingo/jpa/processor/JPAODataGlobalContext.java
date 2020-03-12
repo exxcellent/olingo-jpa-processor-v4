@@ -1,8 +1,5 @@
-package org.apache.olingo.jpa.processor.api;
+package org.apache.olingo.jpa.processor;
 
-import java.util.List;
-
-import org.apache.olingo.commons.api.edmx.EdmxReference;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.OData;
@@ -16,7 +13,7 @@ public interface JPAODataGlobalContext {
 
   /**
    *
-   * @return The dpi with (only) global context support (no request specific data)
+   * @return The dependency injector with (only) global context support (no request specific data)
    */
   public DependencyInjector getDependencyInjector();
 
@@ -28,7 +25,7 @@ public interface JPAODataGlobalContext {
 
   public JPAEdmProvider getEdmProvider();
 
-  public List<EdmxReference> getReferences();
+  //  public List<EdmxReference> getReferences();
 
 
 }

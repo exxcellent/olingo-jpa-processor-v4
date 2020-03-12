@@ -16,7 +16,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.SearchOption;

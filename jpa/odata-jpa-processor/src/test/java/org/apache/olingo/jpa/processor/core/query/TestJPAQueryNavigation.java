@@ -126,8 +126,6 @@ public class TestJPAQueryNavigation extends TestBase {
             "Created").appendNavigationSegment("By");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
-    //    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-    //        "Organizations('3')/AdministrativeInformation/Created/By");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();

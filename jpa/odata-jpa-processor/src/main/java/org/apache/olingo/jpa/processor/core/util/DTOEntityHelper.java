@@ -13,10 +13,14 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException.MessageKeys;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
+import org.apache.olingo.jpa.processor.transformation.Transformation;
 import org.apache.olingo.server.api.ODataApplicationException;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 
 public class DTOEntityHelper {
@@ -87,7 +91,21 @@ public class DTOEntityHelper {
     }
   }
 
-  public EntityCollection loadEntities(final EdmEntitySet targetEdmEntitySet) throws ODataApplicationException {
+  public <O> O loadEntities(final Transformation<?, O> transformation,
+      final EdmEntitySet targetEdmEntitySet)
+          throws ODataApplicationException {
+    final EntityCollection ec = loadAsEntityCollection(targetEdmEntitySet);
+    try {
+      final Transformation<EntityCollection, O> subTransformation = transformation.createSubTransformation(
+          EntityCollection.class);
+      return subTransformation.transform(ec);
+    } catch (final SerializerException e) {
+      throw new ODataJPAConversionException(e, MessageKeys.RUNTIME_PROBLEM);
+    }
+  }
+
+  private EntityCollection loadAsEntityCollection(final EdmEntitySet targetEdmEntitySet)
+      throws ODataApplicationException {
     try {
       final EntityCollection odataEntityCollection = new EntityCollection();
       final ODataDTOHandler<?> handler = buildHandlerInstance(targetEdmEntitySet);
@@ -139,7 +157,7 @@ public class DTOEntityHelper {
       throws ODataJPAModelException, InstantiationException, IllegalAccessException, ODataApplicationException {
     final Class<? extends ODataDTOHandler<?>> classHandler = determineDTOHandlerClass(targetEdmEntitySet);
     final ODataDTOHandler<?> handler = classHandler.newInstance();
-    context.getDependencyInjector().injectFields(handler);
+    context.getDependencyInjector().injectDependencyValues(handler);
     return handler;
   }
 }

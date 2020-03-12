@@ -9,8 +9,8 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.api.DependencyInjector;
-import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.DependencyInjector;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
@@ -19,7 +19,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.core.debug.ServerCoreDebugger;
 
-class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
+class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataGlobalContext {
 
   private final JPAEdmProvider jpaEdm;
   private final AbstractJPADatabaseProcessor databaseProcessor;
@@ -27,7 +27,7 @@ class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
   private final OData odata;
   private final ServiceMetadata serviceMetaData;
   private final List<EdmxReference> references = new LinkedList<EdmxReference>();
-  private final DependencyInjectorImpl dpi;
+  private final DependencyInjectorImpl di;
   private final ServerCoreDebugger serverDebugger;
   private boolean disposed = false;
 
@@ -35,7 +35,7 @@ class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
     super();
     this.odata = OData.newInstance();
     this.mappingAdapter = mappingAdapter;
-    this.dpi = new DependencyInjectorImpl();
+    this.di = new DependencyInjectorImpl();
 
     this.serverDebugger = new ServerCoreDebugger(odata);
 
@@ -44,19 +44,20 @@ class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
     assert databaseProcessor != null;
     this.serviceMetaData = odata.createServiceMetadata(jpaEdm, references);
 
-    dpi.registerDependencyMapping(JPAAdapter.class, mappingAdapter);
-    dpi.registerDependencyMapping(JPAEdmProvider.class, jpaEdm);
-    dpi.registerDependencyMapping(JPAODataGlobalContext.class, this);
+    di.registerDependencyMapping(JPAAdapter.class, mappingAdapter);
+    di.registerDependencyMapping(JPAEdmProvider.class, jpaEdm);
+    di.registerDependencyMapping(JPAODataGlobalContext.class, this);
 
     registerDTOs();
   }
 
   void dispose() {
     mappingAdapter.dispose();
-    dpi.dispose();
+    di.dispose();
     disposed = true;
   }
 
+  @Override
   ServerCoreDebugger getServerDebugger() {
     return serverDebugger;
   }
@@ -81,10 +82,10 @@ class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
     return odata;
   }
 
-  @Override
-  public List<EdmxReference> getReferences() {
-    return references;
-  }
+  //  @Override
+  //  public List<EdmxReference> getReferences() {
+  //    return references;
+  //  }
 
   @Override
   public JPAEdmProvider getEdmProvider() {
@@ -116,7 +117,7 @@ class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
    */
   JPAAdapter refreshMappingAdapter() {
     try {
-      getDependencyInjector().injectFields(mappingAdapter);
+      getDependencyInjector().injectDependencyValues(mappingAdapter);
     } catch (final ODataApplicationException e) {
       throw new RuntimeException(e);
     }
@@ -125,7 +126,11 @@ class JPAODataGlobalContextImpl implements JPAODataGlobalContext {
 
   @Override
   public DependencyInjector getDependencyInjector() {
-    return dpi;
+    return di;
   }
 
+  @Override
+  protected DependencyInjectorImpl getDependencyInjectorImpl() {
+    return di;
+  }
 }

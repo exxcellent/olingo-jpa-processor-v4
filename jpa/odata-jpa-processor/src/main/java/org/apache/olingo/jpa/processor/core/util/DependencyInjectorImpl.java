@@ -26,7 +26,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
  *
  */
 @SuppressWarnings("unchecked")
-public final class DependencyInjectorImpl implements org.apache.olingo.jpa.processor.api.DependencyInjector {
+public final class DependencyInjectorImpl implements org.apache.olingo.jpa.processor.DependencyInjector {
 
   private static final String JAVAX_INJECT_INJECT_CLASSNAME = "javax.inject.Inject";
   private static final Collection<Class<?>> FORBIDDEN_TYPES = new LinkedList<>();
@@ -94,20 +94,20 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
 
   @Override
   public <T> T getDependencyValue(final Class<T> type) {
-    final ValueReference<T> vr = getValueReference(type);
+    final ValueReference<T> vr = getValueReference(type, true);
     if (vr != null) {
       return vr.getValueObject();
     }
     return null;
   }
 
-  protected <T> ValueReference<T> getValueReference(final Class<T> type) {
+  protected <T> ValueReference<T> getValueReference(final Class<T> type, final boolean callParent) {
     final ValueReference<T> vr = (ValueReference<T>) valueMapping.get(type);
     if (vr != null) {
       return vr;
     }
-    if (parent != null) {
-      return parent.getValueReference(type);
+    if (callParent && parent != null) {
+      return parent.getValueReference(type, callParent);
     }
     return null;
   }
@@ -122,18 +122,19 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
   }
 
   @Override
-  public void registerDependencyMappings(final DependencyMapping... dependencies) {
+  public void registerDependencyMappings(final TypedParameter... dependencies) {
     if (dependencies == null) {
       return;
     }
-    for (final DependencyMapping dm : dependencies) {
+    for (final TypedParameter dm : dependencies) {
       registerDependencyMapping(dm.getType(), dm.getValue());
     }
   }
 
   @Override
   public void registerDependencyMapping(final Class<?> type, final Object value) {
-    final ValueReference<?> vR = getValueReference(type);
+    // check for already registered in this instance
+    final ValueReference<?> vR = getValueReference(type, false);
     if (vR != null) {
       // already register... same value is allowed
       if (vR.getValueObject() == value) {
@@ -164,13 +165,13 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
   }
 
   @Override
-  public void injectFields(final Object target) throws ODataApplicationException {
+  public void injectDependencyValues(final Object target) throws ODataApplicationException {
     if (target == null) {
       return;
     }
     // parent values
     if (parent != null) {
-      parent.injectFields(target);
+      parent.injectDependencyValues(target);
     }
     // own values
     final Collection<InjectionOccurrence> occurrences = findAnnotatedFields(target.getClass());
@@ -254,6 +255,6 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
    * @return TRUE if types are matching
    */
   private boolean isMatchingType(final Class<?> requestedType, final Class<?> actualType) {
-    return requestedType.isAssignableFrom(actualType);
+    return actualType.isAssignableFrom(requestedType);
   }
 }

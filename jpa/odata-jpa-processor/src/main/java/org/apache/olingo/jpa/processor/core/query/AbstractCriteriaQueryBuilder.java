@@ -32,7 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
@@ -374,7 +374,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     if (dac == null) {
       return null;
     }
-    getContext().getDependencyInjector().injectFields(dac);
+    getContext().getDependencyInjector().injectDependencyValues(dac);
     return dac.buildSelectCondition(getEntityManager(), (From<Object, Object>) getQueryResultFrom());
   }
 

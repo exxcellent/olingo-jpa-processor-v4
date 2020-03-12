@@ -21,7 +21,7 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.api.DependencyInjector;
+import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;

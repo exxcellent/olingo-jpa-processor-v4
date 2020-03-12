@@ -13,21 +13,21 @@ import org.apache.olingo.server.api.serializer.ODataSerializer;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.UriHelper;
-import org.apache.olingo.server.api.uri.UriInfo;
+import org.apache.olingo.server.api.uri.UriInfoResource;
 
 public final class JPASerializeCollection implements JPASerializer {
   private final ServiceMetadata serviceMetadata;
-  private final UriInfo uriInfo;
+  private final UriInfoResource uriInfo;
   private final UriHelper uriHelper;
   private final ODataSerializer serializer;
 
   public JPASerializeCollection(final ServiceMetadata serviceMetadata, final OData odata,
-      final ContentType responseFormat, final UriInfo uriInfo) throws SerializerException {
+      final ContentType responseFormat, final UriInfoResource uriInfo) throws SerializerException {
     this(serviceMetadata, odata.createSerializer(responseFormat), odata.createUriHelper(), uriInfo);
   }
 
   JPASerializeCollection(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
-      final UriHelper uriHelper, final UriInfo uriInfo) {
+      final UriHelper uriHelper, final UriInfoResource uriInfo) {
     this.uriInfo = uriInfo;
     this.serializer = serializer;
     this.serviceMetadata = serviceMetadata;

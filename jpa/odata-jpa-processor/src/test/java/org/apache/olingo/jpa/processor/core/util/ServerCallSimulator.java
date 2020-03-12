@@ -32,7 +32,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpMethod;
-import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
@@ -152,7 +152,7 @@ public class ServerCallSimulator {
     final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
       @Override
-      protected Collection<Processor> collectProcessors(final JPAODataSessionContextAccess requestContext) {
+      protected Collection<Processor> collectProcessors(final JPAODataRequestContext requestContext) {
         final Collection<Processor> processors = super.collectProcessors(requestContext);
         processors.add(new TestErrorProcessor());
         return processors;

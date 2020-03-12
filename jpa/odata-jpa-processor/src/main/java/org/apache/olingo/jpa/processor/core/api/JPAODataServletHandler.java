@@ -9,9 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpHeader;
-import org.apache.olingo.jpa.processor.api.DependencyInjector;
-import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
-import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.DependencyInjector;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
@@ -49,7 +49,7 @@ public class JPAODataServletHandler {
     try {
       final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(this, globalContext, request, response);
       handler.register(new MultipartFormDataContentTypeSupport());// for file uploads
-      final JPAODataSessionContextAccess requestContext = handler.getRequestContext();
+      final JPAODataRequestContext requestContext = handler.getRequestContext();
 
       prepareDependencyInjection(requestContext.getDependencyInjector());
 
@@ -109,7 +109,7 @@ public class JPAODataServletHandler {
    *
    * @return The collection of processors to use to handle the request.
    */
-  protected Collection<Processor> collectProcessors(final JPAODataSessionContextAccess requestContext) {
+  protected Collection<Processor> collectProcessors(final JPAODataRequestContext requestContext) {
     final Collection<Processor> processors = new LinkedList<>();
     processors.add(new JPAStructureProcessor(requestContext));
     processors.add(new JPAODataActionProcessor(requestContext));

@@ -1,12 +1,12 @@
-package org.apache.olingo.jpa.processor.api;
+package org.apache.olingo.jpa.processor;
 
-import org.apache.olingo.jpa.processor.core.util.DependencyMapping;
+import org.apache.olingo.jpa.processor.core.util.TypedParameter;
 import org.apache.olingo.server.api.ODataApplicationException;
 
 public interface DependencyInjector {
 
   /**
-   * Register a value to inject into {@link #injectFields(Object) targets}.
+   * Register a value to inject into {@link #injectDependencyValues(Object) targets}.
    *
    * @param type
    * The type object used to register. The type must match the (field)
@@ -21,7 +21,7 @@ public interface DependencyInjector {
    *
    * @see #registerDependencyMapping(Class, Object)
    */
-  public void registerDependencyMappings(final DependencyMapping... dependencies);
+  public void registerDependencyMappings(final TypedParameter... dependencies);
 
   /**
    *
@@ -42,5 +42,5 @@ public interface DependencyInjector {
    * Traverse the fields of given <i>target</i> object to inject available instances as value to
    * the fields.
    */
-  public void injectFields(final Object target) throws ODataApplicationException;
+  public void injectDependencyValues(final Object target) throws ODataApplicationException;
 }

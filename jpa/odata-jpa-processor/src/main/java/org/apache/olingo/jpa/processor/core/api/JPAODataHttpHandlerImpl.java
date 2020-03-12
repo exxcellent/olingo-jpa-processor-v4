@@ -289,7 +289,7 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     if (securityInceptor == null) {
       return;
     }
-    requestContext.getDependencyInjector().injectFields(securityInceptor);
+    requestContext.getDependencyInjector().injectDependencyValues(securityInceptor);
     final UriInfo uriInfo = new Parser(globalContext.getServiceMetaData().getEdm(), globalContext.getOdata())
         .parseUri(request.getRawODataPath(),
             request.getRawQueryPath(), null, request.getRawBaseUri());

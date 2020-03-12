@@ -10,7 +10,7 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.api.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 

@@ -24,8 +24,8 @@ import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.api.DependencyInjector;
-import org.apache.olingo.jpa.processor.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.DependencyInjector;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
@@ -98,7 +98,7 @@ public class ODataServlet extends HttpServlet {
        * processing to the servlet container terminal...
        */
       @Override
-      protected Collection<Processor> collectProcessors(final JPAODataSessionContextAccess requestContext) {
+      protected Collection<Processor> collectProcessors(final JPAODataRequestContext requestContext) {
         final Collection<Processor> processors = super.collectProcessors(requestContext);
         processors.add(new ExampleErrorProcessor());
         return processors;
