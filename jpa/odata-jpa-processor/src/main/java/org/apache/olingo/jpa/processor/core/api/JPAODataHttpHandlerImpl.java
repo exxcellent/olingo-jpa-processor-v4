@@ -17,6 +17,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.exception.ODataErrorException;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
+import org.apache.olingo.jpa.processor.core.util.ExtensibleContentTypeSupport;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataHttpHandler;
 import org.apache.olingo.server.api.ODataLibraryException;
@@ -46,6 +47,7 @@ import org.apache.olingo.server.core.uri.validator.UriValidationException;
  */
 class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandler {
 
+  private final ExtensibleContentTypeSupport contentSupport = new ExtensibleContentTypeSupport();
   private final JPAODataServletHandler servletHandler;
   private final JPAODataGlobalContextImpl globalContext;
   private final EntityManager em;
@@ -62,11 +64,18 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     this.globalContext = globalContext;
     this.em = globalContext.refreshMappingAdapter().createEntityManager();
     this.debugger = globalContext.getServerDebugger();
+    // call super to avoid 'forbidden' exception
+    super.register(contentSupport);// at least for file uploads (but also for more...)
     requestContext = new JPAODataRequestContextImpl(em, globalContext, request, response);
+    servletHandler.prepareRequestContext(requestContext);
   }
 
   JPAODataRequestContextImpl getRequestContext() {
     return requestContext;
+  }
+
+  ExtensibleContentTypeSupport getContentSupport() {
+    return contentSupport;
   }
 
   protected ODataResponse processTransactional(final ODataRequest request) {
@@ -271,12 +280,16 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
 
   @Override
   public void register(final OlingoExtension extension) {
+    if (CustomContentTypeSupport.class.isInstance(extension)) {
+      register(CustomContentTypeSupport.class.cast(extension));
+    }
     super.register(extension);
   }
 
   @Override
   public void register(final CustomContentTypeSupport customContentTypeSupport) {
-    super.register(customContentTypeSupport);
+    throw new IllegalStateException("Own implementations of " + CustomContentTypeSupport.class.getSimpleName()
+        + " are not possible");
   }
 
   @Override

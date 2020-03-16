@@ -46,10 +46,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterOneDescriptionEquals() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$filter=Country eq 'DEU'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("Country eq 'DEU'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
     assertEquals("10", orgs.get(0).get("ID").asText());

@@ -113,11 +113,11 @@ public abstract class AbstractConverter {
   @SuppressWarnings("unchecked")
   protected final ODataAttributeConverter<Object, Object> determineODataAttributeConverter(final JPATypedElement jpaElement,
       final Class<?> odataAttributeType) throws ODataJPAConversionException {
-    final EdmAttributeConversion annoConverter = jpaElement.getAnnotation(EdmAttributeConversion.class);
-    if (annoConverter != null) {
+    final EdmAttributeConversion annoConversionConfiguration = jpaElement.getAnnotation(EdmAttributeConversion.class);
+    if (annoConversionConfiguration != null) {
       try {
-        if (!EdmAttributeConversion.DEFAULT.class.equals(annoConverter.converter())) {
-          return (ODataAttributeConverter<Object, Object>) annoConverter.converter().newInstance();
+        if (!EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration.converter())) {
+          return (ODataAttributeConverter<Object, Object>) annoConversionConfiguration.converter().newInstance();
         }
       } catch (InstantiationException | IllegalAccessException e) {
         throw new ODataJPAConversionException(e, ODataJPAConversionException.MessageKeys.RUNTIME_PROBLEM, e.getMessage());
@@ -165,7 +165,7 @@ public abstract class AbstractConverter {
    *            The value coming from JPA (aka database)
    * @return The value converted into an type provided from OData
    */
-  private Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
+  protected Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
       throws ODataJPAConversionException, ODataJPAModelException {
 
     // use a intermediate conversion to an supported JAVA type in the Olingo library

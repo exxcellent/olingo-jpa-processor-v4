@@ -5,12 +5,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
-		<artifactId>odata-jpa</artifactId>
+		<artifactId>odata-jpa-addons</artifactId>
 		<version>0.34.0</version>
 	</parent>
 
-	<artifactId>odata-jpa-metadata</artifactId>
-	<name>OData-JPA-Adapter metadata</name>
+	<artifactId>odata-jpa-processor-excelexport</artifactId>
+	<name>OData-JPA-Adapter excelexport</name>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,20 +18,45 @@
 	
 	<dependencies>
 		<dependency>
+		    <groupId>org.apache.poi</groupId>
+		    <artifactId>poi-ooxml</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo</groupId>
+			<artifactId>odata-commons-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 		    <groupId>javax.persistence</groupId>
 		    <artifactId>javax.persistence-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-processor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-processor</artifactId>
+			<version>${project.version}</version>
 			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.olingo.jpa</groupId>
 			<artifactId>odata-jpa-test</artifactId>
-			<scope>test</scope>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.olingo.jpa</groupId>
@@ -42,31 +67,25 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.olingo.jpa</groupId>
-			<artifactId>odata-jpa-annotation</artifactId>
+			<artifactId>odata-jpa-metadata</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
-			<groupId>org.hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
+			<groupId>org.apache.olingo</groupId>
+			<artifactId>odata-client-api</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.olingo</groupId>
-			<artifactId>odata-server-core</artifactId>
-			<scope>runtime</scope>
+			<artifactId>odata-client-core</artifactId>
+		    <scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo</groupId>
-			<artifactId>odata-commons-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.olingo</groupId>
-			<artifactId>odata-server-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<scope>provided</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 		    <groupId>org.slf4j</groupId>
@@ -81,28 +100,21 @@
 		<dependency>
 		    <groupId>org.slf4j</groupId>
 		    <artifactId>jul-to-slf4j</artifactId>
+		    <scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
+			<!-- required by logback classic -->
+		   	<groupId>org.codehaus.janino</groupId>
+		   	<artifactId>janino</artifactId>
+	        <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
 		    <scope>test</scope>
-		</dependency>		
+		</dependency>
 	</dependencies>
 	
 	<build>
-	  	<plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>   
-            </plugin>
-	  	</plugins>
 	</build>
-	
 </project>

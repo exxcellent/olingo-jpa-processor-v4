@@ -149,7 +149,18 @@ public class ServerCallSimulator {
 
   public void execute(final int status) throws ODataException, UnsupportedEncodingException {
     this.resp = new HttpServletResponseDouble();
-    final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
+    final JPAODataServletHandler handler = createServletHandler();
+    if (securityInceptor != null) {
+      handler.setSecurityInceptor(securityInceptor);
+    }
+    LOG.info("Execute " + URLDecoder.decode(req.getRequestTestExecutionURI().toString(), "UTF-8") + "...");
+    handler.process(req, resp);
+    executed = true;
+    assertEquals(status, getStatus());
+  }
+
+  protected JPAODataServletHandler createServletHandler() throws ODataException {
+    return new JPAODataServletHandler(persistenceAdapter) {
 
       @Override
       protected Collection<Processor> collectProcessors(final JPAODataRequestContext requestContext) {
@@ -157,23 +168,20 @@ public class ServerCallSimulator {
         processors.add(new TestErrorProcessor());
         return processors;
       }
+
+      @Override
+      protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+        super.prepareRequestContext(requestContext);
+        ServerCallSimulator.this.prepareRequestContext(requestContext);
+      }
     };
-    if (securityInceptor != null) {
-      handler.setSecurityInceptor(securityInceptor);
-    }
-    LOG.info("Execute " + URLDecoder.decode(req.getRequestTestExecutionURI().toString(), "UTF-8") + "...");
-    handler.process(req, resp);
-    executed = true;
-    assertEquals(parseResponse(), status, getStatus());
   }
 
-  private String parseResponse() {
-    try {
-      return getRawResult();
-    } catch (final IOException e) {
-      e.printStackTrace();
-      return e.getMessage();
-    }
+  /**
+   * Test class hook to modify request context
+   */
+  protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+    // do nothing as default
   }
 
   public int getStatus() {

@@ -96,7 +96,6 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
     return convert2Value(null, typeInformation);
   }
 
-  @SuppressWarnings("unchecked")
   public Expression<Object> getLiteralExpression()
       throws ODataApplicationException {
     return wrapIntoExpression(get());
@@ -122,7 +121,6 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
   /**
    * Converts a literal value into system type of attribute
    */
-  @SuppressWarnings({ "unchecked" })
   public Expression<Object> getLiteralExpression(final JPATypedElement attribute)
       throws ODataApplicationException {
 

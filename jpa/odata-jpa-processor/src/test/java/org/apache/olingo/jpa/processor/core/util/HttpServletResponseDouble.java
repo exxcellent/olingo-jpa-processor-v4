@@ -2,13 +2,14 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -20,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 public class HttpServletResponseDouble implements HttpServletResponse {
 
   private int setStatus;
-  private final ServletOutputStream outputStream = new OutPutStream();
+  private final TestingOutputStream outputStream = new TestingOutputStream();
   private final HashMap<String, List<String>> headers = new HashMap<String, List<String>>();
 
   @Override
@@ -74,7 +75,7 @@ public class HttpServletResponseDouble implements HttpServletResponse {
 
   @Override
   public int getBufferSize() {
-    return ((OutPutStream) this.outputStream).getSize();
+    return this.outputStream.getSize();
   }
 
   @Override
@@ -222,16 +223,12 @@ public class HttpServletResponseDouble implements HttpServletResponse {
     return setStatus;
   }
 
-  class OutPutStream extends ServletOutputStream {
-    List<Integer> buffer = new ArrayList<Integer>();
+  class TestingOutputStream extends ServletOutputStream {
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024 * 1024);
 
     @Override
     public void write(final int b) throws IOException {
-      buffer.add(new Integer(b));
-    }
-
-    public Iterator<Integer> getBuffer() {
-      return buffer.iterator();
+      buffer.write(b);
     }
 
     public int getSize() {
@@ -249,28 +246,8 @@ public class HttpServletResponseDouble implements HttpServletResponse {
     }
   }
 
-  //
-  class ResultStream extends InputStream {
-    private final Iterator<Integer> bufferExcess;
-
-    public ResultStream(final OutPutStream buffer) {
-      super();
-      this.bufferExcess = buffer.getBuffer();
-    }
-
-    @Override
-    public int read() throws IOException {
-      if (bufferExcess.hasNext()) {
-        return bufferExcess.next().intValue();
-      }
-      return -1;
-    }
-
-  }
-
   public InputStream getInputStream() {
-
-    return new ResultStream((OutPutStream) this.outputStream);
+    return new ByteArrayInputStream(this.outputStream.buffer.toByteArray());
   }
 
   @Override

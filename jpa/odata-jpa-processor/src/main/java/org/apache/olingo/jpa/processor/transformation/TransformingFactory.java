@@ -44,7 +44,7 @@ public class TransformingFactory {
         QueryEntityResult.class, EntityCollection.class, new TransformationContextRequirement(
             JPAODataGlobalContext.class), new TransformationContextRequirement(
                 UriInfoResource.class));
-    registerSerializer(tD1, QueryEntityResult2EntityCollectionTransformation.class);
+    registerTransformation(tD1, QueryEntityResult2EntityCollectionTransformation.class);
 
     // DB-Tuples -> OData-EntityCollection -> JSON/XML
     final TransformationDeclaration<QueryEntityResult, ODataResponseContent> tD2 =
@@ -56,10 +56,10 @@ public class TransformingFactory {
                             ODataRequest.class), new TransformationContextRequirement(
                                 RepresentationType.class, RepresentationType.COLLECTION_ENTITY), new TransformationContextRequirement(
                                     ContentType.class));
-    registerSerializer(tD2, QueryEntityResult2ODataResponseContentTransformation.class);
+    registerTransformation(tD2, QueryEntityResult2ODataResponseContentTransformation.class);
   }
 
-  public <I, O> void registerSerializer(final TransformationDeclaration<I, O> declaration,
+  public <I, O> void registerTransformation(final TransformationDeclaration<I, O> declaration,
       final Class<? extends Transformation<I, O>> serializer) {
     if (serializer == null) {
       throw new IllegalArgumentException("serializer required");
@@ -99,7 +99,7 @@ public class TransformingFactory {
       if (bestMatchEntry == null) {
         bestMatchEntry = entry;
         continue;
-      } else if (bestMatchEntry.getKey().getNumberOfRequirements() < entry.getKey().getNumberOfRequirements()) {
+      } else if (!bestMatchEntry.getKey().hasPrecedenceOver(entry.getKey())) {
         bestMatchEntry = entry;
       }
     }

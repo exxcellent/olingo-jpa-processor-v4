@@ -50,10 +50,6 @@ public final class TransformationDeclaration<Input, Output> {
     return outputType;
   }
 
-  int getNumberOfRequirements() {
-    return requirements.size();
-  }
-
   private final boolean hasMatchingTypes(final Class<?> inputTypeOther, final Class<?> outputTypeOther) {
     if (!inputTypeOther.isAssignableFrom(this.getInputType())) {
       return false;
@@ -147,6 +143,36 @@ public final class TransformationDeclaration<Input, Output> {
       }
     }
     return null;
+  }
+
+  /**
+   *
+   * @return TRUE if this declaration has priority over the <i>other</i> one.
+   */
+  boolean hasPrecedenceOver(final TransformationDeclaration<Input, Output> other) {
+    if (this.requirements.size() > other.requirements.size()) {
+      return true;
+    }
+    final double tPriority = determineNumberOfQualifiedRequirements(this);
+    final double oPriority = determineNumberOfQualifiedRequirements(other);
+    return tPriority > oPriority;
+  }
+
+  private static double determineNumberOfQualifiedRequirements(final TransformationDeclaration<?, ?> declaration) {
+    double count = 0.0;
+    for (final TransformationContextRequirement r : declaration.requirements) {
+      if (r.getAlternatives() == null) {
+        // also a wildcard requirement counts...
+        count += 0.25;
+      }
+      else if (r.getAlternatives().size() == 1) {
+        count +=1.0;
+      } else {
+        // multiple alternatives are weaker for match
+        count +=0.5;
+      }
+    }
+    return count;
   }
 
   @Override
