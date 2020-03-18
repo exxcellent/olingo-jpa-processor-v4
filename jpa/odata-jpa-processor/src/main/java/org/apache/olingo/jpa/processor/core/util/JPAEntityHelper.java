@@ -26,7 +26,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataSessionContextAccess;
+import org.apache.olingo.jpa.processor.DependencyInjector;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -43,12 +44,12 @@ public class JPAEntityHelper {
   private final Logger log = Logger.getLogger(JPAEntityHelper.class.getName());
   private final EntityManager em;
   private final IntermediateServiceDocument sd;
-  private final JPAODataSessionContextAccess context;
+  private final JPAODataGlobalContext context;
   private final EntityConverter entityConverter;
   private final DTOEntityHelper dtoHelper;
 
   public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final UriInfoResource uriInfo,
-      final UriHelper uriHelper, final JPAODataSessionContextAccess context) throws ODataJPAModelException {
+      final UriHelper uriHelper, final JPAODataGlobalContext context) throws ODataJPAModelException {
     this.em = em;
     this.sd = sd;
     this.context = context;

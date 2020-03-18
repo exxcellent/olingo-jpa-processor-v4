@@ -6,13 +6,12 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.34.0</version>
+		<version>0.35.0</version>
 	</parent>
 
 	<artifactId>odata-jpa-processor</artifactId>
-
-	<name>odata-jpa-processor</name>
-	<url>http://maven.apache.org</url>
+	<name>OData-JPA-Adapter processor</name>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -138,5 +137,18 @@
 	</dependencies>
 	
 	<build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>   
+            </plugin>
+        </plugins>	
 	</build>
 </project>

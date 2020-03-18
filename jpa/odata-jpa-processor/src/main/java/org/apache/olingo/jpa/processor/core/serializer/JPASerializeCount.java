@@ -6,21 +6,22 @@ import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.serializer.FixedFormatSerializer;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
+import org.apache.olingo.server.core.serializer.SerializerResultImpl;
 
 public final class JPASerializeCount implements JPASerializer {
-	private final FixedFormatSerializer serializer;
+  private final FixedFormatSerializer serializer;
 
-	public JPASerializeCount(final OData odata) {
-		this(odata.createFixedFormatSerializer());
-	}
+  public JPASerializeCount(final OData odata) {
+    this(odata.createFixedFormatSerializer());
+  }
 
-	JPASerializeCount(final FixedFormatSerializer serializer) {
-		this.serializer = serializer;
-	}
+  JPASerializeCount(final FixedFormatSerializer serializer) {
+    this.serializer = serializer;
+  }
 
-	@Override
-	public SerializerResult serialize(final ODataRequest request, final EntityCollection result)
-			throws SerializerException {
-		return new JPAValueSerializerResult(serializer.count(result.getCount()));
-	}
+  @Override
+  public SerializerResult serialize(final ODataRequest request, final EntityCollection result)
+      throws SerializerException {
+    return new SerializerResultImpl.SerializerResultBuilder().content(serializer.count(result.getCount())).build();
+  }
 }

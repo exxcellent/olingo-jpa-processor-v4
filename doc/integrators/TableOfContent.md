@@ -1,4 +1,4 @@
-# Table of conent
+# Table of content
 1. [Integrate](GetStarted.md) OData-JPA-Adapter into project  
 1. Start OData-JPA-Adapter as [standalone servlet](AsWar.md)  
     * [Servlet security](ServletSecurity.md)
@@ -9,6 +9,8 @@
     * Upload files via [Multipart/form-data](Actions.md#UploadFilesViaMultipartFormData)  
 1. Detailed informations  
     * More [hints](MoreHints.md)  
+    * Use [Excel export](MoreHints.md#ExcelExport)  
+    * [Migration guide](MigrationGuide.md)  
 
 ---
 # Known issues

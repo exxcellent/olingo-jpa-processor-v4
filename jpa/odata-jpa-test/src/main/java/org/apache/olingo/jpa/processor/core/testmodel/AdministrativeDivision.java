@@ -20,22 +20,11 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
 
 @EdmFunctions({
   @EdmFunction(
-      name = "Siblings",
-      functionName = "\"OLINGO\".\"org.apache.olingo.jpa::Siblings\"",
-      isBound = false,
-      hasFunctionImport = true,
-      returnType = @EdmFunction.ReturnType(isCollection = true),
-      parameter = {
-          @EdmFunctionParameter(name = "CodePublisher", parameterName = "\"CodePublisher\"",
-              type = String.class, maxLength = 10),
-          @EdmFunctionParameter(name = "CodeID", parameterName = "\"CodeID\"", type = String.class, maxLength = 10),
-          @EdmFunctionParameter(name = "DivisionCode", parameterName = "\"DivisionCode\"", type = String.class,
-          maxLength = 10) }),
-  @EdmFunction(
       name = "PopulationDensity",
       functionName = "\"OLINGO\".\"org.apache.olingo.jpa::PopulationDensity\"",
       isBound = false,
       returnType = @EdmFunction.ReturnType(isCollection = false, type = Double.class),
+        hasFunctionImport = true,
       parameter = {
           @EdmFunctionParameter(name = "Area", parameterName = "UnitArea", type = Integer.class),
           @EdmFunctionParameter(name = "Population", parameterName = "Population", type = Long.class) }),

@@ -31,12 +31,22 @@ public class TestJPACustomScalarFunctions {
   public static void setupClass() throws ODataJPAModelException {
     persistenceAdapter = new TestGenericJPAPersistenceAdapter(
         Constant.PUNIT_NAME, DataSourceHelper.DatabaseType.HSQLDB);
-    CreateDenfityFunction();
+    createDenfityFunction();
   }
 
   @AfterClass
   public static void tearDownClass() throws ODataJPAModelException {
-    DropDenfityFunction();
+    dropDenfityFunction();
+  }
+
+  @Test
+  public void testFunctionCall() throws IOException, ODataException {
+
+    // TODO support function calls with primitive result
+    final URIBuilder uriBuilder = TestBase.newUriBuilder().appendOperationCallSegment(
+        "PopulationDensity(Area=42,Population=12345)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
   }
 
   @Test
@@ -112,7 +122,7 @@ public class TestJPACustomScalarFunctions {
     assertEquals(7, orgs.size());
   }
 
-  private static void CreateDenfityFunction() {
+  private static void createDenfityFunction() {
     final EntityManager em = persistenceAdapter.getEMF().createEntityManager();
     final EntityTransaction t = em.getTransaction();
 
@@ -137,7 +147,7 @@ public class TestJPACustomScalarFunctions {
     t.commit();
   }
 
-  private static void DropDenfityFunction() {
+  private static void dropDenfityFunction() {
     final EntityManager em = persistenceAdapter.getEMF().createEntityManager();
     final EntityTransaction t = em.getTransaction();
 

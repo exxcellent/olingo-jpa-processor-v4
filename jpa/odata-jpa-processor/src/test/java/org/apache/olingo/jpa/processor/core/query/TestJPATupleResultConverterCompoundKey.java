@@ -30,7 +30,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 
     final QueryEntityResult queryResult = new QueryEntityResult(tupleResult,
         helper.getJPAEntityType("BusinessPartnerRoles"));
-    final JPATuple2ODataEntityConverter cut = new JPATuple2ODataEntityConverter(
+    final DatabaseQueryResult2ODataEntityConverter cut = new DatabaseQueryResult2ODataEntityConverter(
         helper.getServiceDocument(),
         odata.createUriHelper(),
         serviceMetaData);
@@ -58,7 +58,7 @@ public class TestJPATupleResultConverterCompoundKey extends TestBase {
 
     final QueryEntityResult queryResult = new QueryEntityResult(tupleResult,
         helper.getJPAEntityType("AdministrativeDivisionDescriptions"));
-    final JPATuple2ODataEntityConverter cut = new JPATuple2ODataEntityConverter(
+    final DatabaseQueryResult2ODataEntityConverter cut = new DatabaseQueryResult2ODataEntityConverter(
         helper.getServiceDocument(), odata.createUriHelper(), serviceMetaData);
 
 

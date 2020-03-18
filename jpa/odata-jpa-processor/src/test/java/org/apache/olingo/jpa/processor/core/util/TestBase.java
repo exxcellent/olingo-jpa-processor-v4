@@ -96,6 +96,7 @@ public abstract class TestBase {
     throw new UnsupportedOperationException("Current JPA provider not known");
   }
 
+  @Deprecated
   protected Map<String, List<String>> createHeaders() {
     final Map<String, List<String>> headers = new HashMap<String, List<String>>();
     final List<String> languageHeaders = new ArrayList<String>();
@@ -105,7 +106,12 @@ public abstract class TestBase {
   }
 
   public static URIBuilder newUriBuilder() {
-    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix);
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix) {
+      @Override
+      protected String getOperationInvokeMarker() {
+        return "";
+      }
+    };
   }
 
   protected NavigationIfc createTestUriInfo(final String entitySetName) {

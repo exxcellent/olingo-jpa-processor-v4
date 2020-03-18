@@ -25,7 +25,7 @@ public interface JPAStructuredType extends JPAElement {
    * the OData service. That is:
    * <ul>
    * <li>All not ignored navigation properties of this type.
-   * <li>All not ignored navigation properties from supertypes are included
+   * <li>All not ignored navigation properties from super types are included
    * <li>All not ignored navigation properties from embedded types are included.
    * </ul>
    *

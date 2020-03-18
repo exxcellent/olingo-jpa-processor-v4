@@ -13,7 +13,7 @@
 	    <OnMatch>DENY</OnMatch>
 	  </filter-->    
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-		     <pattern>%-5level - %logger{15}: %msg ex{2}%nopex%n</pattern>
+		     <pattern>%-5level - %logger{15}: %msg%n%xThrowable{3}%nopex</pattern>
 		</encoder>
 	</appender>
 

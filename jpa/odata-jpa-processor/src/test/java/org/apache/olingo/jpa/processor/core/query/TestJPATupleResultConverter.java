@@ -27,13 +27,13 @@ public class TestJPATupleResultConverter extends TestBase {
 
   private static final int NO_POSTAL_ADDRESS_FIELDS = 7; // TODO 8
   private static final int NO_ADMIN_INFO_FIELDS = 2;
-  private JPATuple2ODataEntityConverter cut;
+  private DatabaseQueryResult2ODataEntityConverter cut;
   private UriHelper uriHelper;
 
   @Before
   public void setup() throws ODataException {
     /* final UriHelper */ uriHelper = odata.createUriHelper();
-    cut = new JPATuple2ODataEntityConverter(helper.getServiceDocument(), uriHelper, serviceMetaData);
+    cut = new DatabaseQueryResult2ODataEntityConverter(helper.getServiceDocument(), uriHelper, serviceMetaData);
   }
 
   @Test
@@ -185,7 +185,7 @@ public class TestJPATupleResultConverter extends TestBase {
     //    uriHelper.setKeyPredicates(keyPredicates, "PID");
     final QueryEntityResult jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType(
         "PersonImages"));
-    final JPATuple2ODataEntityConverter converter = new JPATuple2ODataEntityConverter(
+    final DatabaseQueryResult2ODataEntityConverter converter = new DatabaseQueryResult2ODataEntityConverter(
         helper.getServiceDocument(), uriHelper, serviceMetaData);
 
     final HashMap<String, Object> entityResult = new HashMap<String, Object>();
@@ -211,7 +211,7 @@ public class TestJPATupleResultConverter extends TestBase {
 
     final QueryEntityResult jpaQueryResult = new QueryEntityResult(tupleResult, helper.getJPAEntityType(
         "OrganizationImages"));
-    final JPATuple2ODataEntityConverter converter = new JPATuple2ODataEntityConverter(
+    final DatabaseQueryResult2ODataEntityConverter converter = new DatabaseQueryResult2ODataEntityConverter(
         helper.getServiceDocument(), uriHelper, serviceMetaData);
 
     final EntityCollection act = converter.convertDBTuple2OData(jpaQueryResult);

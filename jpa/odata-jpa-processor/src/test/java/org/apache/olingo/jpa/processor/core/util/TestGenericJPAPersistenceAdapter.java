@@ -21,30 +21,30 @@ import org.apache.olingo.jpa.test.util.DataSourceHelper;
  */
 public class TestGenericJPAPersistenceAdapter extends ResourceLocalPersistenceAdapter {
 
-	public TestGenericJPAPersistenceAdapter(final String pUnit, final DataSourceHelper.DatabaseType dbType) {
-		super(pUnit, AbstractTest.buildEntityManagerFactoryProperties(dbType), determineDatabaseProcessor(dbType));
-	}
+  public TestGenericJPAPersistenceAdapter(final String pUnit, final DataSourceHelper.DatabaseType dbType) {
+    super(pUnit, AbstractTest.buildEntityManagerFactoryProperties(dbType), determineDatabaseProcessor(dbType));
+  }
 
-	public TestGenericJPAPersistenceAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
-	        final AbstractJPADatabaseProcessor dbAccessor) {
-		super(pUnit, mapEntityManagerProperties, dbAccessor);
-	}
+  public TestGenericJPAPersistenceAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
+      final AbstractJPADatabaseProcessor dbAccessor) {
+    super(pUnit, mapEntityManagerProperties, dbAccessor);
+  }
 
-	private static AbstractJPADatabaseProcessor determineDatabaseProcessor(final DataSourceHelper.DatabaseType dbType) {
-		switch (dbType) {
-		case DERBY:
-			return new JPA_DERBYDatabaseProcessor();
-		case HSQLDB:
-			return new JPA_HSQLDBDatabaseProcessor();
-		case H2:
-			return new JPA_H2DatabaseProcessor();
-		default:
-			return new JPA_DefaultDatabaseProcessor();
-		}
-	}
+  public static AbstractJPADatabaseProcessor determineDatabaseProcessor(final DataSourceHelper.DatabaseType dbType) {
+    switch (dbType) {
+    case DERBY:
+      return new JPA_DERBYDatabaseProcessor();
+    case HSQLDB:
+      return new JPA_HSQLDBDatabaseProcessor();
+    case H2:
+      return new JPA_H2DatabaseProcessor();
+    default:
+      return new JPA_DefaultDatabaseProcessor();
+    }
+  }
 
-	public EntityManagerFactory getEMF() {
-		return getEntityManagerFactory();
-	}
+  public EntityManagerFactory getEMF() {
+    return getEntityManagerFactory();
+  }
 
 }

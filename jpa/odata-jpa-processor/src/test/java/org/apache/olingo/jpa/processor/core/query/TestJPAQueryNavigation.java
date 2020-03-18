@@ -107,9 +107,12 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationOneHopReverse() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "BusinessPartnerRoles(BusinessPartnerID='2',RoleCategory='A')/BusinessPartner");
+    final Map<String, Object> keys = new HashMap<String, Object>();
+    keys.put("BusinessPartnerID", "2");
+    keys.put("RoleCategory", "A");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartnerRoles").appendKeySegment(
+        keys).appendNavigationSegment("BusinessPartner");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -118,9 +121,11 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationViaComplexType() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
+        .appendNavigationSegment("AdministrativeInformation").appendNavigationSegment(
+            "Created").appendNavigationSegment("By");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')/AdministrativeInformation/Created/By");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();

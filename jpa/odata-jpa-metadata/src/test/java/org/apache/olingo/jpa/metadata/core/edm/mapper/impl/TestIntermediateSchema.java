@@ -59,6 +59,6 @@ public class TestIntermediateSchema extends TestMappingRoot {
 
   @Test
   public void checkSchemaGetAllFunctions() throws ODataJPAModelException {
-    assertEquals("Wrong number of entities", 6, schema.getEdmItem().getFunctions().size());
+    assertEquals("Wrong number of (bound) function", 5, schema.getEdmItem().getFunctions().size());
   }
 }
