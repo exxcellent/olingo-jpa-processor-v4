@@ -1,4 +1,4 @@
-# Table of conent
+# Table of content
 1. [Project structure](Project-Structure.md)  
 1. [Build](Build.md)  
 1. Explaining functionality  

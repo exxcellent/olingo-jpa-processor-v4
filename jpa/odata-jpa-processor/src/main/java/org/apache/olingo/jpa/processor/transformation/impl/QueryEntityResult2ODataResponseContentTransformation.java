@@ -1,16 +1,33 @@
 package org.apache.olingo.jpa.processor.transformation.impl;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
+import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.transformation.Transformation;
+import org.apache.olingo.jpa.processor.transformation.TransformationContextRequirement;
+import org.apache.olingo.jpa.processor.transformation.TransformationDeclaration;
 import org.apache.olingo.server.api.ODataApplicationException;
+import org.apache.olingo.server.api.ODataRequest;
+import org.apache.olingo.server.api.serializer.RepresentationType;
 import org.apache.olingo.server.api.serializer.SerializerException;
+import org.apache.olingo.server.api.uri.UriInfoResource;
 
 public class QueryEntityResult2ODataResponseContentTransformation implements
 Transformation<QueryEntityResult, ODataResponseContent> {
+
+  public final static TransformationDeclaration<QueryEntityResult, ODataResponseContent> DEFAULT_DECLARATION =
+      new TransformationDeclaration<>(
+          QueryEntityResult.class, ODataResponseContent.class, new TransformationContextRequirement(
+              JPAODataGlobalContext.class), new TransformationContextRequirement(
+                  JPAODataRequestContext.class), new TransformationContextRequirement(
+                      UriInfoResource.class), new TransformationContextRequirement(
+                          ODataRequest.class), new TransformationContextRequirement(
+                              RepresentationType.class, RepresentationType.COLLECTION_ENTITY),
+          new TransformationContextRequirement(
+              ContentType.class));
 
   @Inject
   private JPAODataRequestContext requestContext;

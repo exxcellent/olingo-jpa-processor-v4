@@ -107,7 +107,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    */
   public final <O> O execute(final boolean processExpandOption,
       final Transformation<QueryEntityResult, O> transformer) throws ODataApplicationException,
-      ODataJPAModelException, SerializerException {
+  ODataJPAModelException, SerializerException {
     final QueryEntityResult queryResult = executeInternal(processExpandOption);
     return transformer.transform(queryResult);
   }
@@ -339,15 +339,11 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
           jpaPathList.add(selectItemPath);
         }
       }
-      Collections.sort(jpaPathList);
+      // add key attributes
       final List<JPASelector> keyPaths = Util.buildKeyPath(jpaEntity);
       for (final JPASelector keyPath : keyPaths) {
-        final int insertAt = Collections.binarySearch(jpaPathList, keyPath);
-        if (insertAt < 0) {
-          LOG.log(Level.FINE,
-              "OData-JPA-Adapter doesn't support $select without including of all key attributes, will add '"
-                  + keyPath.getAlias() + "' as part of result");
-          jpaPathList.add((insertAt * -1) - 1, keyPath);
+        if (!jpaPathList.contains(keyPath)) {
+          jpaPathList.add(keyPath);
         }
       }
     } catch (final ODataJPAModelException e) {

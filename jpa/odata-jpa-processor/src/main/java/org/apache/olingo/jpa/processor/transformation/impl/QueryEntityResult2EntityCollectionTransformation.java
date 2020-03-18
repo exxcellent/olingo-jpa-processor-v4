@@ -9,6 +9,8 @@ import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException
 import org.apache.olingo.jpa.processor.core.query.DatabaseQueryResult2ODataEntityConverter;
 import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.transformation.Transformation;
+import org.apache.olingo.jpa.processor.transformation.TransformationContextRequirement;
+import org.apache.olingo.jpa.processor.transformation.TransformationDeclaration;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -16,6 +18,12 @@ import org.apache.olingo.server.api.uri.queryoption.CountOption;
 
 public class QueryEntityResult2EntityCollectionTransformation implements
 Transformation<QueryEntityResult, EntityCollection> {
+
+  public final static TransformationDeclaration<QueryEntityResult, EntityCollection> DEFAULT_DECLARATION =
+      new TransformationDeclaration<>(
+          QueryEntityResult.class, EntityCollection.class, new TransformationContextRequirement(
+              JPAODataGlobalContext.class), new TransformationContextRequirement(
+                  UriInfoResource.class));
 
   @Inject
   private final JPAODataGlobalContext globalContext = null;

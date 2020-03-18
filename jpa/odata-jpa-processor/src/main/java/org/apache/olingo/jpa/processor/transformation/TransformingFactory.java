@@ -6,21 +6,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.jpa.processor.DependencyInjector;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
-import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.core.util.TypedParameter;
-import org.apache.olingo.jpa.processor.transformation.impl.ODataResponseContent;
 import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2EntityCollectionTransformation;
 import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2ODataResponseContentTransformation;
-import org.apache.olingo.server.api.ODataRequest;
-import org.apache.olingo.server.api.serializer.RepresentationType;
 import org.apache.olingo.server.api.serializer.SerializerException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 
 /**
  * Helper class to build a proper serializer to convert processor results to requested response format.
@@ -40,23 +32,12 @@ public class TransformingFactory {
 
   private void registerBuiltinTransformings() {
     // DB-Tuples -> OData-EntityCollection
-    final TransformationDeclaration<QueryEntityResult, EntityCollection> tD1 = new TransformationDeclaration<>(
-        QueryEntityResult.class, EntityCollection.class, new TransformationContextRequirement(
-            JPAODataGlobalContext.class), new TransformationContextRequirement(
-                UriInfoResource.class));
-    registerTransformation(tD1, QueryEntityResult2EntityCollectionTransformation.class);
+    registerTransformation(QueryEntityResult2EntityCollectionTransformation.DEFAULT_DECLARATION,
+        QueryEntityResult2EntityCollectionTransformation.class);
 
     // DB-Tuples -> OData-EntityCollection -> JSON/XML
-    final TransformationDeclaration<QueryEntityResult, ODataResponseContent> tD2 =
-        new TransformationDeclaration<>(
-            QueryEntityResult.class, ODataResponseContent.class, new TransformationContextRequirement(
-                JPAODataGlobalContext.class), new TransformationContextRequirement(
-                    JPAODataRequestContext.class), new TransformationContextRequirement(
-                        UriInfoResource.class), new TransformationContextRequirement(
-                            ODataRequest.class), new TransformationContextRequirement(
-                                RepresentationType.class, RepresentationType.COLLECTION_ENTITY), new TransformationContextRequirement(
-                                    ContentType.class));
-    registerTransformation(tD2, QueryEntityResult2ODataResponseContentTransformation.class);
+    registerTransformation(QueryEntityResult2ODataResponseContentTransformation.DEFAULT_DECLARATION,
+        QueryEntityResult2ODataResponseContentTransformation.class);
   }
 
   public <I, O> void registerTransformation(final TransformationDeclaration<I, O> declaration,

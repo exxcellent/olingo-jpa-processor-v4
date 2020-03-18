@@ -10,9 +10,8 @@ import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -72,15 +71,34 @@ public class ExcelConverter {
     }
   }
 
-  private static class State {
+  /**
+   * Helper class to transport state/process related information into methods...
+   *
+   */
+  private static class WorkbookState {
     private final Workbook workbook;
-    Set<String> newCreatedSheets = new HashSet<>();
+    Map<JPAEntityType, SheetState> sheets = new HashMap<>();
     short shortBestFontHeight = XSSFFont.DEFAULT_FONT_SIZE;
     Map<EdmPrimitiveTypeKind, CellStyle> mapDatatypeCellStyle = new HashMap<>();
     Map<Integer, Integer> mapColumn2RecommendedWidth = new HashMap<>();
 
-    public State(final Workbook workbook) {
+    public WorkbookState(final Workbook workbook) {
       this.workbook = workbook;
+    }
+  }
+
+  private static class SheetState {
+    private final WorkbookState workbookState;
+    private final JPAEntityType jpaType;
+    private final Sheet sheet;
+    @SuppressWarnings("unused")
+    boolean isNewCreated = false;
+    Map<String, Integer> mapAlias2ColumnIndex = null;
+
+    public SheetState(final WorkbookState ws, final JPAEntityType jpaType, final Sheet sheet) {
+      this.workbookState = ws;
+      this.jpaType = jpaType;
+      this.sheet = sheet;
     }
   }
 
@@ -91,56 +109,52 @@ public class ExcelConverter {
     this.configuration = configuration != null ? configuration : new Configuration();
   }
 
-  private State createWorkbook() throws IOException {
-    return new State(new SXSSFWorkbook());
+  private WorkbookState createWorkbook() throws IOException {
+    return new WorkbookState(new SXSSFWorkbook());
   }
 
-  /**
-   * Strategy:<br/>
-   * <ol>
-   * <li>Try to find existing sheet with given name</li>
-   * <li>In all other cases a new sheet is created</li>
-   * </ol>
-   */
-  private Sheet findOrCreateSheet(final State state, final String sheetName) {
-    final Workbook workbook = state.workbook;
-    Sheet sheet = workbook.getSheet(sheetName);
-    if (sheet != null) {
-      return sheet;
+  private SheetState findOrCreateSheet(final WorkbookState workbookState, final JPAEntityType jpaType) {
+    SheetState sheetState = workbookState.sheets.get(jpaType);
+    if (sheetState != null) {
+      return sheetState;
     }
-    final int howManySheetsWeWillProduce = Math.max(1, 1);// currently always 1
-    final int numberOfWorkbookSheets = workbook.getNumberOfSheets();
-    if (howManySheetsWeWillProduce == 1 && numberOfWorkbookSheets == 1) {
-      return workbook.getSheetAt(0);
-    }
-    sheet = workbook.createSheet(sheetName);
-    state.newCreatedSheets.add(sheetName);
-    return sheet;
+    final Workbook workbook = workbookState.workbook;
+    final String sheetName = configuration.getSheetName(jpaType);
+    final Sheet sheet = workbook.createSheet(sheetName);
+    sheetState = new SheetState(workbookState, jpaType, sheet);
+    sheetState.isNewCreated = true;
+    workbookState.sheets.put(jpaType, sheetState);
+    return sheetState;
   }
 
-  private void createHeaderRow(final State state, final Sheet sheet, final int rowNumber, final Tuple dbRow) {
-    int headerColumnNumber = 0;
-    final Row headerRow = sheet.createRow(rowNumber);
-    final CellStyle cellStyle = sheet.getWorkbook().createCellStyle();
-    final org.apache.poi.ss.usermodel.Font font = sheet.getWorkbook().createFont();
+  private void createHeaderRow(final SheetState sheetState, final int rowNumber, final Tuple dbRow) {
+    final Row headerRow = sheetState.sheet.createRow(rowNumber);
+    final CellStyle cellStyle = sheetState.sheet.getWorkbook().createCellStyle();
+    final org.apache.poi.ss.usermodel.Font font = sheetState.workbookState.workbook.createFont();
     font.setBold(true);
     cellStyle.setBorderBottom(BorderStyle.THIN);
     cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-    font.setFontHeightInPoints(state.shortBestFontHeight);
+    font.setFontHeightInPoints(sheetState.workbookState.shortBestFontHeight);
     if (configuration.getFontName() != null) {
       font.setFontName(configuration.getFontName());
     }
     cellStyle.setFont(font);
     for (final TupleElement<?> dbCell : dbRow.getElements()) {
-      final String attName = dbCell.getAlias();
-      assignColumnWidth(state, attName.length(), headerColumnNumber);
-      final Cell cell = headerRow.createCell(headerColumnNumber++);
-      cell.setCellValue(attName);
+      final String dbAlias = dbCell.getAlias();
+      if (configuration.isSuppressedColumn(sheetState.jpaType, dbAlias)) {
+        continue;
+      }
+      final String customName = configuration.getCustomColumnName(sheetState.jpaType, dbAlias);
+      final int headerColumnIndex = sheetState.mapAlias2ColumnIndex.get(dbAlias).intValue();
+      final String excelName = customName != null ? customName : dbAlias;
+      assignColumnWidth(sheetState.workbookState, excelName.length(), headerColumnIndex);
+      final Cell cell = headerRow.createCell(headerColumnIndex);
+      cell.setCellValue(excelName);
       cell.setCellStyle(cellStyle);
     }
   }
 
-  private void assignValueCellStyle(final State state, final Cell cell, final EdmPrimitiveTypeKind dataType) {
+  private void assignValueCellStyle(final WorkbookState state, final Cell cell, final EdmPrimitiveTypeKind dataType) {
     CellStyle style = state.mapDatatypeCellStyle.get(dataType);
     if (style == null) {
       style = state.workbook.createCellStyle();
@@ -201,14 +215,15 @@ public class ExcelConverter {
     cell.setCellStyle(style);
   }
 
-  public ODataResponseContent produceExcel(final QueryEntityResult input, final RepresentationType representationType)
+  public final ODataResponseContent produceExcel(final QueryEntityResult input,
+      final RepresentationType representationType)
       throws IOException, ODataJPAModelException, ODataJPAConversionException {
 
-    final JPAEntityType jpaType = input.getEntityType();
-
-    final State state = createWorkbook();
+    final WorkbookState state = createWorkbook();
     final Workbook workbook = state.workbook;
-    final Sheet sheet = findOrCreateSheet(state, configuration.getSheetName(jpaType));
+    final SheetState sheetState = findOrCreateSheet(state, input.getEntityType());
+
+    // adapt font size for larger data sets
     final int size = input.getQueryResult().size();
     if (size > 500) {
       state.shortBestFontHeight = (short) (state.shortBestFontHeight - 1);
@@ -217,29 +232,37 @@ public class ExcelConverter {
     }
 
     int countRows = 0;
-    int rowNumber = sheet.getFirstRowNum() < 0 ? 0 : sheet.getFirstRowNum();
+    int rowNumber = sheetState.sheet.getFirstRowNum() < 0 ? 0 : sheetState.sheet.getFirstRowNum();
     boolean firstRow = true;
     for (final Tuple dbRow : input.getQueryResult()) {
-      // header
-      if (firstRow && configuration.isCreateHeaderRow()) {
-        createHeaderRow(state, sheet, rowNumber++, dbRow);
+      if (firstRow) {
+        // build column order
+        sheetState.mapAlias2ColumnIndex = buildColumnOrder(sheetState.jpaType, dbRow.getElements());
+        // header
+        if (configuration.isCreateHeaderRow()) {
+          createHeaderRow(sheetState, rowNumber++, dbRow);
+        }
         firstRow = false;
       }
       // data
-      final Row row = sheet.createRow(rowNumber++);
-      int columnIndex = 0;
+      final Row row = sheetState.sheet.createRow(rowNumber++);
       for (final TupleElement<?> dbCell : dbRow.getElements()) {
-        final Object value = dbRow.get(dbCell.getAlias());
-        processCell(state, jpaType, row, columnIndex, value, dbCell.getAlias());
-        columnIndex++;
+        final String dbAlias = dbCell.getAlias();
+        if (configuration.isSuppressedColumn(sheetState.jpaType, dbAlias)) {
+          continue;
+        }
+        final Object value = dbRow.get(dbAlias);
+        final int columnIndex = sheetState.mapAlias2ColumnIndex.get(dbAlias).intValue();
+        processCell(sheetState, row, columnIndex, value, dbAlias);
       }
       countRows++;
     }
-    // adjust column width
+    // adjust column width from precalculated width
     for (final Map.Entry<Integer, Integer> entry : state.mapColumn2RecommendedWidth.entrySet()) {
-      sheet.setColumnWidth(entry.getKey().intValue(), entry.getValue().intValue() * 256);
+      sheetState.sheet.setColumnWidth(entry.getKey().intValue(), entry.getValue().intValue() * 256);
     }
 
+    // write out...
     final ByteArrayOutputStream outResult = new ByteArrayOutputStream(1024 * 1024);
     workbook.write(outResult);
     workbook.close();
@@ -249,11 +272,40 @@ public class ExcelConverter {
     return new ODataResponseContent(contentState, isResult);
   }
 
-  private void processCell(final State state, final JPAEntityType jpaType, final Row row, final int columnIndex,
+  private Map<String, Integer> buildColumnOrder(final JPAEntityType jpaType, final List<TupleElement<?>> unsortedList) {
+    // use copy constructor to modify map
+    final Map<String, Integer> mapConfigured = new HashMap<>(configuration.getCustomColumnIndexes(jpaType));
+    // determine minimum column index for unassigned columns
+    int startingIndexForColumns = 0;
+    for (final Integer i : mapConfigured.values()) {
+      if (i.intValue() > startingIndexForColumns) {
+        startingIndexForColumns = i.intValue() + 1;
+      }
+    }
+    final Map<String, Integer> mapResult = new HashMap<>();
+    for (final TupleElement<?> dbCell : unsortedList) {
+      final Integer cI = mapConfigured.remove(dbCell.getAlias());
+      if (cI != null) {
+        mapResult.put(dbCell.getAlias(), cI);
+      } else {
+        mapResult.put(dbCell.getAlias(), Integer.valueOf(startingIndexForColumns++));
+      }
+    }
+    if (!mapConfigured.isEmpty()) {
+      LOG.warning("Assignments for column indexes contains unprocessed definitions: " + String.join(", ",
+          mapConfigured.values().toArray(new String[mapConfigured.size()])));
+    }
+    if (mapResult.size() != unsortedList.size()) {
+      throw new IllegalStateException("Column index map is not affecting the correct number of columns");
+    }
+    return mapResult;
+  }
+
+  private void processCell(final SheetState sheetState, final Row row, final int columnIndex,
       final Object value,
       final String dbAlias) throws ODataJPAModelException, ODataJPAConversionException {
 
-    final JPASelector selector = jpaType.getPath(dbAlias);
+    final JPASelector selector = sheetState.jpaType.getPath(dbAlias);
     final JPAAttribute<?> targetAttribute = selector.getLeaf();
 
     final ExcelCell excelCell = determineCellContent(targetAttribute, value);
@@ -276,24 +328,25 @@ public class ExcelConverter {
         // any number (decimal or integer)
         final double dV = Number.class.cast(odataValue).doubleValue();
         cell.setCellValue(dV);
-        assignColumnWidth(state, Double.toString(dV).length(), columnIndex);
+        assignColumnWidth(sheetState.workbookState, Double.toString(dV).length(), columnIndex);
         break;
       case Date:
       case DateTimeOffset:
       case TimeOfDay:
-        processTimeRelatedCell(state, cell, columnIndex, excelCell.getCellRepresentation(), odataValue);
+        processTimeRelatedCell(sheetState.workbookState, cell, columnIndex, excelCell.getCellRepresentation(),
+            odataValue);
         break;
       default:
         // String like...
         cell.setCellValue(odataValue.toString());
-        assignColumnWidth(state, odataValue.toString().length(), columnIndex);
+        assignColumnWidth(sheetState.workbookState, odataValue.toString().length(), columnIndex);
       }
     }
-    assignValueCellStyle(state, cell, excelCell.getCellRepresentation());
+    assignValueCellStyle(sheetState.workbookState, cell, excelCell.getCellRepresentation());
 
   }
 
-  private void processTimeRelatedCell(final State state, final Cell cell, final int columnIndex,
+  private void processTimeRelatedCell(final WorkbookState state, final Cell cell, final int columnIndex,
       final EdmPrimitiveTypeKind dataType, final Object odataValue) {
     if (odataValue instanceof Date) {
       cell.setCellValue((Date) odataValue);
@@ -336,6 +389,14 @@ public class ExcelConverter {
     assignColumnWidth(state, length, columnIndex);
   }
 
+  /**
+   *
+   * @param targetAttribute
+   * @param value The value from data base (after {@link javax.persistence.AttributeConverter attribute converter}) that
+   * must be prepared for Excel sheet output.
+   *
+   * @return The combination of resulting value for Excel sheet (after any conversion) and data type assignment.
+   */
   protected ExcelCell determineCellContent(final JPAAttribute<?> targetAttribute, final Object value) {
     final EdmPrimitiveTypeKind kindOfCell = determineCellRepresentation(targetAttribute);
     Object odataValue;
@@ -355,6 +416,12 @@ public class ExcelConverter {
     return new ExcelCell(kindOfCell, odataValue);
   }
 
+  /**
+   *
+   * @param targetAttribute The attribute (column) in Excel sheet.
+   *
+   * @return The primitive data type of column to use for Excel cell formatting.
+   */
   protected EdmPrimitiveTypeKind determineCellRepresentation(final JPAAttribute<?> targetAttribute) {
     if (JPATypedElement.class.isInstance(targetAttribute)) {
       try {
@@ -370,7 +437,7 @@ public class ExcelConverter {
     }
   }
 
-  private void assignColumnWidth(final State state, final int valueLength, final int columnIndex) {
+  private void assignColumnWidth(final WorkbookState state, final int valueLength, final int columnIndex) {
     if (valueLength < 1) {
       return;
     }
