@@ -93,7 +93,7 @@ public class ServerCallSimulator {
    */
   @Deprecated
   public ServerCallSimulator(final JPAAdapter persistenceAdapter,
-      final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
+      final String urlPath, final String requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
     this(persistenceAdapter, wrapUrl(urlPath), requestBody, requestMethod);
@@ -116,11 +116,11 @@ public class ServerCallSimulator {
    * @see TestBase#newUriBuilder()
    */
   public ServerCallSimulator(final JPAAdapter persistenceAdapter,
-      final URIBuilder uriBuilder, final StringBuffer requestBody, final HttpMethod requestMethod)
+      final URIBuilder uriBuilder, final String requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
     super();
-    this.req = new HttpServletRequestDouble(uriBuilder, requestBody);
+    this.req = new HttpServletRequestDouble(uriBuilder.build(), requestBody);
     this.req.setMethod(requestMethod);
     this.persistenceAdapter = persistenceAdapter;
     if (persistenceAdapter == null) {

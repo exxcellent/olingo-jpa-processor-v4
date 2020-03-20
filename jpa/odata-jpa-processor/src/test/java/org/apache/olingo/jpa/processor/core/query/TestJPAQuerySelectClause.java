@@ -57,7 +57,6 @@ public class TestJPAQuerySelectClause extends TestBase {
   private HashMap<String, From<?, ?>> joinTables;
   private Root<?> root;
   private JPAODataGlobalContext context;
-  private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {

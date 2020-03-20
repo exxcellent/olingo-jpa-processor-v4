@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -129,7 +130,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
   @Override
   List<IntermediateComplexType> getComplexTypes() {
-    return new ArrayList<>(complexTypeListInternalKey.values());
+    return new ArrayList<>(mapInternalName2ComplexType.values());
   }
 
   @Override
@@ -250,7 +251,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   List<IntermediateEnumType> getEnumTypes() {
     return Collections.emptyList();
   }
-  
+
   @Override
   IntermediateEnumType getEnumType(final Class<?> targetClass) {
     return null;

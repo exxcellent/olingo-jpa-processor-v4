@@ -144,7 +144,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"withElementCollection\": false,");
     requestBody.append("\"withAssociation\": false");
     requestBody.append("}");
-    
+
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
@@ -172,7 +172,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"withElementCollection\": true,");
     requestBody.append("\"withAssociation\": true");
     requestBody.append("}");
-    
+
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
@@ -453,7 +453,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"numberOfLevels\": 4");
     requestBody.append("}");
     URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
-    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -464,10 +464,10 @@ public class TestJPAActions extends TestBase {
 
     // reuse created structure to as parameter for another action
     requestBody = new StringBuffer("{");
-    requestBody.append("\"structure\": " + jsonRaw);
+    requestBody.append("  \"structure\": " + jsonRaw);
     requestBody.append("}");
     uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
-    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 

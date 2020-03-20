@@ -103,7 +103,7 @@ public class TestObjectCreation extends TestBase {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("Persons");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        requestBody, HttpMethod.POST);
+        requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.CREATED.getStatusCode());
     final ObjectNode entity = helper.getJsonObjectValue();
     assertNotNull(entity);
@@ -142,7 +142,7 @@ public class TestObjectCreation extends TestBase {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("Persons");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        requestBody, HttpMethod.POST);
+        requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.CREATED.getStatusCode());
     final ObjectNode entity = helper.getJsonObjectValue();
     assertNotNull(entity);
@@ -170,7 +170,7 @@ public class TestObjectCreation extends TestBase {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("RelationshipTargetEntities");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        requestBody, HttpMethod.POST);
+        requestBody.toString(), HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.CREATED.getStatusCode());
 
@@ -229,7 +229,7 @@ public class TestObjectCreation extends TestBase {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        requestBody, HttpMethod.POST);
+        requestBody.toString(), HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.CREATED.getStatusCode());
 
@@ -273,7 +273,7 @@ public class TestObjectCreation extends TestBase {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        requestBody, HttpMethod.POST);
+        requestBody.toString(), HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=none");
     helper.execute(HttpStatusCode.CREATED.getStatusCode());
   }

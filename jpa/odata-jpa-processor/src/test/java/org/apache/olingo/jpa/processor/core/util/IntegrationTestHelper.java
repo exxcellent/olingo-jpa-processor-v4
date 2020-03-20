@@ -15,16 +15,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
 import org.apache.olingo.client.core.uri.URIBuilderImpl;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
@@ -61,7 +58,8 @@ public class IntegrationTestHelper {
   public final HttpServletRequestDouble req;
   public HttpServletResponseDouble resp = null;
   private final JPAAdapter persistenceAdapter;
-  static final String uriPrefix = "http://localhost:8080/Test" + TestBase.SERVLET_PATH + "/";
+  static final String SERVLET_PATH = "/Olingo.svc";
+  static final String uriPrefix = "http://localhost:8080/Test" + SERVLET_PATH + "/";
   private boolean executed = false;
   private SecurityInceptor securityInceptor = null;
 
@@ -136,9 +134,8 @@ public class IntegrationTestHelper {
     final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
       @Override
-      protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-          final HttpServletResponse response, final EntityManager em) {
-        final Collection<Processor> processors = super.collectProcessors(request, response, em);
+      protected Collection<Processor> collectProcessors(final JPAODataRequestContext requestContext) {
+        final Collection<Processor> processors = super.collectProcessors(requestContext);
         processors.add(new TestErrorProcessor());
         return processors;
       }

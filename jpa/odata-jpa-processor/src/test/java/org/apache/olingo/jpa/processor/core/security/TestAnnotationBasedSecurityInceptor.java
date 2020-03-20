@@ -18,8 +18,8 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
-import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.PrincipalMock;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.security.AccessDefinition;
 import org.apache.olingo.jpa.security.ODataEntityAccess;
@@ -94,9 +94,9 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testDeriveActionSecurityFromResource() throws IOException, ODataException, SQLException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "ActionInResourceSecuredDtos(1)/" + ActionInResourceSecuredDto.class.getPackage().getName()
-                    + ".actionTakingSecurityFromResource",
-            null, HttpMethod.POST);
+        "ActionInResourceSecuredDtos(1)/" + ActionInResourceSecuredDto.class.getPackage().getName()
+        + ".actionTakingSecurityFromResource",
+        null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.execute(HttpStatusCode.UNAUTHORIZED.getStatusCode());
   }
@@ -104,7 +104,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testReadDTO1() throws IOException, ODataException, SQLException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "ActionInResourceSecuredDtos");
+        "ActionInResourceSecuredDtos");
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     // the GET must result in a FORBIDDEN without security configuration
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());
@@ -113,7 +113,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testReadDTO2() throws IOException, ODataException, SQLException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "DefaultResourceSecurityDtos");
+        "DefaultResourceSecurityDtos");
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() == 1);
@@ -124,7 +124,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
 
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "DefaultResourceSecurityDtos(1)", requestBody, HttpMethod.PUT);
+        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PUT);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123"));
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -136,7 +136,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
 
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "DefaultResourceSecurityDtos(1)", requestBody, HttpMethod.PATCH);
+        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PATCH);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123", new String[] { "role.patch" }));
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -148,7 +148,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
 
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "DefaultResourceSecurityDtos(1)", requestBody, HttpMethod.PATCH);
+        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PATCH);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123", new String[] { "role.wrong" }));
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());
@@ -160,8 +160,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "actionWithNoSecurity", null,
-            HttpMethod.POST);
+        "actionWithNoSecurity", null,
+        HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValue().get("value").asInt() == 42);
@@ -173,7 +173,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "actionWithOnlyAuthentication", null, HttpMethod.POST);
+        "actionWithOnlyAuthentication", null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     final String userName = "abcUser";
     helper.setUser(new PrincipalMock(userName));
@@ -184,23 +184,23 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testDTOAuthenticatedActionCallRejectedWithoutUser()
-          throws IOException, ODataException, NoSuchMethodException {
+      throws IOException, ODataException, NoSuchMethodException {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "actionWithOnlyAuthentication", null, HttpMethod.POST);
+        "actionWithOnlyAuthentication", null, HttpMethod.POST);
     helper.execute(HttpStatusCode.UNAUTHORIZED.getStatusCode());
   }
 
   @Test
   public void testDTOAuthenticatedActionCallRejectedWrongRole()
-          throws IOException, ODataException, NoSuchMethodException {
+      throws IOException, ODataException, NoSuchMethodException {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-            "actionWithOnlyRole", null, HttpMethod.POST);
+        "actionWithOnlyRole", null, HttpMethod.POST);
     final String userName = "abcUser";
     helper.setUser(new PrincipalMock(userName, new String[] { "role.dummy" }));
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());
@@ -208,11 +208,11 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testDTOAuthenticatedActionCallAcceptRightRole()
-          throws IOException, ODataException, NoSuchMethodException {
+      throws IOException, ODataException, NoSuchMethodException {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "actionWithOnlyRole", null,
-            HttpMethod.POST);
+        HttpMethod.POST);
     final String userName = "superUser";
     helper.setUser(new PrincipalMock(userName, new String[] { "access" }));
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());

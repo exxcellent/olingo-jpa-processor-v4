@@ -29,7 +29,6 @@ public class TestJPATupleResultConverter extends TestBase {
   private static final int NO_ADMIN_INFO_FIELDS = 2;
   private DatabaseQueryResult2ODataEntityConverter cut;
   private UriHelper uriHelper;
-  private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {
