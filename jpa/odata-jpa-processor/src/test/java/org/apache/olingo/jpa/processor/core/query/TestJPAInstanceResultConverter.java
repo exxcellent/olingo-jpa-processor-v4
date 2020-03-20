@@ -5,42 +5,34 @@ import static org.junit.Assert.assertNotNull;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TestHelper;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
-import org.apache.olingo.jpa.processor.core.util.EdmEntitySetDouble;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.apache.olingo.jpa.processor.core.util.UriHelperDouble;
-import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.serializer.SerializerException;
+import org.apache.olingo.server.api.uri.UriHelper;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestJPAInstanceResultConverter extends TestBase {
-  public static final int NO_POSTAL_ADDRESS_FIELDS = 8;
-  public static final int NO_ADMIN_INFO_FIELDS = 2;
   private JPAInstanceResultConverter cut;
   private List<Object> jpaQueryResult;
-  private UriHelperDouble uriHelper;
   private TestHelper helper;
 
   @Before
   public void setup() throws ODataException {
-    helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
-    jpaQueryResult = new ArrayList<Object>();
-    final HashMap<String, String> keyStrings = new HashMap<String, String>();
-    keyStrings.put("BE21", "DivisionCode='BE21',CodeID='NUTS2',CodePublisher='Eurostat'");
-    keyStrings.put("BE22", "DivisionCode='BE22',CodeID='NUTS2',CodePublisher='Eurostat'");
+    final UriHelper uriHelper = odata.createUriHelper();
+    final EdmEntitySet edmEntitySet = serviceMetaData.getEdm().getEntityContainer().getEntitySet(
+        "AdministrativeDivisions");
 
-    uriHelper = new UriHelperDouble();
-    uriHelper.setKeyPredicates(keyStrings, "DivisionCode");
-    cut = new JPAInstanceResultConverter(uriHelper, helper.serviceDocument,
-        jpaQueryResult, new EdmEntitySetDouble(nameBuilder, "AdministrativeDivisions"),
+    jpaQueryResult = new ArrayList<Object>();
+
+    cut = new JPAInstanceResultConverter(uriHelper, helper.getEdmProvider().getServiceDocument(), jpaQueryResult,
+        edmEntitySet,
         AdministrativeDivision.class);
   }
 

@@ -15,7 +15,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.commons.core.Encoder;
 import org.apache.olingo.jpa.processor.core.database.JPA_HANADatabaseProcessor;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
@@ -31,27 +31,46 @@ public class TestJPASearch extends TestBase {
   public void testAllAttributesSimpleCase() throws IOException, ODataException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").search("Org");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     // Nameline1 should match for all Organizations
     assertEquals(10, ents.size());
   }
 
+  /**
+   * The attributes used for $search must be derived also from a (@Embedded) complex type
+   */
+  @Test
+  public void testAllAttributesDerivedFromEmbeddable() throws IOException, ODataException {
+    assumeTrue(
+        "Hibernate produces an SQL selecting the search columns from the wrong table",
+        getJPAProvider() != JPAProvider.Hibernate);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EntityWithSecondaryTableAndEmbeddedSet")
+        .search("\"96\"");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode ents = helper.getJsonObjectValues();
+    assertEquals(1, ents.size());
+    assertTrue(ents.get(0).get("ID").asText().endsWith("1"));
+    assertTrue(ents.get(0).get("data").asText().endsWith("other DATA"));
+  }
+
   @Test
   public void testMultipleAttributesSearchWithPhrase() throws IOException, ODataException {
-    // skip test with Hibernate
     assumeTrue(
         "Hibernate has a stupid parameter binding check not accepting '%001%' as pattern for java.net.URL attribute",
         getJPAProvider() != JPAProvider.Hibernate);
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "\"001\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     // should have 1 result for matching UUID
     assertEquals(1, ents.size());
     assertTrue(ents.get(0).get("Uuid").asText().endsWith("001"));
@@ -62,7 +81,7 @@ public class TestJPASearch extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "anywhere OR \"888\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder);
     // not supported -> TODO
     helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -85,7 +104,7 @@ public class TestJPASearch extends TestBase {
         properties, new JPA_HANADatabaseProcessor());
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "AnyWhere");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
@@ -95,10 +114,10 @@ public class TestJPASearch extends TestBase {
     // double encoding required because OLINGO-1239
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisionDescriptions").search(
         "\"" + Encoder.encode(Encoder.encode("ö")) + "\"");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode ents = helper.getValues();
+    final ArrayNode ents = helper.getJsonObjectValues();
     assertEquals(1, ents.size());
     assertEquals("Bezirk Löwen", ents.get(0).get("Name").asText());
   }

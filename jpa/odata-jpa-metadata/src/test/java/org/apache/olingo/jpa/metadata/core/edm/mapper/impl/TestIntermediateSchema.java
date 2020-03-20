@@ -44,7 +44,7 @@ public class TestIntermediateSchema extends TestMappingRoot {
   @Test
   public void checkSchemaGetAllComplexTypes() throws ODataJPAModelException {
     // ChangeInformation,CommunicationData,AdministrativeInformation,PostalAddressData
-    assertEquals("Wrong number of entities", 6, schema.getEdmItem().getComplexTypes().size());
+    assertEquals("Wrong number of entities", 8, schema.getEdmItem().getComplexTypes().size());
   }
 
   @Test
@@ -59,6 +59,6 @@ public class TestIntermediateSchema extends TestMappingRoot {
 
   @Test
   public void checkSchemaGetAllFunctions() throws ODataJPAModelException {
-    assertEquals("Wrong number of entities", 6, schema.getEdmItem().getFunctions().size());
+    assertEquals("Wrong number of (bound) function", 5, schema.getEdmItem().getFunctions().size());
   }
 }

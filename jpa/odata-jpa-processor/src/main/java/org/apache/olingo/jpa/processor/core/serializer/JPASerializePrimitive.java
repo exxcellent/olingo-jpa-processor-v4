@@ -15,10 +15,10 @@ import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 
-class JPASerializePrimitive extends JPASerializePrimitiveAbstract {
+public class JPASerializePrimitive extends JPASerializePrimitiveAbstract {
   private final ODataSerializer serializer;
 
-  JPASerializePrimitive(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
+  public JPASerializePrimitive(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
       final UriHelper uriHelper, final UriInfo uriInfo) {
 
     super(serviceMetadata, uriHelper, uriInfo);

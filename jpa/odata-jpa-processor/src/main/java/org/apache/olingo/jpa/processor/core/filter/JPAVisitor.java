@@ -11,7 +11,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
-import org.apache.olingo.jpa.processor.core.query.JPAQueryBuilderIfc;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -251,7 +251,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     return jpaComplier.getSd();
   }
 
-  public JPAQueryBuilderIfc getParent() {
+  public FilterContextQueryBuilderIfc getParent() {
     return jpaComplier.getParent();
   }
 

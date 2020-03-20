@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 
@@ -18,7 +18,7 @@ public class TestODataBasics extends TestBase {
 	@Test
 	public void testMetadata() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$metadata");
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$metadata");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String metadata = helper.getRawResult();
@@ -29,7 +29,7 @@ public class TestODataBasics extends TestBase {
 	@Test
 	public void testService() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "");
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
 
 		final String servicedata = helper.getRawResult();
@@ -40,14 +40,14 @@ public class TestODataBasics extends TestBase {
 	@Test
 	public void testAll() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$all");
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$all");
 		helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
 	}
 
 	@Test
 	public void testCrossjoin() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
 				"$crossjoin(Persons,PersonImages)");
 		helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
 	}
@@ -55,9 +55,9 @@ public class TestODataBasics extends TestBase {
 	@Test
 	public void testEntityId() throws IOException, ODataException {
 
-		final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$entity?$id=Persons('99')");
+		final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$entity?$id=Persons('99')");
 		helper.execute(HttpStatusCode.OK.getStatusCode());
-		final ObjectNode person = helper.getValue();
+		final ObjectNode person = helper.getJsonObjectValue();
 		assertNotNull(person);
 	}
 

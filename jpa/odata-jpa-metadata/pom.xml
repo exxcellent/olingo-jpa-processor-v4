@@ -6,14 +6,12 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.30.0</version>
+		<version>0.35.0</version>
 	</parent>
 
-
 	<artifactId>odata-jpa-metadata</artifactId>
-
-	<name>odata-jpa-metadata</name>
-	<url>http://maven.apache.org</url>
+	<name>OData-JPA-Adapter metadata</name>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -70,6 +68,25 @@
 			<artifactId>validation-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>ch.qos.logback</groupId>
+		    <artifactId>logback-classic</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>jul-to-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		    <scope>test</scope>
+		</dependency>		
 	</dependencies>
 	
 	<build>

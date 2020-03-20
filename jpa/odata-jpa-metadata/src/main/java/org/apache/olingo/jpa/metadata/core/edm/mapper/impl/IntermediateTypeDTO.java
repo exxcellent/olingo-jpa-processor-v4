@@ -309,12 +309,6 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
   }
 
   @Override
-  public JPAAssociationPath getDeclaredAssociation(final JPAAssociationPath associationPath)
-      throws ODataJPAModelException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public JPAAssociationPath getDeclaredAssociation(final String externalName) throws ODataJPAModelException {
     lazyBuildCompleteAssociationPathMap();
     for (final String internalName : declaredNaviPropertiesList.keySet()) {
@@ -438,7 +432,19 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
 
   @Override
   public List<JPASimpleAttribute> getKeyAttributes(final boolean exploded) throws ODataJPAModelException {
-    throw new UnsupportedOperationException();
+    final List<JPASimpleAttribute> keyList = new LinkedList<JPASimpleAttribute>();
+    for (final JPASimpleAttribute attribute : getAttributes()) {
+      if (!attribute.isKey()) {
+        continue;
+      }
+      if (exploded && attribute.isComplex()) {
+        // take ALL attributes, because in @Embeddable are no keys (@Id)
+        keyList.addAll(attribute.getStructuredType().getAttributes());
+      } else {
+        keyList.add(attribute);
+      }
+    }
+    return keyList;
   }
 
   @Override

@@ -1,11 +1,21 @@
 package org.apache.olingo.jpa.metadata.test.util;
 
+import java.util.logging.Level;
+
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.BeforeClass;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public abstract class TestMappingRoot extends org.apache.olingo.jpa.test.util.AbstractTest {
+
+  static {
+    // enable logging redirect
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+    java.util.logging.LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
+  }
 
   protected static EntityManagerFactory emf;
 

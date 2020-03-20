@@ -197,11 +197,16 @@ public class Util {
     }
   }
 
-  public static Map<JPAExpandItemWrapper, JPAAssociationPath> determineExpands(final IntermediateServiceDocument sd,
-      final List<UriResource> startResourceList, final ExpandOption expandOption) throws ODataApplicationException {
+  /**
+   * $expand is taken from the {@link NavigationIfc#getLastStep() last step}.
+   */
+  public static Map<NavigationViaExpand, JPAAssociationPath> determineExpands(final IntermediateServiceDocument sd,
+      final NavigationIfc uriResource) throws ODataApplicationException {
 
-    final Map<JPAExpandItemWrapper, JPAAssociationPath> pathList =
-        new HashMap<JPAExpandItemWrapper, JPAAssociationPath>();
+    final List<UriResource> startResourceList = uriResource.getUriResourceParts();
+    final ExpandOption expandOption = uriResource.getLastStep().getExpandOption();
+    final Map<NavigationViaExpand, JPAAssociationPath> pathList =
+        new HashMap<NavigationViaExpand, JPAAssociationPath>();
     if (startResourceList == null || startResourceList.isEmpty() || expandOption == null) {
       return pathList;
     }
@@ -232,7 +237,7 @@ public class Util {
       if (item.isStar()) {
         final EdmEntitySet edmEntitySet = determineTargetEntitySet(startResourceList);
         try {
-          final JPAEntityType jpaEntityType = sd.getEntitySetType(edmEntitySet.getName());
+          final JPAEntityType jpaEntityType = sd.getEntityType(edmEntitySet.getName());
           final List<JPAAssociationPath> associationPaths = jpaEntityType.getAssociationPathList();
           for (final JPAAssociationPath path : associationPaths) {
             final JPAAssociationAttribute asso = jpaEntityType.getAssociationByPath(path);
@@ -243,7 +248,7 @@ public class Util {
             }
             final EdmNavigationProperty navProperty = edmEntitySet.getEntityType().getNavigationProperty(asso
                 .getExternalName());
-            pathList.put(new JPAExpandItemWrapper(startResourceList, item, navProperty), path);
+            pathList.put(new NavigationViaExpand(uriResource, item, navProperty), path);
           }
         } catch (final ODataJPAModelException e) {
           throw new ODataJPAUtilException(ODataJPAUtilException.MessageKeys.UNKNOWN_ENTITY_TYPE,
@@ -265,7 +270,8 @@ public class Util {
             break;
           }
         }
-        pathList.put(new JPAExpandItemWrapper(startResourceList, item), determineAssoziationPath(sd, startResourceItem,
+        pathList.put(new NavigationViaExpand(uriResource, item), determineAssoziationPath(sd,
+            startResourceItem,
             associationName.toString()));
       }
     }
@@ -327,7 +333,7 @@ public class Util {
           if (et == null) {
             LOG.log(Level.SEVERE,
                 "Resource path contains a (@ElementCollection?) navigation (" + property.getSegmentValue()
-                    + ") to an simple type. This state should not reached... a bug?!");
+                + ") to an simple type. This state should not reached... a bug?!");
             break;
           }
           try {

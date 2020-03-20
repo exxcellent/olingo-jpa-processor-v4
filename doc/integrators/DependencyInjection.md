@@ -14,10 +14,10 @@ The injection support can be extended by custom injections (see example servlet 
 ```
 final JPAODataServletHandler handler = new JPAODataServletHandler(mappingAdapter) {
 	@Override
-	protected void prepareDependencyInjection(final DependencyInjector dpi) {
-		super.prepareDependencyInjection(dpi);
+	protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+		super.prepareRequestContext(requestContext);
 		// example for custom dependency injection
-		dpi.registerDependencyMapping(String.class, getServletName());
+		requestContext.getDependencyInjector().registerDependencyMapping(String.class, getServletName());
 	}
 };
 

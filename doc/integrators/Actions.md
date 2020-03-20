@@ -7,13 +7,15 @@ That are method calls bound to an entity class. On OData side are bound actions 
 # Unbound actions
 A java method is marked as unbound if the method is declared as `public static`. For a unbound action is dependency injection only via method parameter injection supported.
 
+More details about invocation of an bound action can be found under [call an bound action](../development/Explaining1.md#Call%20bound%20action).
+
 # Declare actions
 A action can be declared by:
 * Annotate a method with `@EdmAction`
 * That method must be located in a entity class (annotated with `@Entity` or `@ODataDTO`)
 * Method parameters must be annotated with `@EdmActionParameter` for OData related parameters or with `@Inject` for server side injected parameters (see [Dependency Injection](DependencyInjection.md)), ignored by OData metamodel.
 
-# Upload files via Multipart/form-data
+# <a id="UploadFilesViaMultipartFormData"></a>Upload files via Multipart/form-data
 Most web-frameworks have functionality to upload files via a *multipart/form-data* mechanism to an backend. Such a behaviour at backend side is not supported the OData standard! But the OData-JPA-Adapter does support *multipart/form-data* requests in a limited way. To receive multi part request data you need to have an OData action with a special method signature. The action may be bound or unbound. Example:
 
 ```

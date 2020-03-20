@@ -15,8 +15,8 @@ import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
 
 @Entity(name = "EntityWithSecondaryTableAndEmbedded")
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BusinessPartner\"")
-//Eclipselink cannot handle full qualified table names for @SecondaryTable
-@SecondaryTable(schema = "\"OLINGO\"", name = "jpa::SecondaryTableExampleWithSimpleName",
+//Eclipselink+Hibernate cannot handle qualified table names for @SecondaryTable
+@SecondaryTable(schema = "\"OLINGO\"", name = "SECONDARYTABLEEXAMPLEWITHSIMPLENAME",
 pkJoinColumns = {
     @PrimaryKeyJoinColumn(name = "\"ID\"") })
 @ODataEntity(edmEntitySetName = "EntityWithSecondaryTableAndEmbeddedSet", attributeNaming = NamingStrategy.AsIs)
@@ -32,25 +32,25 @@ public class EntityWithSecondaryTableAndEmbedded {
   private String lastName;
 
   // single attribute targeting another table
-  @Column(table = "jpa::SecondaryTableExampleWithSimpleName", name = "\"DATA\"")
+  @Column(table = "SECONDARYTABLEEXAMPLEWITHSIMPLENAME", name = "\"DATA\"")
   private String data;
 
   // use @Embedded + @AttributeOverride targeting values in another table
   @Embedded
   @AttributeOverrides({
     @AttributeOverride(name = "created.by", column = @Column(
-        table = "jpa::SecondaryTableExampleWithSimpleName",
+        table = "SECONDARYTABLEEXAMPLEWITHSIMPLENAME",
         name = "\"CreatedBy\"", insertable = false, updatable = false)),
     @AttributeOverride(name = "created.at", column = @Column(
-        table = "jpa::SecondaryTableExampleWithSimpleName",
+        table = "SECONDARYTABLEEXAMPLEWITHSIMPLENAME",
         name = "\"CreatedAt\"", insertable = false, updatable = false)),
     @AttributeOverride(name = "updated.by", column = @Column(
-        table = "jpa::SecondaryTableExampleWithSimpleName",
+        table = "SECONDARYTABLEEXAMPLEWITHSIMPLENAME",
         name = "\"UpdatedBy\"", insertable = false, updatable = false)),
     @AttributeOverride(name = "updated.at", column = @Column(
-        table = "jpa::SecondaryTableExampleWithSimpleName",
+        table = "SECONDARYTABLEEXAMPLEWITHSIMPLENAME",
         name = "\"UpdatedAt\"", insertable = false, updatable = false)) })
-  private final AdministrativeInformation editInformation = new AdministrativeInformation();
+  private final AdministrativeInformationSearchable editInformation = new AdministrativeInformationSearchable();
 
 
 }

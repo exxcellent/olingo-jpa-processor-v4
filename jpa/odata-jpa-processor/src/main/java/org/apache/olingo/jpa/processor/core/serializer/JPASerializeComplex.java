@@ -16,13 +16,13 @@ import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 
-class JPASerializeComplex implements JPASerializer {
+public class JPASerializeComplex implements JPASerializer {
   private final ServiceMetadata serviceMetadata;
   private final UriInfo uriInfo;
   private final UriHelper uriHelper;
   private final ODataSerializer serializer;
 
-  JPASerializeComplex(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
+  public JPASerializeComplex(final ServiceMetadata serviceMetadata, final ODataSerializer serializer,
       final UriHelper uriHelper,
       final UriInfo uriInfo) {
     this.uriInfo = uriInfo;

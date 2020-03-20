@@ -24,11 +24,12 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
+import org.apache.olingo.server.core.serializer.SerializerResultImpl;
 
-class JPASerializeValue extends JPASerializePrimitiveAbstract implements JPASerializer {
+public class JPASerializeValue extends JPASerializePrimitiveAbstract implements JPASerializer {
   private final FixedFormatSerializer serializer;
 
-  JPASerializeValue(final ServiceMetadata serviceMetadata, final FixedFormatSerializer serializer,
+  public JPASerializeValue(final ServiceMetadata serviceMetadata, final FixedFormatSerializer serializer,
       final UriHelper uriHelper, final UriInfo uriInfo) {
 
     super(serviceMetadata, uriHelper, uriInfo);
@@ -58,12 +59,13 @@ class JPASerializeValue extends JPASerializePrimitiveAbstract implements JPASeri
           break;
         }
       }
-      if (property == null)
+      if (property == null) {
         throw new ODataJPASerializerException(ODataJPASerializerException.MessageKeys.RESULT_NOT_FOUND,
             HttpStatusCode.INTERNAL_SERVER_ERROR);
+      }
       serializerResult = serializer.binary((byte[]) property.getValue());
     } else {
-
+      // remove $value part from path
       final UriResourceProperty uriProperty = (UriResourceProperty) uriInfo.getUriResourceParts().get(uriInfo
           .getUriResourceParts().size() - 2);
 
@@ -73,7 +75,7 @@ class JPASerializeValue extends JPASerializePrimitiveAbstract implements JPASeri
       final PrimitiveValueSerializerOptions options = PrimitiveValueSerializerOptions.with().build();
       serializerResult = serializer.primitiveValue(edmPropertyType, info.getProperty().getValue(), options);
     }
-    return new JPAValueSerializerResult(serializerResult);
+    return new SerializerResultImpl.SerializerResultBuilder().content(serializerResult).build();
   }
 
   private boolean isStream() {
@@ -81,16 +83,18 @@ class JPASerializeValue extends JPASerializePrimitiveAbstract implements JPASeri
 
     if (successor instanceof UriResourceEntitySet
         || successor instanceof UriResourceNavigation && ((UriResourceNavigation) successor)
-            .getType() instanceof EdmEntityType)
+        .getType() instanceof EdmEntityType) {
       return true;
-    else
+    } else {
       return false;
+    }
   }
 
   private boolean isKey(final List<EdmKeyPropertyRef> keyist, final Property item) {
     for (final EdmKeyPropertyRef key : keyist) {
-      if (key.getName().equals(item.getName()))
+      if (key.getName().equals(item.getName())) {
         return true;
+      }
     }
     return false;
   }

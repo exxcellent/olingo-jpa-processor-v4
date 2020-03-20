@@ -6,13 +6,12 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.30.0</version>
+		<version>0.35.0</version>
 	</parent>
 
 	<artifactId>odata-jpa-processor</artifactId>
-
-	<name>odata-jpa-processor</name>
-	<url>http://maven.apache.org</url>
+	<name>OData-JPA-Adapter processor</name>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -99,7 +98,12 @@
 		    <groupId>com.h2database</groupId>
 		    <artifactId>h2</artifactId>
 		    <scope>test</scope>
-		</dependency>			
+		</dependency>
+		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.olingo</groupId>
 			<artifactId>odata-client-core</artifactId>

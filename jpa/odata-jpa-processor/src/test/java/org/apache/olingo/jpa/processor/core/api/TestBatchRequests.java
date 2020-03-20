@@ -7,10 +7,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 
@@ -22,8 +23,9 @@ public class TestBatchRequests extends TestBase {
   public void testOneGetRequestGetResponce() throws IOException, ODataException {
     final String requestBody = createBodyOneGet();
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     final List<String> act = helper.getRawBatchResult();
     assertNotNull(act);
@@ -34,8 +36,9 @@ public class TestBatchRequests extends TestBase {
   public void testOneGetRequestCheckStatus() throws IOException, ODataException {
     final String requestBody = createBodyOneGet();
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     assertEquals(200, helper.getBatchResultStatus(1));
   }
@@ -44,8 +47,9 @@ public class TestBatchRequests extends TestBase {
   public void testOneGetRequestCheckValue() throws IOException, ODataException {
     final String requestBody = createBodyOneGet();
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     final JsonNode value = helper.getBatchResult(1);
     assertEquals("3", value.get("ID").asText());
@@ -55,8 +59,9 @@ public class TestBatchRequests extends TestBase {
   public void testTwoGetRequestSecondFailCheckStatus() throws IOException, ODataException {
     final String requestBody = createBodyTwoGetOneFail();
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     assertEquals(404, helper.getBatchResultStatus(2));
   }
@@ -65,8 +70,10 @@ public class TestBatchRequests extends TestBase {
   public void testTwoGetRequestCheckValue() throws IOException, ODataException {
     final String requestBody = createBodyTwoGet();
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, "$batch", requestBody,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, requestBody, HttpMethod.POST);
+
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     final JsonNode value = helper.getBatchResult(2);
     assertEquals("5", value.get("ID").asText());

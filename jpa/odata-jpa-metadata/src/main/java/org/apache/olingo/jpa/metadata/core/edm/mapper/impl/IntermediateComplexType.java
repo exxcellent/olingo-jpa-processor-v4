@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.persistence.metamodel.EmbeddableType;
 
@@ -9,6 +10,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.server.api.deserializer.ODataDeserializer;
 
 /**
  * Complex Types are used to structure Entity Types by grouping properties that belong together. Complex Types can
@@ -75,6 +77,10 @@ class IntermediateComplexType extends IntermediateStructuredType<CsdlComplexType
       if (determineHasStream()) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_STREAM,
             getInternalName());
+      }
+      if (!edmComplexType.getNavigationProperties().isEmpty()) {
+        LOG.log(Level.WARNING, this.getExternalName() + " is a complex type and has navigation properties... The "
+            + ODataDeserializer.class.getSimpleName() + " will not handle these nested structures!");
       }
     }
   }

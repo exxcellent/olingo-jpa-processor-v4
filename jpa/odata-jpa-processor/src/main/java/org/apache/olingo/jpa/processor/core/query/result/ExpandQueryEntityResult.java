@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.persistence.Tuple;
 
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.server.api.ODataApplicationException;
 
@@ -15,13 +16,15 @@ import org.apache.olingo.server.api.ODataApplicationException;
  */
 public final class ExpandQueryEntityResult extends AbstractEntityQueryResult {
 
+  private final JPAAssociationPath navigationPath;
   private final Map<String, List<Tuple>> resultValues;
   private final NavigationKeyBuilder resultNavigationKeyBuilder;
 
-  public ExpandQueryEntityResult(final QueryEntityResult expandResult,
+  public ExpandQueryEntityResult(final JPAAssociationPath navigationPath, final QueryEntityResult expandResult,
       final NavigationKeyBuilder owningEntityKeyBuilder)
           throws ODataApplicationException {
     super(expandResult.getEntityType());
+    this.navigationPath = navigationPath;
     this.resultValues = convertResult(expandResult.getQueryResult(), owningEntityKeyBuilder);
     putExpandResults(expandResult.getExpandChildren());
     putElementCollectionResults(expandResult.getElementCollections());
@@ -38,8 +41,16 @@ public final class ExpandQueryEntityResult extends AbstractEntityQueryResult {
    * @see NavigationKeyBuilder#buildKeyForNavigationTargetRow(Tuple)
    * @see getResultNavigationKeyPath()
    */
-  public List<Tuple> getDirectMappingsResult(final String owningEntityKey) {
+  public List<Tuple> getAssociationResult(final String owningEntityKey) {
     return resultValues.get(owningEntityKey);
+  }
+
+  /**
+   *
+   * @return The navigation path that the expand result represents.
+   */
+  public JPAAssociationPath getNavigationPath() {
+    return navigationPath;
   }
 
 }

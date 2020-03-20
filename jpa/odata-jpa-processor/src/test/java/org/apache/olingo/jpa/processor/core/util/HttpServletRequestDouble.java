@@ -261,7 +261,11 @@ public class HttpServletRequestDouble implements HttpServletRequest {
 
   @Override
   public String getHeader(final String name) {
-    return null;
+    final Enumeration<String> e = reqHeader.getHeaderValues(name);
+    if (e == null || !e.hasMoreElements()) {
+      return null;
+    }
+    return e.nextElement();
   }
 
   @Override
@@ -411,7 +415,7 @@ public class HttpServletRequestDouble implements HttpServletRequest {
 
   @Override
   public String getServletPath() {
-    return TestBase.SERVLET_PATH;
+    return ServerCallSimulator.SERVLET_PATH;
   }
 
   @Override

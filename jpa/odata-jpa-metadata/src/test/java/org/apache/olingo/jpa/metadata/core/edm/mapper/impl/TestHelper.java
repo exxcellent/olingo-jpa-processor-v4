@@ -21,12 +21,10 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.AbstractJPASchema;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateMetamodelSchema;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 
 public class TestHelper {
   final private Metamodel jpaMetamodel;
+  @Deprecated
   final public IntermediateServiceDocument serviceDocument;
   @Deprecated
   public IntermediateMetamodelSchema schema;
@@ -49,6 +47,14 @@ public class TestHelper {
     }
   }
 
+  public IntermediateServiceDocument getServiceDocument() {
+    return serviceDocument;
+  }
+
+  public JPAEdmProvider getEdmProvider() {
+    return edmProvider;
+  }
+
   public EntityType<?> getEntityType(final String typeName) {
     for (final EntityType<?> entityType : jpaMetamodel.getEntities()) {
       if (entityType.getJavaType().getSimpleName().equals(typeName)) {
@@ -59,18 +65,18 @@ public class TestHelper {
   }
 
   public JPAEntityType getJPAEntityType(final String entitySetName) throws ODataJPAModelException {
-    return serviceDocument.getEntitySetType(entitySetName);
+    return serviceDocument.getEntityType(entitySetName);
   }
 
   public JPAAssociationPath getJPAAssociationPath(final String entitySetName, final String attributeExtName)
       throws ODataJPAModelException {
-    final JPAEntityType jpaEntity = serviceDocument.getEntitySetType(entitySetName);
+    final JPAEntityType jpaEntity = serviceDocument.getEntityType(entitySetName);
     return jpaEntity.getAssociationPath(attributeExtName);
   }
 
   public JPAAssociationAttribute getJPAAssociation(final String entitySetName, final String attributeIntName)
       throws ODataJPAModelException {
-    final JPAEntityType jpaEntity = serviceDocument.getEntitySetType(entitySetName);
+    final JPAEntityType jpaEntity = serviceDocument.getEntityType(entitySetName);
     for (final JPAAssociationAttribute attribute : jpaEntity.getAssociations()) {
       if (attribute.getInternalName().equals(attributeIntName)) {
         return attribute;
@@ -81,7 +87,7 @@ public class TestHelper {
 
   public JPAAttribute<?> getJPAAttribute(final String entitySetName, final String attributeIntName)
       throws ODataJPAModelException {
-    final JPAEntityType jpaEntity = serviceDocument.getEntitySetType(entitySetName);
+    final JPAEntityType jpaEntity = serviceDocument.getEntityType(entitySetName);
     return jpaEntity.getAttribute(attributeIntName);
   }
 

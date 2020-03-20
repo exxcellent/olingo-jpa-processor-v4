@@ -8,12 +8,10 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfo;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 
 /**
@@ -34,8 +32,9 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
   private final CriteriaQuery<Long> cq;
   private final Root<?> root;
 
-  public EntityCountQueryBuilder(final JPAODataContext context, final UriInfo uriInfo, final EntityManager em)
-      throws ODataApplicationException, ODataJPAModelException {
+  public EntityCountQueryBuilder(final JPAODataGlobalContext context, final NavigationIfc uriInfo,
+      final EntityManager em)
+          throws ODataApplicationException, ODataJPAModelException {
     super(context, uriInfo, em);
     cq = getCriteriaBuilder().createQuery(Long.class);
     root = cq.from(getQueryStartType().getTypeClass());
@@ -73,7 +72,7 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
    * @throws ExpressionVisitException
    * @see EntityQueryBuilder#execute(boolean)
    */
-  public final EntityCollection execute() throws ODataApplicationException, ODataJPAModelException {
+  public final long execute() throws ODataApplicationException, ODataJPAModelException {
 
     final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
     /* final Map<String, From<?, ?>> resultsetAffectingTables = */ createFromClause(orderByNaviAttributes);
@@ -85,9 +84,7 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
       cq.where(whereClause);
     }
     final Long count = getEntityManager().createQuery(cq).getSingleResult();
-    final EntityCollection odataEntityCollection = new EntityCollection();
-    odataEntityCollection.setCount(Integer.valueOf(count.intValue()));
-    return odataEntityCollection;
+    return count.longValue();
   }
 
 }

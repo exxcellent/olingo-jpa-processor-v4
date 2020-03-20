@@ -12,7 +12,7 @@ import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
@@ -31,12 +31,22 @@ public class TestJPACustomScalarFunctions {
   public static void setupClass() throws ODataJPAModelException {
     persistenceAdapter = new TestGenericJPAPersistenceAdapter(
         Constant.PUNIT_NAME, DataSourceHelper.DatabaseType.HSQLDB);
-    CreateDenfityFunction();
+    createDenfityFunction();
   }
 
   @AfterClass
   public static void tearDownClass() throws ODataJPAModelException {
-    DropDenfityFunction();
+    dropDenfityFunction();
+  }
+
+  @Test
+  public void testFunctionCall() throws IOException, ODataException {
+
+    // TODO support function calls with primitive result
+    final URIBuilder uriBuilder = TestBase.newUriBuilder().appendOperationCallSegment(
+        "PopulationDensity(Area=42,Population=12345)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
   }
 
   @Test
@@ -44,9 +54,9 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=$it/Area,Population=$it/Population) gt 1");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode values = helper.getValues();
+    final ArrayNode values = helper.getJsonObjectValues();
 
     assertEquals(0, values.size());
   }
@@ -56,10 +66,10 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=$it/Area,Population=$it/Population)  mul 1000000 gt 1000 and ParentDivisionCode eq 'BE255'&orderBy=DivisionCode)");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
     assertEquals("35002", orgs.get(0).get("DivisionCode").asText());
   }
@@ -69,10 +79,10 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=Area,Population=Population)  mul 1000000 gt 100");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(59, orgs.size());
   }
 
@@ -81,10 +91,10 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=13079087,Population=$it/Population)  mul 1000000 gt 1000");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(29, orgs.size());
   }
 
@@ -93,10 +103,10 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Area=Area div 1000000,Population=Population) gt 1000");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(7, orgs.size());
   }
 
@@ -105,14 +115,14 @@ public class TestJPACustomScalarFunctions {
 
     final URIBuilder uriBuilder = TestBase.newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "org.apache.olingo.jpa.PopulationDensity(Population=Population,Area=Area) mul 1000000 gt 1000");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(7, orgs.size());
   }
 
-  private static void CreateDenfityFunction() {
+  private static void createDenfityFunction() {
     final EntityManager em = persistenceAdapter.getEMF().createEntityManager();
     final EntityTransaction t = em.getTransaction();
 
@@ -137,7 +147,7 @@ public class TestJPACustomScalarFunctions {
     t.commit();
   }
 
-  private static void DropDenfityFunction() {
+  private static void dropDenfityFunction() {
     final EntityManager em = persistenceAdapter.getEMF().createEntityManager();
     final EntityTransaction t = em.getTransaction();
 

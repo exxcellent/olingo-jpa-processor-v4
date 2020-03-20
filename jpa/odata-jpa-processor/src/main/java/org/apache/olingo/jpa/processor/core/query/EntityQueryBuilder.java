@@ -21,7 +21,6 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmProperty;
 import org.apache.olingo.commons.api.edm.EdmStructuredType;
@@ -34,20 +33,20 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
-import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.result.ExpandQueryEntityResult;
 import org.apache.olingo.jpa.processor.core.query.result.QueryElementCollectionResult;
 import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
+import org.apache.olingo.jpa.processor.transformation.Transformation;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceComplexProperty;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
-import org.apache.olingo.server.api.uri.queryoption.CountOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
@@ -73,7 +72,8 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  public EntityQueryBuilder(final JPAODataContext context, final UriInfoResource uriInfo, final EntityManager em,
+  public EntityQueryBuilder(final JPAODataGlobalContext context, final NavigationIfc uriInfo,
+      final EntityManager em,
       final ServiceMetadata serviceMetadata)
           throws ODataApplicationException, ODataJPAModelException {
     super(context, uriInfo, em);
@@ -101,18 +101,20 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
   }
 
   /**
+   * @throws SerializerException
    * @see EntityCountQueryBuilder#execute()
    *
    */
-  public final EntityCollection execute(final boolean processExpandOption) throws ODataApplicationException,
-  ODataJPAModelException {
+  public final <O> O execute(final boolean processExpandOption,
+      final Transformation<QueryEntityResult, O> transformer) throws ODataApplicationException,
+  ODataJPAModelException, SerializerException {
     final QueryEntityResult queryResult = executeInternal(processExpandOption);
-    return convertToEntityCollection(queryResult);
+    return transformer.transform(queryResult);
   }
 
   protected final QueryEntityResult executeInternal(final boolean processExpandOption)
       throws ODataApplicationException, ODataJPAModelException {
-    final UriInfoResource uriResource = getUriInfoResource();
+    final UriInfoResource uriResource = getNavigation().getLastStep();
     // Pre-process URI parameter, so they can be used at different places
     // TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
@@ -154,30 +156,9 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     if (processExpandOption && !intermediateResult.isEmpty()) {
       // generate expand queries only for non empty entity result list
-      queryResult.putExpandResults(readExpandEntities(null, uriResource));
+      queryResult.putExpandResults(readExpandEntities(null));
     }
     return queryResult;
-  }
-
-  private EntityCollection convertToEntityCollection(final QueryEntityResult result) throws ODataApplicationException {
-    // Convert tuple result into an OData Result
-    EntityCollection entityCollection;
-    try {
-      entityCollection = new JPATuple2EntityConverter(getContext().getEdmProvider().getServiceDocument(),
-          result.getEntityType(), getOData().createUriHelper(), serviceMetadata)
-          .convertQueryResult(result);
-    } catch (final ODataJPAModelException e) {
-      throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
-          HttpStatusCode.INTERNAL_SERVER_ERROR, e);
-    }
-
-    // Count results if requested
-    final CountOption countOption = getUriInfoResource().getCountOption();
-    if (countOption != null && countOption.getValue()) {
-      entityCollection.setCount(Integer.valueOf(entityCollection.getEntities().size()));
-    }
-
-    return entityCollection;
   }
 
   /**
@@ -205,27 +186,30 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataJPAModelException
    */
   private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities(
-      final List<JPANavigationPropertyInfo> parentHops, final UriInfoResource uriInfo)
+      final List<JPANavigationPropertyInfo> parentHops)
           throws ODataApplicationException, ODataJPAModelException {
 
     final Map<JPAAssociationPath, ExpandQueryEntityResult> allExpResults =
         new HashMap<JPAAssociationPath, ExpandQueryEntityResult>();
     // x/a?$expand=b/c($expand=d,e/f)
 
-    final Map<JPAExpandItemWrapper, JPAAssociationPath> expandMapList = Util.determineExpands(getServiceDocument(),
-        uriInfo.getUriResourceParts(), uriInfo.getExpandOption());
+    final NavigationIfc uriInfo = getNavigation();
 
-    final JPAODataContext context = getContext();
+    final Map<NavigationViaExpand, JPAAssociationPath> expandMapList = Util.determineExpands(
+        getServiceDocument(), uriInfo);
+
+    final JPAODataGlobalContext context = getContext();
     final EntityManager em = getEntityManager();
 
-    for (final Entry<JPAExpandItemWrapper, JPAAssociationPath> itemExpand : expandMapList.entrySet()) {
+    for (final Entry<NavigationViaExpand, JPAAssociationPath> itemExpand : expandMapList.entrySet()) {
       // an expand is handled as navigation to that entity type, so we can (re)use the entity query
       final EntityQueryBuilder expandQuery = new EntityQueryBuilder(context, itemExpand.getKey(), em, serviceMetadata);
       LOG.log(Level.FINE, "Process $expand for: " + getQueryResultNavigationKeyBuilder().getNavigationLabel() + "#"
           + itemExpand.getValue().getAlias());
       final QueryEntityResult expandResult = expandQuery.executeInternal(true);
       // convert result list to expand entity navigation key mapping structure
-      allExpResults.put(itemExpand.getValue(), new ExpandQueryEntityResult(expandResult, expandQuery
+      allExpResults.put(itemExpand.getValue(), new ExpandQueryEntityResult(itemExpand.getValue(), expandResult,
+          expandQuery
           .getLastAffectingNavigationKeyBuilder()));
     }
 
@@ -355,15 +339,11 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
           jpaPathList.add(selectItemPath);
         }
       }
-      Collections.sort(jpaPathList);
+      // add key attributes
       final List<JPASelector> keyPaths = Util.buildKeyPath(jpaEntity);
       for (final JPASelector keyPath : keyPaths) {
-        final int insertAt = Collections.binarySearch(jpaPathList, keyPath);
-        if (insertAt < 0) {
-          LOG.log(Level.WARNING,
-              "OData-JPA-Adapter doesn't support $select without including of all key attributes, will add '"
-                  + keyPath.getAlias() + "' as part of result");
-          jpaPathList.add((insertAt * -1) - 1, keyPath);
+        if (!jpaPathList.contains(keyPath)) {
+          jpaPathList.add(keyPath);
         }
       }
     } catch (final ODataJPAModelException e) {
@@ -509,7 +489,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       // create separate SELECT for every entry (affected attribute)
       final JPAAttribute<?> attribute = entry.getKey();
       final ElementCollectionQueryBuilder query = new ElementCollectionQueryBuilder(owningType, attribute,
-          entry.getValue(), getContext(), getUriInfoResource(), getEntityManager());
+          entry.getValue(), getContext(), getNavigation(), getEntityManager());
       final QueryElementCollectionResult result = query.execute();
       allResults.put(attribute, result);
     }

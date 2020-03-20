@@ -20,7 +20,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.filter.JPAFilterExpression;
@@ -36,7 +36,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Binary;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
-public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements JPAQueryBuilderIfc {
+public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements FilterContextQueryBuilderIfc {
 
   private final JPAEntityFilterProcessor filter;
   private final List<UriParameter> keyPredicates;
@@ -47,7 +47,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements JP
 
   public FilterSubQueryBuilder(final OData odata, final List<UriResource> allUriResourceParts,
       final UriResourcePartTyped navigationResource,
-      final JPANavigationPath association, final JPAQueryBuilderIfc parent)
+      final JPANavigationPath association, final FilterContextQueryBuilderIfc parent)
           throws ODataApplicationException, ODataJPAModelException {
     this(odata, allUriResourceParts, navigationResource, association, parent, null);
   }
@@ -55,8 +55,9 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements JP
   public FilterSubQueryBuilder(final OData odata, final List<UriResource> allUriResourceParts,
       final UriResourcePartTyped navigationResource,
       final JPANavigationPath association,
-      final JPAQueryBuilderIfc parent, final VisitableExpression expression) throws ODataApplicationException,
-  ODataJPAModelException {
+      final FilterContextQueryBuilderIfc parent, final VisitableExpression expression)
+          throws ODataApplicationException,
+          ODataJPAModelException {
     super(parent);
     final IntermediateServiceDocument sd = parent.getContext().getEdmProvider().getServiceDocument();
     if (expression != null) {
@@ -88,7 +89,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements JP
   }
 
   @Override
-  public final JPAODataContext getContext() {
+  public final JPAODataGlobalContext getContext() {
     return getOwningQueryBuilder().getContext();
   }
 

@@ -21,10 +21,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.core.api.JPAODataContext;
+import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.core.query.result.QueryElementCollectionResult;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 import org.apache.olingo.server.core.uri.UriResourceComplexPropertyImpl;
 import org.apache.olingo.server.core.uri.UriResourcePrimitivePropertyImpl;
@@ -48,8 +47,8 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
    */
   ElementCollectionQueryBuilder(final EdmStructuredType owningType,
       final JPAAttribute<?> attribute, final List<JPASelector> paths,
-      final JPAODataContext context,
-      final UriInfoResource uriInfo, final EntityManager em)
+      final JPAODataGlobalContext context,
+      final NavigationIfc uriInfo, final EntityManager em)
           throws ODataApplicationException, ODataJPAModelException {
     super(context, createPropertyUriResourcePath(owningType, attribute, uriInfo), em);
     this.cq = getCriteriaBuilder().createTupleQuery();
@@ -67,8 +66,8 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
    * Create a special uri info resource to produce a navigation manageable by the super class and including the required
    * JOIN's.
    */
-  private static UriInfoResource createPropertyUriResourcePath(final EdmStructuredType owningType,
-      final JPAAttribute<?> attribute, final UriInfoResource uriInfoParent) {
+  private static NavigationIfc createPropertyUriResourcePath(final EdmStructuredType owningType,
+      final JPAAttribute<?> attribute, final NavigationIfc uriInfoParent) {
     final EdmProperty edmProperty = (EdmProperty) owningType.getProperty(attribute.getExternalName());
     UriResourceProperty resourceProperty;
     if (attribute.isComplex()) {
@@ -78,7 +77,7 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
       // primitive
       resourceProperty = new UriResourcePrimitivePropertyImpl(edmProperty);
     }
-    return new NavigationUriResource(uriInfoParent, resourceProperty);
+    return new NavigationViaProperty(uriInfoParent, resourceProperty);
 
   }
 

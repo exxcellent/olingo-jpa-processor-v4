@@ -168,21 +168,6 @@ implements JPAStructuredType {
   }
 
   @Override
-  public JPAAssociationPath getDeclaredAssociation(final JPAAssociationPath associationPath)
-      throws ODataJPAModelException {
-    lazyBuildCompleteAssociationPathMap();
-
-    if (associationPathMap.containsKey(associationPath.getAlias())) {
-      return associationPathMap.get(associationPath.getAlias());
-    }
-    final JPAStructuredType baseType = getBaseType();
-    if (baseType != null) {
-      return baseType.getDeclaredAssociation(associationPath);
-    }
-    return null;
-  }
-
-  @Override
   public JPASelector getPath(final String externalName) throws ODataJPAModelException {
     lazyBuildCompletePathMap();
     JPASelector targetPath = simpleAttributePathMap.get(externalName);

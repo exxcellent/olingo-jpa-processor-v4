@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class TestJPAQueryNavigationCount extends TestBase {
   @Test
   public void testEntitySetCount() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").count();
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     assertEquals("10", helper.getRawResult());
@@ -26,7 +26,7 @@ public class TestJPAQueryNavigationCount extends TestBase {
   public void testEntityNavigateCount() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Roles").count();
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     assertEquals("3", helper.getRawResult());

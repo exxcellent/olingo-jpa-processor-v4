@@ -1,9 +1,11 @@
 package org.apache.olingo.jpa.processor.core.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
@@ -13,10 +15,13 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.JPAEdmNameBuilder;
+import org.apache.olingo.jpa.processor.core.query.NavigationIfc;
+import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.apache.olingo.server.api.uri.UriInfo;
+import org.apache.olingo.server.api.OData;
+import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriInfoKind;
 import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.UriResourceEntitySetImpl;
@@ -26,17 +31,18 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public abstract class TestBase {
 
-  public static final String SERVLET_PATH = "/Olingo.svc";
-
   static {
     // enable logging redirect
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
+    java.util.logging.LogManager.getLogManager().getLogger("").setLevel(Level.ALL);
   }
 
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
   protected TestGenericJPAPersistenceAdapter persistenceAdapter;
   protected JPAEdmProvider jpaEdm;
+  protected OData odata;
+  protected ServiceMetadata serviceMetaData;
 
   /**
    * Execute every test class with a fresh created database
@@ -49,7 +55,10 @@ public abstract class TestBase {
   @Before
   public final void setupTest() throws ODataException {
     persistenceAdapter = createPersistenceAdapter();
-    jpaEdm = new JPAEdmProvider(persistenceAdapter.getNamespace(), persistenceAdapter.getMetamodel());
+    helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
+    jpaEdm = helper.getEdmProvider();
+    odata = OData.newInstance();
+    serviceMetaData = odata.createServiceMetadata(jpaEdm, Collections.emptyList());
   }
 
   /**
@@ -66,7 +75,7 @@ public abstract class TestBase {
    */
   @SuppressWarnings("unchecked")
   protected <T extends JPAEntityType> T registerDTO(final Class<?> dtoClass) throws ODataJPAModelException {
-    return (T) jpaEdm.getServiceDocument().createDTOType(dtoClass);
+    return (T) helper.getEdmProvider().getServiceDocument().createDTOType(dtoClass);
   }
 
   protected JPAProvider getJPAProvider() {
@@ -85,6 +94,7 @@ public abstract class TestBase {
     throw new UnsupportedOperationException("Current JPA provider not known");
   }
 
+  @Deprecated
   protected Map<String, List<String>> createHeaders() {
     final Map<String, List<String>> headers = new HashMap<String, List<String>>();
     final List<String> languageHeaders = new ArrayList<String>();
@@ -94,15 +104,20 @@ public abstract class TestBase {
   }
 
   public static URIBuilder newUriBuilder() {
-    return new URIBuilderImpl(new ConfigurationImpl(), IntegrationTestHelper.uriPrefix);
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix) {
+      @Override
+      protected String getOperationInvokeMarker() {
+        return "";
+      }
+    };
   }
 
-  protected UriInfo createTestUriInfo(final String entitySetName) {
+  protected NavigationIfc createTestUriInfo(final String entitySetName) {
     final UriInfoImpl impl = new UriInfoImpl();
     impl.setKind(UriInfoKind.resource);
     final UriResourceEntitySetImpl ri = new UriResourceEntitySetImpl(new EdmEntitySetDouble(nameBuilder,
         entitySetName));
     impl.addResourcePart(ri);
-    return impl;
+    return new NavigationRoot(impl);
   }
 }

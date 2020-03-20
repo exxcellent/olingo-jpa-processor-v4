@@ -13,6 +13,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -27,6 +28,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
   final private Map<String, IntermediateTypeDTO> dtoTypes = new HashMap<>();
   final private Map<String, IntermediateAction> actions = new HashMap<>();
+  final private Map<String, JPAEntitySet> entitySets = new HashMap<>();
   final private IntermediateServiceDocument serviceDocument;
 
   IntermediateCustomSchema(final IntermediateServiceDocument serviceDocument, final String namespace)
@@ -129,6 +131,9 @@ class IntermediateCustomSchema extends AbstractJPASchema {
       // build actions for DTO
       final IntermediateActionFactory factory = new IntermediateActionFactory();
       actions.putAll(factory.create(getNameBuilder(), dtoType.getTypeClass(), serviceDocument));
+      // build entity set
+      final IntermediateEntitySet es = new IntermediateEntitySet(dtoType);
+      entitySets.put(es.getExternalName(), es);
     }
     return dtoType;
 
@@ -177,6 +182,16 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   @Override
   List<JPAEntityType> getEntityTypes() {
     return new ArrayList<JPAEntityType>(dtoTypes.values());
+  }
+
+  @Override
+  JPAEntitySet getEntitySet(final String entitySetName) {
+    return entitySets.get(entitySetName);
+  }
+
+  @Override
+  List<JPAEntitySet> getEntitySets() {
+    return new ArrayList<>(entitySets.values());
   }
 
   @Override

@@ -11,7 +11,7 @@ import java.util.Map;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.core.util.IntegrationTestHelper;
+import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.Ignore;
@@ -27,10 +27,10 @@ public class TestJPAQueryNavigation extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Roles");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
   }
 
@@ -38,9 +38,9 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationOneHopNormal() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
         .appendNavigationSegment("Image1");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode img = helper.getValue();
+    final ObjectNode img = helper.getJsonObjectValue();
     assertNotNull(img);
     assertEquals(99, img.get("PID").asLong());
   }
@@ -49,9 +49,9 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationOneToOneWithoutMappedAttribute() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").appendKeySegment("99")
         .appendNavigationSegment("PersonReferenceWithoutMappedAttribute");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode person = helper.getValue();
+    final ObjectNode person = helper.getJsonObjectValue();
     assertNotNull(person);
     assertEquals(2, ((ArrayNode) person.get("PhoneNumbers")).size());
   }
@@ -60,10 +60,10 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationOneHopWithoutReferencedColumn() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
         .appendNavigationSegment("Image2");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode img = helper.getValue();
+    final ObjectNode img = helper.getJsonObjectValue();
     assertNotNull(img);
     assertEquals(97, img.get("PID").asLong());
   }
@@ -75,20 +75,20 @@ public class TestJPAQueryNavigation extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("98")
         .appendNavigationSegment("Image2").appendNavigationSegment("PersonWithDefaultIdMapping");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode img = helper.getValue();
+    final ObjectNode img = helper.getJsonObjectValue();
     assertEquals(97, img.get("ID").asLong());
   }
 
   @Test
   public void testNoNavigationOneEntity() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("Third Org.", org.get("Name1").asText());
   }
 
@@ -96,10 +96,10 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationOneHopAndOrderBy() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Roles").orderBy("RoleCategory desc");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(3, orgs.size());
     assertEquals("C", orgs.get(0).get("RoleCategory").asText());
     assertEquals("A", orgs.get(2).get("RoleCategory").asText());
@@ -107,23 +107,28 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationOneHopReverse() throws IOException, ODataException {
-
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "BusinessPartnerRoles(BusinessPartnerID='2',RoleCategory='A')/BusinessPartner");
+    final Map<String, Object> keys = new HashMap<String, Object>();
+    keys.put("BusinessPartnerID", "2");
+    keys.put("RoleCategory", "A");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartnerRoles").appendKeySegment(
+        keys).appendNavigationSegment("BusinessPartner");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("2", org.get("ID").asText());
   }
 
   @Test
   public void testNavigationViaComplexType() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
+        .appendNavigationSegment("AdministrativeInformation").appendNavigationSegment(
+            "Created").appendNavigationSegment("By");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-        "Organizations('3')/AdministrativeInformation/Created/By");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("99", org.get("value").asText());
   }
 
@@ -131,22 +136,22 @@ public class TestJPAQueryNavigation extends TestBase {
   @Test
   public void testNavigationViaComplexTypeTwoHops() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "Organizations('3')/AdministrativeInformation/Created/User/Address/AdministrativeDivision");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("3166-1", org.get("ParentCodeID").asText());
   }
 
   @Test
   public void testNavigationSelfToOneOneHops() throws IOException, ODataException {
 
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("NUTS2", org.get("CodeID").asText());
     assertEquals("BE35", org.get("DivisionCode").asText());
   }
@@ -159,10 +164,10 @@ public class TestJPAQueryNavigation extends TestBase {
     keysOrganization.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         keysOrganization).appendNavigationSegment("Parent").appendNavigationSegment("Parent");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getValue();
+    final ObjectNode org = helper.getJsonObjectValue();
     assertEquals("NUTS1", org.get("CodeID").asText());
     assertEquals("BE3", org.get("DivisionCode").asText());
   }
@@ -175,10 +180,10 @@ public class TestJPAQueryNavigation extends TestBase {
     keysOrganization.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         keysOrganization).appendNavigationSegment("Children").orderBy("DivisionCode desc");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
     assertEquals("NUTS2", orgs.get(0).get("CodeID").asText());
     assertEquals("BE25", orgs.get(0).get("DivisionCode").asText());
@@ -197,10 +202,10 @@ public class TestJPAQueryNavigation extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         keysOrganization).appendNavigationSegment("Children").appendKeySegment(keysAD).appendNavigationSegment(
             "Children").orderBy("DivisionCode desc");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ArrayNode orgs = helper.getValues();
+    final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(8, orgs.size());
     assertEquals("NUTS3", orgs.get(0).get("CodeID").asText());
     assertEquals("BE258", orgs.get(0).get("DivisionCode").asText());
@@ -226,10 +231,10 @@ public class TestJPAQueryNavigation extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         keysOrganization).appendNavigationSegment("Children").appendKeySegment(keysAD1).appendNavigationSegment(
             "Children").appendKeySegment(keysAD2);
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("NUTS3", ad.get("CodeID").asText());
     assertEquals("BE258", ad.get("DivisionCode").asText());
@@ -240,7 +245,7 @@ public class TestJPAQueryNavigation extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Address").appendNavigationSegment("AdministrativeDivision").appendNavigationSegment(
             "Parent").appendNavigationSegment("Parent");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -249,9 +254,9 @@ public class TestJPAQueryNavigation extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Address").appendNavigationSegment("AdministrativeDivision").appendNavigationSegment(
             "Parent");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("3166-1", ad.get("CodeID").asText());
   }
@@ -261,9 +266,9 @@ public class TestJPAQueryNavigation extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Address").appendNavigationSegment("AdministrativeDivision").appendNavigationSegment(
             "Children");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode ads = helper.getValues();
+    final ArrayNode ads = helper.getJsonObjectValues();
     assertNotNull(ads);
     assertEquals(0, ads.size());
   }
@@ -272,10 +277,10 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationSelfToManyTwoHops() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Address").appendNavigationSegment("AdministrativeDivision");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("3166-2", ad.get("CodeID").asText());
   }
@@ -284,10 +289,10 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationSelfToEmbedded() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
         .appendNavigationSegment("Address");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ObjectNode ad = helper.getValue();
+    final ObjectNode ad = helper.getJsonObjectValue();
     assertNotNull(ad);
     assertEquals("223", ad.get("HouseNumber").asText());
   }
@@ -296,9 +301,9 @@ public class TestJPAQueryNavigation extends TestBase {
   public void testNavigationThroughJoinTable() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("2")
         .appendNavigationSegment("Locations");
-    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter, uriBuilder);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode ads = helper.getValues();
+    final ArrayNode ads = helper.getJsonObjectValues();
     assertNotNull(ads);
     assertEquals(2, ads.size());
   }

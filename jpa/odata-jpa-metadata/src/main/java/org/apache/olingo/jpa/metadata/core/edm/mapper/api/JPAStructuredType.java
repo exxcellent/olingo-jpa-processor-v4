@@ -25,7 +25,7 @@ public interface JPAStructuredType extends JPAElement {
    * the OData service. That is:
    * <ul>
    * <li>All not ignored navigation properties of this type.
-   * <li>All not ignored navigation properties from supertypes are included
+   * <li>All not ignored navigation properties from super types are included
    * <li>All not ignored navigation properties from embedded types are included.
    * </ul>
    *
@@ -67,20 +67,6 @@ public interface JPAStructuredType extends JPAElement {
   public List<JPASelector> getPathList() throws ODataJPAModelException;
 
   public Class<?> getTypeClass();
-
-  /**
-   * In case the type is within the given association path, the sub-path is
-   * returned. E.g. structured type is AdministrativeInformation and
-   * associationPath = AdministrativeInformation/Created/User Created/User is
-   * returned.
-   *
-   * @param associationPath
-   * @return
-   * @throws ODataJPAModelException
-   * @Deprecated Useless method?
-   */
-  @Deprecated
-  public JPAAssociationPath getDeclaredAssociation(JPAAssociationPath associationPath) throws ODataJPAModelException;
 
   /**
    * Returns a resolved list of all attributes that are marked as Id. If
