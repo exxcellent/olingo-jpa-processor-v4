@@ -60,7 +60,11 @@ class TypeDtoAPIWriter extends AbstractWriter {
         if (convertPrimitiveClassToObjectClass) {
           return convertPrimitiveClassToObjectClass(JPASimpleAttribute.class.cast(attribute).getType()).getName();
         }
-        return (JPASimpleAttribute.class.cast(attribute).getType().getName());
+        final Class<?> clazz = JPASimpleAttribute.class.cast(attribute).getType();
+        if (clazz == byte[].class) {
+          return "byte[]";
+        }
+        return clazz.getName();
       case AS_COMPLEX_TYPE:
         return attribute.getStructuredType().getInternalName();
       default:

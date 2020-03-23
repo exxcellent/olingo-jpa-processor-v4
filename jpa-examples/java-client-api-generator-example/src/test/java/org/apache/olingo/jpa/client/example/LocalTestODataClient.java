@@ -8,10 +8,6 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
@@ -42,6 +38,7 @@ import org.apache.olingo.client.core.ODataClientImpl;
 import org.apache.olingo.client.core.http.DefaultHttpClientFactory;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.HttpServletRequestDouble;
@@ -111,9 +108,8 @@ class LocalTestODataClient extends ODataClientImpl {
                 final JPAODataServletHandler handler = new JPAODataServletHandler(persistenceAdapter) {
 
                   @Override
-                  protected Collection<Processor> collectProcessors(final HttpServletRequest request,
-                      final HttpServletResponse response, final EntityManager em) {
-                    final Collection<Processor> processors = super.collectProcessors(request, response, em);
+                  protected Collection<Processor> collectProcessors(final JPAODataRequestContext requestContext) {
+                    final Collection<Processor> processors = super.collectProcessors(requestContext);
                     processors.add(new TestErrorProcessor());
                     return processors;
                   }

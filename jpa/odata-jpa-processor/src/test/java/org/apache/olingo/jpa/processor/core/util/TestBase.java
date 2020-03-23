@@ -106,7 +106,7 @@ public abstract class TestBase {
   }
 
   public static URIBuilder newUriBuilder() {
-    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix) {
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.SERVLET_LOCAL_BASE_URI) {
       @Override
       protected String getOperationInvokeMarker() {
         return "";

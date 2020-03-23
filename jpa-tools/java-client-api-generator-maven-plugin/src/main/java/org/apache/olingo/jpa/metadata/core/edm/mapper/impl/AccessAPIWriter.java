@@ -9,9 +9,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntityRequest;
@@ -199,22 +203,36 @@ class AccessAPIWriter extends AbstractWriter {
   }
 
   private void generate_ConvertValue_HelperMethods() throws ODataJPAModelException, IOException {
+    write(NEWLINE);
+    final Set<String> mapAlreadeGeneratedMethods = new HashSet<>();
     // simple properties
     for (final JPASimpleAttribute attribute : type.getAttributes()) {
       if (attribute.isCollection()) {
         continue;
       }
-      generate_ConvertValue_HelperMethod(attribute);
+      generate_ConvertValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
     }
 
+  }
+
+  private static String uppercasePackageNameFirstCharacter(final String s) {
+    final StringBuffer result = new StringBuffer();
+    final Matcher m = Pattern.compile("(?:\\.|^)(.)").matcher(s);
+    while (m.find()) {
+      m.appendReplacement(result,
+          m.group(1).toUpperCase());
+    }
+    m.appendTail(result);
+    return result.toString().replaceAll("\\[\\]", "Array");
   }
 
   /**
    *
    * @return Method signature or <code>null</code> if no method is generated.
    */
-  private String generate_ConvertValue_HelperMethod(final JPASimpleAttribute attribute)
-      throws ODataJPAModelException, IOException {
+  private String generate_ConvertValue_HelperMethod(final JPASimpleAttribute attribute,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
     EdmPrimitiveTypeKind odataType;
     try {
       odataType = TypeMapping.convertToEdmSimpleType(attribute);
@@ -222,18 +240,61 @@ class AccessAPIWriter extends AbstractWriter {
       return null;
     }
     final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
-    final String methodName = "convert" + odataType.name() + "2" + propClientType.replace(".", "");
+    final String methodName = "convertOData" + odataType.name() + "To" + uppercasePackageNameFirstCharacter(
+        propClientType);
+    if (mapAlreadeGeneratedMethods.contains(methodName)) {
+      return null;
+    }
     // TODO
     write(NEWLINE + "\t" + "private " + propClientType + " " + methodName + "("
         + ClientProperty.class.getName() + " property, "
         + "final Integer maxLength, final Integer precision, final Integer scale) throws "
         + ODataException.class.getName() + " {");
-
-    write(NEWLINE + "\t" + "return null;");// TODO
+    switch (odataType) {
+    case Boolean:
+      if (attribute.getType().isPrimitive()) {
+        write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(Boolean.class).booleanValue();");
+      } else {
+        write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(Boolean.class);");
+      }
+      break;
+    case String:
+      write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(" + propClientType + ".class);");
+      break;
+    case Int16:
+    case Int32:
+      if (attribute.getType().isPrimitive()) {
+        write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(Integer.class).intValue();");
+      } else {
+        write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(Integer.class);");
+      }
+      break;
+    case Int64:
+      if (attribute.getType().isPrimitive()) {
+        write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(Long.class).longValue();");
+      } else {
+        write(NEWLINE + "\t" + "\t" + "return property.getPrimitiveValue().toCastValue(Long.class);");
+      }
+      break;
+    case DateTimeOffset:
+      write(NEWLINE + "\t" + "\t" + "\t" + "\t" + EdmPrimitiveType.class.getName() + " pType = "
+          + EdmPrimitiveTypeFactory.class
+              .getName() + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "."
+          + EdmPrimitiveTypeKind.DateTimeOffset.name() + ");");
+      write(NEWLINE + "\t" + "\t" + "String sV = (String)property.getPrimitiveValue().toValue();");
+      write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
+      write(NEWLINE + "\t" + "\t"
+          + "return pType.valueOfString(sV, Boolean.TRUE, maxLength, precision, scale, Boolean.TRUE, " + propClientType
+          + ".class" + ");");
+      break;
+    default:
+      write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
+    }
 
     write(NEWLINE + "\t" + "}");
     write(NEWLINE);
 
+    mapAlreadeGeneratedMethods.add(methodName);
     return methodName;
   }
 
