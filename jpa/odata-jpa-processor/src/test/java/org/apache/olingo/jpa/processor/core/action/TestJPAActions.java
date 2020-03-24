@@ -6,7 +6,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.Id;
 
@@ -16,6 +19,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.cdi.Inject;
+import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
@@ -25,7 +29,6 @@ import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
-import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfoHandler;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructure;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
@@ -41,11 +44,22 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestJPAActions extends TestBase {
 
-  @ODataDTO(handler = EnvironmentInfoHandler.class)
+  @ODataDTO(attributeNaming = NamingStrategy.AsIs)
   public static class ActionDTO {
 
     @Id
     private final long id = System.currentTimeMillis();
+
+    /**
+     * Unbound oData action.
+     */
+    @EdmAction
+    public static int processDTOCollection(@EdmActionParameter(name = "params") final Collection<ActionDTO> params) {
+      if (params == null || params.isEmpty()) {
+        throw new IllegalStateException("Params not given");
+      }
+      return params.size();
+    }
 
     /**
      * Unbound oData action.
@@ -207,8 +221,10 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"value\": \"" + testValue + "\"");
     requestBody.append("}");
 
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
+        .appendActionCallSegment(Constant.PUNIT_NAME + ".sendBackEnumParameter");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Persons('99')/" + Constant.PUNIT_NAME + ".sendBackEnumParameter", requestBody, HttpMethod.POST);
+        uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode object = helper.getJsonObjectValue();
@@ -218,11 +234,16 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testBoundActionForEntityWithEmbeddedId() throws IOException, ODataException {
-
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE212");
+    mapKeys.put("CodeID", "NUTS3");
+    mapKeys.put("CodePublisher", "Eurostat");
+    mapKeys.put("Language", "de");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisionDescriptions")
+        .appendKeySegment(mapKeys)
+        .appendActionCallSegment(Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisionDescriptions(CodePublisher='Eurostat',CodeID='NUTS3',DivisionCode='BE212',Language='de')/"
-            + Constant.PUNIT_NAME + ".boundActionCheckLoadingOfEmbeddedId",
-            null, HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -239,8 +260,9 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
     requestBody.append("}");
 
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("unboundActionCheckLoadingOfEmbeddedId");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "unboundActionCheckLoadingOfEmbeddedId", requestBody, HttpMethod.POST);
+        uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -250,8 +272,10 @@ public class TestJPAActions extends TestBase {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("throwODataApplicationException");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "throwODataApplicationException", null, HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper.execute(911);
   }
 
@@ -330,9 +354,9 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testUnboundActionWithCollectionResult() throws IOException, ODataException {
-
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("unboundActionWithStringCollectionResult");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "unboundActionWithStringCollectionResult", null, HttpMethod.POST);
+        uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode objects = helper.getJsonObjectValues();
@@ -468,6 +492,52 @@ public class TestJPAActions extends TestBase {
     uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
     helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+  }
+
+  @Test
+  public void testUnboundEntityActionWithDTOCollectionParameter()
+      throws IOException, ODataException, NoSuchMethodException {
+
+    persistenceAdapter.registerDTO(ActionDTO.class);
+
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("\"params\": [");
+    requestBody.append("{\"id\": 1},");
+    requestBody.append("{\"id\": 2},");
+    requestBody.append("{\"id\": 3}");
+    requestBody.append("]");
+    requestBody.append("}");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("processDTOCollection");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertNotNull(result);
+    assertEquals(3, result.get("value").asInt());
+  }
+
+  @Test
+  public void testUnboundEntityActionWithEntityCollectionParameter()
+      throws IOException, ODataException, NoSuchMethodException {
+
+    persistenceAdapter.registerDTO(ActionDTO.class);
+
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("\"params\": [");
+    requestBody.append("{\"ID\": 1},");
+    requestBody.append("{\"ID\": 2},");
+    requestBody.append("{\"ID\": 3}");
+    requestBody.append("]");
+    requestBody.append("}");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("processEntityCollection");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertNotNull(result);
+    assertEquals(3, result.get("value").asInt());
   }
 
 }
