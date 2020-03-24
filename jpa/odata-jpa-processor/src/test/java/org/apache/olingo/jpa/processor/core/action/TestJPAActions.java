@@ -510,7 +510,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("processDTOCollection");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
@@ -533,7 +533,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("processEntityCollection");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
