@@ -147,6 +147,18 @@ public class DatatypeConversionEntity extends AbstractEntity {
   }
 
   /**
+   * Unbound oData action with collection of entities as parameter
+   */
+  @EdmAction
+  public static int processEntityCollection(@EdmActionParameter(
+      name = "params") final Collection<DatatypeConversionEntity> params) {
+    if (params == null || params.isEmpty()) {
+      throw new IllegalStateException("Params not given");
+    }
+    return params.size();
+  }
+
+  /**
    *
    * @return Received informations about the file: file name [0] and size[1]
    */

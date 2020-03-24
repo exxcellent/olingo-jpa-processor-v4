@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -10,13 +11,11 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.Entity;
+import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Parameter;
-import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -46,7 +45,6 @@ public class JPAEntityHelper {
   private final IntermediateServiceDocument sd;
   private final JPAODataGlobalContext context;
   private final EntityConverter entityConverter;
-  private final DTOEntityHelper dtoHelper;
 
   public JPAEntityHelper(final EntityManager em, final IntermediateServiceDocument sd, final UriInfoResource uriInfo,
       final UriHelper uriHelper, final JPAODataGlobalContext context) throws ODataJPAModelException {
@@ -54,7 +52,6 @@ public class JPAEntityHelper {
     this.sd = sd;
     this.context = context;
     entityConverter = new EntityConverter(uriHelper, sd, context.getServiceMetaData());
-    dtoHelper = new DTOEntityHelper(context, uriInfo);
   }
 
   @SuppressWarnings("unchecked")
@@ -161,16 +158,19 @@ public class JPAEntityHelper {
         args[i] = p.asCollection();
         break;
       case ENTITY:
-        final Entity entity = p.asEntity();
-        JPAEntityType jpaType;
-        if (dtoHelper.isTargetingDTO(jpaParameter.getType())) {
-          jpaType = sd.getEntityType(new FullQualifiedName(jpaParameter.getType().getName()));
-        } else {
-          final EntityType<?> persistenceType = em.getMetamodel().entity(jpaParameter.getType());
-          jpaType = determineJPAEntityType(sd, persistenceType);
+        final JPAEntityType jpaTypeS = sd.getEntityType(jpaParameter.getTypeFQN());
+        final Entity odataEntityS = p.asEntity();
+        args[i] = entityConverter.convertOData2JPAEntity(odataEntityS, jpaTypeS);
+        break;
+      case COLLECTION_ENTITY:
+        final JPAEntityType jpaTypeCE = sd.getEntityType(jpaParameter.getTypeFQN());
+        final EntityCollection odataEntities = (EntityCollection) p.getValue();
+        final List<Object> jpaEntities = new ArrayList<>(odataEntities.getEntities().size());
+        for (final Entity odataEntityCE : odataEntities) {
+          final Object jpaEntity = entityConverter.convertOData2JPAEntity(odataEntityCE, jpaTypeCE);
+          jpaEntities.add(jpaEntity);
         }
-        final Object jpaEntity = entityConverter.convertOData2JPAEntity(entity, jpaType);
-        args[i] = jpaEntity;
+        args[i] = jpaEntities;
         break;
       default:
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, p.getValueType().toString(),
@@ -178,20 +178,6 @@ public class JPAEntityHelper {
       }
     }
     return args;
-  }
-
-  private final static JPAEntityType determineJPAEntityType(final IntermediateServiceDocument sd,
-      final EntityType<?> persistenceType) throws ODataJPAModelException {
-    FullQualifiedName fqn;
-    JPAEntityType jpaType;
-    for (final CsdlSchema schema : sd.getEdmSchemas()) {
-      fqn = new FullQualifiedName(schema.getNamespace(), persistenceType.getName());
-      jpaType = sd.getEntityType(fqn);
-      if (jpaType != null) {
-        return jpaType;
-      }
-    }
-    throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, persistenceType.getName());
   }
 
   /**
