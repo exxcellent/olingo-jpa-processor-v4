@@ -23,7 +23,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataContextAccessDouble;
 import org.apache.olingo.jpa.processor.core.util.EdmEntityTypeDouble;
 import org.apache.olingo.jpa.processor.core.util.EdmPropertyDouble;
@@ -56,7 +56,7 @@ public class TestJPAQuerySelectClause extends TestBase {
   private JPAEntityType jpaEntityType;
   private HashMap<String, From<?, ?>> joinTables;
   private Root<?> root;
-  private JPAODataGlobalContext context;
+  private JPAODataRequestContext context;
 
   @Before
   public void setup() throws ODataException {
@@ -64,9 +64,8 @@ public class TestJPAQuerySelectClause extends TestBase {
     context = new JPAODataContextAccessDouble(
         new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()),
         persistenceAdapter);
-    cut = new EntityQueryBuilder(/* new EdmEntitySetDouble(nameBuilder, "BusinessPartners").getEntityType(), */ context,
-        createTestUriInfo("BusinessPartners"),
-        persistenceAdapter.createEntityManager(), null);
+    cut = new EntityQueryBuilder(context, createTestUriInfo("BusinessPartners"), persistenceAdapter
+        .createEntityManager(), null);
     root = persistenceAdapter.getEMF().getCriteriaBuilder().createTupleQuery().from(jpaEntityType.getTypeClass());
     joinTables = new HashMap<String, From<?, ?>>();
     joinTables.put(jpaEntityType.getInternalName(), root);

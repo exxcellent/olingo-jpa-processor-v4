@@ -21,7 +21,6 @@ import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
@@ -126,7 +125,7 @@ public class TestDependencyInjection extends TestBase {
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidType() {
-    final DependencyInjector injector = new DependencyInjectorImpl();
+    final DependencyInjectorImpl injector = new DependencyInjectorImpl();
     injector.registerDependencyMapping(Integer.class, Integer.valueOf(2));
   }
 }

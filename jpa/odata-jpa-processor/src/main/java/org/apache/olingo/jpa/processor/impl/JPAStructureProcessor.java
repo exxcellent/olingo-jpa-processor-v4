@@ -99,7 +99,7 @@ ComplexProcessor, PrimitiveValueProcessor {
     final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
     final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
     try {
-      final JPAEntityType jpaEntityType = getGlobalContext().getEdmProvider().getServiceDocument()
+      final JPAEntityType jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
           .getEntityType(targetEdmEntitySet.getName());
       final OData odata = getOData();
       final ServiceMetadata serviceMetadata = getServiceMetadata();
@@ -112,7 +112,7 @@ ComplexProcessor, PrimitiveValueProcessor {
       final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
       final Object persistenceJPAEntity = entityConverter.convertOData2JPAEntity(odataEntity, jpaEntityType);
 
-      final DTOEntityHelper dtoHelper = new DTOEntityHelper(getGlobalContext(), uriInfo);
+      final DTOEntityHelper dtoHelper = new DTOEntityHelper(getRequestContext(), uriInfo);
       if (dtoHelper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
         throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_CREATE,
             HttpStatusCode.BAD_REQUEST);
@@ -179,10 +179,10 @@ ComplexProcessor, PrimitiveValueProcessor {
     final ServiceMetadata serviceMetadata = getServiceMetadata();
 
     // DTO?
-    final DTOEntityHelper helper = new DTOEntityHelper(getGlobalContext(), uriInfo);
+    final DTOEntityHelper helper = new DTOEntityHelper(getRequestContext(), uriInfo);
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       try {
-        final JPAEntityType jpaEntityType = getGlobalContext().getEdmProvider().getServiceDocument()
+        final JPAEntityType jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
             .getEntityType(targetEdmEntitySet.getName());
         final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
         final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
@@ -222,7 +222,7 @@ ComplexProcessor, PrimitiveValueProcessor {
           HttpStatusCode.INTERNAL_SERVER_ERROR);
     } else {
       try {
-        final JPAEntityType jpaEntityType = getGlobalContext().getEdmProvider().getServiceDocument()
+        final JPAEntityType jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
             .getEntityType(targetEdmEntitySet.getName());
         final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
 
@@ -235,7 +235,7 @@ ComplexProcessor, PrimitiveValueProcessor {
 
         final EntityManager em = getEntityManager();
         final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, odata.createUriHelper(),
-            getGlobalContext());
+            getRequestContext());
         // load the entity as JPA instance from DB, using the ID from resource path
         final Object persistenceEntity = invoker.lookupJPAEntity(jpaEntityType, odataEntityMerged);
         if (persistenceEntity == null) {
@@ -291,7 +291,7 @@ ComplexProcessor, PrimitiveValueProcessor {
         final EntityManager em = getEntityManager();
         final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData()
             .createUriHelper(),
-            getGlobalContext());
+            getRequestContext());
         final JPAEntityType jpaType = sd.getEntityType(targetEdmEntitySet.getName());
         for (final Entity entity : entityCollection.getEntities()) {
           final Object persistenceEntity = invoker.lookupJPAEntity(jpaType, entity);
@@ -325,7 +325,7 @@ ComplexProcessor, PrimitiveValueProcessor {
     }
 
     // dbProcessor.query
-    final JPAODataDatabaseProcessor dbProcessor = getGlobalContext().getDatabaseProcessor();
+    final JPAODataDatabaseProcessor dbProcessor = getRequestContext().getDatabaseProcessor();
     final List<?> nr = dbProcessor.executeFunctionQuery(uriResourceFunction, jpaFunction, returnType,
         getEntityManager());
 
@@ -373,14 +373,14 @@ ComplexProcessor, PrimitiveValueProcessor {
     }
 
     final ServiceMetadata serviceMetadata = getServiceMetadata();
-    final DTOEntityHelper helper = new DTOEntityHelper(getGlobalContext(), uriInfo);
+    final DTOEntityHelper helper = new DTOEntityHelper(getRequestContext(), uriInfo);
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       return helper.loadEntities(transformation, targetEdmEntitySet);
     } else {
       // Create a JPQL Query and execute it
       try {
         // load entities
-        final EntityQueryBuilder query = new EntityQueryBuilder(getGlobalContext(), new NavigationRoot(uriInfo),
+        final EntityQueryBuilder query = new EntityQueryBuilder(getRequestContext(), new NavigationRoot(uriInfo),
             getEntityManager(),
             serviceMetadata);
         return query.execute(true, transformation);
@@ -435,7 +435,8 @@ ComplexProcessor, PrimitiveValueProcessor {
 
     // count entities
     try {
-      final EntityCountQueryBuilder query = new EntityCountQueryBuilder(getGlobalContext(), new NavigationRoot(uriInfo),
+      final EntityCountQueryBuilder query = new EntityCountQueryBuilder(getRequestContext(), new NavigationRoot(
+          uriInfo),
           getEntityManager());
       final long count = query.execute();
       final FixedFormatSerializer serializer = getOData().createFixedFormatSerializer();

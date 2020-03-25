@@ -22,7 +22,7 @@ import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
@@ -244,7 +244,7 @@ public class ExcelTransformationTest extends TestBase {
       }
 
       @Override
-      protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+      protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
         super.prepareRequestContext(requestContext);
         requestContext.getDependencyInjector().registerDependencyMapping(Configuration.class, configuration);
       }

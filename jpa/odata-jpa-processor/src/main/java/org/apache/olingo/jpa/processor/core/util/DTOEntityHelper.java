@@ -13,7 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTOHandler;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException.MessageKeys;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
@@ -28,10 +28,10 @@ public class DTOEntityHelper {
   private final Logger log = Logger.getLogger(DTOEntityHelper.class.getName());
 
   private final JPAEdmProvider provider;
-  private final JPAODataGlobalContext context;
+  private final JPAODataRequestContext context;
   private final UriInfoResource uriInfo;
 
-  public DTOEntityHelper(final JPAODataGlobalContext context, final UriInfoResource uriInfo) {
+  public DTOEntityHelper(final JPAODataRequestContext context, final UriInfoResource uriInfo) {
     this.context = context;
     this.provider = context.getEdmProvider();
     this.uriInfo = uriInfo;

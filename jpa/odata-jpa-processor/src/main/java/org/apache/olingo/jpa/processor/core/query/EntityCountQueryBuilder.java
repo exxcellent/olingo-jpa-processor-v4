@@ -10,7 +10,7 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 
@@ -32,7 +32,7 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
   private final CriteriaQuery<Long> cq;
   private final Root<?> root;
 
-  public EntityCountQueryBuilder(final JPAODataGlobalContext context, final NavigationIfc uriInfo,
+  public EntityCountQueryBuilder(final JPAODataRequestContext context, final NavigationIfc uriInfo,
       final EntityManager em)
           throws ODataApplicationException, ODataJPAModelException {
     super(context, uriInfo, em);

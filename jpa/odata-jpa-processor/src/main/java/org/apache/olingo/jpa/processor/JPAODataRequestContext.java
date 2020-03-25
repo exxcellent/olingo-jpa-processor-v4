@@ -8,37 +8,21 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.transformation.TransformingFactory;
-import org.apache.olingo.server.api.debug.DebugSupport;
 
 /**
  * The request context knows all about the global context and also the (currently processed) request specific things.
  *
  */
-public interface JPAODataRequestContext extends JPAODataGlobalContext {
+public interface JPAODataRequestContext extends JPAODataContext {
 
   /**
    *
    * @return The dependency injector with request scope including {@link JPAODataGlobalContext#getDependencyInjector()
-   * global dpi} data.
+   * global dependency injection values} data.
    */
-  @Override
   public DependencyInjector getDependencyInjector();
 
   public TransformingFactory getTransformerFactory();
-
-  /**
-   *
-   * @see javax.servlet.http.HttpServletRequest#getHeader(String)
-   * @return The (HTTP) request (header) value of given <i>name</i> or <code>null</code>.
-   */
-  //  public String getParameter(String name);
-
-  /**
-   *
-   * @see javax.servlet.http.HttpServletRequest#getHeaders(String)
-   * @return The (HTTP) request (header) values of given <i>name</i> or <code>null</code>.
-   */
-  //  public Enumeration<String> getParameters(String name);
 
   /**
    *
@@ -56,7 +40,7 @@ public interface JPAODataRequestContext extends JPAODataGlobalContext {
 
   //  public DebugSupport getDebugSupport();
 
-  public void setDebugSupport(final DebugSupport jpaDebugSupport);
+  //  public void setDebugSupport(final DebugSupport jpaDebugSupport);
 
   /**
    * Create a new instance of request context sharing the same values as the creator, but with a few differences:
@@ -68,5 +52,5 @@ public interface JPAODataRequestContext extends JPAODataGlobalContext {
    * @return A new derived instance of request context.
    * @throws ODataException
    */
-  public JPAODataRequestContext createSubRequestContext() throws ODataException;
+  public ModifiableJPAODataRequestContext createSubRequestContext() throws ODataException;
 }

@@ -10,12 +10,12 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.transformation.TransformingFactory;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ServiceMetadata;
-import org.apache.olingo.server.api.debug.DebugSupport;
 
 public class JPAODataContextAccessDouble implements JPAODataRequestContext {
 
@@ -61,11 +61,6 @@ public class JPAODataContextAccessDouble implements JPAODataRequestContext {
   }
 
   @Override
-  public void setDebugSupport(final DebugSupport jpaDebugSupport) {
-    // do nothing
-  }
-
-  @Override
   public Locale getLocale() {
     return Locale.ENGLISH;
   }
@@ -83,7 +78,7 @@ public class JPAODataContextAccessDouble implements JPAODataRequestContext {
   }
 
   @Override
-  public JPAODataRequestContext createSubRequestContext() throws ODataException {
+  public ModifiableJPAODataRequestContext createSubRequestContext() throws ODataException {
     fail();
     return null;
   }

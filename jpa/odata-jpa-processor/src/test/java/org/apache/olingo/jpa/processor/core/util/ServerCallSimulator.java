@@ -33,6 +33,7 @@ import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.security.SecurityInceptor;
@@ -170,7 +171,7 @@ public class ServerCallSimulator {
       }
 
       @Override
-      protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+      protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
         super.prepareRequestContext(requestContext);
         ServerCallSimulator.this.prepareRequestContext(requestContext);
       }
@@ -180,7 +181,7 @@ public class ServerCallSimulator {
   /**
    * Test class hook to modify request context
    */
-  protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+  protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
     // do nothing as default
   }
 

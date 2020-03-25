@@ -33,7 +33,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.result.ExpandQueryEntityResult;
 import org.apache.olingo.jpa.processor.core.query.result.QueryElementCollectionResult;
@@ -72,7 +72,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  public EntityQueryBuilder(final JPAODataGlobalContext context, final NavigationIfc uriInfo,
+  public EntityQueryBuilder(final JPAODataRequestContext context, final NavigationIfc uriInfo,
       final EntityManager em,
       final ServiceMetadata serviceMetadata)
           throws ODataApplicationException, ODataJPAModelException {
@@ -198,7 +198,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final Map<NavigationViaExpand, JPAAssociationPath> expandMapList = Util.determineExpands(
         getServiceDocument(), uriInfo);
 
-    final JPAODataGlobalContext context = getContext();
+    final JPAODataRequestContext context = getContext();
     final EntityManager em = getEntityManager();
 
     for (final Entry<NavigationViaExpand, JPAAssociationPath> itemExpand : expandMapList.entrySet()) {

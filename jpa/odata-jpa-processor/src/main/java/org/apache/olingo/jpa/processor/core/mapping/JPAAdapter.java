@@ -5,11 +5,10 @@ import java.util.Collection;
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 
-import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 
 /**
- * Implementations of this interface will map between OData entities and JPA
- * entities.<br/>
+ * Implementations of this interface will cover the concrete transaction handling and database dialect.<br/>
  * The concrete implementation of the transaction concept in this persistence
  * adapter allows the following scenarios:
  * <ul>
@@ -72,7 +71,7 @@ public interface JPAAdapter {
    * @return The implementor knowing the database specific SQL dialect to
    *         transform OData queries into JPA criteria API expressions.
    */
-  public AbstractJPADatabaseProcessor getDatabaseAccessor();
+  public JPAODataDatabaseProcessor getDatabaseAccessor();
 
   /**
    * Called at end of lifecycle of adapter to release any allocated resources
