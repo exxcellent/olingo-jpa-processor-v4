@@ -22,7 +22,6 @@ import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
-import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -155,7 +154,7 @@ public class EntityConverter extends AbstractEntityConverter {
       if (id == null && JPAEntityType.class.isInstance(jpaEntityType)) {
         // try to create id on demand
         try {
-          id = createId(entity, JPAEntityType.class.cast(jpaEntityType), KeyPredicateStrategy.ALLOW_NULL);
+          id = createId(entity, JPAEntityType.class.cast(jpaEntityType));
         } catch (final ODataRuntimeException e) {
           // ignore
           id = null;
@@ -218,27 +217,14 @@ public class EntityConverter extends AbstractEntityConverter {
       convertJPAAttribute2OData(jpaAttribute, value, jpaType, complexValueBuffer, properties, processedEntities);
     }
 
-    // entity id maybe null as default..
-    KeyPredicateStrategy idStrategy = KeyPredicateStrategy.ALLOW_NULL;
-    // but for DTO's with association they must be given or generated
-    if (jpaType.getTypeClass().getAnnotation(ODataDTO.class) != null && !jpaType.getAssociations().isEmpty()) {
-      idStrategy = KeyPredicateStrategy.AUTOGENERATE_MISSING;
-    }
-    // handle id's + binding links (already processed entities) only for entities declaring id attributes
-    if (!jpaType.getKeyAttributes(true).isEmpty()) {
-      // id of entity must be set before relationships are processed
-      odataEntity.setId(createId(odataEntity, jpaType, idStrategy));
+    // id of entity must be set before relationships are processed
+    odataEntity.setId(createId(odataEntity, jpaType));
 
-      // break the loop?
-      if (processedEntities.contains(odataEntity.getId())) {
-        throw new EntityAsLinkException(odataEntity.getId());
-      }
-      processedEntities.add(odataEntity.getId());
-    } else if (!jpaType.getAssociations().isEmpty()) {
-      // an entity with relationships must define an id
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, jpaType
-          .getInternalName());
+    // break the loop?
+    if (processedEntities.contains(odataEntity.getId())) {
+      throw new EntityAsLinkException(odataEntity.getId());
     }
+    processedEntities.add(odataEntity.getId());
 
     // 2. convert complex types and relationships
     for (final JPASimpleAttribute jpaAttribute : jpaType.getAttributes()) {
