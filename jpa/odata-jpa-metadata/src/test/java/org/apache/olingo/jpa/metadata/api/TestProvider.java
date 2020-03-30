@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.api;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.time.temporal.ChronoUnit;
 
@@ -29,6 +30,20 @@ public class TestProvider extends TestMappingRoot {
   @Test
   public void checkEnumTypeExisting() throws ODataException {
     assertNotNull(edmProvider.getEnumType(new FullQualifiedName(ChronoUnit.class
+        .getName())));
+  }
+
+  @Test
+  public void checkEntityContainer() throws ODataException {
+    assertNotNull(edmProvider.getEntityContainer());
+  }
+
+  @Test
+  public void checkEntityContainerInfo() throws ODataException {
+    // default container must exist
+    assertNotNull(edmProvider.getEntityContainerInfo(null));
+    // other container must not exist
+    assertNull(edmProvider.getEntityContainerInfo(new FullQualifiedName(ChronoUnit.class
         .getName())));
   }
 
