@@ -127,7 +127,7 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
             serviceDocument);
         declaredNaviPropertiesList.put(property.getInternalName(), property);
         continue;
-      } else if (TypeMapping.isPrimitiveType(field)) {
+      } else if (TypeMapping.isPrimitiveType(field) || field.getType().isEnum()) {
         final IntermediatePropertyDTOField property = new IntermediatePropertyDTOField(getNameBuilder(), field,
             serviceDocument);
         declaredPropertiesList.put(property.getInternalName(), property);

@@ -100,7 +100,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
+  IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
     final String namespace = clazz.getPackage().getName();
     if (!namespace.equalsIgnoreCase(getInternalName())) {
       throw new ODataJPAModelException(MessageKeys.GENERAL);

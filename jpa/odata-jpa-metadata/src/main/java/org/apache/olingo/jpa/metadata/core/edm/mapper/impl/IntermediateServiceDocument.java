@@ -258,14 +258,14 @@ public class IntermediateServiceDocument {
     return schema;
   }
 
-  IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
+  IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
     synchronized (lock) {
       final String namespace = clazz.getPackage().getName();
       AbstractJPASchema schema = schemaListInternalKey.get(namespace);
       if(schema == null) {
         schema = createCustomSchema(namespace);
       }
-      return schema.createEnumType(clazz);
+      return schema.findOrCreateEnumType(clazz);
     }
   }
 
