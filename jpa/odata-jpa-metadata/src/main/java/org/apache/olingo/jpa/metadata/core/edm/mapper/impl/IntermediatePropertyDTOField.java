@@ -24,200 +24,202 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 class IntermediatePropertyDTOField extends IntermediateModelElement implements JPASimpleAttribute {
 
-  private final IntermediateServiceDocument serviceDocument;
-  private final Field field;
-  private final JPAAttributeAccessor accessor;
-  private CsdlProperty edmProperty = null;
+	private final IntermediateServiceDocument serviceDocument;
+	private final Field field;
+	private final JPAAttributeAccessor accessor;
+	private CsdlProperty edmProperty = null;
 
-  public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
-      final IntermediateServiceDocument serviceDocument) {
-    super(nameBuilder, field.getName());
-    this.serviceDocument = serviceDocument;
-    this.field = field;
-    this.setExternalName(nameBuilder.buildPropertyName(field.getName()));
-    accessor = new FieldAttributeAccessor(field);
-    // do not wait with setting this important property
-    setIgnore(field.isAnnotationPresent(EdmIgnore.class));
-  }
+	public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
+	        final IntermediateServiceDocument serviceDocument) {
+		super(nameBuilder, field.getName());
+		this.serviceDocument = serviceDocument;
+		this.field = field;
+		this.setExternalName(nameBuilder.buildPropertyName(field.getName()));
+		accessor = new FieldAttributeAccessor(field);
+		// do not wait with setting this important property
+		setIgnore(field.isAnnotationPresent(EdmIgnore.class));
+	}
 
-  @Override
-  public JPAAttributeAccessor getAttributeAccessor() {
-    return accessor;
-  }
+	@Override
+	public JPAAttributeAccessor getAttributeAccessor() {
+		return accessor;
+	}
 
-  /**
-   *
-   * @return TRUE if field has the {@link javax.persistence.Id @Id} annotation.
-   */
-  @Override
-  public boolean isKey() {
-    return field.getAnnotation(javax.persistence.Id.class) != null;
-  }
+	/**
+	 *
+	 * @return TRUE if field has the {@link javax.persistence.Id @Id} annotation.
+	 */
+	@Override
+	public boolean isKey() {
+		return field.getAnnotation(javax.persistence.Id.class) != null;
+	}
 
-  private FullQualifiedName createTypeName() throws ODataJPAModelException {
-    final Class<?> attributeType = getType();
-    if (isPrimitive()) {
-      if (isCollection()) {
-        return TypeMapping.convertToEdmSimpleType(attributeType).getFullQualifiedName();
-      } else {
-        // trigger exception if not possible
-        return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
-      }
-    } else if (field.getType().isEnum()) {
-      @SuppressWarnings("unchecked")
-      final IntermediateEnumType jpaEnumType = serviceDocument
-      .findOrCreateEnumType((Class<? extends Enum<?>>) field.getType());
-      return jpaEnumType.getExternalFQN();
-    } else if (TypeMapping.isFieldTargetingDTO(field)) {
-      final JPAStructuredType dtoType = getStructuredType();
-      if (dtoType == null) {
-        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-            attributeType.getName() + " is not registered as Entity/DTO");
-      }
-      return dtoType.getExternalFQN();
-    } else {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-          "Java type not supported");
-    }
-  }
+	private FullQualifiedName createTypeName() throws ODataJPAModelException {
+		final Class<?> attributeType = getType();
+		if (isPrimitive()) {
+			if (field.getType().isEnum()) {
+				@SuppressWarnings("unchecked")
+				final IntermediateEnumType jpaEnumType = serviceDocument
+				        .findOrCreateEnumType((Class<? extends Enum<?>>) field.getType());
+				return jpaEnumType.getExternalFQN();
+			}
+			// simple types
+			if (isCollection()) {
+				return TypeMapping.convertToEdmSimpleType(attributeType).getFullQualifiedName();
+			} else {
+				// trigger exception if not possible
+				return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
+			}
+		} else if (TypeMapping.isFieldTargetingDTO(field)) {
+			final JPAStructuredType dtoType = getStructuredType();
+			if (dtoType == null) {
+				throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+				        attributeType.getName() + " is not registered as Entity/DTO");
+			}
+			return dtoType.getExternalFQN();
+		} else {
+			throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+			        "Java type not supported");
+		}
+	}
 
-  @Override
-  protected void lazyBuildEdmItem() throws ODataJPAModelException {
-    if (edmProperty != null) {
-      return;
-    }
-    edmProperty = new CsdlProperty();
-    edmProperty.setName(this.getExternalName());
+	@Override
+	protected void lazyBuildEdmItem() throws ODataJPAModelException {
+		if (edmProperty != null) {
+			return;
+		}
+		edmProperty = new CsdlProperty();
+		edmProperty.setName(this.getExternalName());
 
-    edmProperty.setType(createTypeName());// trigger exception for unsupported attribute types
-    edmProperty.setCollection(Collection.class.isAssignableFrom(field.getType()));
+		edmProperty.setType(createTypeName());// trigger exception for unsupported attribute types
+		edmProperty.setCollection(Collection.class.isAssignableFrom(field.getType()));
 
-    Integer maxLength = null;
-    final Size annotationSize = field.getAnnotation(Size.class);
-    if (annotationSize != null) {
-      maxLength = Integer.valueOf(annotationSize.max());
-    }
+		Integer maxLength = null;
+		final Size annotationSize = field.getAnnotation(Size.class);
+		if (annotationSize != null) {
+			maxLength = Integer.valueOf(annotationSize.max());
+		}
 
-    edmProperty.setNullable(true);
-    edmProperty.setSrid(IntermediateProperty.getSRID(field));
-    // edmProperty.setDefaultValue(determineDefaultValue());
-    if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
-      edmProperty.setMaxLength(maxLength);
-    }
-  }
+		edmProperty.setNullable(true);
+		edmProperty.setSrid(IntermediateProperty.getSRID(field));
+		// edmProperty.setDefaultValue(determineDefaultValue());
+		if (edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.String.getFullQualifiedName())
+		        || edmProperty.getTypeAsFQNObject().equals(EdmPrimitiveTypeKind.Binary.getFullQualifiedName())) {
+			edmProperty.setMaxLength(maxLength);
+		}
+	}
 
-  @SuppressWarnings("unchecked")
-  @Override
-  CsdlProperty getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
-    return edmProperty;
-  }
+	@SuppressWarnings("unchecked")
+	@Override
+	CsdlProperty getEdmItem() throws ODataJPAModelException {
+		lazyBuildEdmItem();
+		return edmProperty;
+	}
 
-  @Override
-  public JPAStructuredType getStructuredType() {
-    final Class<?> attributeType = getType();
-    return serviceDocument.getEntityType(attributeType);
-  }
+	@Override
+	public JPAStructuredType getStructuredType() {
+		final Class<?> attributeType = getType();
+		return serviceDocument.getEntityType(attributeType);
+	}
 
-  @Override
-  public Class<?> getType() {
-    if (isCollection()) {
-      try {
-        return TypeMapping.extractElementTypeOfCollection(field);
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      return field.getType();
-    }
-  }
+	@Override
+	public Class<?> getType() {
+		if (isCollection()) {
+			try {
+				return TypeMapping.extractElementTypeOfCollection(field);
+			} catch (final ODataJPAModelException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			return field.getType();
+		}
+	}
 
-  @Override
-  public boolean isComplex() {
-    return !isPrimitive();
-  }
+	@Override
+	public boolean isComplex() {
+		return !isPrimitive();
+	}
 
-  @Override
-  public AttributeMapping getAttributeMapping() {
-    if (isComplex()) {
-      return AttributeMapping.AS_COMPLEX_TYPE;
-    }
-    return AttributeMapping.SIMPLE;
-  }
+	@Override
+	public AttributeMapping getAttributeMapping() {
+		if (isComplex()) {
+			return AttributeMapping.AS_COMPLEX_TYPE;
+		}
+		return AttributeMapping.SIMPLE;
+	}
 
-  @Override
-  public boolean isAssociation() {
-    return false;
-  }
+	@Override
+	public boolean isAssociation() {
+		return false;
+	}
 
-  @Override
-  public boolean isSearchable() {
-    // never searchable
-    return false;
-  }
+	@Override
+	public boolean isSearchable() {
+		// never searchable
+		return false;
+	}
 
-  @Override
-  public Integer getMaxLength() {
-    try {
-      return getProperty().getMaxLength();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
-  }
+	@Override
+	public Integer getMaxLength() {
+		try {
+			return getProperty().getMaxLength();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-  @Override
-  public Integer getPrecision() {
-    try {
-      return getProperty().getPrecision();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
-  }
+	@Override
+	public Integer getPrecision() {
+		try {
+			return getProperty().getPrecision();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-  @Override
-  public Integer getScale() {
-    try {
-      return getProperty().getScale();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
-  }
+	@Override
+	public Integer getScale() {
+		try {
+			return getProperty().getScale();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-  @Override
-  public boolean isNullable() {
-    try {
-      return getProperty().isNullable();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
-  }
+	@Override
+	public boolean isNullable() {
+		try {
+			return getProperty().isNullable();
+		} catch (final ODataJPAModelException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-  @Override
-  public boolean isCollection() {
-    if (Collection.class.isAssignableFrom(field.getType())) {
-      return true;
-    }
-    return false;
-  }
+	@Override
+	public boolean isCollection() {
+		if (Collection.class.isAssignableFrom(field.getType())) {
+			return true;
+		}
+		return false;
+	}
 
-  @Override
-  public boolean isPrimitive() {
-    return TypeMapping.isPrimitiveType(field);
-  }
+	@Override
+	public boolean isPrimitive() {
+		return TypeMapping.isPrimitiveType(field);
+	}
 
-  @Override
-  public CsdlProperty getProperty() throws ODataJPAModelException {
-    return getEdmItem();
-  }
+	@Override
+	public CsdlProperty getProperty() throws ODataJPAModelException {
+		return getEdmItem();
+	}
 
-  @Override
-  public String getDBFieldName() {
-    return null;
-  }
+	@Override
+	public String getDBFieldName() {
+		return null;
+	}
 
-  @Override
-  public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-    return field.getAnnotation(annotationClass);
-  }
+	@Override
+	public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+		return field.getAnnotation(annotationClass);
+	}
 }

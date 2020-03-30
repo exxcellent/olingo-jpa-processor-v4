@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
+import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +46,12 @@ public class TestProvider extends TestMappingRoot {
     // other container must not exist
     assertNull(edmProvider.getEntityContainerInfo(new FullQualifiedName(ChronoUnit.class
         .getName())));
+  }
+
+  @Test
+  public void checkEntityType() throws ODataException {
+    assertNotNull(edmProvider.getEntityType(new FullQualifiedName(PUNIT_NAME, Organization.class
+        .getSimpleName())));
   }
 
 }

@@ -24,170 +24,180 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * enumerations.
  */
 class IntermediateCustomSchema extends AbstractJPASchema {
-  private CsdlSchema edmSchema = null;
-  final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
-  final private Map<String, IntermediateTypeDTO> dtoTypes = new HashMap<>();
-  final private Map<String, IntermediateAction> actions = new HashMap<>();
-  final private Map<String, JPAEntitySet> entitySets = new HashMap<>();
-  final private IntermediateServiceDocument serviceDocument;
 
-  IntermediateCustomSchema(final IntermediateServiceDocument serviceDocument, final String namespace)
-      throws ODataJPAModelException {
-    super(namespace);
-    this.serviceDocument = serviceDocument;
-  }
+	private CsdlSchema edmSchema = null;
+	final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
+	final private Map<String, IntermediateTypeDTO> dtoTypes = new HashMap<>();
+	final private Map<String, IntermediateAction> actions = new HashMap<>();
+	final private Map<String, JPAEntitySet> entitySets = new HashMap<>();
+	final private IntermediateServiceDocument serviceDocument;
 
-  @Override
-  JPAEntityType getEntityType(final Class<?> targetClass) {
-    return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
-  }
+	IntermediateCustomSchema(final IntermediateServiceDocument serviceDocument, final String namespace)
+	        throws ODataJPAModelException {
+		super(namespace);
+		this.serviceDocument = serviceDocument;
+	}
 
-  @Override
-  IntermediateComplexType getComplexType(final Class<?> targetClass) {
-    // currently not supported
-    return null;
-  }
+	@Override
+	JPAEntityType getEntityType(final Class<?> targetClass) {
+		return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
+	}
 
-  @Override
-  IntermediateEnumType getEnumType(final Class<?> targetClass) {
-    return enumTypes.get(targetClass.getSimpleName());
-  }
+	@Override
+	IntermediateComplexType getComplexType(final Class<?> targetClass) {
+		// currently not supported
+		return null;
+	}
 
-  IntermediateTypeDTO getDTOType(final Class<?> targetClass) {
-    return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
-  }
+	@Override
+	IntermediateEnumType getEnumType(final Class<?> targetClass) {
+		return enumTypes.get(targetClass.getSimpleName());
+	}
 
-  protected void lazyBuildEdmItem() throws ODataJPAModelException {
-    if (edmSchema != null) {
-      return;
-    }
-    edmSchema = new CsdlSchema();
-    edmSchema.setNamespace(getNameBuilder().buildNamespace());
-    edmSchema.setEnumTypes(buildEnumTypeList());
-    edmSchema.setEntityTypes(buildEntityTypeList());
-    edmSchema.setActions(buildActionList());
-  }
+	IntermediateTypeDTO getDTOType(final Class<?> targetClass) {
+		return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
+	}
 
-  private List<CsdlEntityType> buildEntityTypeList() throws RuntimeException {
-    // TODO: entities (=empty) + dto's (as entities)
-    return dtoTypes.entrySet().stream().map(x -> {
-      try {
-        return x.getValue().getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
-  }
+	protected final void lazyBuildEdmItem() throws ODataJPAModelException {
+		if (edmSchema != null) {
+			return;
+		}
+		// resolve schema changing types (maybe recursive add new types/enums... to schema)
+		buildEntityTypeList();
+		buildActionList();
 
-  private List<CsdlEnumType> buildEnumTypeList() throws RuntimeException {
-    return enumTypes.entrySet().stream().map(x -> {
-      try {
-        return x.getValue().getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
-  }
+		// take it...
+		edmSchema = new CsdlSchema();
+		edmSchema.setNamespace(getNameBuilder().buildNamespace());
+		edmSchema.setEnumTypes(buildEnumTypeList());
+		edmSchema.setEntityTypes(buildEntityTypeList());
+		edmSchema.setActions(buildActionList());
+	}
 
-  private List<CsdlAction> buildActionList() throws RuntimeException {
-    return actions.entrySet().stream().map(x -> {
-      try {
-        return x.getValue().getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
-  }
+	private List<CsdlEntityType> buildEntityTypeList() throws RuntimeException {
+		// TODO: entities (=empty) + dto's (as entities)
+		return dtoTypes.entrySet().stream().map(x -> {
+			try {
+				return x.getValue().getEdmItem();
+			} catch (final ODataJPAModelException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toList());
+	}
 
-  @Override
-  IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
-    final String namespace = clazz.getPackage().getName();
-    if (!namespace.equalsIgnoreCase(getInternalName())) {
-      throw new ODataJPAModelException(MessageKeys.GENERAL);
-    }
-    IntermediateEnumType enumType = getEnumType(clazz);
-    if (enumType == null) {
-      enumType = new IntermediateEnumType(getNameBuilder(), clazz, serviceDocument);
-      enumTypes.put(clazz.getSimpleName(), enumType);
-    }
-    return enumType;
-  }
+	private List<CsdlEnumType> buildEnumTypeList() throws RuntimeException {
+		return enumTypes.entrySet().stream().map(x -> {
+			try {
+				return x.getValue().getEdmItem();
+			} catch (final ODataJPAModelException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toList());
+	}
 
-  IntermediateTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
-    final String namespace = clazz.getPackage().getName();
-    if (!namespace.equalsIgnoreCase(getInternalName())) {
-      throw new ODataJPAModelException(MessageKeys.GENERAL);
-    }
+	private List<CsdlAction> buildActionList() throws RuntimeException {
+		return actions.entrySet().stream().map(x -> {
+			try {
+				return x.getValue().getEdmItem();
+			} catch (final ODataJPAModelException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toList());
+	}
 
-    IntermediateTypeDTO dtoType = getDTOType(clazz);
-    if (dtoType == null) {
-      dtoType = new IntermediateTypeDTO(getNameBuilder(), clazz, serviceDocument);
-      dtoTypes.put(dtoType.getExternalName(), dtoType);
-      // build actions for DTO
-      final IntermediateActionFactory factory = new IntermediateActionFactory();
-      actions.putAll(factory.create(getNameBuilder(), dtoType.getTypeClass(), serviceDocument));
-      // build entity set
-      final IntermediateEntitySet es = new IntermediateEntitySet(dtoType);
-      entitySets.put(es.getExternalName(), es);
-    }
-    return dtoType;
+	@Override
+	IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
+		final String namespace = clazz.getPackage().getName();
+		if (!namespace.equalsIgnoreCase(getInternalName())) {
+			throw new ODataJPAModelException(MessageKeys.GENERAL);
+		}
+		IntermediateEnumType enumType = getEnumType(clazz);
+		if (enumType == null) {
+			enumType = new IntermediateEnumType(getNameBuilder(), clazz, serviceDocument);
+			enumTypes.put(clazz.getSimpleName(), enumType);
+			// force rebuild
+			edmSchema = null;
+		}
+		return enumType;
+	}
 
-  }
+	IntermediateTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+		final String namespace = clazz.getPackage().getName();
+		if (!namespace.equalsIgnoreCase(getInternalName())) {
+			throw new ODataJPAModelException(MessageKeys.GENERAL);
+		}
 
-  @Override
-  public CsdlSchema getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
-    return edmSchema;
-  }
+		IntermediateTypeDTO dtoType = getDTOType(clazz);
+		if (dtoType == null) {
+			dtoType = new IntermediateTypeDTO(getNameBuilder(), clazz, serviceDocument);
+			dtoTypes.put(dtoType.getExternalName(), dtoType);
+			// build actions for DTO
+			final IntermediateActionFactory factory = new IntermediateActionFactory();
+			actions.putAll(factory.create(getNameBuilder(), dtoType.getTypeClass(), serviceDocument));
+			// build entity set
+			final IntermediateEntitySet es = new IntermediateEntitySet(dtoType);
+			entitySets.put(es.getExternalName(), es);
+			// force rebuild
+			edmSchema = null;
+		}
+		return dtoType;
 
-  @Override
-  JPAAction getAction(final String externalName) {
-    for (final Entry<String, IntermediateAction> entry : actions.entrySet()) {
-      if (entry.getValue().getExternalName().equals(externalName)) {
-        if (!entry.getValue().ignore()) {
-          return entry.getValue();
-        }
-      }
-    }
-    return null;
-  }
+	}
 
-  @Override
-  List<JPAAction> getActions() {
-    return new ArrayList<JPAAction>(actions.values());
-  }
+	@Override
+	public CsdlSchema getEdmItem() throws ODataJPAModelException {
+		lazyBuildEdmItem();
+		return edmSchema;
+	}
 
-  @Override
-  JPAEntityType getEntityType(final String externalName) {
-    return dtoTypes.get(externalName);
-  }
+	@Override
+	JPAAction getAction(final String externalName) {
+		for (final Entry<String, IntermediateAction> entry : actions.entrySet()) {
+			if (entry.getValue().getExternalName().equals(externalName)) {
+				if (!entry.getValue().ignore()) {
+					return entry.getValue();
+				}
+			}
+		}
+		return null;
+	}
 
-  @Override
-  JPAFunction getFunction(final String externalName) {
-    // currently not supported
-    return null;
-  }
+	@Override
+	List<JPAAction> getActions() {
+		return new ArrayList<JPAAction>(actions.values());
+	}
 
-  @Override
-  List<JPAFunction> getFunctions() {
-    // currently not supported
-    return Collections.emptyList();
-  }
+	@Override
+	JPAEntityType getEntityType(final String externalName) {
+		return dtoTypes.get(externalName);
+	}
 
-  @Override
-  List<JPAEntityType> getEntityTypes() {
-    final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(dtoTypes.size());
-    entityTypes.addAll(dtoTypes.values());
-    return entityTypes;
-  }
+	@Override
+	JPAFunction getFunction(final String externalName) {
+		// currently not supported
+		return null;
+	}
 
-  @Override
-  JPAEntitySet getEntitySet(final String entitySetName) {
-    return entitySets.get(entitySetName);
-  }
+	@Override
+	List<JPAFunction> getFunctions() {
+		// currently not supported
+		return Collections.emptyList();
+	}
 
-  @Override
-  List<JPAEntitySet> getEntitySets() {
-    return new ArrayList<>(entitySets.values());
-  }
+	@Override
+	List<JPAEntityType> getEntityTypes() {
+		final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(dtoTypes.size());
+		entityTypes.addAll(dtoTypes.values());
+		return entityTypes;
+	}
+
+	@Override
+	JPAEntitySet getEntitySet(final String entitySetName) {
+		return entitySets.get(entitySetName);
+	}
+
+	@Override
+	List<JPAEntitySet> getEntitySets() {
+		return new ArrayList<>(entitySets.values());
+	}
 }
