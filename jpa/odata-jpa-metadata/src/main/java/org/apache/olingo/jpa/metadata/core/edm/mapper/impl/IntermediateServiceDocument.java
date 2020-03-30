@@ -52,14 +52,10 @@ public class IntermediateServiceDocument {
   private void invokeEverySchema() {
     final List<AbstractJPASchema> existingSchemas = new ArrayList<>(schemaListInternalKey.values());
     for (final AbstractJPASchema schema : existingSchemas) {
-      if (schema instanceof IntermediateMetamodelSchema) {
-        // only schemas working on javax.persistence.metamodel.Metamodel can be source
-        // of additional custom schemas
-        try {
-          schema.getEdmItem();
-        } catch (final ODataJPAModelException e) {
-          throw new IllegalStateException(e);
-        }
+      try {
+        schema.getEdmItem();
+      } catch (final ODataJPAModelException e) {
+        throw new IllegalStateException(e);
       }
     }
   }
