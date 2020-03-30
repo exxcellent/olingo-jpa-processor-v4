@@ -365,7 +365,15 @@ public final class TypeMapping {
 		return false;
 	}
 
+	/**
+	 * For OData an enumeration type is primitive!
+	 *
+	 * @return TRUE if field is of enum or simple type.
+	 */
 	static boolean isPrimitiveType(final Field field) {
+		if (field.getType().isEnum()) {
+			return true;
+		}
 		try {
 			if (isCollectionTypeOfPrimitive(field)) {
 				return true;
