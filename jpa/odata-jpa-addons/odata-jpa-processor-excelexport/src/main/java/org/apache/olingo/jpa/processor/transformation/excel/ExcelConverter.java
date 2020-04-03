@@ -217,7 +217,7 @@ public class ExcelConverter {
 
   public final ODataResponseContent produceExcel(final QueryEntityResult input,
       final RepresentationType representationType)
-      throws IOException, ODataJPAModelException, ODataJPAConversionException {
+          throws IOException, ODataJPAModelException, ODataJPAConversionException {
 
     final WorkbookState state = createWorkbook();
     final Workbook workbook = state.workbook;
@@ -308,7 +308,7 @@ public class ExcelConverter {
     final JPASelector selector = sheetState.jpaType.getPath(dbAlias);
     final JPAAttribute<?> targetAttribute = selector.getLeaf();
 
-    final ExcelCell excelCell = determineCellContent(targetAttribute, value);
+    final ExcelCell excelCell = determineCellContent(sheetState.jpaType, dbAlias, targetAttribute, value);
     final Object odataValue = excelCell.getValue();
 
     final Cell cell = row.createCell(columnIndex);
@@ -390,15 +390,18 @@ public class ExcelConverter {
   }
 
   /**
-   *
-   * @param targetAttribute
+   * @param entityType The root entity type defining the current working sheet the currently processed cell belongs to.
+   * @param attributePath The database alias often representing a path through nested complex attributes to the
+   * <i>targetAttribute</i>.
+   * @param targetAttribute The meta model attribute the <i>value</i> is related to.
    * @param value The value from data base (after {@link javax.persistence.AttributeConverter attribute converter}) that
    * must be prepared for Excel sheet output.
    *
    * @return The combination of resulting value for Excel sheet (after any conversion) and data type assignment.
    */
-  protected ExcelCell determineCellContent(final JPAAttribute<?> targetAttribute, final Object value) {
-    final EdmPrimitiveTypeKind kindOfCell = determineCellRepresentation(targetAttribute);
+  protected ExcelCell determineCellContent(final JPAEntityType entityType, final String attributePath,
+      final JPAAttribute<?> targetAttribute, final Object value) {
+    final EdmPrimitiveTypeKind kindOfCell = determineCellRepresentation(entityType, attributePath, targetAttribute);
     Object odataValue;
     if (JPATypedElement.class.isInstance(targetAttribute)) {
       try {
@@ -417,12 +420,11 @@ public class ExcelConverter {
   }
 
   /**
-   *
-   * @param targetAttribute The attribute (column) in Excel sheet.
-   *
    * @return The primitive data type of column to use for Excel cell formatting.
+   * @see #determineCellContent(JPAEntityType, String, JPAAttribute, Object)
    */
-  protected EdmPrimitiveTypeKind determineCellRepresentation(final JPAAttribute<?> targetAttribute) {
+  protected EdmPrimitiveTypeKind determineCellRepresentation(final JPAEntityType entityType, final String attributePath,
+      final JPAAttribute<?> targetAttribute) {
     if (JPATypedElement.class.isInstance(targetAttribute)) {
       try {
         return TypeMapping.convertToEdmSimpleType((JPATypedElement) targetAttribute);
