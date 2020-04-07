@@ -13,7 +13,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
  * @author Ralf Zozmann
  *
  */
-@ODataDTO(/* handler = NestedStructureHandler.class */attributeNaming = NamingStrategy.AsIs,
+@ODataDTO(attributeNaming = NamingStrategy.AsIs,
 edmEntitySetName = "NestedStructures")
 public class NestedStructure {
 

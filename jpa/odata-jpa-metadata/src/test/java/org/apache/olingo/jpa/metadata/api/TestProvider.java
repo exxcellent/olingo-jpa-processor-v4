@@ -8,9 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
-import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
-import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
@@ -38,6 +36,7 @@ public class TestProvider extends TestMappingRoot {
   public void checkEnumTypeExisting() throws ODataException {
     assertNotNull(edmProvider.getEnumType(new FullQualifiedName(ChronoUnit.class
         .getName())));
+    assertNull(edmProvider.getEnumType(new FullQualifiedName(ChronoUnit.class.getPackage().getName() + ".NoEnum")));
   }
 
   @Test
@@ -71,6 +70,7 @@ public class TestProvider extends TestMappingRoot {
   public void checkEntityType() throws ODataException {
     assertNotNull(edmProvider.getEntityType(new FullQualifiedName(PUNIT_NAME, Organization.class
         .getSimpleName())));
+    assertNull(edmProvider.getEntityType(new FullQualifiedName(PUNIT_NAME, "NoEntity")));
   }
 
   @Test
@@ -81,8 +81,8 @@ public class TestProvider extends TestMappingRoot {
 
   @Test
   public void checkFunctions() throws ODataException {
-    final List<CsdlFunction> list = edmProvider.getFunctions(new FullQualifiedName(PUNIT_NAME, "CountRoles"));
-    assertEquals(1, list.size());
+    assertEquals(1, edmProvider.getFunctions(new FullQualifiedName(PUNIT_NAME, "CountRoles")).size());
+    assertEquals(0, edmProvider.getFunctions(new FullQualifiedName(PUNIT_NAME, "NonExistingFunction")).size());
   }
 
   @Test
@@ -93,12 +93,8 @@ public class TestProvider extends TestMappingRoot {
 
   @Test
   public void checkActions() throws ODataException {
-    List<CsdlAction> list = edmProvider.getActions(new FullQualifiedName(PUNIT_NAME,
-        "addPhoneToOrganizationAndSave"));
-    assertEquals(1, list.size());
-    list = edmProvider.getActions(new FullQualifiedName(PUNIT_NAME,
-        "__dummy__"));
-    assertEquals(0, list.size());
+    assertEquals(1, edmProvider.getActions(new FullQualifiedName(PUNIT_NAME, "addPhoneToOrganizationAndSave")).size());
+    assertEquals(0, edmProvider.getActions(new FullQualifiedName(PUNIT_NAME, "__dummy__")).size());
   }
 
   @Test

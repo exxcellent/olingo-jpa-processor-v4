@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.util;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,8 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.apache.olingo.client.api.domain.ClientComplexValue;
+import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientLink;
+import org.apache.olingo.client.api.domain.ClientProperty;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ConfigurationImpl;
+import org.apache.olingo.client.core.domain.ClientComplexValueImpl;
 import org.apache.olingo.client.core.uri.URIBuilderImpl;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
@@ -122,4 +128,41 @@ public abstract class TestBase {
     impl.addResourcePart(ri);
     return new NavigationRoot(impl);
   }
+
+  /**
+   * Helper method to convert an {@link ClientEntity entity} to an {@link ClientComplexValue complex value} usable as
+   * parameter for action calls.
+   */
+  protected final ClientComplexValue convertToActionParameter(final ClientEntity entity, final String fqnEntityTypeName)
+      throws ODataException,
+      IOException {
+    if (entity.getTypeName() != null) {
+      assert entity.getTypeName()
+      .getFullQualifiedNameAsString().equals(fqnEntityTypeName);
+    }
+    final ClientComplexValue complexValue = new ClientComplexValueImpl(fqnEntityTypeName);
+    // 1. properties
+    final StringBuilder skippedProperties = new StringBuilder();
+    for (final ClientProperty entityProperty : entity.getProperties()) {
+      // simply reassign the entity property (without cloning)
+      complexValue.add(entityProperty);
+    }
+    if (skippedProperties.length() > 0) {
+      throw new IllegalStateException("Incomplete conversion, not processed properties: " + skippedProperties
+          .toString());
+    }
+    // 2. relationships
+    final StringBuilder skippedLinks = new StringBuilder();
+    for (final ClientLink entityLink : entity.getNavigationLinks()) {
+      // simply reassign the entity link (without cloning)
+      complexValue.addLink(entityLink);
+    }
+    if (skippedLinks.length() > 0) {
+      throw new IllegalStateException("Incomplete conversion, not processed relationships: " + skippedLinks
+          .toString());
+    }
+
+    return complexValue;
+  }
+
 }
