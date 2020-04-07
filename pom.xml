@@ -33,6 +33,7 @@
 	<modules>
 		<module>jpa</module>
 		<module>jpa-examples</module>
+		<module>code-coverage-report</module>
 	</modules>
 
 	<dependencyManagement>
@@ -409,8 +410,8 @@
                                 <outputDirectory>${basedir}/target/jacoco-it</outputDirectory>
                             </configuration>
                         </execution>
-						<!-- defined disabled aggregated unit test coverage report -->
-					  	<!-- Skip, because we have a separate model (overall-coverage-report) creating the report there -->
+						<!-- aggregated unit test coverage reports will be produced for all modules, but is only useful for -->
+					  	<!-- the module code-coverage-report -->
 						<execution>
 							<id>aggregate-reports-ut</id>
 							<phase>test</phase>
@@ -418,7 +419,6 @@
 								<goal>report-aggregate</goal>
 							</goals>						  
 							<configuration>
-								<skip>true</skip>
 								<title>Coverage of Unit Tests</title>
 								<outputDirectory>${basedir}/target/jacoco-aggregate-ut</outputDirectory>
 								<dataFileExcludes>
