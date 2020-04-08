@@ -110,7 +110,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
 
     createElementCollections(odataEntity, row, jpaQueryResult);
 
-    odataEntity.setId(createId(odataEntity, jpaEntityType));
+    odataEntity.setId(createId(odataEntity, jpaEntityType, false));
 
     // expands for (direct) relationship attributes
     for (final JPAAssociationPath association : jpaEntityType.getAssociationPathList()) {

@@ -160,7 +160,7 @@ public class EntityConverter extends AbstractEntityConverter {
       if (id == null && JPAEntityType.class.isInstance(jpaEntityType)) {
         // try to create id on demand
         try {
-          id = createId(entity, JPAEntityType.class.cast(jpaEntityType));
+          id = createId(entity, JPAEntityType.class.cast(jpaEntityType), true);
         } catch (final ODataRuntimeException e) {
           // ignore
           id = null;
@@ -226,7 +226,7 @@ public class EntityConverter extends AbstractEntityConverter {
     }
 
     // id of entity must be set before relationships are processed
-    odataEntity.setId(createId(odataEntity, jpaType));
+    odataEntity.setId(createId(odataEntity, jpaType, false));
 
     // break the loop?
     if (processedEntities.contains(odataEntity.getId())) {

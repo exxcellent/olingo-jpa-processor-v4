@@ -356,6 +356,7 @@
                                 <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
                                 <propertyName>surefireArgLine</propertyName>
                                 <append>true</append>
+                                <inclNoLocationClasses>true</inclNoLocationClasses>
                             </configuration>
                         </execution>
                         <!--
@@ -391,6 +392,7 @@
                                 <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
                                 <propertyName>failsafeArgLine</propertyName>
                                 <append>true</append>
+                                <inclNoLocationClasses>true</inclNoLocationClasses>
                             </configuration>
                         </execution>
                         <!--

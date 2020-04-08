@@ -60,11 +60,13 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
 
   /**
    *
-   * @param keyStrategy Define strategy to work with entities without key attribute or key values.
+   * @param forbidAutoGeneration If TRUE then for an entity type without key attributes no auto generated id is used...
+   * id will be <code>null</code>.
    * @return The id URI or <code>null</code>
    */
-  protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType)
-      throws ODataJPAModelException {
+  protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType,
+      final boolean forbidAutoGeneration)
+          throws ODataJPAModelException {
 
     try {
       // TODO Clarify host-name and port as part of ID see
@@ -78,8 +80,10 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
       if (!keyNames.isEmpty()) {
         final String uri = uriHelper.buildCanonicalURL(set, odataEntity);
         return new URI(uri);
+      } else if (forbidAutoGeneration) {
+        return null;
       } else {
-        // fallback: manually id creation
+        // fallback: automatic id creation
         final StringBuffer uriBuffer = new StringBuffer(setName);
         uriBuffer.append("(");
         uriBuffer.append("generated-".concat(Long.toString(System.currentTimeMillis()).concat("-").concat(UUID
