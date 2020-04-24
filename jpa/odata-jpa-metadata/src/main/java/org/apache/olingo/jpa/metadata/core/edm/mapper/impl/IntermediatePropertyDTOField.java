@@ -57,6 +57,13 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 	private FullQualifiedName createTypeName() throws ODataJPAModelException {
 		final Class<?> attributeType = getType();
 		if (isPrimitive()) {
+			if (field.getType().isEnum()) {
+				@SuppressWarnings("unchecked")
+				final IntermediateEnumType jpaEnumType = serviceDocument
+				        .findOrCreateEnumType((Class<? extends Enum<?>>) field.getType());
+				return jpaEnumType.getExternalFQN();
+			}
+			// simple types
 			if (isCollection()) {
 				return TypeMapping.convertToEdmSimpleType(attributeType).getFullQualifiedName();
 			} else {

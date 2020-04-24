@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,7 +14,6 @@ import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
@@ -23,7 +23,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -37,21 +36,6 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
   public static final String ACCESS_MODIFIER_IS = "is";
 
   protected final static Logger LOG = Logger.getLogger(AbstractEntityConverter.class.getName());
-
-  protected static enum KeyPredicateStrategy {
-    /**
-     * Allow missing key fields, the id will not be unique and may have side effects to serialization.
-     */
-    ALLOW_NULL,
-    /**
-     * Throw exception for empty id's.
-     */
-    FORCE_EXISTING,
-    /**
-     * Generate an volatile id on demand if missing.
-     */
-    AUTOGENERATE_MISSING;
-  }
 
   private final IntermediateServiceDocument sd;
   private final ServiceMetadata serviceMetadata;
@@ -76,11 +60,12 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
 
   /**
    *
-   * @param keyStrategy Define strategy to work with entities without key attribute or key values.
+   * @param forbidAutoGeneration If TRUE then for an entity type without key attributes no auto generated id is used...
+   * id will be <code>null</code>.
    * @return The id URI or <code>null</code>
    */
   protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType,
-      final KeyPredicateStrategy keyStrategy)
+      final boolean forbidAutoGeneration)
           throws ODataJPAModelException {
 
     try {
@@ -95,26 +80,14 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
       if (!keyNames.isEmpty()) {
         final String uri = uriHelper.buildCanonicalURL(set, odataEntity);
         return new URI(uri);
+      } else if (forbidAutoGeneration) {
+        return null;
       } else {
-        // fallback: manually id creation
+        // fallback: automatic id creation
         final StringBuffer uriBuffer = new StringBuffer(setName);
-        final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
-        final String idPart = uriHelper.buildKeyPredicate(edmType, odataEntity);
         uriBuffer.append("(");
-        uriBuffer.append(idPart);
-        switch (keyStrategy) {
-        case FORCE_EXISTING:
-          throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM, "Entity has no key, but is required: "
-              + odataEntity.toString());
-        case AUTOGENERATE_MISSING:
-          LOG.log(Level.FINER, "Found entity without key attributes, will create generated id: " + odataEntity
-              .toString());
-          uriBuffer.append("generated-".concat(Long.toString(System.currentTimeMillis()).concat("-").concat(Integer
-              .toString(odataEntity.hashCode()))));
-          break;
-        default:
-          // accept null
-        }
+        uriBuffer.append("generated-".concat(Long.toString(System.currentTimeMillis()).concat("-").concat(UUID
+            .randomUUID().toString())));
         uriBuffer.append(")");
         return new URI(uriBuffer.toString());
       }

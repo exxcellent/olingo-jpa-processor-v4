@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>de.exxcellent.olingo-generic-processor</groupId>
+		<artifactId>olingo-generic-processor-root-pom</artifactId>
+		<version>0.38.2</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<groupId>org.apache.olingo.jpa</groupId>
+	<artifactId>code-coverage-report</artifactId>
+	<packaging>pom</packaging>
+
+	<name>OData-JPA-Adapter coverage report module</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<jacoco.skip>false</jacoco.skip>	
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-annotation</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-metadata</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-processor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-processor-excelexport</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+	
+		
+	<build>		
+		<plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+	</build>
+</project>

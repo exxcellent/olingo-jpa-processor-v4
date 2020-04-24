@@ -305,6 +305,9 @@ public final class TypeMapping {
   private static boolean isCollectionTypeOfPrimitive(final Field field) throws ODataJPAModelException {
     if (Collection.class.isAssignableFrom(field.getType())) {
       final Class<?> type = extractElementTypeOfCollection(field);
+      if (type.isEnum()) {
+        return true;
+      }
       return (convertToEdmSimpleType(type, field) != null);
     }
     return false;
@@ -320,6 +323,9 @@ public final class TypeMapping {
     if (currentAttribute instanceof PluralAttribute) {
       final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) currentAttribute;
       try {
+        if (pa.getElementType().getJavaType().isEnum()) {
+          return true;
+        }
         final EdmPrimitiveTypeKind kind = convertToEdmSimpleType(pa.getElementType().getJavaType(),
             (AccessibleObject) currentAttribute.getJavaMember());
         return (kind != null);
@@ -348,12 +354,15 @@ public final class TypeMapping {
   /**
    *
    * @return TRUE if the given JPA attribute describes an attribute that can be
-   *         handled as primitive type. Example: <code>String</code>
+   * handled as primitive type (incl. enum). Example: <code>String</code>
    *
    * @see #isPrimitiveType(Type)
    */
   static boolean isPrimitiveType(final Attribute<?, ?> currentAttribute) {
     if (currentAttribute instanceof SingularAttribute) {
+      if (currentAttribute.getJavaType().isEnum()) {
+        return true;
+      }
       try {
         final EdmPrimitiveTypeKind kind = convertToEdmSimpleType(currentAttribute.getJavaType(),
             (AccessibleObject) currentAttribute.getJavaMember());
@@ -365,20 +374,20 @@ public final class TypeMapping {
     return false;
   }
 
+  /**
+   * For OData an enumeration type is primitive!
+   *
+   * @return TRUE if field is of enum or simple type.
+   */
   static boolean isPrimitiveType(final Field field) {
+    if (field.getType().isEnum()) {
+      return true;
+    }
     try {
       if (isCollectionTypeOfPrimitive(field)) {
         return true;
       }
       return (convertToEdmSimpleType(field) != null);
-    } catch (final ODataJPAModelException e) {
-      return false;
-    }
-  }
-
-  static boolean isPrimitiveType(final Class<?> javaType) {
-    try {
-      return (convertToEdmSimpleType(javaType) != null);
     } catch (final ODataJPAModelException e) {
       return false;
     }

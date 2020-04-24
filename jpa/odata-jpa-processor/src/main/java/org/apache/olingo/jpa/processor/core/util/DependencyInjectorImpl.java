@@ -5,12 +5,15 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.cdi.Inject;
+import org.apache.olingo.jpa.processor.ModifiableDependencyInjector;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 
@@ -26,7 +29,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
  *
  */
 @SuppressWarnings("unchecked")
-public final class DependencyInjectorImpl implements org.apache.olingo.jpa.processor.DependencyInjector {
+public final class DependencyInjectorImpl implements ModifiableDependencyInjector {
 
   private static final String JAVAX_INJECT_INJECT_CLASSNAME = "javax.inject.Inject";
   private static final Collection<Class<?>> FORBIDDEN_TYPES = new LinkedList<>();
@@ -112,8 +115,12 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
     return null;
   }
 
+  /**
+   *
+   * @param type The key type to remove value for.
+   */
   @Override
-  public void removeDependencyValue(final Class<?> type) {
+  public final void removeDependencyValue(final Class<?> type) {
     final ValueReference<?> entry = valueMapping.remove(type);
     if (parent != null && entry == null) {
       // if value reference could not be removed try to do the same on parent...
@@ -121,6 +128,11 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
     }
   }
 
+  /**
+   * Register multiple dependency mappings consisting of type and value.
+   *
+   * @see #registerDependencyMapping(Class, Object)
+   */
   @Override
   public void registerDependencyMappings(final TypedParameter... dependencies) {
     if (dependencies == null) {
@@ -131,6 +143,15 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
     }
   }
 
+  /**
+   * Register a value to inject into {@link #injectDependencyValues(Object) targets}.
+   *
+   * @param type
+   * The type object used to register. The type must match the (field)
+   * type of injection.
+   * @param value
+   * The value to inject.
+   */
   @Override
   public void registerDependencyMapping(final Class<?> type, final Object value) {
     // check for already registered in this instance
@@ -169,13 +190,21 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
     if (target == null) {
       return;
     }
-    // parent values
-    if (parent != null) {
-      parent.injectDependencyValues(target);
-    }
+    internalInjectDependencyValues(target, new HashSet<>());
+  }
+
+  void internalInjectDependencyValues(final Object target, final Set<Field> alreadyHandledFields)
+      throws ODataApplicationException {
     // own values
     final Collection<InjectionOccurrence> occurrences = findAnnotatedFields(target.getClass());
     for (final InjectionOccurrence o : occurrences) {
+      if (alreadyHandledFields.contains(o.field)) {
+        continue;
+      }
+      if (o.matchingObject != null) {
+        // if no DI has an value then the field is affected multiple times from 'null' setting
+        alreadyHandledFields.add(o.field);
+      }
       final boolean accessible = o.field.isAccessible();
       if (!accessible) {
         o.field.setAccessible(true);
@@ -191,6 +220,10 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
           o.field.setAccessible(false);
         }
       }
+    }
+    // parent values
+    if (parent != null) {
+      parent.internalInjectDependencyValues(target, alreadyHandledFields);
     }
   }
 
@@ -223,9 +256,7 @@ public final class DependencyInjectorImpl implements org.apache.olingo.jpa.proce
     for (final Field field : clazzFields) {
       if (isAnnotatedForInjection(field)) {
         value = findMatchingValue(field);
-        if (value != null) {
-          occurrences.add(new InjectionOccurrence(field, value));
-        }
+        occurrences.add(new InjectionOccurrence(field, value));
       }
     }
     final Class<?> clazzSuper = clazz.getSuperclass();

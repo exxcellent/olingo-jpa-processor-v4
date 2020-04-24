@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.ModifiableDependencyInjector;
+import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.util.TypedParameter;
 import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2EntityCollectionTransformation;
 import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2ODataResponseContentTransformation;
@@ -115,8 +116,8 @@ public class TransformingFactory {
           throws SerializerException {
     try {
       final Transformation<I, O> instance = classTransformation.newInstance();
-      final JPAODataRequestContext subContext = requestContext.createSubRequestContext();
-      final DependencyInjector dpi = subContext.getDependencyInjector();
+      final ModifiableJPAODataRequestContext subContext = requestContext.createSubRequestContext();
+      final ModifiableDependencyInjector dpi = subContext.getDependencyInjector();
       dpi.registerDependencyMappings(transformationContext);
       dpi.injectDependencyValues(instance);
       return (T) instance;

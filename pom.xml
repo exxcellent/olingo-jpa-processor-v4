@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.36.0</version>
+	<version>0.38.2</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>
@@ -22,18 +22,19 @@
 		<logback.version>1.2.3</logback.version>
 		<olingo.version>4.7.1</olingo.version>
 		<jetty.version>9.4.24.v20191120</jetty.version>
-        <jersey.version>2.29.1</jersey.version>
+        <jersey.version>2.30.1</jersey.version>
 		<jackson.version>2.10.1</jackson.version>
 		<javax.servlet.version>4.0.1</javax.servlet.version>
 		<eclipselink.version>2.7.5</eclipselink.version>
 		<openjpa.version>3.1.0</openjpa.version>
-		<hibernate.version>5.4.10.Final</hibernate.version>
+		<hibernate.version>5.4.13.Final</hibernate.version>
 	</properties>
 
 	<modules>
 		<module>jpa</module>
 		<module>jpa-tools</module>
 		<module>jpa-examples</module>
+		<module>code-coverage-report</module>
 	</modules>
 
 	<dependencyManagement>
@@ -369,7 +370,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.4</version>
+					<version>0.8.5</version>
 					<executions>
                         <!--
                             Prepares the property pointing to the JaCoCo runtime agent which
@@ -386,6 +387,7 @@
                                 <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
                                 <propertyName>surefireArgLine</propertyName>
                                 <append>true</append>
+                                <inclNoLocationClasses>true</inclNoLocationClasses>
                             </configuration>
                         </execution>
                         <!--
@@ -421,6 +423,7 @@
                                 <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
                                 <propertyName>failsafeArgLine</propertyName>
                                 <append>true</append>
+                                <inclNoLocationClasses>true</inclNoLocationClasses>
                             </configuration>
                         </execution>
                         <!--
@@ -440,8 +443,8 @@
                                 <outputDirectory>${basedir}/target/jacoco-it</outputDirectory>
                             </configuration>
                         </execution>
-						<!-- defined disabled aggregated unit test coverage report -->
-					  	<!-- Skip, because we have a separate model (overall-coverage-report) creating the report there -->
+						<!-- aggregated unit test coverage reports will be produced for all modules, but is only useful for -->
+					  	<!-- the module code-coverage-report -->
 						<execution>
 							<id>aggregate-reports-ut</id>
 							<phase>test</phase>
@@ -449,7 +452,6 @@
 								<goal>report-aggregate</goal>
 							</goals>						  
 							<configuration>
-								<skip>true</skip>
 								<title>Coverage of Unit Tests</title>
 								<outputDirectory>${basedir}/target/jacoco-aggregate-ut</outputDirectory>
 								<dataFileExcludes>

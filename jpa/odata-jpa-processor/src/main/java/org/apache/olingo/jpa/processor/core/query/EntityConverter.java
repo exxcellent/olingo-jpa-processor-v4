@@ -22,7 +22,6 @@ import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
-import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -65,7 +64,8 @@ public class EntityConverter extends AbstractEntityConverter {
 
   @SuppressWarnings({ "null" })
   private Object convertODataBindingLink2JPAAssociationProperty(final Object targetJPAObject,
-      final JPAAssociationAttribute association, final Link odataLink, final Map<String, Object> mapId2Instance) throws ODataJPAModelException,
+      final JPAAssociationAttribute association, final Entity odataOwnerEntity, final Link odataLink,
+      final Map<String, Object> mapId2Instance) throws ODataJPAModelException,
   ODataJPAConversionException {
     if(odataLink==null) {
       return null;
@@ -81,18 +81,22 @@ public class EntityConverter extends AbstractEntityConverter {
       links = Collections.singletonList(odataLink.getBindingLink());
     }
     // assign to owner entity
-    for(final String bindingId: links) {
-      final Object target= mapId2Instance.get(bindingId);
-      if(target == null) {
-        throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.BINDING_LINK_NOT_RESOLVED,
-            bindingId, association.getExternalName());
-      }
-      if (association.isCollection()) {
-        list.add(target);
-      } else {
-        // singleton list, safe assignment
-        result = target;
-      }
+    for(final String bindingUri: links) {
+      // workaround, because base uri is handled as not null by Olingo client and so an id with '/' prefix is produced
+      // for otherwise not existing base uri
+      final String bindingId = odataOwnerEntity.getBaseURI() == null && bindingUri.startsWith("/") ? bindingUri
+          .substring(1) : bindingUri;
+          final Object target = mapId2Instance.get(bindingId);
+          if(target == null) {
+            throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.BINDING_LINK_NOT_RESOLVED,
+                bindingId, association.getExternalName());
+          }
+          if (association.isCollection()) {
+            list.add(target);
+          } else {
+            // singleton list, safe assignment
+            result = target;
+          }
     }
     if (result == null) {
       return null;
@@ -102,7 +106,8 @@ public class EntityConverter extends AbstractEntityConverter {
   }
 
   private Object convertODataNavigationLink2JPAAssociationProperty(final Object targetJPAObject,
-      final JPAAssociationAttribute association, final Link odataLink, final Map<String, Object> mapId2Instance)
+      final JPAAssociationAttribute association, final Link odataLink,
+      final Map<String, Object> mapId2Instance)
           throws ODataJPAModelException,
           ODataJPAConversionException {
     if(odataLink==null) {
@@ -155,7 +160,7 @@ public class EntityConverter extends AbstractEntityConverter {
       if (id == null && JPAEntityType.class.isInstance(jpaEntityType)) {
         // try to create id on demand
         try {
-          id = createId(entity, JPAEntityType.class.cast(jpaEntityType), KeyPredicateStrategy.ALLOW_NULL);
+          id = createId(entity, JPAEntityType.class.cast(jpaEntityType), true);
         } catch (final ODataRuntimeException e) {
           // ignore
           id = null;
@@ -168,12 +173,14 @@ public class EntityConverter extends AbstractEntityConverter {
         transferOData2JPAProperty(targetJPAInstance, jpaAttribute, entity.getProperties());
       }
       for (final JPAAssociationAttribute association : jpaEntityType.getAssociations()) {
-        convertODataNavigationLink2JPAAssociationProperty(targetJPAInstance, association, entity.getNavigationLink(association
-            .getExternalName()), mapId2Instance);
+        convertODataNavigationLink2JPAAssociationProperty(targetJPAInstance, association, entity
+            .getNavigationLink(association
+                .getExternalName()), mapId2Instance);
       }
       for (final JPAAssociationAttribute association : jpaEntityType.getAssociations()) {
-        convertODataBindingLink2JPAAssociationProperty(targetJPAInstance, association, entity.getNavigationBinding(
-            association.getExternalName()), mapId2Instance);
+        convertODataBindingLink2JPAAssociationProperty(targetJPAInstance, association, entity, entity
+            .getNavigationBinding(
+                association.getExternalName()), mapId2Instance);
       }
       return targetJPAInstance;
     } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
@@ -218,27 +225,14 @@ public class EntityConverter extends AbstractEntityConverter {
       convertJPAAttribute2OData(jpaAttribute, value, jpaType, complexValueBuffer, properties, processedEntities);
     }
 
-    // entity id maybe null as default..
-    KeyPredicateStrategy idStrategy = KeyPredicateStrategy.ALLOW_NULL;
-    // but for DTO's with association they must be given or generated
-    if (jpaType.getTypeClass().getAnnotation(ODataDTO.class) != null && !jpaType.getAssociations().isEmpty()) {
-      idStrategy = KeyPredicateStrategy.AUTOGENERATE_MISSING;
-    }
-    // handle id's + binding links (already processed entities) only for entities declaring id attributes
-    if (!jpaType.getKeyAttributes(true).isEmpty()) {
-      // id of entity must be set before relationships are processed
-      odataEntity.setId(createId(odataEntity, jpaType, idStrategy));
+    // id of entity must be set before relationships are processed
+    odataEntity.setId(createId(odataEntity, jpaType, false));
 
-      // break the loop?
-      if (processedEntities.contains(odataEntity.getId())) {
-        throw new EntityAsLinkException(odataEntity.getId());
-      }
-      processedEntities.add(odataEntity.getId());
-    } else if (!jpaType.getAssociations().isEmpty()) {
-      // an entity with relationships must define an id
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE, jpaType
-          .getInternalName());
+    // break the loop?
+    if (processedEntities.contains(odataEntity.getId())) {
+      throw new EntityAsLinkException(odataEntity.getId());
     }
+    processedEntities.add(odataEntity.getId());
 
     // 2. convert complex types and relationships
     for (final JPASimpleAttribute jpaAttribute : jpaType.getAttributes()) {
@@ -282,7 +276,7 @@ public class EntityConverter extends AbstractEntityConverter {
       final Link linkNavigation = new Link();
       boolean isLinkValid = false;
       linkNavigation.setTitle(assoziation.getLeaf().getExternalName());
-      linkNavigation.setRel(Constants.NS_ASSOCIATION_LINK_REL + linkNavigation.getTitle());
+      linkNavigation.setRel(Constants.NS_NAVIGATION_LINK_REL + assoziation.getLeaf().getExternalName());
       if (assoziation.getLeaf().isCollection()) {
         final EntityCollection expandCollection = new EntityCollection();
         for (final Object cEntry : ((Collection<?>) value)) {

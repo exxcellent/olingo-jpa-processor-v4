@@ -328,7 +328,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       EntityQueryBuilder query = null;
       final EntityCollection entityCollection;
       try {
-        query = new EntityQueryBuilder(getGlobalContext(), new NavigationRoot(uriInfo), getEntityManager(),
+        query = new EntityQueryBuilder(getRequestContext(), new NavigationRoot(uriInfo), getEntityManager(),
             getServiceMetadata());
         // we do not expand the entities
         final Transformation<QueryEntityResult, EntityCollection> transformation = getRequestContext()
@@ -346,7 +346,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
           final JPAEntityHelper invoker = new JPAEntityHelper(getEntityManager(), sd, uriInfo, getOData()
-              .createUriHelper(), getGlobalContext());
+              .createUriHelper(), getRequestContext());
           for (final Entity entity : entityCollection.getEntities()) {
             // call action in context of entity
             final Object resultAction = invoker.invokeBoundActionMethod(jpaType, entity, jpaAction,
@@ -366,7 +366,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
       try {
         final JPAEntityHelper invoker = new JPAEntityHelper(getEntityManager(), sd, uriInfo, getOData()
             .createUriHelper(),
-            getGlobalContext());
+            getRequestContext());
         final Object resultAction = invoker.invokeUnboundActionMethod(jpaAction, parameters);
         if (resultAction != null) {
           results.add(resultAction);

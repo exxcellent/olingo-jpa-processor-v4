@@ -9,9 +9,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAException;
-import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.ModifiableDependencyInjector;
+import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessException;
+import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.debug.JPACoreDebugger;
 import org.apache.olingo.jpa.processor.transformation.TransformingFactory;
@@ -21,7 +23,7 @@ import org.apache.olingo.server.api.debug.DebugSupport;
 import org.apache.olingo.server.api.debug.DefaultDebugSupport;
 import org.apache.olingo.server.core.debug.ServerCoreDebugger;
 
-class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAODataRequestContext {
+class JPAODataRequestContextImpl extends AbstractContextImpl implements ModifiableJPAODataRequestContext {
 
   private final DependencyInjectorImpl di;
   private final AbstractContextImpl parentContext;
@@ -32,7 +34,7 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
   private JPADebugSupportWrapper debugSupport = null;
   private JPAServiceDebugger serviceDebugger = null;
   private boolean disposed = false;
-  private DependencyInjector diOverlay = null;
+  private DependencyInjectorImpl diOverlay = null;
 
   public JPAODataRequestContextImpl(final EntityManager em, final AbstractContextImpl parentContext,
       final HttpServletRequest request,
@@ -43,7 +45,7 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
 
     setDebugSupport(new DefaultDebugSupport());
 
-    this.di = new DependencyInjectorImpl(parentContext.getDependencyInjectorImpl());
+    this.di = new DependencyInjectorImpl((DependencyInjectorImpl) parentContext.getDependencyInjector());
     di.registerDependencyMapping(JPAODataRequestContext.class, this);
     di.registerDependencyMapping(EntityManager.class, em);
     di.registerDependencyMapping(HttpServletRequest.class, request);
@@ -64,12 +66,6 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
     disposed = true;
   }
 
-  //  @Override
-  //  public DebugSupport getDebugSupport() {
-  //    return debugSupport;
-  //  }
-
-  @Override
   public void setDebugSupport(final DebugSupport jpaDebugSupport) {
     this.debugSupport = new JPADebugSupportWrapper(jpaDebugSupport);
     parentContext.getServerDebugger().setDebugSupportProcessor(debugSupport);
@@ -96,22 +92,6 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
     ODataJPAProcessException.setLocales(request.getLocales());
   }
 
-  //  @Override
-  //  public String getParameter(final String name) {
-  //    if (request == null) {
-  //      throw new IllegalArgumentException("Not initialized with request");
-  //    }
-  //    return request.getHeader(name);
-  //  }
-
-  //  @Override
-  //  public Enumeration<String> getParameters(final String name) {
-  //    if (request == null) {
-  //      throw new IllegalArgumentException("Not initialized with request");
-  //    }
-  //    return request.getHeaders(name);
-  //  }
-
   @Override
   public Locale getLocale() {
     if (request == null) {
@@ -121,7 +101,7 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
   }
 
   @Override
-  public DependencyInjector getDependencyInjector() {
+  public ModifiableDependencyInjector getDependencyInjector() {
     if (diOverlay != null) {
       return diOverlay;
     }
@@ -145,18 +125,13 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
 
   @Override
   public JPAODataDatabaseProcessor getDatabaseProcessor() {
-    return parentContext.getDatabaseProcessor();
+    return getPersistenceAdapter().getDatabaseAccessor();
   }
 
   @Override
   public JPAEdmProvider getEdmProvider() {
     return parentContext.getEdmProvider();
   }
-
-  //  @Override
-  //  public List<EdmxReference> getReferences() {
-  //    return parentContext.getReferences();
-  //  }
 
   public void startDependencyInjectorOverlay() {
     if (diOverlay != null) {
@@ -175,13 +150,13 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements JPAOData
   }
 
   @Override
-  protected DependencyInjectorImpl getDependencyInjectorImpl() {
-    return (DependencyInjectorImpl) getDependencyInjector();
+  public ModifiableJPAODataRequestContext createSubRequestContext() throws ODataException {
+    return new JPAODataRequestContextImpl(em, this, request, response);
   }
 
   @Override
-  public JPAODataRequestContext createSubRequestContext() throws ODataException {
-    return new JPAODataRequestContextImpl(em, this, request, response);
+  protected JPAAdapter getPersistenceAdapter() {
+    return parentContext.getPersistenceAdapter();
   }
 
 }

@@ -5,11 +5,11 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 
 public interface FilterContextQueryBuilderIfc {
 
-  public JPAODataGlobalContext getContext();
+  public JPAODataRequestContext getContext();
 
   public EntityManager getEntityManager();
 

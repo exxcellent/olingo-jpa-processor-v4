@@ -32,7 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
@@ -75,7 +75,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     }
 
     @Override
-    public JPAODataGlobalContext getContext() {
+    public JPAODataRequestContext getContext() {
       return AbstractCriteriaQueryBuilder.this.context;
     }
 
@@ -101,7 +101,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
 
   }
 
-  private final JPAODataGlobalContext context;
+  private final JPAODataRequestContext context;
   private final NavigationIfc uriNavigation;
   private final EdmType edmType;
   private final UriResourceEntitySet queryStartUriResource;
@@ -111,7 +111,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private List<NavigationBuilder> navigationQueryList = null;
   private InitializationState initStateType = InitializationState.NotInitialized;
 
-  protected AbstractCriteriaQueryBuilder(final JPAODataGlobalContext context, final NavigationIfc uriInfo,
+  protected AbstractCriteriaQueryBuilder(final JPAODataRequestContext context, final NavigationIfc uriInfo,
       final EntityManager em)
           throws ODataApplicationException, ODataJPAModelException {
     super(em);
@@ -142,7 +142,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return context.getOdata();
   }
 
-  protected final JPAODataGlobalContext getContext() {
+  protected final JPAODataRequestContext getContext() {
     return context;
   }
 

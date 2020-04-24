@@ -56,7 +56,7 @@ public abstract class AbstractJPASchema implements JPAElement {
 
   public abstract CsdlSchema getEdmItem() throws ODataJPAModelException;
 
-  abstract IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
+  abstract IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
 
   abstract List<JPAEntityType> getEntityTypes();
 

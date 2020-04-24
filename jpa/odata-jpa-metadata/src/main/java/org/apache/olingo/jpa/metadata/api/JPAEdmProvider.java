@@ -60,7 +60,6 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
   public CsdlEntityContainer getEntityContainer() throws ODataException {
     // we have to use the only/global entity container...derived from primary schema
     return serviceDocument.getEntityContainer();
-    // return defaultSchema.getEdmItem().getEntityContainer();
   }
 
   @Override

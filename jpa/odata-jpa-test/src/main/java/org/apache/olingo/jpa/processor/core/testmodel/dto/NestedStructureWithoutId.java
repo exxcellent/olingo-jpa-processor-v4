@@ -1,7 +1,5 @@
 package org.apache.olingo.jpa.processor.core.testmodel.dto;
 
-import javax.persistence.Id;
-
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
@@ -13,42 +11,35 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
  * @author Ralf Zozmann
  *
  */
-@ODataDTO(/* handler = NestedStructureHandler.class */attributeNaming = NamingStrategy.AsIs,
-edmEntitySetName = "NestedStructures")
-public class NestedStructure {
+@ODataDTO(attributeNaming = NamingStrategy.AsIs,
+    edmEntitySetName = "NestedStructures")
+public class NestedStructureWithoutId {
 
-  private static long idSequence = 1;
-  @Id
-  private final long id;
   int levelCurrent = 1;
   int childDepth;
-  NestedStructure child = null;
-
-  public NestedStructure() {
-    this.id = idSequence++;
-  }
+  NestedStructureWithoutId child = null;
 
   /**
    * Unbound oData action to produce nested structure of requested depth.
    */
   @SuppressWarnings("null")
   @EdmAction
-  public static NestedStructure createNestedStructure(@EdmActionParameter(
+  public static NestedStructureWithoutId createNestedStructure(@EdmActionParameter(
       name = "numberOfLevels") final int numberOfLevels) {
     if (numberOfLevels < 1) {
       throw new IllegalArgumentException("At least 1 level required");
     }
-    NestedStructure root = null;
-    NestedStructure current = null;
-    NestedStructure tmp;
+    NestedStructureWithoutId root = null;
+    NestedStructureWithoutId current = null;
+    NestedStructureWithoutId tmp;
     for (int i = 0; i < numberOfLevels; i++) {
       if (i == 0) {
-        root = new NestedStructure();
+        root = new NestedStructureWithoutId();
         root.levelCurrent = i + 1;
         root.childDepth = numberOfLevels;
         current = root;
       } else {
-        tmp = new NestedStructure();
+        tmp = new NestedStructureWithoutId();
         tmp.levelCurrent = i + 1;
         tmp.childDepth = numberOfLevels - (i + 1);
         current.child = tmp;
@@ -60,13 +51,13 @@ public class NestedStructure {
 
   @EdmAction
   public static void validateNestedStructure(@EdmActionParameter(
-      name = "structure") final NestedStructure structure) {
+      name = "structure") final NestedStructureWithoutId structure) {
 
     if (structure == null) {
       throw new IllegalStateException();
     }
 
-    NestedStructure current = structure;
+    NestedStructureWithoutId current = structure;
     for (int i = 0; i < structure.childDepth; i++) {
       if (current == null) {
         throw new IllegalStateException();

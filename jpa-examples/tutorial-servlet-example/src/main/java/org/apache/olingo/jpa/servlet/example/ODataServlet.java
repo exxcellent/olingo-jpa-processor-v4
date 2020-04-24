@@ -25,6 +25,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
@@ -104,7 +105,7 @@ public class ODataServlet extends HttpServlet {
       }
 
       @Override
-      protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
+      protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
         super.prepareRequestContext(requestContext);
         // example for custom dependency injection
         requestContext.getDependencyInjector().registerDependencyMapping(String.class, getServletName());

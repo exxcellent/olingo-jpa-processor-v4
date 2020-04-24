@@ -6,16 +6,30 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 import javax.persistence.Id;
 
+import org.apache.olingo.client.api.ODataClient;
+import org.apache.olingo.client.api.ODataClientBuilder;
+import org.apache.olingo.client.api.communication.request.cud.UpdateType;
 import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientEntitySet;
+import org.apache.olingo.client.api.domain.ClientInvokeResult;
+import org.apache.olingo.client.api.domain.ClientValue;
 import org.apache.olingo.client.api.uri.URIBuilder;
+import org.apache.olingo.client.core.communication.request.cud.ODataEntityUpdateRequestImpl;
+import org.apache.olingo.client.core.communication.request.invoke.ODataInvokeRequestImpl;
+import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.cdi.Inject;
@@ -29,7 +43,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
-import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructure;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructureWithoutId;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
@@ -471,7 +485,7 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testNestedStructureTransferBackendToFrontend() throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(NestedStructure.class);
+    persistenceAdapter.registerDTO(NestedStructureWithoutId.class);
 
     StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"numberOfLevels\": 4");
@@ -539,6 +553,96 @@ public class TestJPAActions extends TestBase {
     final ObjectNode result = helper.getJsonObjectValue();
     assertNotNull(result);
     assertEquals(3, result.get("value").asInt());
+  }
+
+  private StringBuffer buildActionPayload(final Map<String, ClientValue> actionParameters) throws URISyntaxException,
+  IOException {
+    final ODataClient odataClient = ODataClientBuilder.createClient();
+    // fake parameters as Entity properties
+    final ODataInvokeRequestImpl<ClientInvokeResult> olingoRequest =
+        (ODataInvokeRequestImpl<ClientInvokeResult>) odataClient.getInvokeRequestFactory().getActionInvokeRequest(
+            new URI("dummy"), ClientInvokeResult.class, actionParameters);
+
+    final InputStream is = olingoRequest.getPayload();
+    @SuppressWarnings("resource")
+    final Scanner s = new Scanner(is).useDelimiter("\\A");
+    final String result = s.hasNext() ? s.next() : "";
+    return new StringBuffer(result);
+  }
+
+  @Test
+  public void testNestedStructureWithoutIdAndMetadataUsingOlingoSerialization() throws IOException, ODataException, NoSuchMethodException,
+  URISyntaxException {
+
+    persistenceAdapter.registerDTO(NestedStructureWithoutId.class);
+
+    // produce server side content
+    StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("  \"numberOfLevels\": 2");
+    requestBody.append("}");
+    URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+        HttpMethod.POST);
+    // important: normal metadata to avoid presence of binding link annotations
+    helper.setRequestedResponseContentType(ContentType.JSON.toContentTypeString());
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ClientEntity rootODataEntity = helper.getOlingoEntityValue();
+
+    final Map<String, ClientValue> actionParameters = new HashMap<>();
+    actionParameters.put("structure", convertToActionParameter(rootODataEntity, NestedStructureWithoutId.class
+        .getName()));
+    requestBody = buildActionPayload(actionParameters);
+
+    uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
+  }
+
+  private StringBuffer buildEntityPayload(final ClientEntity entity) throws URISyntaxException,
+  IOException {
+    final ODataClient odataClient = ODataClientBuilder.createClient();
+    final ODataEntityUpdateRequestImpl<ClientEntity> olingoRequest =
+        (ODataEntityUpdateRequestImpl<ClientEntity>) odataClient.getCUDRequestFactory().getEntityUpdateRequest(new URI(
+            "dummy"), UpdateType.REPLACE, entity);
+
+    final InputStream is = olingoRequest.getPayload();
+    @SuppressWarnings("resource")
+    final Scanner s = new Scanner(is).useDelimiter("\\A");
+    final String result = s.hasNext() ? s.next() : "";
+    return new StringBuffer(result);
+  }
+
+  @Test
+  public void testNestedStructureWithIdAndMetadataUsingOlingoSerialization() throws IOException, ODataException,
+  NoSuchMethodException,
+  URISyntaxException {
+
+    persistenceAdapter.registerDTO(EnvironmentInfo.class);
+    persistenceAdapter.registerDTO(SystemRequirement.class);
+
+    // produce server side content
+    URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("fillDTOWithNestedComplexType");
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null,
+        HttpMethod.POST);
+    // important: full metadata to force presence of binding link annotations
+    helper.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
+
+    assertEquals(2, set.getEntities().size());
+
+    final ClientEntity rootODataEntity = set.getEntities().get(1);
+
+    final StringBuffer requestBody = buildEntityPayload(rootODataEntity);
+    // this test is only useful if the transfered request data contains binding link information
+    assertTrue(requestBody.toString().contains("AliasEnvironment" + Constants.JSON_BIND_LINK_SUFFIX));
+
+
+    // try to update via handler to trigger parsing
+    uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(rootODataEntity
+        .getProperty("Id").getPrimitiveValue().toCastValue(Long.class));
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.PUT);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
 }

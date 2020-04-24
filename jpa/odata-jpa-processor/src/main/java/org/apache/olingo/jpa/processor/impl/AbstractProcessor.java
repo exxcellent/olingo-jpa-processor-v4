@@ -7,7 +7,6 @@ import javax.persistence.EntityManager;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataRequest;
@@ -46,10 +45,6 @@ abstract class AbstractProcessor implements Processor {
 
   protected final EntityManager getEntityManager() {
     return em;
-  }
-
-  protected final JPAODataGlobalContext getGlobalContext() {
-    return requestContext;
   }
 
   protected final JPAODataRequestContext getRequestContext() {

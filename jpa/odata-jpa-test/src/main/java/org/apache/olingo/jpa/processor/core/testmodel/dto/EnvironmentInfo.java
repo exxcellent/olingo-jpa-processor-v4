@@ -28,100 +28,107 @@ import org.apache.olingo.server.api.ODataApplicationException;
 @ODataDTO(handler = EnvironmentInfoHandler.class)
 public class EnvironmentInfo {
 
-	@EdmIgnore
-	private final Object ignoredSerializableField = new Serializable() {
+  @EdmIgnore
+  private final Object ignoredSerializableField = new Serializable() {
 
-		private static final long serialVersionUID = 1L;
-	};
+    private static final long serialVersionUID = 1L;
+  };
 
-	private String javaVersion = null;
+  private String javaVersion = null;
 
-	@Id
-	private long id = System.currentTimeMillis();
+  @Id
+  private long id = System.currentTimeMillis() + hashCode();
 
-	private final Collection<String> envNames = new ArrayList<>();
+  private final Collection<String> envNames = new ArrayList<>();
 
-	private final Collection<SystemRequirement> systemRequirements = new ArrayList<>();
+  private final Collection<SystemRequirement> systemRequirements = new ArrayList<>();
 
-	public EnvironmentInfo() {
-		// default constructor for JPA
-	}
+  private EnvironmentInfo aliasEnvironment = null;
 
-	EnvironmentInfo(final String javaVersion, final Collection<String> envNames) {
-		this.javaVersion = javaVersion;
-		this.envNames.addAll(envNames);
-	}
+  public EnvironmentInfo() {
+    // default constructor for JPA
+  }
 
-	public void setJavaVersion(final String jv) {
-		this.javaVersion = jv;
-	}
+  EnvironmentInfo(final String javaVersion, final Collection<String> envNames) {
+    this.javaVersion = javaVersion;
+    this.envNames.addAll(envNames);
+  }
 
-	public void setId(final long id) {
-		this.id = id;
-	}
+  public void setJavaVersion(final String jv) {
+    this.javaVersion = jv;
+  }
 
-	public long getId() {
-		return id;
-	}
+  public void setId(final long id) {
+    this.id = id;
+  }
 
-	public String getJavaVersion() {
-		return javaVersion;
-	}
+  public long getId() {
+    return id;
+  }
 
-	public Collection<String> getEnvNames() {
-		return envNames;
-	}
+  public String getJavaVersion() {
+    return javaVersion;
+  }
 
-	/**
-	 * Unbound oData action without specific name.
-	 */
-	@EdmAction
-	public static void unboundVoidAction(@Inject final EntityManager em) {
-		if (em == null) {
-			throw new IllegalStateException("Entitymanager was not injected");
-		}
-	}
+  public Collection<String> getEnvNames() {
+    return envNames;
+  }
 
-	@EdmAction
-	@ODataOperationAccess(authenticationRequired = false)
-	public static int actionWithNoSecurity() {
-		return 42;
-	}
+  public EnvironmentInfo getAliasEnvironment() {
+    return aliasEnvironment;
+  }
 
-	@EdmAction
-	@ODataOperationAccess
-	public static String actionWithOnlyAuthentication(@Inject final Principal user) {
-		return user.getName();
-	}
+  /**
+   * Unbound oData action without specific name.
+   */
+  @EdmAction
+  public static void unboundVoidAction(@Inject final EntityManager em) {
+    if (em == null) {
+      throw new IllegalStateException("Entitymanager was not injected");
+    }
+  }
 
-	@EdmAction
-	@ODataOperationAccess(rolesAllowed = { "access" })
-	public static void actionWithOnlyRole(@Inject final Principal user) {
-		if (user == null) {
-			throw new IllegalStateException("User was not injected or not authenticated");
-		}
-	}
+  @EdmAction
+  @ODataOperationAccess(authenticationRequired = false)
+  public static int actionWithNoSecurity() {
+    return 42;
+  }
 
-	@EdmAction
-	public static void throwODataApplicationException() throws ODataApplicationException {
-		throw new ODataApplicationException("Proprietary status code 911 thrown", 911, Locale.getDefault());
-	}
+  @EdmAction
+  @ODataOperationAccess
+  public static String actionWithOnlyAuthentication(@Inject final Principal user) {
+    return user.getName();
+  }
 
-	@EdmAction
-	public static Collection<EnvironmentInfo> fillDTOWithNestedComplexType() {
-		final Collection<String> propNames = System.getProperties().keySet().stream().map(Object::toString)
-		        .collect(Collectors.toList());
-		final EnvironmentInfo info1 = new EnvironmentInfo("java1", propNames);
-		info1.systemRequirements.add(new SystemRequirement("re1", "description 1"));
-		info1.systemRequirements.add(new SystemRequirement("re2", "description 2"));
-		info1.systemRequirements.add(new SystemRequirement("re3", "description 3"));
-		final EnvironmentInfo info2 = new EnvironmentInfo("java2", Collections.singletonList("none"));
-		return Arrays.asList(info1, info2);
-	}
+  @EdmAction
+  @ODataOperationAccess(rolesAllowed = { "access" })
+  public static void actionWithOnlyRole(@Inject final Principal user) {
+    if (user == null) {
+      throw new IllegalStateException("User was not injected or not authenticated");
+    }
+  }
 
-	@EdmAction
-	public static Collection<Integer> actionWithPrimitiveCollectionResult() {
-		return Arrays.asList(Integer.valueOf(1), Integer.valueOf(2));
-	}
+  @EdmAction
+  public static void throwODataApplicationException() throws ODataApplicationException {
+    throw new ODataApplicationException("Proprietary status code 911 thrown", 911, Locale.getDefault());
+  }
+
+  @EdmAction
+  public static Collection<EnvironmentInfo> fillDTOWithNestedComplexType() {
+    final Collection<String> propNames = System.getProperties().keySet().stream().map(Object::toString)
+        .collect(Collectors.toList());
+    final EnvironmentInfo info1 = new EnvironmentInfo("java1", propNames);
+    info1.systemRequirements.add(new SystemRequirement("re1", "description 1"));
+    info1.systemRequirements.add(new SystemRequirement("re2", "description 2"));
+    info1.systemRequirements.add(new SystemRequirement("re3", "description 3"));
+    final EnvironmentInfo info2 = new EnvironmentInfo("java2", Collections.singletonList("none"));
+    info2.aliasEnvironment = new EnvironmentInfo("aliasJava", Collections.emptyList());
+    return Arrays.asList(info1, info2);
+  }
+
+  @EdmAction
+  public static Collection<Integer> actionWithPrimitiveCollectionResult() {
+    return Arrays.asList(Integer.valueOf(1), Integer.valueOf(2));
+  }
 
 }

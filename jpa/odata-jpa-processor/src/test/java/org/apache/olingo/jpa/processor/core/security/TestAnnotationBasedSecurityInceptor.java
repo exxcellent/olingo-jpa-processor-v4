@@ -9,6 +9,7 @@ import java.util.Collections;
 
 import javax.persistence.Id;
 
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -103,8 +104,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testReadDTO1() throws IOException, ODataException, SQLException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "ActionInResourceSecuredDtos");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("ActionInResourceSecuredDtos");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     // the GET must result in a FORBIDDEN without security configuration
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());

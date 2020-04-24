@@ -148,7 +148,6 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     return (streamInfo != null);
   }
 
-  @SuppressWarnings("unchecked")
   private FullQualifiedName createTypeName() throws ODataJPAModelException {
     if (isStream()) {
       return EdmPrimitiveTypeKind.Stream.getFullQualifiedName();
@@ -157,8 +156,9 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     case BASIC:
       if (jpaAttribute.getJavaType().isEnum()) {
         // register enum type
+        @SuppressWarnings("unchecked")
         final IntermediateEnumType jpaEnumType = serviceDocument
-            .createEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
+        .findOrCreateEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
         return jpaEnumType.getExternalFQN();
       } else {
         return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();

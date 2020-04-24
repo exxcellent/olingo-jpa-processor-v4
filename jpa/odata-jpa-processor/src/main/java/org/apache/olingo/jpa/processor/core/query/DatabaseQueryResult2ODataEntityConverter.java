@@ -110,14 +110,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
 
     createElementCollections(odataEntity, row, jpaQueryResult);
 
-    // entities loaded from DB should have an id as default..
-    KeyPredicateStrategy idStrategy = KeyPredicateStrategy.FORCE_EXISTING;
-    // but for simple entities the id may be null
-    if (jpaQueryResult.getElementCollections().isEmpty() && jpaQueryResult.getExpandChildren().isEmpty()) {
-      idStrategy = KeyPredicateStrategy.ALLOW_NULL;
-    }
-
-    odataEntity.setId(createId(odataEntity, jpaEntityType, idStrategy));
+    odataEntity.setId(createId(odataEntity, jpaEntityType, false));
 
     // expands for (direct) relationship attributes
     for (final JPAAssociationPath association : jpaEntityType.getAssociationPathList()) {

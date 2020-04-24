@@ -11,6 +11,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.metamodel.Metamodel;
 
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 
 /**
@@ -79,7 +80,7 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
   }
 
   @Override
-  public AbstractJPADatabaseProcessor getDatabaseAccessor() {
+  public JPAODataDatabaseProcessor getDatabaseAccessor() {
     return dbAccessor;
   }
 

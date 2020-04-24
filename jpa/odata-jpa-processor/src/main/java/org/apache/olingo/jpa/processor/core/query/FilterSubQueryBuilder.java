@@ -20,7 +20,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.filter.JPAFilterExpression;
@@ -89,7 +89,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
   }
 
   @Override
-  public final JPAODataGlobalContext getContext() {
+  public final JPAODataRequestContext getContext() {
     return getOwningQueryBuilder().getContext();
   }
 

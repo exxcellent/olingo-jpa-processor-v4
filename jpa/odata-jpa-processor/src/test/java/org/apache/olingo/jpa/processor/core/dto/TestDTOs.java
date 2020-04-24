@@ -4,12 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.net.StandardProtocolFamily;
 import java.sql.SQLException;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
@@ -22,6 +25,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestDTOs extends TestBase {
+
+  @ODataDTO
+  public static class EnumDto {
+    // use an enum not yet registered... and the DTO of custom schema will trigger enum type creation in another custom
+    // schema...
+    @SuppressWarnings("unused")
+    private StandardProtocolFamily family;
+  }
 
   @Before
   public void setup() throws ODataJPAModelException {
@@ -91,4 +102,14 @@ public class TestDTOs extends TestBase {
     assertEquals(sId, helper.getJsonObjectValue().get("Id").asText());
   }
 
+  @Test
+  public void testDTOWithEnumAttribute() throws IOException, ODataException, SQLException {
+    persistenceAdapter.registerDTO(EnumDto.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
+        null, HttpMethod.GET);
+    helper.setRequestedResponseContentType(ContentType.APPLICATION_XML.toContentTypeString());
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
 }

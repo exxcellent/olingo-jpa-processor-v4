@@ -9,20 +9,18 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
-import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
+import org.apache.olingo.jpa.processor.ModifiableDependencyInjector;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.server.api.OData;
-import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.core.debug.ServerCoreDebugger;
 
 class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataGlobalContext {
 
   private final JPAEdmProvider jpaEdm;
-  private final AbstractJPADatabaseProcessor databaseProcessor;
+  private final JPAODataDatabaseProcessor databaseProcessor;
   private final JPAAdapter mappingAdapter;
   private final OData odata;
   private final ServiceMetadata serviceMetaData;
@@ -82,11 +80,6 @@ class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataG
     return odata;
   }
 
-  //  @Override
-  //  public List<EdmxReference> getReferences() {
-  //    return references;
-  //  }
-
   @Override
   public JPAEdmProvider getEdmProvider() {
     if (disposed) {
@@ -111,26 +104,13 @@ class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataG
     return databaseProcessor;
   }
 
-  /**
-   *
-   * @return The JPAAdapter, with refreshed preparation from {@link #getDependencyInjector() dependency injector}.
-   */
-  JPAAdapter refreshMappingAdapter() {
-    try {
-      getDependencyInjector().injectDependencyValues(mappingAdapter);
-    } catch (final ODataApplicationException e) {
-      throw new RuntimeException(e);
-    }
+  @Override
+  public ModifiableDependencyInjector getDependencyInjector() {
+    return di;
+  }
+
+  @Override
+  protected JPAAdapter getPersistenceAdapter() {
     return mappingAdapter;
-  }
-
-  @Override
-  public DependencyInjector getDependencyInjector() {
-    return di;
-  }
-
-  @Override
-  protected DependencyInjectorImpl getDependencyInjectorImpl() {
-    return di;
   }
 }

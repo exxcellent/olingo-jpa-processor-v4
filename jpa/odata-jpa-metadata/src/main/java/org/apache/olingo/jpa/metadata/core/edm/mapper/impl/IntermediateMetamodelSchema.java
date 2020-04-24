@@ -258,7 +258,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   @Override
-  IntermediateEnumType createEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
+  IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
     // not supported in JPA models
     throw new ODataJPAModelException(MessageKeys.INVALID_ENTITY_TYPE);
   }
