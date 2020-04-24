@@ -581,7 +581,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("  \"numberOfLevels\": 2");
     requestBody.append("}");
     URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
-    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     // important: normal metadata to avoid presence of binding link annotations
     helper.setRequestedResponseContentType(ContentType.JSON.toContentTypeString());
@@ -594,7 +594,7 @@ public class TestJPAActions extends TestBase {
     requestBody = buildActionPayload(actionParameters);
 
     uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
-    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -641,7 +641,7 @@ public class TestJPAActions extends TestBase {
     // try to update via handler to trigger parsing
     uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(rootODataEntity
         .getProperty("Id").getPrimitiveValue().toCastValue(Long.class));
-    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.PUT);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(), HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 

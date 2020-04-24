@@ -194,6 +194,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
       // all not primitive types (including 1:n relationships aka collections) are assigned to null as default
       write(NEWLINE + NEWLINE + "\t" + "private " + propClientType + " " + memberName + " = null;");
     }
+    write(NEWLINE);
     // getter method
     if (attribute.getAttributeMapping() == AttributeMapping.RELATIONSHIP) {
       write(NEWLINE + "\t" + "/**");
@@ -205,6 +206,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "\t" + "return " + memberName + ";");
     write(NEWLINE + "\t" + "}");
     // setter method
+    write(NEWLINE);
     write(NEWLINE + "\t" + "public void " + determinePropertySetterMethodName(attribute) + "(" + propClientType + " "
         + memberName + ") {");
     write(NEWLINE + "\t" + "\t" + "this." + memberName + " = " + memberName + ";");
