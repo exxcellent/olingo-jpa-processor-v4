@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.client.example;
+package org.apache.olingo.jpa.client.example.util;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -19,7 +19,7 @@ import javassist.util.proxy.ProxyFactory;
  * @author Ralf Zozmann
  *
  */
-class AccessTestBase extends TestBase {
+public class AccessTestBase extends TestBase {
 
   private class AccessClassInvocationHandler implements MethodHandler, MethodFilter {
 

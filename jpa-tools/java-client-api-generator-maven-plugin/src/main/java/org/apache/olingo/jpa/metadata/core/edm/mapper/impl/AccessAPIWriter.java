@@ -412,12 +412,23 @@ class AccessAPIWriter extends AbstractWriter {
         break;
       case AS_COMPLEX_TYPE:
         System.out.println("Support CT " + type.getInternalName() + " : " + attribute.getInternalName());// TODO
+        generateTypeCompleyAttributeConversion(attribute);
         break;
       case RELATIONSHIP:
         throw new UnsupportedOperationException("Relationship '" + attribute.getInternalName()
         + "' must not occur here");
       }
     }
+  }
+
+  private void generateTypeCompleyAttributeConversion(final JPASimpleAttribute attribute) throws ODataJPAModelException,
+      IOException {
+    final String memberName = qualifiedName2FirstCharacterUppercasedString(attribute.getInternalName());
+    write(NEWLINE + "\t" + "\t" + "// complex type attribute value");
+    write(NEWLINE + "\t" + "\t" + ClientProperty.class.getName() + " prop" + memberName
+        + " = odataEntity.getProperty("
+        + typeMetaName + "." + TypeMetaAPIWriter.determineTypeMetaPropertyNameConstantName(attribute.getProperty())
+        + ");");
   }
 
   private void generateTypeSimpleAttributeConversion(final JPASimpleAttribute attribute) throws ODataJPAModelException,

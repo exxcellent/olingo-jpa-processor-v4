@@ -1,18 +1,19 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.apache.olingo.jpa.tools</groupId>
-    <artifactId>tools-parent</artifactId>
-    <version>0.38.2</version>
-  </parent>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+	  <groupId>org.apache.olingo.jpa.tools</groupId>
+	  <artifactId>tools-parent</artifactId>
+	  <version>0.38.2</version>
+	</parent>
+	
+	<artifactId>java-client-api-generator-maven-plugin</artifactId>
+	<packaging>maven-plugin</packaging>
+	<name>OData-JPA-Adapter client api code generator for Java</name>
   
-  <artifactId>java-client-api-generator-maven-plugin</artifactId>
-  <packaging>maven-plugin</packaging>
-  
-  <properties>
-  </properties>
+	<properties>
+	</properties>
   
 	<dependencies>
 		<dependency>

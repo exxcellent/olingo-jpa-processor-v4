@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.client.example;
 
+import org.apache.olingo.jpa.client.example.util.AccessTestBase;
 import org.apache.olingo.jpa.processor.core.testmodel.AbstractDatatypeConversionEntityAccess;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityDto;
 import org.junit.Assert;

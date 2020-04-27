@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.client.example;
+package org.apache.olingo.jpa.client.example.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
