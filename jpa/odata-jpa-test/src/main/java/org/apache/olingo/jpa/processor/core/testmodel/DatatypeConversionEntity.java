@@ -73,12 +73,21 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5)
   private BigDecimal aDecimal;
 
+  // reuse decimal column for double representation
+  @EdmSearchable
+  @Column(name = "\"ADecimal\"", precision = 16, scale = 5, updatable = false, insertable = false)
+  private double aDouble;
+
   // @Column(name = "\"AYear\"", insertable = false, updatable = false)
   // private java.time.Year aYear;
 
   @EdmSearchable
   @Column(name = "\"AYear\"")
   private Integer aIntegerYear;
+
+  @EdmSearchable
+  @Column(name = "\"AYear\"", updatable = false, insertable = false)
+  private Long aLongYear;
 
   @Column(name = "\"AStringMappedEnum\"")
   @Enumerated(EnumType.STRING)
