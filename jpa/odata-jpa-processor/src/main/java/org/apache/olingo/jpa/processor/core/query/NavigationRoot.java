@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
+import org.apache.olingo.server.api.uri.UriResourceCount;
 import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 
 /**
@@ -45,7 +46,9 @@ public class NavigationRoot implements NavigationIfc {
   @Override
   public FilterOption getFilterOption(final UriResource uriResource) {
     final List<UriResource> parts = context.getUriResourceParts();
-    if (parts.get(parts.size() - 1) != uriResource) {
+    final UriResource lastPart = parts.get(parts.size() - 1);
+    // if last part is a /$count request then the $count part is accepted to ask for $filter system query option
+    if (lastPart != uriResource && !UriResourceCount.class.isInstance(lastPart)) {
       return null;
     }
     return context.getFilterOption();

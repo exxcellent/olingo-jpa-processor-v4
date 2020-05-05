@@ -68,8 +68,6 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
-import org.apache.olingo.server.core.uri.UriInfoImpl;
-import org.apache.olingo.server.core.uri.queryoption.CountOptionImpl;
 import org.apache.olingo.server.core.uri.queryoption.ExpandItemImpl;
 import org.apache.olingo.server.core.uri.queryoption.ExpandOptionImpl;
 import org.apache.olingo.server.core.uri.queryoption.LevelsOptionImpl;
@@ -424,15 +422,6 @@ ComplexProcessor, PrimitiveValueProcessor {
   @Override
   public void countEntityCollection(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
       throws ODataApplicationException, ODataLibraryException {
-    // enforce $count option as given, because OLingo parser doesn't respect the
-    // last resource path as system query option (a bug in Olingo?!)
-    if (uriInfo.getCountOption() == null) {
-      log.log(Level.FINER, "Add count option to UriInfo, because Olingo has not set it");
-      final CountOptionImpl countOption = new CountOptionImpl();
-      countOption.setValue(true);
-      ((UriInfoImpl) uriInfo).setSystemQueryOption(countOption);
-    }
-
     // count entities
     try {
       final EntityCountQueryBuilder query = new EntityCountQueryBuilder(getRequestContext(), new NavigationRoot(
