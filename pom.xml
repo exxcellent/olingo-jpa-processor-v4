@@ -416,7 +416,7 @@
 					  	<!-- the module code-coverage-report -->
 						<execution>
 							<id>aggregate-reports-ut</id>
-							<phase>test</phase>
+							<phase>verify</phase>
 							<goals>
 								<goal>report-aggregate</goal>
 							</goals>						  
