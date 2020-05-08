@@ -83,7 +83,7 @@ public class ExcelTransformationTest extends TestBase {
     file.close();
 
     final TestInspector validator = new TestInspector(configuration, data);
-    assertEquals(17, validator.determineNumberOfColumns("Demo"));
+    assertEquals(19, validator.determineNumberOfColumns("Demo"));
     assertTrue(validator.determineNumberOfRows("Demo") > 2);// 2+header
     final DecimalFormat df = new DecimalFormat("#.00000#", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
     assertEquals("98989898.34678", df.format(validator.determineCellValueAsNumber("Demo", 2, "ADecimal")));
