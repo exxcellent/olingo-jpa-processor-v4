@@ -167,10 +167,19 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
       return getNameBuilder().buildFQN(type.getExternalName());
     case ELEMENT_COLLECTION:
       final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) jpaAttribute;
-      if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
+      if (pa.getElementType().getJavaType().isEnum()) {
+        // register enum type
+        @SuppressWarnings("unchecked")
+        final IntermediateEnumType jpaEnumType = serviceDocument
+            .findOrCreateEnumType((Class<? extends Enum<?>>) pa.getElementType().getJavaType());
+        return jpaEnumType.getExternalFQN();
+      } else if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
         return TypeMapping.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
       } else if (TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute)) {
         return serviceDocument.getStructuredType(jpaAttribute).getExternalFQN();
+      } else {
+        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
+            pa.getElementType().getJavaType().getName(), (javaMember != null ? javaMember.getName() : null));
       }
     default:
       // trigger exception if not possible

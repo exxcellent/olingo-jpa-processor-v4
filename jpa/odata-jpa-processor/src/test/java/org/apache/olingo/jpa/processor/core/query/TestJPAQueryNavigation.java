@@ -136,8 +136,13 @@ public class TestJPAQueryNavigation extends TestBase {
   @Test
   public void testNavigationViaComplexTypeTwoHops() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')/AdministrativeInformation/Created/User/Address/AdministrativeDivision");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3")
+        .appendNavigationSegment("AdministrativeInformation").appendNavigationSegment("Created")
+        .appendNavigationSegment(
+            "User").appendNavigationSegment("Address").appendNavigationSegment("AdministrativeDivision");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+//    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+    //        "Organizations('3')/AdministrativeInformation/Created/User/Address/AdministrativeDivision");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -147,8 +152,15 @@ public class TestJPAQueryNavigation extends TestBase {
   @Test
   public void testNavigationSelfToOneOneHops() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent");
+    final Map<String, Object> keysAD = new HashMap<String, Object>();
+    keysAD.put("DivisionCode", "BE352");
+    keysAD.put("CodeID", "NUTS3");
+    keysAD.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        keysAD).appendNavigationSegment("Parent");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    //    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+    //        "AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -158,12 +170,12 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationSelfToOneTwoHops() throws IOException, ODataException {
-    final Map<String, Object> keysOrganization = new HashMap<String, Object>();
-    keysOrganization.put("DivisionCode", "BE352");
-    keysOrganization.put("CodeID", "NUTS3");
-    keysOrganization.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysAD = new HashMap<String, Object>();
+    keysAD.put("DivisionCode", "BE352");
+    keysAD.put("CodeID", "NUTS3");
+    keysAD.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        keysOrganization).appendNavigationSegment("Parent").appendNavigationSegment("Parent");
+        keysAD).appendNavigationSegment("Parent").appendNavigationSegment("Parent");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -174,12 +186,12 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationSelfToManyOneHops() throws IOException, ODataException {
-    final Map<String, Object> keysOrganization = new HashMap<String, Object>();
-    keysOrganization.put("DivisionCode", "BE2");
-    keysOrganization.put("CodeID", "NUTS1");
-    keysOrganization.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysAD = new HashMap<String, Object>();
+    keysAD.put("DivisionCode", "BE2");
+    keysAD.put("CodeID", "NUTS1");
+    keysAD.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        keysOrganization).appendNavigationSegment("Children").orderBy("DivisionCode desc");
+        keysAD).appendNavigationSegment("Children").orderBy("DivisionCode desc");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -191,16 +203,16 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationSelfToManyTwoHopsOrdered() throws IOException, ODataException {
-    final Map<String, Object> keysOrganization = new HashMap<String, Object>();
-    keysOrganization.put("DivisionCode", "BE2");
-    keysOrganization.put("CodeID", "NUTS1");
-    keysOrganization.put("CodePublisher", "Eurostat");
-    final Map<String, Object> keysAD = new HashMap<String, Object>();
-    keysAD.put("DivisionCode", "BE25");
-    keysAD.put("CodeID", "NUTS2");
-    keysAD.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysADOrigin = new HashMap<String, Object>();
+    keysADOrigin.put("DivisionCode", "BE2");
+    keysADOrigin.put("CodeID", "NUTS1");
+    keysADOrigin.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysADChild = new HashMap<String, Object>();
+    keysADChild.put("DivisionCode", "BE25");
+    keysADChild.put("CodeID", "NUTS2");
+    keysADChild.put("CodePublisher", "Eurostat");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        keysOrganization).appendNavigationSegment("Children").appendKeySegment(keysAD).appendNavigationSegment(
+        keysADOrigin).appendNavigationSegment("Children").appendKeySegment(keysADChild).appendNavigationSegment(
             "Children").orderBy("DivisionCode desc");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -213,24 +225,24 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationSelfToOneTwoHopsUsingKeys() throws IOException, ODataException {
-    final Map<String, Object> keysOrganization = new HashMap<String, Object>();
-    keysOrganization.put("DivisionCode", "BE2");
-    keysOrganization.put("CodeID", "NUTS1");
-    keysOrganization.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysADOrigin = new HashMap<String, Object>();
+    keysADOrigin.put("DivisionCode", "BE2");
+    keysADOrigin.put("CodeID", "NUTS1");
+    keysADOrigin.put("CodePublisher", "Eurostat");
 
-    final Map<String, Object> keysAD1 = new HashMap<String, Object>();
-    keysAD1.put("DivisionCode", "BE25");
-    keysAD1.put("CodeID", "NUTS2");
-    keysAD1.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysADChild = new HashMap<String, Object>();
+    keysADChild.put("DivisionCode", "BE25");
+    keysADChild.put("CodeID", "NUTS2");
+    keysADChild.put("CodePublisher", "Eurostat");
 
-    final Map<String, Object> keysAD2 = new HashMap<String, Object>();
-    keysAD2.put("DivisionCode", "BE258");
-    keysAD2.put("CodeID", "NUTS3");
-    keysAD2.put("CodePublisher", "Eurostat");
+    final Map<String, Object> keysADChildChild = new HashMap<String, Object>();
+    keysADChildChild.put("DivisionCode", "BE258");
+    keysADChildChild.put("CodeID", "NUTS3");
+    keysADChildChild.put("CodePublisher", "Eurostat");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        keysOrganization).appendNavigationSegment("Children").appendKeySegment(keysAD1).appendNavigationSegment(
-            "Children").appendKeySegment(keysAD2);
+        keysADOrigin).appendNavigationSegment("Children").appendKeySegment(keysADChild).appendNavigationSegment(
+            "Children").appendKeySegment(keysADChildChild);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 

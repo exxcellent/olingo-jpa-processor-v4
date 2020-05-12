@@ -5,15 +5,19 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -100,6 +104,14 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Column(name = "\"AOtherPackageEnum\"")
   @Enumerated(javax.persistence.EnumType.STRING)
   private TestEnum aEnumFromOtherPackage;
+
+  // test support for enum collection -> will match only a single entry (for current entity instance, because the same)
+  @ElementCollection
+  @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::DatatypeConversionEntity\"",
+  joinColumns = @JoinColumn(name = "\"ID\""))
+  @Column(name = "\"AStringMappedEnum\"", length = 255, insertable = false, updatable = false)
+  @Enumerated(javax.persistence.EnumType.STRING)
+  private final Collection<IsoEra> enumCollection = new ArrayList<>();
 
   @EdmSearchable
   // do not define a JPA converter here, we want to test the autoapply!
