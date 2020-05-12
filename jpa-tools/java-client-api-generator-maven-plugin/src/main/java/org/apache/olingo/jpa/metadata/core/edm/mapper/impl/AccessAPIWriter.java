@@ -21,6 +21,7 @@ import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntityRequest;
 import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
 import org.apache.olingo.client.api.domain.ClientCollectionValue;
+import org.apache.olingo.client.api.domain.ClientComplexValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.client.api.domain.ClientProperty;
@@ -273,15 +274,14 @@ class AccessAPIWriter extends AbstractWriter {
   private String generate_ConvertComplexValue_HelperMethod(final JPASimpleAttribute attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
     final String methodName = determineConversionMethodName(attribute, false);
     if (mapAlreadeGeneratedMethods.contains(methodName)) {
       return null;
     }
     write(NEWLINE);
     write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + "String propertyName, "
-        + ClientPrimitiveValue.class.getName() + " propertyValue, "
-        + "final Integer maxLength, final Integer precision, final Integer scale) throws "
+        + ClientComplexValue.class.getName() + " propertyValue" + ") throws "
         + ODataException.class.getName() + " {");
 
     // FIXME
