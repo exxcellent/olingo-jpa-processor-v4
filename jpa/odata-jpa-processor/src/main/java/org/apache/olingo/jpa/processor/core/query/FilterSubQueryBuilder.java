@@ -175,19 +175,25 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
     if (getAggregationType(this.filter.getExpression()) == null) {
       return Collections.emptyList();
     }
-    final List<Expression<?>> groupByLIst = new LinkedList<>();
-    // TODO avoid cast to JPAAssociationPath
-    final List<JPASelector> navigationSourceSelectors = ((JPAAssociationPath) navigationPath).getRightPaths();
-    for (int index = 0; index < navigationSourceSelectors.size(); index++) {
-      Path<?> subPath = subRoot;
-      final JPASelector sourceSelector = navigationSourceSelectors.get(index);
-      for (final JPAElement jpaPathElement : sourceSelector.getPathElements()) {
-        subPath = subPath.get(jpaPathElement.getInternalName());
-      }
-      groupByLIst.add(subPath);
-    }
-    subQuery.groupBy(groupByLIst);
 
+    final List<Expression<?>> groupByLIst = new LinkedList<>();
+    if (JPAAssociationPath.class.isInstance(navigationPath)) {
+      // TODO avoid cast to JPAAssociationPath
+      final List<JPASelector> navigationSourceSelectors = ((JPAAssociationPath) navigationPath).getRightPaths();
+      for (int index = 0; index < navigationSourceSelectors.size(); index++) {
+        Path<?> subPath = subRoot;
+        final JPASelector sourceSelector = navigationSourceSelectors.get(index);
+        for (final JPAElement jpaPathElement : sourceSelector.getPathElements()) {
+          subPath = subPath.get(jpaPathElement.getInternalName());
+        }
+        groupByLIst.add(subPath);
+      }
+    } else {
+      // @ElementCollection (aka primitive type navigation) -> group by target
+      groupByLIst.add(subRoot);
+    }
+
+    subQuery.groupBy(groupByLIst);
     try {
       subQuery.having(this.filter.compile());
     } catch (final ExpressionVisitException e) {

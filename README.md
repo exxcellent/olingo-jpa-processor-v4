@@ -9,14 +9,14 @@ Currently we see no chance to give back most of the code contributions to the or
 This library implements functionality to enable CRUD operations for an JPA based data model in a OData (REST) environment.
 Developers using this library have to write only a few lines of code to get a servlet running handling all typical operations to read, write/update and delete JPA entities as [OData](http://www.odata.org/)/REST resources. Additional supported out-of-the-box functionality is:
 * Call Java methods as OData actions
-* Define custom OData entities outside JPA via DTO classes to get benefits from OData, but avoiding the persistence layer from JPA 
+* Define custom OData entities outside JPA via (D)ata(T)ransfer(O)bject classes to get benefits from OData, but avoiding the persistence layer from JPA 
 * Limit access to resources/actions with authorisation checks
 * A few builtin automatic datatype conversions (including time types) to mediate between OData, Java and the JPA/Database
 * Sorting + filtering for results
 
 # Documentation
 ## For integrators
-More informations how to integrate the library into your Java project read ["Get Started"](doc/integrators/GetStarted.md).
+More informations how to integrate the library into your Java project read "[Get Started](doc/integrators/GetStarted.md)". Migration requiring tasks resulting from API changes while updating are described in the [migration guide](doc/integrators/MigrationGuide.md).
 
 ## For developers
 More informations can be found under [doc/development](doc/development/Project-Structure.md).

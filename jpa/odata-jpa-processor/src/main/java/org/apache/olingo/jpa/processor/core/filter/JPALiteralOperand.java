@@ -25,6 +25,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
 
   private static class AnonymousSimpleTypeElement implements JPATypedElement {
 
+    @SuppressWarnings("unused")
     private final EdmPrimitiveTypeKind edmTypeKind;
 
     public AnonymousSimpleTypeElement(final EdmPrimitiveTypeKind edmTypeKind) {

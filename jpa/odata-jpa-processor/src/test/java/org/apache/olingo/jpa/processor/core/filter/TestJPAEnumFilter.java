@@ -54,4 +54,15 @@ public class TestJPAEnumFilter extends TestBase {
     assertEquals("NANOS", dces.get(0).get("AOrdinalMappedEnum").asText());
   }
 
+  @Test
+  public void testEnumCollection() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").select("ID")
+        .filter("EnumCollection/$count gt 0");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode dces = helper.getJsonObjectValues();
+    assertEquals(2, dces.size());
+  }
+
 }
