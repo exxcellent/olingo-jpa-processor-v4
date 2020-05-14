@@ -189,7 +189,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
         groupByLIst.add(subPath);
       }
     } else {
-      // @ElementCollection (aka primitive type navigation) -> group by target
+      // @ElementCollection (aka primitive type navigation) -> group by sub root target
       groupByLIst.add(subRoot);
     }
 
