@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.39.0</version>
+		<version>0.40.0</version>
 	</parent>
 
 	<artifactId>odata-jpa-metadata</artifactId>
