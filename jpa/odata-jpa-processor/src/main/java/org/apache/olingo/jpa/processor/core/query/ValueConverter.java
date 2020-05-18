@@ -19,10 +19,6 @@ public final class ValueConverter extends AbstractConverter {
   @Override
   public Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
       throws ODataJPAConversionException, ODataJPAModelException {
-    if (Enum.class.isAssignableFrom(attribute.getType())) {
-      // enums are handled 'as is'
-      return jpaValue;
-    }
     return super.convertJPA2ODataPrimitiveValue(attribute, jpaValue);
   }
 

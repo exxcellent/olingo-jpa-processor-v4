@@ -13,6 +13,7 @@
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter</class>
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter</class>
 
         <!-- Persistent entities -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.Organization</class>
@@ -58,6 +59,7 @@
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter</class>
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter</class>
 		-->
 
         <!-- Persistent entities -->

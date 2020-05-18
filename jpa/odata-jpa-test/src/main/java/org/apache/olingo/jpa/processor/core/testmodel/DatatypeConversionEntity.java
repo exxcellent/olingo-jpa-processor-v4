@@ -3,11 +3,12 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.time.DayOfWeek;
 import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.CollectionTable;
@@ -28,6 +29,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
@@ -105,13 +107,14 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Enumerated(javax.persistence.EnumType.STRING)
   private TestEnum aEnumFromOtherPackage;
 
-  // test support for enum collection -> will match only a single entry (for current entity instance, because the same)
+  // test support for enum collection
   @ElementCollection
-  @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::DatatypeConversionEntity\"",
-  joinColumns = @JoinColumn(name = "\"ID\""))
-  @Column(name = "\"AStringMappedEnum\"", length = 255, insertable = false, updatable = false)
-  @Enumerated(javax.persistence.EnumType.STRING)
-  private final Collection<IsoEra> enumCollection = new ArrayList<>();
+  @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::DatatypeConversionEntityWeekDays\"",
+  joinColumns = @JoinColumn(name = "\"DatatypeConversionEntity_ID\""))
+  @Column(name = "\"DayIndex\"")
+  @Enumerated(javax.persistence.EnumType.ORDINAL)
+  @Convert(converter = JPADayOfWeekConverter.class)
+  private Set<DayOfWeek> enumCollection;
 
   @EdmSearchable
   // do not define a JPA converter here, we want to test the autoapply!

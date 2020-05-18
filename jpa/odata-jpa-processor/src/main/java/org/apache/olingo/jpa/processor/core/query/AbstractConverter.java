@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -106,7 +107,11 @@ public abstract class AbstractConverter {
    * data type combinations.
    *
    * @param jpaElement
-   *            The attribute to look for an assigned converter.
+   * The attribute to look for an assigned converter.
+   * @param odataAttributeType If <code>null</code> then no
+   * {@link #determineDefaultODataAttributeConverter(Class, Class) default converter} can be used and only attributes
+   * annotated with {@link EdmAttributeConversion @EdmAttributeConversion} can handle <code>null</code> values in a
+   * different way.
    *
    * @return A found converter or <code>null</code> if no converter is available.
    */
@@ -131,6 +136,9 @@ public abstract class AbstractConverter {
   private ODataAttributeConverter<Object, Object> determineDefaultODataAttributeConverter(
       final Class<?> jpaAttributeType,
       final Class<?> odataAttributeType) {
+    if (jpaAttributeType == null || odataAttributeType == null) {
+      return null;
+    }
     final String key = buildConverterKey(odataAttributeType, jpaAttributeType);
     if (converterLookupCache.containsKey(key)) {
       return converterLookupCache.get(key);
@@ -168,10 +176,14 @@ public abstract class AbstractConverter {
   protected Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
       throws ODataJPAConversionException, ODataJPAModelException {
 
-    // use a intermediate conversion to an supported JAVA type in the Olingo library
-    final EdmPrimitiveTypeKind kind = TypeMapping.convertToEdmSimpleType(attribute);
-    final Class<?> oadataType = EdmPrimitiveTypeFactory.getInstance(kind).getDefaultType();
-
+    final Class<?> oadataType;
+    if (attribute.getType().isEnum()) {
+      oadataType = null;
+    } else {
+      // use a intermediate conversion to an supported JAVA type in the Olingo library
+      final EdmPrimitiveTypeKind kind = TypeMapping.convertToEdmSimpleType(attribute);
+      oadataType = EdmPrimitiveTypeFactory.getInstance(kind).getDefaultType();
+    }
     final Class<?> javaType = attribute.getType();
     if (javaType.equals(oadataType)) {
       return jpaValue;
@@ -185,18 +197,29 @@ public abstract class AbstractConverter {
     return jpaValue;
   }
 
+  /**
+   * This method is called for different scenarios:
+   * <ol>
+   * <li>The <i>input</i> is a complete collection for an collection attribute containing all values -&gt; called for
+   * attributes in JPA entity</li>
+   * <li>The <i>input</i> is single element in a collection attribute -&gt; called for every query result in
+   * a @ElementCollection query</li>
+   * <li>The <i>input</i> the single attribute value -&gt; called for attributes in JPA entity</li>
+   * </ol>
+   */
   @SuppressWarnings({ "unchecked", "rawtypes" })
   protected final Property convertJPA2ODataProperty(final JPATypedElement attribute, final String propertyName,
       final Object input,
       final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException, IllegalArgumentException {
-    if (attribute == null) {
-      throw new IllegalArgumentException("JPA attribute required for property " + propertyName);
+    if (!attribute.isPrimitive()) {
+      throw new IllegalArgumentException("attribute is not primitive... wrong method call");
     }
-    ValueType valueType = null;
+
     final Class<?> javaType = attribute.getType();
     if (javaType == null) {
       throw new IllegalArgumentException("Java type required for property " + propertyName);
     }
+    final ValueType valueType;
     if (attribute.isCollection() && attribute.isPrimitive()) {
       if (javaType.isEnum()) {
         valueType = ValueType.COLLECTION_ENUM;
@@ -213,48 +236,34 @@ public abstract class AbstractConverter {
       throw new IllegalArgumentException(
           "Given value is not of primitive type managable in this method: " + propertyName);
     }
-    if (valueType == null) {
-      throw new IllegalArgumentException(
-          "Given value is not of primitive type managable in this method for property " + propertyName);
-    }
     Property property;
     Object convertedInput;
+    // as default use input 'as is'
+    convertedInput = input;
     switch (valueType) {
-    case ENUM:
-      // for OData we have to convert the value into a number (if not yet)
-      convertedInput = input != null ? Integer.valueOf(((Enum<?>) input).ordinal()) : null;
-      property = new Property(null, propertyName);
-      property.setValue(valueType, convertedInput);
-      properties.add(property);
-      return property;
     case COLLECTION_ENUM:
+      // special case: convert input into enum values
+      if (input instanceof Collection<?>) {
+        final Collection<Object> vList = new LinkedList<>();
+        for (final Enum v : (Collection<Enum>) input) {
+          final Integer cV = v != null ? Integer.valueOf(v.ordinal()) : null;
+          vList.add(cV);
+        }
+        convertedInput = vList;
+      } else {
+        convertedInput = input != null ? Integer.valueOf(((Enum<?>) input).ordinal()) : null;
+      }
       // fall through
     case COLLECTION_PRIMITIVE:
-      // as default use input 'as is'
-      convertedInput = input;
-      if (valueType == ValueType.COLLECTION_ENUM) {
-        // special case: convert input into enum values
-        if (input instanceof Collection<?>) {
-          final List<Object> vList = new LinkedList<>();
-          for (final Enum v : (Collection<Enum>) input) {
-            final Integer cV = v != null ? Integer.valueOf(v.ordinal()) : null;
-            vList.add(cV);
-          }
-          convertedInput = vList;
-        } else {
-          convertedInput = input != null ? Integer.valueOf(((Enum<?>) input).ordinal()) : null;
-        }
-      }
       property = findOrCreateProperty(properties, propertyName);
       if (property.getValueType() == null) {
         // new created property
-        final List<Object> list = new LinkedList<>();
-        if (convertedInput != null) {
-          if (convertedInput instanceof Collection<?>) {
-            addCollectionValuesIfUnique(list, (Collection) convertedInput);
-          } else {
-            addSingleValueIfUnique(list, convertedInput);
-          }
+        final Collection<Object> list = new LinkedList<>();
+        if (convertedInput instanceof Collection<?>) {
+          addCollectionValuesIfUnique(list, (Collection) convertedInput);
+        } else {
+          // handle null input as 'null' collection element
+          addSingleValueIfUnique(list, convertedInput);
         }
         property.setValue(valueType, list);
       } else {
@@ -262,17 +271,35 @@ public abstract class AbstractConverter {
         if (convertedInput instanceof Collection<?>) {
           addCollectionValuesIfUnique((List) property.getValue(), (Collection) convertedInput);
         } else {
+          // handle null input as 'null' collection element
           addSingleValueIfUnique((List) property.getValue(), convertedInput);
         }
       }
       return property;
+    case ENUM:
+      // for OData we have to convert the value into a number (if not yet)
+      convertedInput = input != null ? Integer.valueOf(((Enum<?>) input).ordinal()) : null;
+      // fall through
     default:
       // handle as primitive
-      convertedInput = convertJPA2ODataPrimitiveValue(attribute, input);
-      property = new Property(null, propertyName);
-      property.setValue(valueType, convertedInput);
-      properties.add(property);
+      final Object result = convertJPA2ODataPrimitiveValue(attribute, convertedInput);
+      property = findOrCreateProperty(properties, propertyName);
+      property.setValue(valueType, result);
       return property;
+    }
+  }
+
+  /**
+   * @see org.apache.olingo.jpa.metadata.core.edm.mapper.impl.FieldAttributeAccessor#writeJPAFieldValue
+   */
+  private Collection<Object> createCorrectJPACollectionType(final JPATypedElement attribute) {
+    switch (attribute.getCollectionType()) {
+    case MAP:
+      throw new UnsupportedOperationException("Map cannot be handled");
+    case SET:
+      return new HashSet<>();
+    default:
+      return new LinkedList<>();
     }
   }
 
@@ -303,6 +330,48 @@ public abstract class AbstractConverter {
     return p;
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private Object convertSingleOData2JPAValue(final Class<?> jpaType, final Class<?> oadataType,
+      final ODataAttributeConverter<Object, Object> converter, final Object sourceOdataValue) {
+    if (Collection.class.isInstance(sourceOdataValue)) {
+      throw new IllegalStateException("Collection is not allowed here");
+    }
+    final Object toConvertValue;
+    if (jpaType.equals(oadataType)) {
+      // no conversion
+      return sourceOdataValue;
+    } else if (jpaType.isEnum() && Number.class.isInstance(sourceOdataValue)) {
+      // convert enum ordinal value into enum literal
+      toConvertValue = lookupEnum((Class<Enum>) jpaType, ((Number) sourceOdataValue).intValue());
+    } else {
+      toConvertValue = sourceOdataValue;
+    }
+    if (converter != null) {
+      return converter.convertToJPA(toConvertValue);
+    }
+    // no conversion
+    return toConvertValue;
+
+  }
+
+  private static Class<?> detectValueType(final Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (Collection.class.isInstance(value)) {
+      final Collection<?> coll = (Collection<?>) value;
+      if (coll.isEmpty()) {
+        return null;
+      }
+      final Object firstElement = coll.iterator().next();
+      if (firstElement == null) {
+        return null;
+      }
+      return firstElement.getClass();
+    }
+    return value.getClass();
+  }
+
   /**
    * Convert a <b>simple</b> OData attribute value into a JPA entity attribute
    * type matching one.
@@ -313,13 +382,12 @@ public abstract class AbstractConverter {
    *            The OData attribute value.
    * @return The JPA attribute type compliant instance value.
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
   public final Object convertOData2JPAValue(final JPATypedElement jpaElement, final Object sourceOdataValue)
       throws ODataJPAConversionException {
     final boolean isGenerated = jpaElement.getAnnotation(GeneratedValue.class) != null;
     boolean isKey = false;
     if (JPAAttribute.class.isInstance(jpaElement)) {
-      final JPAAttribute jpaAttribute = JPAAttribute.class.cast(jpaElement);
+      final JPAAttribute<?> jpaAttribute = JPAAttribute.class.cast(jpaElement);
       isKey = jpaAttribute.isKey();
       if (sourceOdataValue == null && isKey && !isGenerated) {
         throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.ATTRIBUTE_MUST_NOT_BE_NULL,
@@ -334,25 +402,28 @@ public abstract class AbstractConverter {
     // ODataJPAConversionException.MessageKeys.GENERATED_KEY_ATTRIBUTE_IS_NOT_SUPPORTED, jpaElement.toString());
     // }
 
-    if (sourceOdataValue == null) {
-      return null;
-    }
-
-    final Class<?> javaType = jpaElement.getType();
-    if (javaType.isEnum() && Number.class.isInstance(sourceOdataValue)) {
-      // convert enum ordinal value into enum literal
-      return lookupEnum((Class<Enum>) javaType, ((Number) sourceOdataValue).intValue());
-    }
-    final Class<?> oadataType = sourceOdataValue.getClass();
-    if (javaType.equals(oadataType)) {
-      return sourceOdataValue;
-    }
+    final Class<?> oadataType = detectValueType(sourceOdataValue);
     final ODataAttributeConverter<Object, Object> converter = determineODataAttributeConverter(jpaElement, oadataType);
-    if (converter != null) {
-      return converter.convertToJPA(sourceOdataValue);
+    final Class<?> jpaType = jpaElement.getType();
+
+    if (jpaElement.isCollection()) {
+      if (sourceOdataValue == null) {
+        return null;
+      }
+      if (!Collection.class.isInstance(sourceOdataValue)) {
+        throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.RUNTIME_PROBLEM,
+            "Value is not a collection");
+      }
+      final Collection<Object> resultCollection = createCorrectJPACollectionType(jpaElement);
+      for (final Object v : (Collection<?>) sourceOdataValue) {
+        final Object r = convertSingleOData2JPAValue(jpaType, oadataType, converter, v);
+        resultCollection.add(r);
+      }
+      return resultCollection;
+    } else {
+      // single value
+      return convertSingleOData2JPAValue(jpaType, oadataType, converter, sourceOdataValue);
     }
-    // no conversion
-    return sourceOdataValue;
   }
 
   /**

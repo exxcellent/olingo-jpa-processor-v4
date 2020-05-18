@@ -12,6 +12,7 @@ import javax.persistence.Version;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.PluralAttribute.CollectionType;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.validation.constraints.Size;
 
@@ -98,15 +99,21 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     return type;
   }
 
-  @SuppressWarnings("rawtypes")
   @Override
   public Class<?> getType() {
     if (isCollection()) {
-      return ((PluralAttribute) jpaAttribute).getElementType().getJavaType();
+      return ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
     }
     return jpaAttribute.getJavaType();
   }
 
+  @Override
+  public CollectionType getCollectionType() {
+    if (isCollection()) {
+      return ((PluralAttribute<?, ?, ?>) jpaAttribute).getCollectionType();
+    }
+    return null;
+  }
   @Override
   public boolean isComplex() {
     return isComplex;
@@ -171,7 +178,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
         // register enum type
         @SuppressWarnings("unchecked")
         final IntermediateEnumType jpaEnumType = serviceDocument
-            .findOrCreateEnumType((Class<? extends Enum<?>>) pa.getElementType().getJavaType());
+        .findOrCreateEnumType((Class<? extends Enum<?>>) pa.getElementType().getJavaType());
         return jpaEnumType.getExternalFQN();
       } else if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
         return TypeMapping.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();

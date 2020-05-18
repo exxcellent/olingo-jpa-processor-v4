@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.create;
+package org.apache.olingo.jpa.processor.core.cud;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

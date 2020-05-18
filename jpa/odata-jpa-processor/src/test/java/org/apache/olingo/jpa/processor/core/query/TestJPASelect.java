@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
-import java.time.chrono.IsoEra;
+import java.time.DayOfWeek;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -48,7 +48,7 @@ public class TestJPASelect extends TestBase {
     final ObjectNode p = helper.getJsonObjectValue();
     assertEquals(1, p.get("ID").asLong());
     assertEquals(1, p.withArray("EnumCollection").size());
-    assertEquals(IsoEra.CE.name(), p.withArray("EnumCollection").get(0).asText());
+    assertEquals(DayOfWeek.MONDAY.name(), p.withArray("EnumCollection").get(0).asText());
   }
 
   @Test

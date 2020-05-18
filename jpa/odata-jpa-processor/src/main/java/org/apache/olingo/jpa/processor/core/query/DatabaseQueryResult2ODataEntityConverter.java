@@ -259,7 +259,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
       for (final Tuple row : tuples) {
         index++;
         for (final TupleElement<?> element : row.getElements()) {
-          /* final Property property = */ convertJPAValue2ODataAttribute(row.get(element.getAlias()),
+          /* final Property property = */ convertTupleValue2ODataAttribute(row.get(element.getAlias()),
               element.getAlias(), "", jpaQueryResult.getEntityType(), complexValueBuffer, index,
               entityODataTarget.getProperties());
         }
@@ -268,4 +268,14 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
     }
   }
 
+  private final Property convertTupleValue2ODataAttribute(final Object value, final String externalName,
+      final String prefix,
+      final JPAStructuredType jpaStructuredType, final Map<String, Object> complexValueBuffer,
+      final int complexValueIndex,
+      final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException {
+    // TODO force as single value conversion (not complete collection attribute)... but maybe affecting a collection
+    // property/attribute
+    return convertJPAValue2ODataAttribute(value, externalName, prefix, jpaStructuredType, complexValueBuffer,
+        complexValueIndex, properties);
+  }
 }

@@ -132,11 +132,13 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
     }
     // take only the first, we are working recursive through the path
     final JPAAttribute<?> attribute = path.getPathElements().get(0);
-    if (attribute != null && attribute.ignore()) {
+    if (attribute == null) {
+      throw new IllegalStateException("attribute required");
+    }
+    if (attribute.ignore()) {
       return null;
     }
-    if (attribute != null && !attribute.isKey()
-        && attribute.getAttributeMapping() == AttributeMapping.AS_COMPLEX_TYPE) {
+    if (!attribute.isKey() && attribute.getAttributeMapping() == AttributeMapping.AS_COMPLEX_TYPE) {
       // complex type should never be a 'key'... todo: check that anytime!
       String bufferKey;
       if (prefix == null || prefix.isEmpty()) {
@@ -184,7 +186,7 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
       final Property complexTypeNestedProperty = convertJPAValue2ODataAttribute(value, attributeName, bufferKey,
           attribute.getStructuredType(), complexValueBuffer, complexValueIndex, values);
       return complexTypeNestedProperty;
-    } else if (attribute != null && attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
+    } else if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
       // leaf element is the property in the @EmbeddedId type
       final JPASimpleAttribute attributeComplexProperty = (JPASimpleAttribute) path.getLeaf();
       return convertJPA2ODataProperty(attributeComplexProperty, attributeComplexProperty.getExternalName(), value,

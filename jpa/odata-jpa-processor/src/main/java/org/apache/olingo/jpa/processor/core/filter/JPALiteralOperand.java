@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.metamodel.PluralAttribute.CollectionType;
 
 import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
@@ -50,6 +51,11 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
     @Override
     public Class<?> getType() {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CollectionType getCollectionType() {
+      return null;
     }
 
     @Override
