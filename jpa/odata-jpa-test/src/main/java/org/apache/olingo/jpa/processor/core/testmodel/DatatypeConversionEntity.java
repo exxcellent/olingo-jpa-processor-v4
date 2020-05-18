@@ -112,7 +112,6 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::DatatypeConversionEntityWeekDays\"",
   joinColumns = @JoinColumn(name = "\"DatatypeConversionEntity_ID\""))
   @Column(name = "\"DayIndex\"")
-  @Enumerated(javax.persistence.EnumType.ORDINAL)
   @Convert(converter = JPADayOfWeekConverter.class)
   private Set<DayOfWeek> enumCollection;
 
