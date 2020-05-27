@@ -380,7 +380,7 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testBoundActionSavingToDatabase() throws IOException, ODataException {
 
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("10")
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("9")
         .appendActionCallSegment(Constant.PUNIT_NAME + ".addPhoneToOrganizationAndSave");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder, null, HttpMethod.POST);

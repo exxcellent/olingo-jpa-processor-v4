@@ -11,9 +11,9 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.FilterSubQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
-import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -49,13 +49,11 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
   final BinaryOperatorKind operator;
   final JPAMemberOperator<?> jpaMember;
   final JPALiteralOperand operand;
-  private final UriResourceKind aggregationType;
 
   JPANavigationOperation(final JPAEntityFilterProcessor jpaComplier, final BinaryOperatorKind operator,
       final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 
     super(jpaComplier);
-    this.aggregationType = null;
     this.operator = operator;
     if (left instanceof JPAMemberOperator) {
       jpaMember = (JPAMemberOperator<?>) left;
@@ -66,13 +64,8 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public Expression<Boolean> get() throws ODataApplicationException {
-    // TODO ??? better to reuse parent behaviour?
-    if (aggregationType != null) {
-      return (Expression<Boolean>) buildFilterSubQueries().getRoots().toArray()[0];
-    }
     return getCriteriaBuilder().exists(buildFilterSubQueries());
   }
 
@@ -95,7 +88,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
       try {
         FilterSubQueryBuilder query;
-        if (i == 0 && aggregationType == null) {
+        if (i == 0) {
           final JPAFilterExpression expression = new JPAFilterExpression(new SubMember(jpaMember), operand.getODataLiteral(),
               operator);
           query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),

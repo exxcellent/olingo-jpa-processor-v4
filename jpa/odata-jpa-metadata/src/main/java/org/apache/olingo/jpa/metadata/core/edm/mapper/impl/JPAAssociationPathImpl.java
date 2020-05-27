@@ -25,30 +25,29 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
   private final List<IntermediateJoinColumn> targetJoinColumns;
   private final PersistentAttributeType cardinality;
   private final boolean useJoinTable;
-  private List<JPASelector> leftSelectors = null;
   private List<JPASelector> rightSelectors = null;
 
   /**
    * This constructor is used to create a 'composite' association path consisting
-   * the an already existing path from a nested complex type and the owning
+   * an already existing path from a nested complex type and the owning
    * attribute in the top level structured type.
    */
   JPAAssociationPathImpl(final JPAEdmNameBuilder namebuilder, final JPAAttribute<?> attribute,
-      final JPAAssociationPath associationPath, final IntermediateStructuredType<?> source,
+      final JPAAssociationPath nestedAssociationPath, final IntermediateStructuredType<?> source,
       final List<IntermediateJoinColumn> joinColumns) {
 
     final List<JPAAttribute<?>> pathElementsBuffer = new ArrayList<JPAAttribute<?>>();
     pathElementsBuffer.add(attribute);
-    pathElementsBuffer.addAll(associationPath.getPathElements());
+    pathElementsBuffer.addAll(nestedAssociationPath.getPathElements());
 
-    alias = namebuilder.buildNaviPropertyBindingName(associationPath, attribute);
+    alias = namebuilder.buildNaviPropertyBindingName(nestedAssociationPath, attribute);
     this.sourceType = source;
-    this.targetType = (IntermediateStructuredType<?>) associationPath.getTargetType();
+    this.targetType = (IntermediateStructuredType<?>) nestedAssociationPath.getTargetType();
     if (joinColumns.isEmpty()) {
       // if nor explicit join columns are given for the 'attribute' the we take the
       // join columns as defined on the nested association path
-      this.sourceJoinColumns = ((JPAAssociationPathImpl) associationPath).getSourceJoinColumns();
-      this.useJoinTable = associationPath.hasJoinTableBetweenSourceAndTarget();
+      this.sourceJoinColumns = ((JPAAssociationPathImpl) nestedAssociationPath).getSourceJoinColumns();
+      this.useJoinTable = nestedAssociationPath.hasJoinTableBetweenSourceAndTarget();
       this.targetJoinColumns = getTargetJoinColumns();
     } else {
       this.sourceJoinColumns = joinColumns;
@@ -56,7 +55,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
       this.targetJoinColumns = null;
     }
     this.pathElements = Collections.unmodifiableList(pathElementsBuffer);
-    this.cardinality = ((JPAAssociationPathImpl) associationPath).getCardinality();
+    this.cardinality = ((JPAAssociationPathImpl) nestedAssociationPath).getCardinality();
   }
 
   JPAAssociationPathImpl(final IntermediateNavigationProperty navProperty, final IntermediateStructuredType<?> source)
@@ -97,14 +96,6 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
   }
 
   @Override
-  public List<JPASelector> getLeftPaths() throws ODataJPAModelException {
-    if (leftSelectors == null) {
-      determineJoinSelectors();
-    }
-    return Collections.unmodifiableList(leftSelectors);
-  }
-
-  @Override
   public List<JPASelector> getRightPaths() throws ODataJPAModelException {
     if (rightSelectors == null) {
       determineJoinSelectors();
@@ -113,16 +104,11 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
   }
 
   private void determineJoinSelectors() throws ODataJPAModelException {
-    leftSelectors = new ArrayList<JPASelector>(sourceJoinColumns.size());
     rightSelectors = new ArrayList<JPASelector>(sourceJoinColumns.size());
-    JPASelector selectorLeft;
     JPASelector selectorRight;
 
     for (final IntermediateJoinColumn column : this.sourceJoinColumns) {
       fillMissingName(cardinality, sourceType, targetType, column);
-      // always take source for left side
-      selectorLeft = findJoinConditionPath(sourceType, column.getSourceEntityColumnName());
-      leftSelectors.add(selectorLeft);
       selectorRight = null;
       // take source for right side only if no join table exists, defining target
       // columns

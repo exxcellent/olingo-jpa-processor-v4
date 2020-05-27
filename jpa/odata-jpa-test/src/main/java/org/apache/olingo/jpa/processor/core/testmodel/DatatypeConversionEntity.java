@@ -3,17 +3,22 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.time.DayOfWeek;
 import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -24,6 +29,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
@@ -100,6 +106,14 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Column(name = "\"AOtherPackageEnum\"")
   @Enumerated(javax.persistence.EnumType.STRING)
   private TestEnum aEnumFromOtherPackage;
+
+  // test support for enum collection
+  @ElementCollection
+  @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::DatatypeConversionEntityWeekDays\"",
+  joinColumns = @JoinColumn(name = "\"DatatypeConversionEntity_ID\""))
+  @Column(name = "\"DayIndex\"")
+  @Convert(converter = JPADayOfWeekConverter.class)
+  private Set<DayOfWeek> enumCollection;
 
   @EdmSearchable
   // do not define a JPA converter here, we want to test the autoapply!

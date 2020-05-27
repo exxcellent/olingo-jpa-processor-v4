@@ -100,12 +100,13 @@ public class TestProvider extends TestMappingRoot {
   @Test
   public void checkSchemas() throws ODataException {
     final List<CsdlSchema> list = edmProvider.getSchemas();
-    // number depends strongly of used data model... test must be adapt often...
+    // number depends strongly of used data model... test must be adapted often...
     // org.apache.olingo.jpa.processor.core.testmodel.otherpackage
     // java.time.temporal
     // java.time.chrono
     // org.apache.olingo.jpa
-    assertEquals(4, list.size());
+    // java.time
+    assertEquals(5, list.size());
   }
 
 }

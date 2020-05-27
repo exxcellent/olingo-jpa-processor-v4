@@ -51,11 +51,6 @@ public class JPAAssociationPathDTOImpl implements JPAAssociationPath {
 	}
 
 	@Override
-	public List<JPASelector> getLeftPaths() throws ODataJPAModelException {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public List<JPASelector> getRightPaths() throws ODataJPAModelException {
 		throw new UnsupportedOperationException();
 	}

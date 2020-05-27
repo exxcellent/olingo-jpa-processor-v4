@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.metamodel.PluralAttribute.CollectionType;
+
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.geo.SRID;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
@@ -196,6 +198,14 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     }
 
     @Override
+    public CollectionType getCollectionType() {
+      if (isCollection()) {
+        return CollectionType.COLLECTION;
+      }
+      return null;
+    }
+
+    @Override
     public Integer getMaxLength() {
       return Integer.valueOf(jpaParameter.maxLength());
     }
@@ -257,6 +267,14 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     @Override
     public Class<?> getType() {
       return jpaReturnType.type();
+    }
+
+    @Override
+    public CollectionType getCollectionType() {
+      if (isCollection()) {
+        return CollectionType.COLLECTION;
+      }
+      return null;
     }
 
     @Override

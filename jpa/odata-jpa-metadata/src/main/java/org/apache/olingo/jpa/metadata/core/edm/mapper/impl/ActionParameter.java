@@ -4,7 +4,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
+import javax.persistence.metamodel.PluralAttribute.CollectionType;
 import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
@@ -111,6 +114,18 @@ class ActionParameter implements JPAOperationParameter {
     } else {
       return javaParameter.getType();
     }
+  }
+
+  @Override
+  public CollectionType getCollectionType() {
+    if (Set.class.isAssignableFrom(javaParameter.getType())) {
+      return CollectionType.SET;
+    } else if (List.class.isAssignableFrom(javaParameter.getType())) {
+      return CollectionType.LIST;
+    } else if (Collection.class.isAssignableFrom(javaParameter.getType())) {
+      return CollectionType.COLLECTION;
+    }
+    return null;
   }
 
   @Override

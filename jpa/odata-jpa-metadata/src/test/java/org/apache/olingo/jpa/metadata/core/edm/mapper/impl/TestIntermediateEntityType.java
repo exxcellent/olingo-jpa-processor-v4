@@ -152,32 +152,28 @@ public class TestIntermediateEntityType extends TestMappingRoot {
 
   @Test
   public void checkGetAssoziationOfComplexTypeByNameJoinColumns() throws ODataJPAModelException {
-    int actCount = 0;
     final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
         "BusinessPartner"),
         serviceDocument);
     final JPAAssociationPath assoPath = et.getAssociationPath("Address/AdministrativeDivision");
-    final List<JPASelector> leftSelectors = assoPath.getLeftPaths();
     final List<JPASelector> rightSelectors = assoPath.getRightPaths();
-    assertEquals("The join is based on same column numbers on both sides", leftSelectors.size(),
-        rightSelectors.size());
-    for (int i = 0; i < leftSelectors.size(); i++) {
-      final JPASelector left = leftSelectors.get(i);
-      final JPASelector right = rightSelectors.get(i);
-      if (left.getAlias().equals("Address/Region")) {
-        assertTrue(right.getAlias().equals("DivisionCode"));
-        actCount++;
-      }
-      if (left.getAlias().equals("Address/RegionCodeID")) {
-        assertTrue(right.getAlias().equals("CodeID"));
-        actCount++;
-      }
-      if (left.getAlias().equals("Address/RegionCodePublisher")) {
-        assertTrue(right.getAlias().equals("CodePublisher"));
-        actCount++;
-      }
-    }
-    assertEquals("Not all join columns found", 3, actCount);
+    assertEquals("Not all join columns found", 3, rightSelectors.size());
+    assertTrue(rightSelectors.get(0).getAlias().equals("CodePublisher"));
+    assertTrue(rightSelectors.get(1).getAlias().equals("CodeID"));
+    assertTrue(rightSelectors.get(2).getAlias().equals("DivisionCode"));
+  }
+
+  @Test
+  public void checkGetAssoziationOfComplexTypeByNameJoinColumnsHavingReducedJoinColumns()
+      throws ODataJPAModelException {
+    final IntermediateEntityType et = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
+        "BusinessPartner"), serviceDocument);
+    final JPAAssociationPath assoPath = et.getAssociationPath("Roles");
+    final List<JPASelector> rightSelectors = assoPath.getRightPaths();
+    assertEquals("Exactly 1 @JoinColumn expected", 1, rightSelectors.size());
+    assertTrue(rightSelectors.get(0).getAlias().equals("BusinessPartnerID"));
+    assertEquals("BusinessPartnerRole must have 2 @Id attributes", 2, assoPath.getTargetType().getKeyAttributes(true)
+        .size());
   }
 
   @Test

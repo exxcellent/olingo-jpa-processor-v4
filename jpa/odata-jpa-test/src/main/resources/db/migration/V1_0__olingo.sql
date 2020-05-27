@@ -53,7 +53,7 @@ insert into "org.apache.olingo.jpa::BusinessPartner" values ('6', 0, '2', '','',
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('7', 0, '2', '','',null,null,'Seventh Org.','',null,'Test Road', '4','', 'Test City','29321','ISO', '3166-2','US-SC', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'USA');
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('8', 0, '2', '','',null,null,'Eighth Org.','',null,'Test Road', '453','', 'Test City','29221','ISO', '3166-2','US-SC', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'USA');
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('9', 0, '2', '','',null,null,'Ninth Org.','',null,'Test Road', '93','', 'Test City','55021','ISO', '3166-2','US-MN', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'USA');
-insert into "org.apache.olingo.jpa::BusinessPartner" values ('10', 0, '2', '','',null,null,'Tenth Org.','',null,'Test Road', '12','', 'Test City','03921','ISO', '3166-2','US-ME', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'DEU');
+insert into "org.apache.olingo.jpa::BusinessPartner" values ('10', 0, '2', '','',null,null,'Tenth Org.','',null,'Test Road', '12','', 'Test City','03921','ISO', '3166-2', null, 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'DEU');
 -- persons
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('99', 0, '1', '','',null,null,'Max','Mustermann',null,'Test Straße', '12','', 'Teststadt','10115','ISO', '3166-2','DE-BE', 'DEU', '', '','','', '99','2016-01-20 09:21:23', null, null, 'DEU'); 
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('98', 0, '1', '','',null,null,'John','Doe',null,'Test Road', '55','', 'Test City','76321','ISO', '3166-2','US-TX', 'USA', '+41 12345 6789012-0', '','','', '99','2016-01-20 09:21:23', null, null, 'USA'); 
@@ -717,7 +717,7 @@ CREATE TABLE "org.apache.olingo.jpa::DummyToBeIgnored" (
 
 -- additional table only used to test datatype support/conversion between JPA and oData
 CREATE TABLE "org.apache.olingo.jpa::DatatypeConversionEntity" (
-	"ID" BIGINT NOT NULL ,
+	"ID" BIGINT NOT NULL,
 	"ADate1" DATE,
 	"ADate2" DATE,
 	"ADate3" DATE,
@@ -739,6 +739,19 @@ CREATE TABLE "org.apache.olingo.jpa::DatatypeConversionEntity" (
 
 insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 1, '0610-01-01', null, null, '09:21:00','2010-01-01 09:21:00', '2016-01-20 09:21:23', -12.34, 'http://www.anywhere.org/image.jpg', 123, 1900, 'CE', 0, 'Two', '7f905a0b-bb6e-11e3-9e8f-000000000000', 1, FALSE);
 insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 2, '2090-12-01', '1600-12-01', '1000-10-12', '22:21:20', '2010-01-01 23:00:59', '2016-01-20 09:21:23', 98989898.34678, 'http://www.anywhere.org/image.jpg', 8888888, 2000, 'BCE', 1, 'Two', '7f905a0b-bb6e-11e3-9e8f-000000000001', 0, TRUE);
+insert into "org.apache.olingo.jpa::DatatypeConversionEntity" values( 3, '1999-02-27', '1700-12-01', '9999-12-31', '00:00:02', null, null, 0.0002, null, null, 12345, null, null, null, null, 1, FALSE);
+
+-- Weekdays starting with Monday=1 .. Sunday=7
+CREATE TABLE "org.apache.olingo.jpa::DatatypeConversionEntityWeekDays" (
+	"DatatypeConversionEntity_ID" BIGINT NOT NULL,
+	"DayIndex" INTEGER NOT NULL,
+	 PRIMARY KEY ("DatatypeConversionEntity_ID", "DayIndex"))
+;
+insert into "org.apache.olingo.jpa::DatatypeConversionEntityWeekDays" values( 1, 1);
+insert into "org.apache.olingo.jpa::DatatypeConversionEntityWeekDays" values( 3, 2);
+insert into "org.apache.olingo.jpa::DatatypeConversionEntityWeekDays" values( 3, 7);
+
+
 	 
 -- additional table only used to test relationship scenarios
 CREATE TABLE "org.apache.olingo.jpa::RelationshipEntity" (

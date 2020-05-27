@@ -146,7 +146,9 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
 
       // Warning: EclipseLink will produce an invalid query if we have a 'group by'
       // without SELECT the column in that 'group by', Hibernate is working properly
-      final List<Expression<?>> groupByColumns = handleAggregation(subQuery, subqueryResultFrom);
+      final List<Expression<?>> groupByColumns = determineGroupByForAggregation(subQuery);
+      subQuery.groupBy(groupByColumns);
+
       if (groupByColumns.isEmpty()) {
         // EXISTS subselect needs only a marker select for existence
         subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
@@ -166,7 +168,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
     }
   }
 
-  protected List<Expression<?>> handleAggregation(final Subquery<?> subQuery, final From<?, ?> subRoot)
+  private List<Expression<?>> determineGroupByForAggregation(final Subquery<?> subQuery)
       throws ODataApplicationException, ODataJPAModelException {
 
     if (filter == null) {
@@ -175,23 +177,32 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
     if (getAggregationType(this.filter.getExpression()) == null) {
       return Collections.emptyList();
     }
-    final List<Expression<?>> groupByLIst = new LinkedList<>();
-    // TODO avoid cast to JPAAssociationPath
-    final List<JPASelector> navigationSourceSelectors = ((JPAAssociationPath) navigationPath).getRightPaths();
-    for (int index = 0; index < navigationSourceSelectors.size(); index++) {
-      Path<?> subPath = subRoot;
-      final JPASelector sourceSelector = navigationSourceSelectors.get(index);
-      for (final JPAElement jpaPathElement : sourceSelector.getPathElements()) {
-        subPath = subPath.get(jpaPathElement.getInternalName());
-      }
-      groupByLIst.add(subPath);
-    }
-    subQuery.groupBy(groupByLIst);
 
     try {
       subQuery.having(this.filter.compile());
     } catch (final ExpressionVisitException e) {
       throw new ODataJPAQueryException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+    }
+
+    final List<Expression<?>> groupByLIst = new LinkedList<>();
+    if (JPAAssociationPath.class.isInstance(navigationPath)) {
+      // If we directly add the complete target type ('subqueryResultFrom') for grouping, then all id attributes will be
+      // used for the resulting 'group by', not only the columns defining the relationship (@JoinColumn) -> a design
+      // problem in JPA?
+      // So we have to find out manually all attributes on target side affecting the relationship and use these for
+      // grouping
+      final List<JPASelector> navigationSourceSelectors = ((JPAAssociationPath) navigationPath).getRightPaths();
+      for (int index = 0; index < navigationSourceSelectors.size(); index++) {
+        Path<?> subPath = subqueryResultFrom;
+        final JPASelector sourceSelector = navigationSourceSelectors.get(index);
+        for (final JPAElement jpaPathElement : sourceSelector.getPathElements()) {
+          subPath = subPath.get(jpaPathElement.getInternalName());
+        }
+        groupByLIst.add(subPath);
+      }
+    } else {
+      // @ElementCollection (aka primitive type navigation) -> group by complete sub root target
+      groupByLIst.add(subqueryResultFrom);
     }
     return groupByLIst;
 

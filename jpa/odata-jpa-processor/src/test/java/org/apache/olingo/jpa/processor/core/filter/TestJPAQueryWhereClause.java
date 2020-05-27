@@ -588,41 +588,6 @@ public class TestJPAQueryWhereClause extends TestBase {
   }
 
   @Test
-  public void testFilterNavigationPropertyToManyValueAll() throws IOException, ODataException {
-
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").select("ID").filter(
-        "Roles/all(d:d/RoleCategory eq 'A')");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getJsonObjectValues();
-    assertEquals(1, orgs.size());
-  }
-
-  @Test
-  public void testFilterCountNavigationProperty() throws IOException, ODataException {
-    // https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
-    // Example 43: return all Categories with less than 10 products
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$select=ID&$filter=Roles/$count eq 1");
-
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getJsonObjectValues();
-    assertEquals(2, orgs.size());
-  }
-
-  @Ignore("Currently no deeper navigation available ending with a collection")
-  @Test
-  public void testFilterCountNavigationPropertyMultipleHops() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$select=ID&$filter=AdministrativeInformation/Created/User/Roles/$count ge 2");
-
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode orgs = helper.getJsonObjectValues();
-    assertEquals(8, orgs.size());
-  }
-
-  @Test
   public void testFilterNavigationPropertyToOneValue() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "Parent/CodeID eq 'NUTS1'");
@@ -761,8 +726,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   public void testFilterCaseInsensitive() throws IOException, ODataException {
 
     // find 'EuroSTat'
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions?$filter=contains(toupper(CodePublisher), 'ST')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "contains(toupper(CodePublisher), 'ST')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode entities = helper.getJsonObjectValues();
@@ -771,8 +737,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterDayOfTime2LocalTime() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DatatypeConversionEntities?$filter=ATime1 eq 22:21:20");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "ATime1 eq 22:21:20");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
@@ -780,8 +747,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterDate2LocalDate() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DatatypeConversionEntities?$filter=ADate2 eq 1600-12-01");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "ADate2 eq 1600-12-01");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
@@ -789,8 +757,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterTimestamp2SqlTimestampWithContainsAndCast() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DatatypeConversionEntities?$filter=contains(cast(ATimestamp1SqlTimestamp, Edm.String), '09:21:00')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "contains(cast(ATimestamp1SqlTimestamp, Edm.String), '09:21:00')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
@@ -804,8 +773,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     // '2010-01-01' will be expanded to '2010-01-01 00:00:00.0' (a complete
     // timestamp)
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DatatypeConversionEntities?$filter=date(ATimestamp1SqlTimestamp) ge 2010-01-01");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "date(ATimestamp1SqlTimestamp) ge 2010-01-01");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(2, entities.size());
@@ -813,8 +783,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterBooleanAttribute() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DatatypeConversionEntities?$filter=ABoolean eq true");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "ABoolean eq true");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
@@ -822,10 +793,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNavigationThroughJoinTable() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$select=ID,Country&$filter=Locations/any(d:d/Name eq 'Texas')");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").select("ID", "Country")
+        .filter("Locations/any(d:d/Name eq 'Texas')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());

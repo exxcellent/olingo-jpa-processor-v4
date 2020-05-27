@@ -20,6 +20,7 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
+import org.apache.olingo.server.api.uri.UriResourceProperty;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitor;
@@ -220,6 +221,10 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
           .getUriResourceParts();
       for (int i = uriResourceParts.size() - 1; i >= 0; i--) {
         if (uriResourceParts.get(i) instanceof UriResourceNavigation) {
+          return true;
+        }
+        // a collection (@ElementCollection) should have a navigation
+        if(uriResourceParts.get(i) instanceof UriResourceProperty && UriResourceProperty.class.cast(uriResourceParts.get(i)).isCollection()) {
           return true;
         }
       }
