@@ -2,9 +2,12 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -33,6 +36,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -44,10 +48,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 class AccessAPIWriter extends AbstractWriter {
 
   private static final String METHOD_EXTRACT_ENUMVALUE = "extractEnumValue";
-  private static final List<EdmPrimitiveTypeKind> SUPPORTED_PRIMITIVE_TYPES = Arrays.asList(
-      EdmPrimitiveTypeKind.Boolean, EdmPrimitiveTypeKind.Byte, EdmPrimitiveTypeKind.DateTimeOffset,
-      EdmPrimitiveTypeKind.Decimal, EdmPrimitiveTypeKind.Double, EdmPrimitiveTypeKind.Int16, EdmPrimitiveTypeKind.Int32,
-      EdmPrimitiveTypeKind.Int64, EdmPrimitiveTypeKind.String);
 
   private static class KeySorter implements Comparator<JPASimpleAttribute> {
     @Override
@@ -76,6 +76,7 @@ class AccessAPIWriter extends AbstractWriter {
 
     write(NEWLINE + "\t" + "private " + ODataClient.class.getName() + " clientInstance = null;");
 
+    write(NEWLINE);
     write(NEWLINE + "\t" + "/**" + NEWLINE + "\t"
         + " * @return The service root URL as base part of the backend destination URL" + NEWLINE + "\t" + " **/");
     write(NEWLINE + "\t" + "protected abstract " + URI.class.getName() + " getServiceRootUrl();");
@@ -88,12 +89,15 @@ class AccessAPIWriter extends AbstractWriter {
         + " determineAuthorizationHeaderValue();");
     write(NEWLINE);
 
+    write(NEWLINE + "\t" + "/**" + NEWLINE + "\t"
+        + " * Overwrite to create a more specialized client"
+        + NEWLINE + "\t" + " **/");
     write(NEWLINE + "\t" + "protected " + ODataClient.class.getName() + " createClient() {");
     write(NEWLINE + "\t" + "\t" + "return " + ODataClientFactory.class.getName() + ".getClient();");
     write(NEWLINE + "\t" + "}");
     write(NEWLINE);
 
-    write(NEWLINE + "\t" + "protected " + ODataClient.class.getName() + " getClientInstance() {");
+    write(NEWLINE + "\t" + "protected final " + ODataClient.class.getName() + " getClientInstance() {");
     write(NEWLINE + "\t" + "\t" + "if(clientInstance == null) {");
     write(NEWLINE + "\t" + "\t" + "\t" + "clientInstance = createClient();");
     write(NEWLINE + "\t" + "\t" + "}");
@@ -101,7 +105,7 @@ class AccessAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
     write(NEWLINE);
 
-    write(NEWLINE + "\t" + "protected " + URIBuilder.class.getName() + " defineEndpoint() {");
+    write(NEWLINE + "\t" + "protected final " + URIBuilder.class.getName() + " defineEndpoint() {");
     write(NEWLINE + "\t" + "\t" + "return getClientInstance().newURIBuilder(getServiceRootUrl().toString());");
     write(NEWLINE + "\t" + "}");
   }
@@ -214,7 +218,7 @@ class AccessAPIWriter extends AbstractWriter {
 
   private void generate_ConvertValue_HelperMethods(final JPAStructuredType ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
-      throws ODataJPAModelException, IOException {
+          throws ODataJPAModelException, IOException {
     for (final JPASimpleAttribute attribute : ownerType.getAttributes()) {
       if (attribute.isCollection()) {
         generate_ConvertCollectionValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
@@ -257,6 +261,14 @@ class AccessAPIWriter extends AbstractWriter {
    */
   private String determineConversionMethodName(final JPASimpleAttribute attribute,
       final boolean respectCollection) throws ODataJPAModelException {
+    @SuppressWarnings("deprecation")
+    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotation(EdmAttributeConversion.class);
+    if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+        .converter())) {
+      return "convertOData" + qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName()) + "Via"
+          + qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName());
+    }
+
     String fromName;
     if (attribute.isComplex()) {
       fromName = attribute.getExternalName();
@@ -331,51 +343,107 @@ class AccessAPIWriter extends AbstractWriter {
         + ClientPrimitiveValue.class.getName() + " propertyValue, "
         + "final Integer maxLength, final Integer precision, final Integer scale) throws "
         + ODataException.class.getName() + " {");
-    switch (odataType) {
-    case Boolean:
-      if (attribute.getType().isPrimitive()) {
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class).booleanValue();");
-      } else {
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class);");
-      }
-      break;
-    case String:
-      write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(" + propClientType + ".class);");
-      break;
-    case Int16:
-    case Int32:
-      if (attribute.getType().isPrimitive()) {
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class).intValue();");
-      } else {
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class);");
-      }
-      break;
-    case Int64:
-      if (attribute.getType().isPrimitive()) {
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class).longValue();");
-      } else {
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class);");
-      }
-      break;
-    case DateTimeOffset:
-      write(NEWLINE + "\t" + "\t" + "\t" + "\t" + EdmPrimitiveType.class.getName() + " pType = "
-          + EdmPrimitiveTypeFactory.class
-          .getName() + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "."
-          + EdmPrimitiveTypeKind.DateTimeOffset.name() + ");");
-      write(NEWLINE + "\t" + "\t" + "String sV = (String)propertyValue.toValue();");
-      write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
-      write(NEWLINE + "\t" + "\t"
-          + "return pType.valueOfString(sV, Boolean.TRUE, maxLength, precision, scale, Boolean.TRUE, " + propClientType
-          + ".class" + ");");
-      break;
-    default:
-      write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
-    }
 
+    @SuppressWarnings("deprecation")
+    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotation(EdmAttributeConversion.class);
+    if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+        .converter())) {
+      write(NEWLINE + "\t" + "\t"
+          + "throw new UnsupportedOperationException(\"implement converter manually on client side: "
+          + annoConversionConfiguration
+          .converter().getCanonicalName() + "\");");
+    } else {
+      switch (odataType) {
+      case Boolean:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class).booleanValue();");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class);");
+        }
+        break;
+      case String:
+        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(" + propClientType + ".class);");
+        break;
+      case Int16:
+      case Int32:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class).intValue();");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class);");
+        }
+        break;
+      case Int64:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class).longValue();");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class);");
+        }
+        break;
+      case Double:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Double.class).doubleValue();");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Double.class);");
+        }
+        break;
+      case Decimal:
+        write(NEWLINE + "\t" + "\t" + "Double dV = propertyValue.toCastValue(Double.class);");
+        write(NEWLINE + "\t" + "\t"
+            + BigDecimal.class.getCanonicalName() + " bd = precision != null ? new " + BigDecimal.class
+            .getCanonicalName() + "(dV.doubleValue(), new " + MathContext.class.getCanonicalName()
+            + "(precision.intValue())) : new " + BigDecimal.class.getCanonicalName() + "(dV.doubleValue());");
+        write(NEWLINE + "\t" + "\t" + "bd = scale != null ? bd.setScale(scale.intValue()) : bd;");
+        write(NEWLINE + "\t" + "\t" + "return bd;");
+        break;
+      case DateTimeOffset:
+        generate_ConvertStatementsForDateTimeOffset(attribute.getType(), propClientType);
+        break;
+      case TimeOfDay:
+      case Date:
+      case Guid:
+        generate_ConvertStatementsForStringBasedDefault(odataType, propClientType);
+        break;
+      case Byte:
+        // FIXME
+      default:
+        write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
+      }
+    }
     write(NEWLINE + "\t" + "}");
 
     mapAlreadeGeneratedMethods.add(methodName);
     return methodName;
+  }
+
+  private void generate_ConvertStatementsForDateTimeOffset(final Class<?> propJpaType, final String propClientType)
+      throws IOException {
+    if (propJpaType == LocalDateTime.class) {
+      // convert into ZonedDateTime (avoiding time zone shifting problems) and that into LocalDateTime
+      write(NEWLINE + "\t" + "\t" + "\t" + "\t" + EdmPrimitiveType.class.getName() + " pType = "
+          + EdmPrimitiveTypeFactory.class.getName() + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "."
+          + EdmPrimitiveTypeKind.DateTimeOffset.name() + ");");
+      write(NEWLINE + "\t" + "\t" + "String sV = propertyValue.toCastValue(String.class);");
+      write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
+      write(NEWLINE + "\t" + "\t"
+          + "return pType.valueOfString(sV, Boolean.TRUE, maxLength, precision, scale, Boolean.TRUE, "
+          + ZonedDateTime.class.getCanonicalName() + ".class" + ").toLocalDateTime();");
+      return;
+    }
+    // default
+    generate_ConvertStatementsForStringBasedDefault(EdmPrimitiveTypeKind.DateTimeOffset, propClientType);
+  }
+
+  private void generate_ConvertStatementsForStringBasedDefault(final EdmPrimitiveTypeKind odataType,
+      final String propClientType) throws IOException {
+    // all these primitive types can be constructed from String
+    write(NEWLINE + "\t" + "\t" + "\t" + "\t" + EdmPrimitiveType.class.getName() + " pType = "
+        + EdmPrimitiveTypeFactory.class.getName() + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "."
+        + odataType.name() + ");");
+    write(NEWLINE + "\t" + "\t" + "String sV = propertyValue.toCastValue(String.class);");
+    write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
+    write(NEWLINE + "\t" + "\t"
+        + "return pType.valueOfString(sV, Boolean.TRUE, maxLength, precision, scale, Boolean.TRUE, " + propClientType
+        + ".class" + ");");
   }
 
   private void generate_ConvertEnumValue_HelperMethod() throws ODataJPAModelException, IOException {
@@ -461,7 +529,7 @@ class AccessAPIWriter extends AbstractWriter {
       final Set<String> mapAlreadeGeneratedMethods) throws ODataJPAModelException,
   IOException {
     for (final JPAAssociationAttribute asso : sType.getAssociations()) {
-      // TODO
+      // FIXME
       System.out.println("Support REL " + sType.getInternalName() + " : " + asso.getInternalName());// TODO
     }
     // simple properties
@@ -471,8 +539,9 @@ class AccessAPIWriter extends AbstractWriter {
         generateAttributeConversion(sType, attribute);
         break;
       case EMBEDDED_ID:
+        // handle properties of nested complex type (@EmbeddedId) as properties of this type
         for (final JPASimpleAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
-          generateAttributeConversion(attribute.getStructuredType(), nestedProp);
+          generateAttributeConversion(sType, nestedProp);
         }
         break;
       case AS_COMPLEX_TYPE:

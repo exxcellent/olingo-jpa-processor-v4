@@ -11,7 +11,7 @@
 
 	<groupId>org.apache.olingo.jpa.tools</groupId>
 	<artifactId>tools-parent</artifactId>
-	<name>Tooling Parent POM</name>
+	<name>OData-JPA-Adapter Tooling Parent POM</name>
 	<packaging>pom</packaging>
 
 	<modules>

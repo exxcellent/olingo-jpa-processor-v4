@@ -55,7 +55,10 @@ public class AccessTestBase extends TestBase {
     }
   }
 
-  private static URI URI = null;
+  /**
+   * Dummy URI to have an address to call...
+   */
+  protected static URI URI = null;
 
   static {
     try {
@@ -74,6 +77,10 @@ public class AccessTestBase extends TestBase {
     };
   }
 
+  /**
+   * Create a concrete facade for given <i>abstractAccessClass</i> to work on it without implementing the abstract
+   * methods.
+   */
   protected <C> C createLocalEntityAccess(final Class<C> abstractAccessClass) throws Exception {
     checkAccessMethodPresence(abstractAccessClass, AccessClassInvocationHandler.METHOD_CREATE_CLIENT);
     checkAccessMethodPresence(abstractAccessClass,

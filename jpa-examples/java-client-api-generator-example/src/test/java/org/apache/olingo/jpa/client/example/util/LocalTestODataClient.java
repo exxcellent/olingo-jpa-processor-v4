@@ -48,7 +48,7 @@ import org.apache.olingo.jpa.processor.core.util.TestErrorProcessor;
 import org.apache.olingo.server.api.processor.Processor;
 
 @SuppressWarnings("deprecation")
-class LocalTestODataClient extends ODataClientImpl {
+public final class LocalTestODataClient extends ODataClientImpl {
 
   private static class MockDefaultHttpClientFactory extends DefaultHttpClientFactory {
 

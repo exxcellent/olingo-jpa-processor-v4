@@ -16,7 +16,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateModelGene
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 
 //Attention: Do not use any other class than from system class loader or inside this package!
-//We cannot use classes from Maven, because we an complete separated class loading to workaround that shit java.util.ServiceLoader
+//We cannot use classes from Maven, because we have an complete separated class loading to workaround that shit java.util.ServiceLoader
 //not inspecting our newly classpath added jar's for the PersistenceProvider
 public class Generator {
 
