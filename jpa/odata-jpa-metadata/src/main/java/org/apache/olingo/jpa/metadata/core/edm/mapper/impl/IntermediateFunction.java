@@ -243,11 +243,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 
     @Override
     public boolean isPrimitive() {
-      try {
-        return TypeMapping.convertToEdmSimpleType(jpaParameter.type()) != null;
-      } catch (final ODataJPAModelException e) {
-        return false;
-      }
+      return TypeMapping.isPrimitiveType(jpaParameter.type());
     }
   }
 
@@ -309,11 +305,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
 
     @Override
     public boolean isPrimitive() {
-      try {
-        return TypeMapping.convertToEdmSimpleType(jpaReturnType.type()) != null;
-      } catch (final ODataJPAModelException e) {
-        return false;
-      }
+      return TypeMapping.isPrimitiveType(jpaReturnType.type());
     }
   }
 }

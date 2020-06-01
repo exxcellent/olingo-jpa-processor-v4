@@ -108,11 +108,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
 
   @Override
   public boolean isPrimitive() {
-    try {
-      return TypeMapping.convertToEdmSimpleType(getType()) != null;
-    } catch (final ODataJPAModelException e) {
-      return false;
-    }
+    return TypeMapping.isPrimitiveType(getType());
   }
 
   CsdlReturnType getEdmItem() throws ODataJPAModelException {

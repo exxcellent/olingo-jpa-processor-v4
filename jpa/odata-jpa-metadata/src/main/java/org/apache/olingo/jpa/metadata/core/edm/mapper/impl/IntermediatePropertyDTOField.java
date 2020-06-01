@@ -59,21 +59,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 
   private FullQualifiedName createTypeName() throws ODataJPAModelException {
     final Class<?> attributeType = getType();
-    if (isPrimitive()) {
-      if (field.getType().isEnum()) {
-        @SuppressWarnings("unchecked")
-        final IntermediateEnumType jpaEnumType = serviceDocument
-        .findOrCreateEnumType((Class<? extends Enum<?>>) field.getType());
-        return jpaEnumType.getExternalFQN();
-      }
-      // simple types
-      if (isCollection()) {
-        return TypeMapping.convertToEdmSimpleType(attributeType).getFullQualifiedName();
-      } else {
-        // trigger exception if not possible
-        return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
-      }
-    } else if (TypeMapping.isFieldTargetingDTO(field)) {
+    if (TypeMapping.isFieldTargetingDTO(field)) {
       final JPAStructuredType dtoType = getStructuredType();
       if (dtoType == null) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
@@ -81,8 +67,16 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
       }
       return dtoType.getExternalFQN();
     } else {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-          "Java type not supported");
+      // assume primitive
+      if (field.getType().isEnum()) {
+        @SuppressWarnings("unchecked")
+        final IntermediateEnumType jpaEnumType = serviceDocument
+        .findOrCreateEnumType((Class<? extends Enum<?>>) field.getType());
+        return jpaEnumType.getExternalFQN();
+      }
+      // simple types
+      // trigger exception if not possible
+      return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
     }
   }
 
@@ -152,7 +146,8 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 
   @Override
   public boolean isComplex() {
-    return !isPrimitive();
+    // per definition
+    return false;
   }
 
   @Override
@@ -220,7 +215,7 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
 
   @Override
   public boolean isPrimitive() {
-    return TypeMapping.isPrimitiveType(field);
+    return !isComplex();
   }
 
   @Override

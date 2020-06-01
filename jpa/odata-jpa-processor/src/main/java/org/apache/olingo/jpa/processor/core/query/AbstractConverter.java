@@ -19,9 +19,7 @@ import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.Valuable;
 import org.apache.olingo.commons.api.data.ValueType;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -33,6 +31,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.mapping.converter.LocalDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.LocalDateTime2SqlTimestampODataAttributeConverter;
+import org.apache.olingo.jpa.processor.core.mapping.converter.LocalDateTime2ZonedDateTimeODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.LocalTime2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.SqlDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.SqlTime2UtilCalendarODataAttributeConverter;
@@ -90,6 +89,8 @@ public abstract class AbstractConverter {
         new LocalDate2UtilCalendarODataAttributeConverter()));
     DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class,
         java.time.LocalTime.class, true, new LocalTime2UtilCalendarODataAttributeConverter()));
+    DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.time.ZonedDateTime.class,
+        java.time.LocalDateTime.class, true, new LocalDateTime2ZonedDateTimeODataAttributeConverter()));
     DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.sql.Timestamp.class,
         java.time.LocalDateTime.class, true, new LocalDateTime2SqlTimestampODataAttributeConverter()));
   }
@@ -115,9 +116,20 @@ public abstract class AbstractConverter {
    *
    * @return A found converter or <code>null</code> if no converter is available.
    */
-  @SuppressWarnings("unchecked")
   protected final ODataAttributeConverter<Object, Object> determineODataAttributeConverter(final JPATypedElement jpaElement,
       final Class<?> odataAttributeType) throws ODataJPAConversionException {
+    final ODataAttributeConverter<Object, Object> converter = determineCustomODataAttributeConverter(jpaElement);
+    if (converter != null) {
+      return converter;
+    }
+    // look for default converter
+    return determineDefaultODataAttributeConverter(jpaElement.getType(), odataAttributeType);
+  }
+
+  @SuppressWarnings("unchecked")
+  private ODataAttributeConverter<Object, Object> determineCustomODataAttributeConverter(
+      final JPATypedElement jpaElement) throws ODataJPAConversionException {
+    @SuppressWarnings("deprecation")
     final EdmAttributeConversion annoConversionConfiguration = jpaElement.getAnnotation(EdmAttributeConversion.class);
     if (annoConversionConfiguration != null) {
       try {
@@ -128,8 +140,7 @@ public abstract class AbstractConverter {
         throw new ODataJPAConversionException(e, ODataJPAConversionException.MessageKeys.RUNTIME_PROBLEM, e.getMessage());
       }
     }
-    // look for default converter
-    return determineDefaultODataAttributeConverter(jpaElement.getType(), odataAttributeType);
+    return null;
   }
 
   @SuppressWarnings("unchecked")
@@ -176,20 +187,25 @@ public abstract class AbstractConverter {
   protected Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
       throws ODataJPAConversionException, ODataJPAModelException {
 
+    ODataAttributeConverter<Object, Object> converter = determineCustomODataAttributeConverter(attribute);
+    if (converter != null) {
+      return converter.convertToOData(jpaValue);
+    }
+
     final Class<?> oadataType;
     if (attribute.getType().isEnum()) {
       oadataType = null;
     } else {
       // use a intermediate conversion to an supported JAVA type in the Olingo library
-      final EdmPrimitiveTypeKind kind = TypeMapping.convertToEdmSimpleType(attribute);
-      oadataType = EdmPrimitiveTypeFactory.getInstance(kind).getDefaultType();
+      oadataType = TypeMapping.determineODataRepresentationtype(attribute);
+      //      final EdmPrimitiveTypeKind kind = TypeMapping.convertToEdmSimpleType(attribute);
+      //      oadataType = EdmPrimitiveTypeFactory.getInstance(kind).getDefaultType();
     }
     final Class<?> javaType = attribute.getType();
     if (javaType.equals(oadataType)) {
       return jpaValue;
     }
-    final ODataAttributeConverter<Object, Object> converter = determineODataAttributeConverter(attribute,
-        oadataType);
+    converter = determineDefaultODataAttributeConverter(attribute.getType(), oadataType);
     if (converter != null) {
       return converter.convertToOData(jpaValue);
     }
