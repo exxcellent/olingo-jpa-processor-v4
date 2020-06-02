@@ -266,11 +266,12 @@ implements JPAStructuredType {
           declaredNaviPropertiesList.put(navProp.getInternalName(), navProp);
           break;
         case ELEMENT_COLLECTION:
-          if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
+          if (TypeMapping.isEmbeddableTypeCollection(jpaAttribute)) {
             property = new IntermediateProperty(nameBuilder, jpaAttribute, serviceDocument);
             declaredPropertiesList.put(property.getInternalName(), property);
             break;
-          } else if (TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute)) {
+          } else if (jpaAttribute instanceof PluralAttribute) {
+            // primitive type collection
             property = new IntermediateProperty(nameBuilder, jpaAttribute, serviceDocument);
             declaredPropertiesList.put(property.getInternalName(), property);
             break;

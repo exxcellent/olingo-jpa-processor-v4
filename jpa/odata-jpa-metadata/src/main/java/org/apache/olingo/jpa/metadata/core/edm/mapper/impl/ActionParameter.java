@@ -140,11 +140,7 @@ class ActionParameter implements JPAOperationParameter {
 
   @Override
   public boolean isPrimitive() {
-    try {
-      return TypeMapping.convertToEdmSimpleType(getType()) != null;
-    } catch (final ODataJPAModelException e) {
-      return false;
-    }
+    return TypeMapping.isPrimitiveType(getType());
   }
 
   @Override

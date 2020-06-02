@@ -7,9 +7,12 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Embeddable;
@@ -18,8 +21,6 @@ import javax.persistence.Temporal;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.PluralAttribute;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.Type;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.geo.Geospatial.Dimension;
@@ -35,57 +36,92 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 public final class TypeMapping {
 
-  private final static Map<Class<?>, EdmPrimitiveTypeKind> MAPPING_JPA2ODATA = new HashMap<>();
+  private final static List<ODataMapping> MAPPINGS_JPA2ODATA = new LinkedList<>();
+
+  private static class ODataMapping {
+    private final EdmPrimitiveTypeKind kind;
+    private final Class<?> odataRepresentationType;
+    private final Class<?>[] jpaTypesToMap;
+
+    /**
+     * {@link org.apache.olingo.commons.api.edm.EdmPrimitiveType#getDefaultType() EdmPrimitiveType::getDefaultType()}
+     * will not always announce the best/real used data type. As example: With Olingo 4.7.x
+     * {@link org.apache.olingo.commons.core.edm.primitivetype.EdmDateTimeOffset EdmDateTimeOffset} will offer
+     * {@link java.sql.Timestamp} as default but internal {@link java.time.ZonedDateTime} is used for conversion. So we
+     * have to define an mapping for data types ignoring the Olingo part.
+     *
+     * @param odataRepresentationType The type used for value representation while serialization in Olingo as OData
+     * entity property.
+     * @param odataKind The OData primitive kind
+     * @param jpaTypes The data types used while modelling of JPA entities to map to <i>odataKind</i> (and
+     * <i>odataRepresentationType</i>)
+     */
+    public ODataMapping(final Class<?> odataRepresentationType, final EdmPrimitiveTypeKind odataKind,
+        final Class<?>... jpaTypes) {
+      this.kind = odataKind;
+      this.odataRepresentationType = odataRepresentationType;
+      if (jpaTypes == null || jpaTypes.length < 1) {
+        throw new IllegalStateException("At least one JPA type required");
+      }
+      jpaTypesToMap = jpaTypes;
+    }
+
+    /**
+     *
+     * @return TRUE if given type is one of the java JPA types assigned to this mapping.
+     */
+    public boolean isMatchingJPAType(final Class<?> iType) {
+      for (final Class<?> t : jpaTypesToMap) {
+        if (t.isAssignableFrom(iType)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
 
   static {
     // global definition for trivial mappings without additional logic
 
     // JPA -> ODATA (n:1 mapping)
-    MAPPING_JPA2ODATA.put(String.class, EdmPrimitiveTypeKind.String);
-    MAPPING_JPA2ODATA.put(Character.class, EdmPrimitiveTypeKind.String);
-    MAPPING_JPA2ODATA.put(char.class, EdmPrimitiveTypeKind.String);
-    MAPPING_JPA2ODATA.put(char[].class, EdmPrimitiveTypeKind.String);
-    MAPPING_JPA2ODATA.put(Character[].class, EdmPrimitiveTypeKind.String);
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(String.class, EdmPrimitiveTypeKind.String, String.class, Character.class,
+        char.class, char[].class, Character[].class, Clob.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Long.class, EdmPrimitiveTypeKind.Int64, Long.class, long.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Short.class, EdmPrimitiveTypeKind.Int16, Short.class, short.class,
+        java.time.Year.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Integer.class, EdmPrimitiveTypeKind.Int32, Integer.class, int.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Double.class, EdmPrimitiveTypeKind.Double, Double.class, double.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Float.class, EdmPrimitiveTypeKind.Single, Float.class, float.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(BigDecimal.class, EdmPrimitiveTypeKind.Decimal, BigDecimal.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(byte[].class, EdmPrimitiveTypeKind.Binary, Byte[].class, byte[].class,
+        java.io.InputStream.class, Blob.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Byte.class, EdmPrimitiveTypeKind.SByte, Byte.class, byte.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(Boolean.class, EdmPrimitiveTypeKind.Boolean, Boolean.class, boolean.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(java.time.LocalTime.class, EdmPrimitiveTypeKind.TimeOfDay,
+        java.time.LocalTime.class, java.sql.Time.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(java.time.LocalDate.class, EdmPrimitiveTypeKind.Date,
+        java.time.LocalDate.class, java.sql.Date.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(ZonedDateTime.class, EdmPrimitiveTypeKind.DateTimeOffset,
+        java.time.LocalDateTime.class, java.sql.Timestamp.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(BigDecimal.class, EdmPrimitiveTypeKind.Duration, java.time.Duration.class));
+    MAPPINGS_JPA2ODATA.add(new ODataMapping(UUID.class, EdmPrimitiveTypeKind.Guid, UUID.class));
 
-    MAPPING_JPA2ODATA.put(Long.class, EdmPrimitiveTypeKind.Int64);
-    MAPPING_JPA2ODATA.put(long.class, EdmPrimitiveTypeKind.Int64);
-
-    MAPPING_JPA2ODATA.put(Short.class, EdmPrimitiveTypeKind.Int16);
-    MAPPING_JPA2ODATA.put(short.class, EdmPrimitiveTypeKind.Int16);
-
-    MAPPING_JPA2ODATA.put(Integer.class, EdmPrimitiveTypeKind.Int32);
-    MAPPING_JPA2ODATA.put(int.class, EdmPrimitiveTypeKind.Int32);
-
-    MAPPING_JPA2ODATA.put(Double.class, EdmPrimitiveTypeKind.Double);
-    MAPPING_JPA2ODATA.put(double.class, EdmPrimitiveTypeKind.Double);
-
-    MAPPING_JPA2ODATA.put(Float.class, EdmPrimitiveTypeKind.Single);
-    MAPPING_JPA2ODATA.put(float.class, EdmPrimitiveTypeKind.Single);
-
-    MAPPING_JPA2ODATA.put(BigDecimal.class, EdmPrimitiveTypeKind.Decimal);
-
-    MAPPING_JPA2ODATA.put(Byte[].class, EdmPrimitiveTypeKind.Binary);
-    MAPPING_JPA2ODATA.put(byte[].class, EdmPrimitiveTypeKind.Binary);
-
-    MAPPING_JPA2ODATA.put(Byte.class, EdmPrimitiveTypeKind.SByte);
-    MAPPING_JPA2ODATA.put(byte.class, EdmPrimitiveTypeKind.SByte);
-
-    MAPPING_JPA2ODATA.put(Boolean.class, EdmPrimitiveTypeKind.Boolean);
-    MAPPING_JPA2ODATA.put(boolean.class, EdmPrimitiveTypeKind.Boolean);
-
-    MAPPING_JPA2ODATA.put(java.time.LocalTime.class, EdmPrimitiveTypeKind.TimeOfDay);
-    MAPPING_JPA2ODATA.put(java.sql.Time.class, EdmPrimitiveTypeKind.TimeOfDay);
-
-    MAPPING_JPA2ODATA.put(java.time.LocalDate.class, EdmPrimitiveTypeKind.Date);
-    MAPPING_JPA2ODATA.put(java.sql.Date.class, EdmPrimitiveTypeKind.Date);
-
-    MAPPING_JPA2ODATA.put(java.time.Duration.class, EdmPrimitiveTypeKind.Duration);
-
-    MAPPING_JPA2ODATA.put(java.time.Year.class, EdmPrimitiveTypeKind.Int16);
-
-    MAPPING_JPA2ODATA.put(java.time.LocalDateTime.class, EdmPrimitiveTypeKind.DateTimeOffset);
-
-    MAPPING_JPA2ODATA.put(UUID.class, EdmPrimitiveTypeKind.Guid);
+    // validate mapping (unique EdmPrimitiveTypeKind entries + unique JPA class entries)
+    final Set<EdmPrimitiveTypeKind> setKinds = new HashSet<>();
+    final Set<Class<?>> setJPAClasses = new HashSet<>();
+    for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
+      if (setKinds.contains(mapping.kind)) {
+        throw new IllegalStateException("invalid mapping declaration: multiple primitive types for " + mapping.kind);
+      }
+      setKinds.add(mapping.kind);
+      for (final Class<?> e : mapping.jpaTypesToMap) {
+        if (setJPAClasses.contains(e)) {
+          throw new IllegalStateException("invalid mapping declaration: multiple class entries for " + mapping.kind
+              + "->" + e.getCanonicalName());
+        }
+        setJPAClasses.add(e);
+      }
+    }
 
     // ODATA -> JPA mapping is handled by separate logic to manage 1:n problem for
     // ambiguous data type mappings
@@ -96,8 +132,19 @@ public final class TypeMapping {
     return convertToEdmSimpleType(type, (AccessibleObject) null);
   }
 
+  /**
+   *
+   * @param field If field is a collection attribute then the {@link #extractElementTypeOfCollection(Field) embedded
+   * type} will be detected
+   */
   public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Field field) throws ODataJPAModelException {
-    return convertToEdmSimpleType(field.getType(), field);
+    final Class<?> javaType;
+    if (Collection.class.isAssignableFrom(field.getType())) {
+      javaType = extractElementTypeOfCollection(field);
+    } else {
+      javaType = field.getType();
+    }
+    return convertToEdmSimpleType(javaType, field);
   }
 
   /**
@@ -113,10 +160,66 @@ public final class TypeMapping {
    * @see EdmPrimitiveTypeKind
    */
 
-  public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
+  static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
       final Attribute<?, ?> currentAttribute) throws ODataJPAModelException {
     return convertToEdmSimpleType(jpaType,
         (currentAttribute != null) ? (AccessibleObject) currentAttribute.getJavaMember() : null);
+  }
+
+  private static ODataMapping determineODataMapping(final Class<?> jpaType, final AccessibleObject javaMember)
+      throws ODataJPAModelException {
+    final EdmPrimitiveTypeKind customKind = determineSimpleTypeFromConverter(javaMember);
+    if (customKind != null) {
+      // find mapping based on kind
+      for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
+        if (mapping.kind == customKind) {
+          return mapping;
+        }
+      }
+    }
+
+    // special handling for types with additional annotations determining the final kind
+    final EdmPrimitiveTypeKind temporalKind;
+    final String memberName = (javaMember instanceof Field) ? ((Field) javaMember).getName() : null;
+    if (java.util.Date.class.isAssignableFrom(jpaType) || java.util.Calendar.class.isAssignableFrom(jpaType)) {
+      temporalKind = mapTemporalType(javaMember);
+    } else if (isGeography(javaMember)) {
+      temporalKind = convertGeography(jpaType, memberName);
+    } else if (isGeometry(javaMember)) {
+      temporalKind = convertGeometry(jpaType, memberName);
+    } else {
+      temporalKind = null;
+    }
+    if (temporalKind != null) {
+      // find mapping based on kind
+      for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
+        if (mapping.kind == temporalKind) {
+          return mapping;
+        }
+      }
+    }
+
+    // normal lookup
+    final List<ODataMapping> matchingMappings = new LinkedList<>();
+    for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
+      if (mapping.isMatchingJPAType(jpaType)) {
+        matchingMappings.add(mapping);
+      }
+    }
+    if (matchingMappings.size() == 1) {
+      return matchingMappings.get(0);
+    } else if (matchingMappings.size() > 1) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+          "More than one mapping is available to define mapping from JPA type to OData type for " + jpaType
+          .getCanonicalName());
+    }
+
+    // fallback handling for several types...
+    if (java.util.Date.class == jpaType || java.util.Calendar.class == jpaType) {
+      // java.util.Date is very ambiguous so we only define a mapping here on demand
+      return new ODataMapping(java.time.LocalDateTime.class, EdmPrimitiveTypeKind.DateTimeOffset, java.util.Date.class);
+    }
+    return null;
   }
 
   /**
@@ -130,42 +233,19 @@ public final class TypeMapping {
    * @throws ODataJPAModelException
    *             If given type cannot be converted into a primitive type.
    */
-  private static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
+  static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
       final AccessibleObject javaMember) throws ODataJPAModelException {
-    // use a converter if available
-    EdmPrimitiveTypeKind simpleType = determineSimpleTypeFromConverter(javaMember);
-    if (simpleType != null) {
-      return simpleType;
+
+    final ODataMapping mapping = determineODataMapping(jpaType, javaMember);
+    if (mapping != null) {
+      return mapping.kind;
     }
 
-    simpleType = MAPPING_JPA2ODATA.get(jpaType);
-    if (simpleType != null) {
-      return simpleType;
-    }
-    // determine mappings with more logic...
-    final String memberName = (javaMember instanceof Field) ? ((Field) javaMember).getName() : null;
-    if (jpaType.equals(java.util.Calendar.class) || jpaType.equals(java.sql.Timestamp.class)
-        || jpaType.equals(java.util.Date.class)) {
-      return mapTemporalType(javaMember);
-    } else if (jpaType.equals(UUID.class)) {
-      return EdmPrimitiveTypeKind.Guid;
-    } else if (jpaType.equals(Byte[].class) || jpaType.equals(byte[].class)) {
-      return EdmPrimitiveTypeKind.Binary;
-    } else if (jpaType.equals(java.io.InputStream.class)) {
-      return EdmPrimitiveTypeKind.Binary;
-    } else if (jpaType.equals(Blob.class) && isBlob(javaMember)) {
-      return EdmPrimitiveTypeKind.Binary;
-    } else if (jpaType.equals(Clob.class) && isBlob(javaMember)) {
-      return EdmPrimitiveTypeKind.String;
-    } else if (isGeography(javaMember)) {
-      return convertGeography(jpaType, memberName);
-    } else if (isGeometry(javaMember)) {
-      return convertGeometry(jpaType, memberName);
-    }
     // Be aware: enumerations are handled as primitive types, but must be converted
     // as own (enum) type and so cannot be handled here
 
     // Type (%1$s) of attribute (%2$s) is not supported. Mapping not possible
+    final String memberName = (javaMember instanceof Field) ? ((Field) javaMember).getName() : null;
     throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
         jpaType.getName(), (javaMember != null ? memberName : null));
   }
@@ -182,6 +262,23 @@ public final class TypeMapping {
     return converterAnnotation.odataType();
   }
 
+  /**
+   * @param jpaType The JPA type to find the OData representation for.
+   * @return The java class representing the OData type of Olingo or <code>null</code> if no match was found.
+   * @throws ODataJPAModelException For multiple mappings
+   */
+  public static Class<?> determineODataRepresentationtype(final JPATypedElement attribute)
+      throws IllegalStateException, ODataJPAModelException {
+    final ODataMapping mapping = determineODataMapping(attribute.getType(), IntermediateProperty.class.isInstance(
+        attribute)
+        ? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
+            : null);
+    if (mapping != null) {
+      return mapping.odataRepresentationType;
+    }
+    return null;
+  }
+
   public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPATypedElement attribute)
       throws ODataJPAModelException {
     return convertToEdmSimpleType(attribute.getType(),
@@ -190,7 +287,15 @@ public final class TypeMapping {
             : null);
   }
 
-  public static boolean isScalarType(final Class<?> type) {
+  /**
+   * @deprecated This method cannot known all the possible primitive types
+   */
+  @Deprecated
+  public static boolean isPrimitiveType(final Class<?> type) {
+    if (type.isEnum()) {
+      return true;
+    }
+    // TODO map to convertToEdmSimpleType(..)
     if (type == String.class ||
         type == Character.class ||
         type == Long.class ||
@@ -201,16 +306,18 @@ public final class TypeMapping {
         type == BigDecimal.class ||
         type == Byte.class ||
         type == Boolean.class ||
-        type == java.time.LocalTime.class ||
-        type == java.sql.Time.class ||
         type == java.time.Duration.class ||
-        type == java.time.LocalDate.class ||
-        type == java.time.Year.class ||
-        type == java.sql.Date.class ||
-        type == java.util.Calendar.class || type == java.sql.Timestamp.class ||
+        java.time.temporal.Temporal.class.isAssignableFrom(type) ||
+        type == java.util.Calendar.class ||
         type == java.util.Date.class ||
         type == UUID.class) {
       return true;
+    }
+    //primitive are also (currently) all types where we have a mapping for
+    for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
+      if (mapping.isMatchingJPAType(type)) {
+        return true;
+      }
     }
     return false;
   }
@@ -260,21 +367,21 @@ public final class TypeMapping {
   }
 
   private static EdmPrimitiveTypeKind mapTemporalType(final AnnotatedElement javaMember) {
-    if (javaMember != null) {
-      final Temporal temporal = javaMember.getAnnotation(Temporal.class);
-      if (temporal != null) {
-        switch (temporal.value()) {
-        case TIME:
-          return EdmPrimitiveTypeKind.TimeOfDay;
-        case DATE:
-          return EdmPrimitiveTypeKind.Date;
-        default:
-          return EdmPrimitiveTypeKind.DateTimeOffset;
-        }
-      }
+    if (javaMember == null) {
+      return null;
     }
-    // default
-    return EdmPrimitiveTypeKind.DateTimeOffset;
+    final Temporal temporal = javaMember.getAnnotation(Temporal.class);
+    if (temporal == null) {
+      return null;
+    }
+    switch (temporal.value()) {
+    case TIME:
+      return EdmPrimitiveTypeKind.TimeOfDay;
+    case DATE:
+      return EdmPrimitiveTypeKind.Date;
+    default:
+      return EdmPrimitiveTypeKind.DateTimeOffset;
+    }
   }
 
   private static Dimension getDimension(final AnnotatedElement javaMember) {
@@ -287,7 +394,8 @@ public final class TypeMapping {
     return null;
   }
 
-  private static boolean isBlob(final AnnotatedElement javaMember) {
+  @SuppressWarnings("unused")
+  private static boolean isLargeObject(final AnnotatedElement javaMember) {
     if (javaMember != null && javaMember.getAnnotation(Lob.class) != null) {
       return true;
     }
@@ -302,40 +410,6 @@ public final class TypeMapping {
     return getDimension(javaMember) == Dimension.GEOMETRY ? true : false;
   }
 
-  private static boolean isCollectionTypeOfPrimitive(final Field field) throws ODataJPAModelException {
-    if (Collection.class.isAssignableFrom(field.getType())) {
-      final Class<?> type = extractElementTypeOfCollection(field);
-      if (type.isEnum()) {
-        return true;
-      }
-      return (convertToEdmSimpleType(type, field) != null);
-    }
-    return false;
-  }
-
-  /**
-   *
-   * @return TRUE if the given JPA attribute describes an attribute with any
-   *         collection type with any primitive type as element type in the
-   *         collection. Example: <code>Set<String</code>
-   */
-  static boolean isCollectionTypeOfPrimitive(final Attribute<?, ?> currentAttribute) {
-    if (currentAttribute instanceof PluralAttribute) {
-      final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) currentAttribute;
-      try {
-        if (pa.getElementType().getJavaType().isEnum()) {
-          return true;
-        }
-        final EdmPrimitiveTypeKind kind = convertToEdmSimpleType(pa.getElementType().getJavaType(),
-            (AccessibleObject) currentAttribute.getJavaMember());
-        return (kind != null);
-      } catch (final ODataJPAModelException e) {
-        return false;
-      }
-    }
-    return false;
-  }
-
   /**
    *
    * @return TRUE if the given JPA attribute describes an attribute with any
@@ -343,54 +417,12 @@ public final class TypeMapping {
    *         {@link Embeddable @Embeddable} in the collection. Example:
    *         <code>Set<String</code>
    */
-  static boolean isCollectionTypeOfEmbeddable(final Attribute<?, ?> currentAttribute) {
+  static boolean isEmbeddableTypeCollection(final Attribute<?, ?> currentAttribute) {
     if (currentAttribute instanceof PluralAttribute) {
       final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) currentAttribute;
       return EmbeddableType.class.isInstance(pa.getElementType());
     }
     return false;
-  }
-
-  /**
-   *
-   * @return TRUE if the given JPA attribute describes an attribute that can be
-   * handled as primitive type (incl. enum). Example: <code>String</code>
-   *
-   * @see #isPrimitiveType(Type)
-   */
-  static boolean isPrimitiveType(final Attribute<?, ?> currentAttribute) {
-    if (currentAttribute instanceof SingularAttribute) {
-      if (currentAttribute.getJavaType().isEnum()) {
-        return true;
-      }
-      try {
-        final EdmPrimitiveTypeKind kind = convertToEdmSimpleType(currentAttribute.getJavaType(),
-            (AccessibleObject) currentAttribute.getJavaMember());
-        return (kind != null);
-      } catch (final ODataJPAModelException e) {
-        return false;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * For OData an enumeration type is primitive!
-   *
-   * @return TRUE if field is of enum or simple type.
-   */
-  static boolean isPrimitiveType(final Field field) {
-    if (field.getType().isEnum()) {
-      return true;
-    }
-    try {
-      if (isCollectionTypeOfPrimitive(field)) {
-        return true;
-      }
-      return (convertToEdmSimpleType(field) != null);
-    } catch (final ODataJPAModelException e) {
-      return false;
-    }
   }
 
   /**

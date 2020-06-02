@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -71,7 +72,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     this.serviceDocument = serviceDocument;
 
     isComplex = (jpaAttribute.getPersistentAttributeType() == PersistentAttributeType.EMBEDDED)
-        || TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute);
+        || TypeMapping.isEmbeddableTypeCollection(jpaAttribute);
     javaMember = determineJavaMemberOfAttribute(jpaAttribute);
     accessor = new FieldAttributeAccessor((Field) javaMember);
     buildProperty(nameBuilder);
@@ -140,10 +141,11 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     if (isComplex()) {
       return false;
     }
-    if (isCollection()) {
-      return TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute);
-    }
-    return TypeMapping.isPrimitiveType(jpaAttribute);
+    //    if (isCollection()) {
+    //      return TypeMapping.isPrimitiveTypeCollection(jpaAttribute);
+    //    }
+    //    return TypeMapping.isPrimitiveType(getType());
+    return true;
   }
 
   @Override
@@ -168,7 +170,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
         .findOrCreateEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
         return jpaEnumType.getExternalFQN();
       } else {
-        return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
+        return TypeMapping.convertToEdmSimpleType(getType(), (AccessibleObject) javaMember).getFullQualifiedName();
       }
     case EMBEDDED:
       return getNameBuilder().buildFQN(type.getExternalName());
@@ -180,13 +182,11 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
         final IntermediateEnumType jpaEnumType = serviceDocument
         .findOrCreateEnumType((Class<? extends Enum<?>>) pa.getElementType().getJavaType());
         return jpaEnumType.getExternalFQN();
-      } else if (TypeMapping.isCollectionTypeOfPrimitive(jpaAttribute)) {
-        return TypeMapping.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
-      } else if (TypeMapping.isCollectionTypeOfEmbeddable(jpaAttribute)) {
+      } else if (TypeMapping.isEmbeddableTypeCollection(jpaAttribute)) {
         return serviceDocument.getStructuredType(jpaAttribute).getExternalFQN();
       } else {
-        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-            pa.getElementType().getJavaType().getName(), (javaMember != null ? javaMember.getName() : null));
+        // primitive type collection
+        return TypeMapping.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
       }
     default:
       // trigger exception if not possible

@@ -48,7 +48,7 @@ public class JPAFunctionOperator implements JPAExpression<Object> {
           HttpStatusCode.NOT_IMPLEMENTED);
     }
 
-    if (!TypeMapping.isScalarType(
+    if (!TypeMapping.isPrimitiveType(
         jpaFunction.getResultParameter().getType())) {
       throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_NOT_SCALAR,
           HttpStatusCode.NOT_IMPLEMENTED);
