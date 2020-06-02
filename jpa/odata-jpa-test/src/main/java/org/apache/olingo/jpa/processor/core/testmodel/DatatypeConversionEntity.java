@@ -44,6 +44,8 @@ import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::DatatypeConversionEntity\"")
 public class DatatypeConversionEntity extends AbstractEntity {
 
+  // be aware: this datatype depends on gregorian calendar and time zone effects and is bad -> the result maybe
+  // unexpected
   @Column(name = "\"ADate1\"")
   @Temporal(TemporalType.DATE)
   private java.util.Date aDate1;
@@ -51,6 +53,8 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Column(name = "\"ADate2\"")
   private java.time.LocalDate aDate2;
 
+  // be aware: this datatype depends on gregorian calendar and time zone effects and is bad -> the result maybe
+  // unexpected
   @Column(name = "\"ADate3\"")
   @Temporal(TemporalType.DATE)
   private java.util.Calendar aDate3;

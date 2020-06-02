@@ -14,7 +14,6 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -49,7 +48,7 @@ public class TestJPASelect extends TestBase {
     final ObjectNode p = helper.getJsonObjectValue();
     assertEquals(1, p.get("ID").asLong());
     // check unexpected time zone conversion
-    Assert.assertEquals("2016-01-20T09:21:23Z", p.get("ATimestamp2").asText());
+    assertEquals("2016-01-20T09:21:23Z", p.get("ATimestamp2").asText());
     assertEquals(1, p.withArray("EnumCollection").size());
     assertEquals(DayOfWeek.MONDAY.name(), p.withArray("EnumCollection").get(0).asText());
   }
