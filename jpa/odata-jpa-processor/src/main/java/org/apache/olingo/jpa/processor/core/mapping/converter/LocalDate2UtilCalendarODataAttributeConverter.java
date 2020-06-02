@@ -1,6 +1,8 @@
 package org.apache.olingo.jpa.processor.core.mapping.converter;
 
+import java.time.ZoneOffset;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 
@@ -11,27 +13,28 @@ import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter
  *
  */
 public class LocalDate2UtilCalendarODataAttributeConverter
-        implements ODataAttributeConverter<java.time.LocalDate, java.util.Calendar> {
+implements ODataAttributeConverter<java.time.LocalDate, java.util.Calendar> {
 
-	@Override
-	public java.util.Calendar convertToOData(final java.time.LocalDate jpaValue) {
-		if (jpaValue == null) {
-			return null;
-		}
-		final Calendar calendar = Calendar.getInstance();
-		calendar.clear();
-		// assuming year/month/date information is not important
-		calendar.set(jpaValue.getYear(), jpaValue.getMonthValue() - 1, jpaValue.getDayOfMonth());
-		return calendar;
-	}
+  @Override
+  public java.util.Calendar convertToOData(final java.time.LocalDate jpaValue) {
+    if (jpaValue == null) {
+      return null;
+    }
+    final Calendar calendar = Calendar.getInstance();
+    calendar.clear();
+    calendar.setTimeZone(TimeZone.getTimeZone(ZoneOffset.UTC));
+    // assuming year/month/date information is not important
+    calendar.set(jpaValue.getYear(), jpaValue.getMonthValue() - 1, jpaValue.getDayOfMonth());
+    return calendar;
+  }
 
-	@Override
-	public java.time.LocalDate convertToJPA(final java.util.Calendar oDataValue) {
-		if (oDataValue == null) {
-			return null;
-		}
-		return java.time.LocalDate.of(oDataValue.get(Calendar.YEAR), oDataValue.get(Calendar.MONTH) + 1,
-		        oDataValue.get(Calendar.DAY_OF_MONTH));
-	}
+  @Override
+  public java.time.LocalDate convertToJPA(final java.util.Calendar oDataValue) {
+    if (oDataValue == null) {
+      return null;
+    }
+    return java.time.LocalDate.of(oDataValue.get(Calendar.YEAR), oDataValue.get(Calendar.MONTH) + 1,
+        oDataValue.get(Calendar.DAY_OF_MONTH));
+  }
 
 }
