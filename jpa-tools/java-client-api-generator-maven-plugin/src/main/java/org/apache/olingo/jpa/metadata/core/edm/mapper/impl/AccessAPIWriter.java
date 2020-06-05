@@ -11,11 +11,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +27,6 @@ import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.client.api.domain.ClientProperty;
 import org.apache.olingo.client.api.domain.ClientValue;
-import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.ODataClientFactory;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
@@ -39,9 +36,10 @@ import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 
@@ -61,15 +59,14 @@ class AccessAPIWriter extends AbstractWriter {
 
   public AccessAPIWriter(final File generationBaseDirectory, final AbstractJPASchema schema,
       final JPAStructuredType et) {
-    super(generationBaseDirectory, et.getTypeClass().getPackage()
-        .getName(), determineAccessName(et.getTypeClass().getSimpleName()));
+    super(generationBaseDirectory, et.getTypeClass().getPackage().getName(), determineAccessName(et));
     this.schema = schema;
     this.type = et;
   }
 
   public void writeProtocolCodeStart() throws IOException {
     createFile();
-    final String className = determineAccessName(type.getTypeClass().getSimpleName());
+    final String className = determineAccessName(type);
     //    final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(type.getTypeClass().getSimpleName());
     write(HEADER_TEXT);
     write(NEWLINE + "public abstract class " + className /* + " implements " + typeMetaName */ + " {");
@@ -80,40 +77,40 @@ class AccessAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "/**" + NEWLINE + "\t"
         + " * @return The service root URL as base part of the backend destination URL" + NEWLINE + "\t" + " **/");
     write(NEWLINE + "\t" + "protected abstract " + URI.class.getName() + " getServiceRootUrl();");
-    write(NEWLINE);
 
+    write(NEWLINE);
     write(NEWLINE + "\t" + "/**" + NEWLINE + "\t"
         + " * @return The authorization header value for client request or <code>null</code> if no authorization is required"
-        + NEWLINE + "\t" + " **/");
+        + NEWLINE + "\t" + " */");
     write(NEWLINE + "\t" + "protected abstract " + String.class.getSimpleName()
         + " determineAuthorizationHeaderValue();");
-    write(NEWLINE);
 
+    write(NEWLINE);
     write(NEWLINE + "\t" + "/**" + NEWLINE + "\t"
         + " * Overwrite to create a more specialized client"
-        + NEWLINE + "\t" + " **/");
+        + NEWLINE + "\t" + " */");
     write(NEWLINE + "\t" + "protected " + ODataClient.class.getName() + " createClient() {");
     write(NEWLINE + "\t" + "\t" + "return " + ODataClientFactory.class.getName() + ".getClient();");
     write(NEWLINE + "\t" + "}");
-    write(NEWLINE);
 
+    write(NEWLINE);
     write(NEWLINE + "\t" + "protected final " + ODataClient.class.getName() + " getClientInstance() {");
     write(NEWLINE + "\t" + "\t" + "if(clientInstance == null) {");
     write(NEWLINE + "\t" + "\t" + "\t" + "clientInstance = createClient();");
     write(NEWLINE + "\t" + "\t" + "}");
     write(NEWLINE + "\t" + "\t" + "return clientInstance;");
     write(NEWLINE + "\t" + "}");
-    write(NEWLINE);
 
-    write(NEWLINE + "\t" + "protected final " + URIBuilder.class.getName() + " defineEndpoint() {");
-    write(NEWLINE + "\t" + "\t" + "return getClientInstance().newURIBuilder(getServiceRootUrl().toString());");
+    final String builderName = AccessBuilderWriter.determineAccessBuilderName(type);
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "public final " + builderName + " defineEndpoint() {");
+    write(NEWLINE + "\t" + "\t" + "return new " + builderName + "(this);");
     write(NEWLINE + "\t" + "}");
   }
 
-  private static String determineAccessName(final String typeName) {
-    return "Abstract" + typeName + "Access";
+  static String determineAccessName(final JPAStructuredType type) {
+    return type.getTypeClass().getSimpleName() + "AbstractAccess";
   }
-
 
   public void writeProtocolCode() throws IOException, ODataJPAModelException {
     generateGetEntity();
@@ -146,7 +143,7 @@ class AccessAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "\t" + typeDtoName + " dtoResult = new " + typeDtoName + "();");
     write(NEWLINE + "\t" + "\t" + "// convert generic response into DTO...");
 
-    generateTypeAttributeConversion(type, mapAlreadeGeneratedMethods);
+    generateTypeAttributeConversion(type, true, mapAlreadeGeneratedMethods);
 
     write(NEWLINE + "\t" + "\t" + "return dtoResult;");
     write(NEWLINE + "\t" + "}");
@@ -171,28 +168,16 @@ class AccessAPIWriter extends AbstractWriter {
     }
 
     final String typeDtoName = TypeDtoAPIWriter.determineTypeName(type.getTypeClass().getSimpleName());
+    final String builderName = AccessBuilderWriter.determineAccessBuilderName(type);
     write(NEWLINE);
-    write(NEWLINE + "\t" + "public final " + typeDtoName + " retrieve(" + bufferKeyParameters.toString() + ") throws "
+    write(NEWLINE + "\t" + "public final " + typeDtoName + " retrieve(" + builderName + " uriBuilder) throws "
         + ODataException.class.getName() + " {");
-    write(NEWLINE + "\t" + "\t" + Map.class.getName() + "<String, Object> keys = new " + HashMap.class.getName()
-        + "<>();");
-    final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(type.getTypeClass().getSimpleName());
-    for (final JPASimpleAttribute attribute : keys) {
-      final String memberName = attribute.getInternalName();
-      write(NEWLINE + "\t" + "\t" + "keys.put(" + typeMetaName + "." + TypeMetaAPIWriter
-          .determineTypeMetaPropertyNameConstantName(attribute
-              .getProperty()) + ", " + memberName + ");");
-    }
 
-    final String esName;
-    if (JPAEntityType.class.isInstance(type)) {
-      esName = JPAEntityType.class.cast(type).getEntitySetName();
-    } else {
-      esName = schema.getNameBuilder().buildEntitySetName(type.getExternalName());
-    }
-    write(NEWLINE + "\t" + "\t" + URIBuilder.class.getName() + " uriBuilder = "
-        + " defineEndpoint().appendEntitySetSegment(\""
-        + esName + "\").appendKeySegment(keys)" + ";");
+    write(NEWLINE + "\t" + "\t" + "if(!uriBuilder." + AccessBuilderWriter.METHODNAME_SINGLEENTITYCALL + "()) {");
+    write(NEWLINE + "\t" + "\t" + "\t"
+        + "throw new " + IllegalArgumentException.class.getSimpleName()
+        + "(\"URI builder represents not an single entity call\");");
+    write(NEWLINE + "\t" + "\t" + "}");
 
     write(NEWLINE + "\t" + "\t" + ODataEntityRequest.class.getName() + "<" + ClientEntity.class.getName()
         + "> request = getClientInstance().getRetrieveRequestFactory().getEntityRequest(uriBuilder.build());");
@@ -204,7 +189,8 @@ class AccessAPIWriter extends AbstractWriter {
         + "> response = request.execute();");
     write(NEWLINE + "\t" + "\t" + "if(response.getStatusCode() != 200) {");
     write(NEWLINE + "\t" + "\t" + "\t"
-        + "throw new IllegalStateException(\"Unexpected status: \"+response.getStatusMessage());");
+        + "throw new " + IllegalStateException.class.getSimpleName()
+        + "(\"Unexpected status: \"+response.getStatusMessage());");
     write(NEWLINE + "\t" + "\t" + "}");
     write(NEWLINE + "\t" + "\t" + ClientEntity.class.getName() + " odataEntity = response.getBody();");
 
@@ -236,6 +222,10 @@ class AccessAPIWriter extends AbstractWriter {
       }
     }
 
+    for (final JPAAssociationAttribute asso : ownerType.getAssociations()) {
+      generate_ConvertAssociation_HelperMethod(asso, mapAlreadeGeneratedMethods);
+    }
+
   }
 
   /**
@@ -259,20 +249,24 @@ class AccessAPIWriter extends AbstractWriter {
    * @return
    * @throws ODataJPAModelException
    */
-  private String determineConversionMethodName(final JPASimpleAttribute attribute,
+  private String determineConversionMethodName(final JPAAttribute<?> attribute,
       final boolean respectCollection) throws ODataJPAModelException {
-    @SuppressWarnings("deprecation")
-    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotation(EdmAttributeConversion.class);
-    if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
-        .converter())) {
-      return "convertOData" + qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName()) + "Via"
-          + qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName());
+    if (JPASimpleAttribute.class.isInstance(attribute)) {
+      @SuppressWarnings("deprecation")
+      final EdmAttributeConversion annoConversionConfiguration = JPASimpleAttribute.class.cast(attribute).getAnnotation(
+          EdmAttributeConversion.class);
+      if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+          .converter())) {
+        return "convertOData" + qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName()) + "Via"
+            + qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName());
+      }
     }
-
     String fromName;
-    if (attribute.isComplex()) {
+    if (attribute.isAssociation()) {
       fromName = attribute.getExternalName();
-    } else if (attribute.getType().isEnum()) {
+    } else if (attribute.isComplex()) {
+      fromName = attribute.getExternalName();
+    } else if (JPATypedElement.class.cast(attribute).getType().isEnum()) {
       if (attribute.isCollection()&&respectCollection) {
         fromName = attribute.getExternalName();
       } else {
@@ -280,7 +274,7 @@ class AccessAPIWriter extends AbstractWriter {
       }
     } else {
       // simple primitive type conversion
-      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(attribute);
+      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(JPATypedElement.class.cast(attribute));
       fromName = odataType.name();
     }
 
@@ -291,10 +285,44 @@ class AccessAPIWriter extends AbstractWriter {
         propClientType);
   }
 
+  private String generate_ConvertAssociation_HelperMethod(final JPAAssociationAttribute association,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
+    final String methodName = determineConversionMethodName(association, false);
+    if (mapAlreadeGeneratedMethods.contains(methodName)) {
+      return null;
+    }
+
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(association, false);
+
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + ClientProperty.class.getName()
+        + " property" + ") throws "
+        + ODataException.class.getName() + " {");
+
+    write(NEWLINE + "\t" + "\t" + "if (property == null) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+    write(NEWLINE + "\t" + "\t" + "}");
+    write(NEWLINE + "\t" + "\t" + ClientComplexValue.class.getName() + " odataObject = property.getComplexValue();");
+
+    write(NEWLINE + "\t" + "\t" + propClientType + " dtoResult = new " + propClientType + "();");
+
+    generateTypeAttributeConversion(association.getTargetEntity(), false, mapAlreadeGeneratedMethods);
+
+    write(NEWLINE + "\t" + "\t" + "return dtoResult;");
+    write(NEWLINE + "\t" + "}");
+
+    mapAlreadeGeneratedMethods.add(methodName);
+
+    // on demand
+    generate_ConvertValue_HelperMethods(association.getTargetEntity(), mapAlreadeGeneratedMethods);
+
+    return methodName;
+  }
+
   private String generate_ConvertComplexValue_HelperMethod(final JPASimpleAttribute attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
     final String methodName = determineConversionMethodName(attribute, false);
     if (mapAlreadeGeneratedMethods.contains(methodName)) {
       return null;
@@ -303,6 +331,8 @@ class AccessAPIWriter extends AbstractWriter {
     // on demand
     generate_ConvertValue_HelperMethods(attribute.getStructuredType(), mapAlreadeGeneratedMethods);
 
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
+
     write(NEWLINE);
     write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + "String propertyName, "
         + ClientComplexValue.class.getName() + " odataObject" + ") throws "
@@ -310,14 +340,13 @@ class AccessAPIWriter extends AbstractWriter {
 
     write(NEWLINE + "\t" + "\t" + propClientType + " dtoResult = new " + propClientType + "();");
 
-    generateTypeAttributeConversion(attribute.getStructuredType(), mapAlreadeGeneratedMethods);
+    generateTypeAttributeConversion(attribute.getStructuredType(), false, mapAlreadeGeneratedMethods);
 
     write(NEWLINE + "\t" + "\t" + "return dtoResult;");
     write(NEWLINE + "\t" + "}");
 
     mapAlreadeGeneratedMethods.add(methodName);
     return methodName;
-
   }
 
   /**
@@ -525,27 +554,26 @@ class AccessAPIWriter extends AbstractWriter {
     return methodCollectionName;
   }
 
-  private void generateTypeAttributeConversion(final JPAStructuredType sType,
+  private void generateTypeAttributeConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
       final Set<String> mapAlreadeGeneratedMethods) throws ODataJPAModelException,
   IOException {
     for (final JPAAssociationAttribute asso : sType.getAssociations()) {
-      // FIXME
-      System.out.println("Support REL " + sType.getInternalName() + " : " + asso.getInternalName());// TODO
+      generateAssociationConversion(sType, ownerISRootEntity, asso);
     }
     // simple properties
     for (final JPASimpleAttribute attribute : sType.getAttributes()) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
-        generateAttributeConversion(sType, attribute);
+        generateAttributeConversion(sType, ownerISRootEntity, attribute);
         break;
       case EMBEDDED_ID:
         // handle properties of nested complex type (@EmbeddedId) as properties of this type
         for (final JPASimpleAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
-          generateAttributeConversion(sType, nestedProp);
+          generateAttributeConversion(sType, ownerISRootEntity, nestedProp);
         }
         break;
       case AS_COMPLEX_TYPE:
-        generateAttributeConversion(sType, attribute);
+        generateAttributeConversion(sType, ownerISRootEntity, attribute);
         break;
       case RELATIONSHIP:
         throw new UnsupportedOperationException("Relationship '" + attribute.getInternalName()
@@ -554,13 +582,39 @@ class AccessAPIWriter extends AbstractWriter {
     }
   }
 
-  private void generateAttributeConversion(final JPAStructuredType ownerType, final JPASimpleAttribute attribute)
-      throws ODataJPAModelException,
-      IOException {
+  private void generateAssociationConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+      final JPAAssociationAttribute relationship) throws ODataJPAModelException, IOException {
+    final String memberName = qualifiedName2FirstCharacterUppercasedString(relationship.getInternalName());
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(relationship, false);
+    final String odataPropertyGetter = ownerISRootEntity ? "getProperty" : "get";
+    final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(ownerType.getTypeClass().getSimpleName());
+    if (relationship.isCollection()) {
+      // FIXME
+      System.out.println("Support REL " + ownerType.getInternalName() + " : " + relationship.getInternalName());// TODO
+    } else {
+      write(NEWLINE + "\t" + "\t" + "// relationship attribute value");
+      write(NEWLINE + "\t" + "\t" + ClientProperty.class.getName() + " prop" + memberName
+          + " = odataObject." + odataPropertyGetter + "("
+          + typeMetaName + "." + TypeMetaAPIWriter.determineTypeMetaPropertyNameConstantName(relationship.getProperty())
+          + ");");
+      final String methodName = determineConversionMethodName(relationship, false);
+      write(NEWLINE + "\t" + "\t" + propClientType + " dto" + memberName + " = " + methodName + "(" + "prop"
+          + memberName + ");");
+      write(NEWLINE + "\t" + "\t" + "dtoResult." + TypeDtoAPIWriter.determinePropertySetterMethodName(relationship)
+      + "("
+      + "dto"
+      + memberName + ");");
+    }
+  }
+
+  private void generateAttributeConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+      final JPASimpleAttribute attribute)
+          throws ODataJPAModelException,
+          IOException {
     final String memberName = qualifiedName2FirstCharacterUppercasedString(attribute.getInternalName());
     final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
     final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(ownerType.getTypeClass().getSimpleName());
-    final String odataPropertyGetter = JPAEntityType.class.isInstance(ownerType) ? "getProperty" : "get";
+    final String odataPropertyGetter = ownerISRootEntity ? "getProperty" : "get";
     if (attribute.isCollection()) {
       // special handling for collection attributes
       write(NEWLINE + "\t" + "\t" + "// collection (" + (attribute.getType().isEnum() ? "enum" : attribute.isComplex()

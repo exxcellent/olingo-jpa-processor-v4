@@ -6,7 +6,7 @@ import java.net.URI;
  * Demo class to show usage of client side api.
  *
  */
-public class PersonAccess extends AbstractPersonAccess {
+public class PersonAccess extends PersonAbstractAccess {
 
   private final URI serviceUrl;
 
