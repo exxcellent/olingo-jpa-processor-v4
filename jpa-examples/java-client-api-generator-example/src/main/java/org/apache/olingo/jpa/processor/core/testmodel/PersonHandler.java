@@ -6,11 +6,11 @@ import java.net.URI;
  * Demo class to show usage of client side api.
  *
  */
-public class PersonAccess extends PersonAbstractAccess {
+public class PersonHandler extends PersonAbstractHandler {
 
   private final URI serviceUrl;
 
-  public PersonAccess(final URI serviceUrl) {
+  public PersonHandler(final URI serviceUrl) {
     this.serviceUrl = serviceUrl;
   }
 

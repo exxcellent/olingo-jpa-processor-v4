@@ -5,7 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.olingo.client.api.ODataClient;
-import org.apache.olingo.jpa.processor.core.testmodel.PersonAccess;
+import org.apache.olingo.jpa.processor.core.testmodel.PersonHandler;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 
@@ -19,9 +19,9 @@ import javassist.util.proxy.ProxyFactory;
  * @author Ralf Zozmann
  *
  */
-public class AccessTestBase extends TestBase {
+public class HandlerTestBase extends TestBase {
 
-  private class AccessClassInvocationHandler implements MethodHandler, MethodFilter {
+  private class HandlerClassInvocationHandler implements MethodHandler, MethodFilter {
 
     private static final String METHOD_CREATE_CLIENT = "createClient";
     private static final String METHOD_GET_SERVICE_ROOT_URL = "getServiceRootUrl";
@@ -68,8 +68,8 @@ public class AccessTestBase extends TestBase {
     }
   }
 
-  protected PersonAccess createLocalPersonAccess() throws Exception {
-    return new PersonAccess(URI) {
+  protected PersonHandler createLocalPersonAccess() throws Exception {
+    return new PersonHandler(URI) {
       @Override
       protected ODataClient createClient() {
         return new LocalTestODataClient(persistenceAdapter);
@@ -78,18 +78,18 @@ public class AccessTestBase extends TestBase {
   }
 
   /**
-   * Create a concrete facade for given <i>abstractAccessClass</i> to work on it without implementing the abstract
+   * Create a concrete facade for given <i>abstractHandlerClass</i> to work on it without implementing the abstract
    * methods.
    */
-  protected <C> C createLocalEntityAccess(final Class<C> abstractAccessClass) throws Exception {
-    checkAccessMethodPresence(abstractAccessClass, AccessClassInvocationHandler.METHOD_CREATE_CLIENT);
-    checkAccessMethodPresence(abstractAccessClass,
-        AccessClassInvocationHandler.METHOD_DETERMINE_AUTHORIZATION_HEADER_VALUE);
-    checkAccessMethodPresence(abstractAccessClass, AccessClassInvocationHandler.METHOD_GET_SERVICE_ROOT_URL);
+  protected <C> C createLocalEntityAccess(final Class<C> abstractHandlerClass) throws Exception {
+    checkAccessMethodPresence(abstractHandlerClass, HandlerClassInvocationHandler.METHOD_CREATE_CLIENT);
+    checkAccessMethodPresence(abstractHandlerClass,
+        HandlerClassInvocationHandler.METHOD_DETERMINE_AUTHORIZATION_HEADER_VALUE);
+    checkAccessMethodPresence(abstractHandlerClass, HandlerClassInvocationHandler.METHOD_GET_SERVICE_ROOT_URL);
 
     final ProxyFactory factory = new ProxyFactory();
-    final AccessClassInvocationHandler handler = new AccessClassInvocationHandler();
-    factory.setSuperclass(abstractAccessClass);
+    final HandlerClassInvocationHandler handler = new HandlerClassInvocationHandler();
+    factory.setSuperclass(abstractHandlerClass);
     factory.setFilter(handler);
     @SuppressWarnings("unchecked")
     final C access = (C) factory.create(new Class[0], new Object[0], handler);

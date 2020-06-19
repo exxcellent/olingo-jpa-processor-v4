@@ -4,24 +4,45 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.olingo.client.api.uri.FilterFactory;
 import org.apache.olingo.client.api.uri.QueryOption;
-import org.apache.olingo.jpa.client.example.util.AccessTestBase;
-import org.apache.olingo.jpa.processor.core.testmodel.PersonAccess;
+import org.apache.olingo.client.api.uri.URIFilter;
+import org.apache.olingo.jpa.client.example.util.HandlerTestBase;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonDto;
+import org.apache.olingo.jpa.processor.core.testmodel.PersonHandler;
+import org.apache.olingo.jpa.processor.core.testmodel.PersonImageMeta;
+import org.apache.olingo.jpa.processor.core.testmodel.PersonMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonURIBuilder;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-public class PersonAccessTest extends AccessTestBase {
+public class PersonHandlerTest extends HandlerTestBase {
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @Test
+  public void testInvalidLoadEntitySetPerson() throws Exception {
+    final PersonHandler handler = createLocalPersonAccess();
+    final FilterFactory ff = handler.getFilterFactory();
+    final URIFilter filter = ff.not(ff.eq(ff.getArgFactory().literal(PersonMeta.ID_NAME), ff.getArgFactory().literal(
+        "97")));
+    final PersonURIBuilder uriBuilder = handler.defineEndpoint().filter(filter);
+
+    thrown.expect(IllegalArgumentException.class);
+    handler.retrieve(uriBuilder);
+  }
 
   @Test
   public void testLoadPerson() throws Exception {
-    final PersonAccess access = createLocalPersonAccess();
+    final PersonHandler handler = createLocalPersonAccess();
     final Map<QueryOption, Object> expandImage1Options = new HashMap<>();
-    expandImage1Options.put(QueryOption.EXPAND, "OwningPerson");
-    final PersonURIBuilder uriBuilder = access.defineEndpoint().appendKeySegment("97").expandWithOptions("Image1",
-        expandImage1Options);
-    final PersonDto dto = access.retrieve(uriBuilder);
+    expandImage1Options.put(QueryOption.EXPAND, PersonImageMeta.OWNINGPERSON_NAME);
+    final PersonURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment("97").expandWithOptions(
+        PersonMeta.IMAGE1_NAME, expandImage1Options);
+    final PersonDto dto = handler.retrieve(uriBuilder);
     Assert.assertNotNull(dto);
     Assert.assertEquals(1, dto.getPhoneNumbers().size());
     Assert.assertEquals(dto.getPhoneNumbersAsString().size(), dto.getPhoneNumbers().size());

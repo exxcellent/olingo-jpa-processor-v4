@@ -19,7 +19,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-class AccessBuilderWriter extends AbstractWriter {
+class URIBuilderWriter extends AbstractWriter {
 
   private static class KeySorter implements Comparator<JPASimpleAttribute> {
     @Override
@@ -34,7 +34,7 @@ class AccessBuilderWriter extends AbstractWriter {
   private final AbstractJPASchema schema;
   private final JPAStructuredType type;
 
-  public AccessBuilderWriter(final File generationBaseDirectory, final AbstractJPASchema schema,
+  public URIBuilderWriter(final File generationBaseDirectory, final AbstractJPASchema schema,
       final JPAStructuredType et) {
     super(generationBaseDirectory, et.getTypeClass().getPackage().getName(), determineAccessBuilderName(et));
     this.schema = schema;
@@ -47,6 +47,7 @@ class AccessBuilderWriter extends AbstractWriter {
     write(HEADER_TEXT);
     write(NEWLINE + "public final class " + className /* + " implements " + typeMetaName */ + " {");
 
+    generateGlobalVariables();
     generateConstructor();
     generateRepresentsEntityCallMethod();
   }
@@ -61,19 +62,22 @@ class AccessBuilderWriter extends AbstractWriter {
     generateBuildMethod();
   }
 
-  private void generateConstructor() throws IOException {
+  private void generateGlobalVariables() throws IOException {
     write(NEWLINE);
-    final String className = determineAccessBuilderName(type);
-    final String accessClassName = AccessAPIWriter.determineAccessName(type);
     write(NEWLINE + "\t" + "private " + URIBuilder.class.getName() + " builder = null;");
-    write(NEWLINE);
+    write(NEWLINE + "\t" + "private boolean " + MEMBERNAME_SINGLEENTITYCALL + " = false;");
+  }
 
+  private void generateConstructor() throws IOException {
+    final String className = determineAccessBuilderName(type);
+    final String accessClassName = HandlerAPIWriter.determineHandlerName(type);
     final String esName;
     if (JPAEntityType.class.isInstance(type)) {
       esName = JPAEntityType.class.cast(type).getEntitySetName();
     } else {
       esName = schema.getNameBuilder().buildEntitySetName(type.getExternalName());
     }
+    write(NEWLINE);
     write(NEWLINE + "\t" + "protected " + className + "(" + accessClassName + " access" + ") {");
     write(NEWLINE + "\t" + "\t"
         + "this.builder = access.getClientInstance().newURIBuilder(access.getServiceRootUrl().toString()).appendEntitySetSegment(\""
@@ -84,15 +88,12 @@ class AccessBuilderWriter extends AbstractWriter {
 
   private void generateRepresentsEntityCallMethod() throws IOException {
     write(NEWLINE);
-    write(NEWLINE + "\t" + "private boolean " + MEMBERNAME_SINGLEENTITYCALL + " = false;");
-
-    write(NEWLINE);
     write(NEWLINE + "\t" + "boolean " + METHODNAME_SINGLEENTITYCALL + "()" + " {");
     write(NEWLINE + "\t" + "\t" + "return " + MEMBERNAME_SINGLEENTITYCALL + ";");
     write(NEWLINE + "\t" + "}");
   }
 
-  private void generateBuildMethod() throws IOException, ODataJPAModelException {
+  private void generateBuildMethod() throws IOException {
     write(NEWLINE);
     write(NEWLINE + "\t" + "public " + URI.class.getCanonicalName() + " build()" + " {");
     write(NEWLINE + "\t" + "\t" + "return builder.build();");

@@ -9,18 +9,18 @@ import java.util.UUID;
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.commons.api.ex.ODataException;
-import org.apache.olingo.jpa.client.example.util.AccessTestBase;
+import org.apache.olingo.jpa.client.example.util.HandlerTestBase;
 import org.apache.olingo.jpa.client.example.util.LocalTestODataClient;
-import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityAbstractAccess;
+import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityAbstractHandler;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityDto;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityURIBuilder;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DatatypeConversionEntityAccessTest extends AccessTestBase {
+public class DatatypeConversionEntityHandlerTest extends HandlerTestBase {
 
-  private class DatatypeConversionEntityAccess extends DatatypeConversionEntityAbstractAccess {
+  private class DatatypeConversionEntityHandler extends DatatypeConversionEntityAbstractHandler {
 
     @Override
     protected java.net.URI getServiceRootUrl() {
@@ -49,9 +49,9 @@ public class DatatypeConversionEntityAccessTest extends AccessTestBase {
 
   @Test
   public void testLoadDatatypeConversionEntity() throws Exception {
-    final DatatypeConversionEntityAccess access = new DatatypeConversionEntityAccess();
-    final DatatypeConversionEntityURIBuilder uriBuilder = access.defineEndpoint().appendKeySegment(Integer.valueOf(2));
-    final DatatypeConversionEntityDto dto = access.retrieve(uriBuilder);
+    final DatatypeConversionEntityHandler handler = new DatatypeConversionEntityHandler();
+    final DatatypeConversionEntityURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment(Integer.valueOf(2));
+    final DatatypeConversionEntityDto dto = handler.retrieve(uriBuilder);
     Assert.assertNotNull(dto);
     Assert.assertEquals(Integer.valueOf(2000), dto.getAIntegerYear());
     // check unexpected time zone/type conversion

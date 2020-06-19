@@ -50,12 +50,12 @@ public class IntermediateModelGenerator {
 
     // ACCESS start
     if (isEntity && !et.isAbstract() && generateProtocolCode) {
-      final AccessBuilderWriter accessBuilderWriter = new AccessBuilderWriter(generationBaseDirectory, schema, et);
+      final URIBuilderWriter accessBuilderWriter = new URIBuilderWriter(generationBaseDirectory, schema, et);
       accessBuilderWriter.writeProtocolCodeStart();
       accessBuilderWriter.writeProtocolCode();
       accessBuilderWriter.writeProtocolCodeEnd();
 
-      final AccessAPIWriter accessWriter = new AccessAPIWriter(generationBaseDirectory, schema, et);
+      final HandlerAPIWriter accessWriter = new HandlerAPIWriter(generationBaseDirectory, schema, et);
       accessWriter.writeProtocolCodeStart();
       accessWriter.writeProtocolCode();
       accessWriter.writeProtocolCodeEnd();
