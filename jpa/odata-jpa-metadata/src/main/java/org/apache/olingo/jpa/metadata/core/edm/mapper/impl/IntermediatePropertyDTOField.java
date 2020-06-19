@@ -214,6 +214,11 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
   }
 
   @Override
+  public boolean isJoinCollection() {
+    return isCollection();
+  }
+
+  @Override
   public boolean isPrimitive() {
     return !isComplex();
   }

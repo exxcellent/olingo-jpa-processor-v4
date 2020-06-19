@@ -94,6 +94,11 @@ class IntermediateNavigationDTOProperty extends IntermediateModelElement impleme
   }
 
   @Override
+  public boolean isJoinCollection() {
+    return isCollection();
+  }
+
+  @Override
   public boolean isComplex() {
     // navigation properties are targeting always a non primitive object
     return true;

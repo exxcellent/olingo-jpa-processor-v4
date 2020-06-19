@@ -126,7 +126,7 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
     for (final JPAAttribute<?> attribute : path.getPathElements()) {
       // a collection is always a relationship (should not happen here) or an
       // @ElementCollection... both are navigating to another table
-      if (attribute.isCollection()) {
+      if (attribute.isJoinCollection()) {
         return true;
       }
     }

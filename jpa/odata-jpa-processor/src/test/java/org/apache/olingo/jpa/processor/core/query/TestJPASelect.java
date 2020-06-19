@@ -51,6 +51,9 @@ public class TestJPASelect extends TestBase {
     assertEquals("2016-01-20T09:21:23Z", p.get("ATimestamp2").asText());
     assertEquals(1, p.withArray("EnumCollection").size());
     assertEquals(DayOfWeek.MONDAY.name(), p.withArray("EnumCollection").get(0).asText());
+    assertEquals(5, p.withArray("UuidFragments").size());
+    assertEquals("11e3", p.withArray("UuidFragments").get(2).asText());
+    assertEquals("000000000000", p.withArray("UuidFragments").get(4).asText());
   }
 
   @Test

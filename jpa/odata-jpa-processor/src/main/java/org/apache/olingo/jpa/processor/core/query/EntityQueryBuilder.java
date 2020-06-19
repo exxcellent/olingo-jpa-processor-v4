@@ -461,7 +461,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     for (int i = completeSelectorList.size(); i > 0; i--) {
       final JPASelector jpaPath = completeSelectorList.get(i - 1);
       final JPAAttribute<?> firstPathElement = jpaPath.getPathElements().get(0);
-      if (!firstPathElement.isCollection()) {
+      if (!firstPathElement.isJoinCollection()) {
         continue;
       }
       elementCollectionList = elementCollectionMap.get(firstPathElement);

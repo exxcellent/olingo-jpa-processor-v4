@@ -8,6 +8,7 @@ import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 
@@ -123,6 +125,12 @@ public class DatatypeConversionEntity extends AbstractEntity {
   // do not define a JPA converter here, we want to test the autoapply!
   @Column(name = "\"UUID\"")
   private UUID uuid;
+
+  // test to check handling for collections of simple types without @ElementCollection
+  @EdmSearchable
+  @Column(name = "\"UUID\"", insertable = false, nullable = true, updatable = false)
+  @Convert(converter = JPAUuidFragmentsListConverter.class)
+  private List<String> uuidFragments;
 
   @EdmSearchable
   @Column(name = "\"AIntBoolean\"", columnDefinition = "smallint")
