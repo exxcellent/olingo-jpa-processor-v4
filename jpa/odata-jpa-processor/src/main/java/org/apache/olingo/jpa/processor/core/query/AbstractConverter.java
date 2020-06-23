@@ -236,21 +236,18 @@ public abstract class AbstractConverter {
       throw new IllegalArgumentException("Java type required for property " + propertyName);
     }
     final ValueType valueType;
-    if (attribute.isCollection() && attribute.isPrimitive()) {
+    if (attribute.isCollection()) {
       if (javaType.isEnum()) {
         valueType = ValueType.COLLECTION_ENUM;
       } else {
         valueType = ValueType.COLLECTION_PRIMITIVE;
       }
-    } else if (attribute.isPrimitive()) {
+    } else {
       if (javaType.isEnum()) {
         valueType = ValueType.ENUM;
       } else {
         valueType = ValueType.PRIMITIVE;
       }
-    } else {
-      throw new IllegalArgumentException(
-          "Given value is not of primitive type managable in this method: " + propertyName);
     }
     Property property;
     Object convertedInput;

@@ -211,4 +211,14 @@ public class DatatypeConversionEntity extends AbstractEntity {
     return result;
   }
 
+  @EdmAction
+  public static void uploadMultipleFiles(@EdmActionParameter(name = "noOfFile") final String noOfFile,
+      @EdmActionParameter(name = "filelist") final Collection<java.io.InputStream> streams
+      ) throws IOException {
+    if (Integer.parseInt(noOfFile) != streams.size()) {
+      throw new IllegalStateException("Expected: " + noOfFile + " files, received: " + (streams == null ? 0
+          : streams.size()));
+    }
+  }
+
 }

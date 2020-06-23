@@ -276,6 +276,9 @@ public final class TypeMapping {
     if (type.isEnum()) {
       return true;
     }
+    if (type.isPrimitive()) {
+      return true;
+    }
     // TODO map to convertToEdmSimpleType(..)
     if (type == String.class ||
         type == Character.class ||
@@ -294,7 +297,7 @@ public final class TypeMapping {
         type == UUID.class) {
       return true;
     }
-    //primitive are also (currently) all types where we have a mapping for
+    // primitive are also (currently) all types where we have a (simple type) mapping for
     for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
       if (mapping.isMatchingJPAType(type)) {
         return true;
