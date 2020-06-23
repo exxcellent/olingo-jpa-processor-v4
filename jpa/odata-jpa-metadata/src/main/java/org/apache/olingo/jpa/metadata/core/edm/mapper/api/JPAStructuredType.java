@@ -40,9 +40,9 @@ public interface JPAStructuredType extends JPAElement {
 
   public JPAAssociationPath getDeclaredAssociation(String externalName) throws ODataJPAModelException;
 
-  public JPASimpleAttribute getAttribute(String internalName) throws ODataJPAModelException;
+  public JPAMemberAttribute getAttribute(String internalName) throws ODataJPAModelException;
 
-  public List<JPASimpleAttribute> getAttributes() throws ODataJPAModelException;
+  public List<JPAMemberAttribute> getAttributes() throws ODataJPAModelException;
 
   public List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException;
 
@@ -79,7 +79,7 @@ public interface JPAStructuredType extends JPAElement {
    *
    * @throws ODataJPAModelException
    */
-  public List<JPASimpleAttribute> getKeyAttributes(boolean exploded) throws ODataJPAModelException;
+  public List<JPAMemberAttribute> getKeyAttributes(boolean exploded) throws ODataJPAModelException;
 
   /**
    *

@@ -29,7 +29,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
@@ -257,9 +257,9 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
   }
 
   @Override
-  public JPASimpleAttribute getAttribute(final String internalName) throws ODataJPAModelException {
+  public JPAMemberAttribute getAttribute(final String internalName) throws ODataJPAModelException {
     initializeType();
-    JPASimpleAttribute result = declaredPropertiesList.get(internalName);
+    JPAMemberAttribute result = declaredPropertiesList.get(internalName);
     if (result == null && getBaseType() != null) {
       result = getBaseType().getAttribute(internalName);
     } else if (result != null && ((IntermediateModelElement) result).ignore()) {
@@ -269,9 +269,9 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
   }
 
   @Override
-  public List<JPASimpleAttribute> getAttributes() throws ODataJPAModelException {
+  public List<JPAMemberAttribute> getAttributes() throws ODataJPAModelException {
     initializeType();
-    final List<JPASimpleAttribute> result = new ArrayList<JPASimpleAttribute>();
+    final List<JPAMemberAttribute> result = new ArrayList<JPAMemberAttribute>();
     for (final String propertyKey : declaredPropertiesList.keySet()) {
       final IntermediatePropertyDTOField attribute = declaredPropertiesList.get(propertyKey);
       if (!attribute.ignore()) {
@@ -425,9 +425,9 @@ class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityT
   }
 
   @Override
-  public List<JPASimpleAttribute> getKeyAttributes(final boolean exploded) throws ODataJPAModelException {
-    final List<JPASimpleAttribute> keyList = new LinkedList<JPASimpleAttribute>();
-    for (final JPASimpleAttribute attribute : getAttributes()) {
+  public List<JPAMemberAttribute> getKeyAttributes(final boolean exploded) throws ODataJPAModelException {
+    final List<JPAMemberAttribute> keyList = new LinkedList<JPAMemberAttribute>();
+    for (final JPAMemberAttribute attribute : getAttributes()) {
       if (!attribute.isKey()) {
         continue;
       }

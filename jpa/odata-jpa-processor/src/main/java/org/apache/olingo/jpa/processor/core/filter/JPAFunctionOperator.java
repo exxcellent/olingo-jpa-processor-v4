@@ -5,11 +5,11 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
+import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
@@ -48,8 +48,9 @@ public class JPAFunctionOperator implements JPAExpression<Object> {
           HttpStatusCode.NOT_IMPLEMENTED);
     }
 
-    if (!TypeMapping.isPrimitiveType(
-        jpaFunction.getResultParameter().getType())) {
+    final ValueType resultValueType = jpaFunction.getResultParameter().getResultValueType();
+    if (resultValueType != ValueType.ENUM && resultValueType != ValueType.PRIMITIVE
+        && resultValueType != ValueType.GEOSPATIAL) {
       throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_NOT_SCALAR,
           HttpStatusCode.NOT_IMPLEMENTED);
     }

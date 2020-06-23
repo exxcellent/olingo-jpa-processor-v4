@@ -26,8 +26,6 @@ public class TestHelper {
   final private Metamodel jpaMetamodel;
   @Deprecated
   final public IntermediateServiceDocument serviceDocument;
-  @Deprecated
-  public IntermediateMetamodelSchema schema;
   private final JPAEdmProvider edmProvider;
 
   public TestHelper(final Metamodel metamodel, final String namespace) throws ODataJPAModelException {
@@ -39,12 +37,6 @@ public class TestHelper {
     }
     this.serviceDocument = edmProvider.getServiceDocument();
     serviceDocument.getEdmSchemas();// init model
-    for (final AbstractJPASchema s : serviceDocument.getJPASchemas()) {
-      if (IntermediateMetamodelSchema.class.isInstance(s)) {
-        this.schema = (IntermediateMetamodelSchema) s;
-        break;
-      }
-    }
   }
 
   public IntermediateServiceDocument getServiceDocument() {

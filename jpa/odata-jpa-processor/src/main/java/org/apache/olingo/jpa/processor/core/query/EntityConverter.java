@@ -26,7 +26,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribut
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -188,7 +188,7 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private Property convertJPAAttribute2OData(final JPASimpleAttribute jpaAttribute, final Object value,
+  private Property convertJPAAttribute2OData(final JPAMemberAttribute jpaAttribute, final Object value,
       final JPAStructuredType jpaType, final Map<String, Object> complexValueBuffer, final List<Property> properties,
       final Set<URI> processedEntities) throws ODataJPAConversionException, ODataJPAModelException {
     if (jpaAttribute.isAssociation()) {
@@ -216,7 +216,7 @@ public class EntityConverter extends AbstractEntityConverter {
 
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
     // 1. convert key attributes to create an id for the entity
-    for (final JPASimpleAttribute jpaAttribute : jpaType.getAttributes()) {
+    for (final JPAMemberAttribute jpaAttribute : jpaType.getAttributes()) {
       if (!jpaAttribute.isKey()) {
         // only key attribute
         continue;
@@ -235,7 +235,7 @@ public class EntityConverter extends AbstractEntityConverter {
     processedEntities.add(odataEntity.getId());
 
     // 2. convert complex types and relationships
-    for (final JPASimpleAttribute jpaAttribute : jpaType.getAttributes()) {
+    for (final JPAMemberAttribute jpaAttribute : jpaType.getAttributes()) {
       if (jpaAttribute.isKey()) {
         // already processed
         continue;
@@ -325,7 +325,7 @@ public class EntityConverter extends AbstractEntityConverter {
     return entityExpandLinks;
   }
 
-  private Property convertJPAComplexAttribute2OData(final JPASimpleAttribute jpaAttribute, final Object value,
+  private Property convertJPAComplexAttribute2OData(final JPAMemberAttribute jpaAttribute, final Object value,
       final Set<URI> processedEntities)
           throws ODataJPAModelException, ODataJPAConversionException {
     final JPAStructuredType attributeType = jpaAttribute.getStructuredType();
@@ -361,7 +361,7 @@ public class EntityConverter extends AbstractEntityConverter {
     }
 
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
-    for (final JPASimpleAttribute jpaAttribute : attributeType.getAttributes()) {
+    for (final JPAMemberAttribute jpaAttribute : attributeType.getAttributes()) {
       final Object value = jpaAttribute.getAttributeAccessor().getPropertyValue(cValue);
       if (jpaAttribute.isComplex()) {
         final Property complexTypeProperty = convertJPAComplexAttribute2OData(jpaAttribute, value, processedEntities);

@@ -33,7 +33,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
@@ -157,7 +157,8 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
     return AttributeMapping.RELATIONSHIP;
   }
 
-  public boolean isPrimitive() {
+  @Override
+  public boolean isSimple() {
     // navigation properties are targeting always a non primitive object
     return false;
   }
@@ -602,9 +603,9 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
   private static Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(
       final String relationshipName, final IntermediateStructuredType<?> targetType)
           throws ODataJPAModelException {
-    final List<JPASimpleAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
+    final List<JPAMemberAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
     final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());
-    for (final JPASimpleAttribute idAttr : targetKeyAttributes) {
+    for (final JPAMemberAttribute idAttr : targetKeyAttributes) {
       final String targetKeyName = idAttr.getDBFieldName();
       String derivedSourceKey = targetKeyName;
       boolean needsQuoting = false;

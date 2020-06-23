@@ -268,44 +268,6 @@ public final class TypeMapping {
             : null);
   }
 
-  /**
-   * @deprecated This method cannot known all the possible primitive types
-   */
-  @Deprecated
-  public static boolean isPrimitiveType(final Class<?> type) {
-    if (type.isEnum()) {
-      return true;
-    }
-    if (type.isPrimitive()) {
-      return true;
-    }
-    // TODO map to convertToEdmSimpleType(..)
-    if (type == String.class ||
-        type == Character.class ||
-        type == Long.class ||
-        type == Short.class ||
-        type == Integer.class ||
-        type == Double.class ||
-        type == Float.class ||
-        type == BigDecimal.class ||
-        type == Byte.class ||
-        type == Boolean.class ||
-        type == java.time.Duration.class ||
-        java.time.temporal.Temporal.class.isAssignableFrom(type) ||
-        type == java.util.Calendar.class ||
-        type == java.util.Date.class ||
-        type == UUID.class) {
-      return true;
-    }
-    // primitive are also (currently) all types where we have a (simple type) mapping for
-    for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
-      if (mapping.isMatchingJPAType(type)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final String memberName)
       throws ODataJPAModelException {
     if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.Point.class)) {

@@ -28,7 +28,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribut
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -674,7 +674,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    */
   @Deprecated
   protected static final String buildTargetJoinAlias(final JPAAssociationPath association,
-      final JPASimpleAttribute targetAttribute) {
+      final JPAMemberAttribute targetAttribute) {
     return association.getAlias().concat("_").concat(targetAttribute.getInternalName());
   }
 

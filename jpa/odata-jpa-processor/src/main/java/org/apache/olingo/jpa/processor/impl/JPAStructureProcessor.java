@@ -13,6 +13,7 @@ import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
+import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -311,7 +312,8 @@ ComplexProcessor, PrimitiveValueProcessor {
     final UriResourceFunction uriResourceFunction = (UriResourceFunction) uriInfo.getUriResourceParts().get(0);
     final JPAFunction jpaFunction = sd.getFunction(uriResourceFunction.getFunction());
     final JPAOperationResultParameter resultParameter = jpaFunction.getResultParameter();
-    if (resultParameter.isPrimitive()) {
+    // value base type is the same for collections and single entities
+    if (resultParameter.getResultValueType().getBaseType() != ValueType.ENTITY) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
           HttpStatusCode.NOT_IMPLEMENTED, jpaFunction.getResultParameter().getTypeFQN()
           .getFullQualifiedNameAsString());
@@ -324,13 +326,13 @@ ComplexProcessor, PrimitiveValueProcessor {
 
     // dbProcessor.query
     final JPAODataDatabaseProcessor dbProcessor = getRequestContext().getDatabaseProcessor();
-    final List<?> nr = dbProcessor.executeFunctionQuery(uriResourceFunction, jpaFunction, returnType,
+    final List<?> functionQueryResult = dbProcessor.executeFunctionQuery(uriResourceFunction, jpaFunction, returnType,
         getEntityManager());
 
     final EdmEntitySet returnEntitySet = uriResourceFunction.getFunctionImport().getReturnedEntitySet();
     try {
       final JPAInstanceResultConverter converter = new JPAInstanceResultConverter(getOData().createUriHelper(),
-          sd, nr, returnEntitySet, returnType.getTypeClass());
+          sd, functionQueryResult, returnEntitySet, returnType.getTypeClass());
       return converter.getResult();
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,

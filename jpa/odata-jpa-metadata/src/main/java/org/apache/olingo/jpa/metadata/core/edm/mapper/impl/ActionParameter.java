@@ -139,11 +139,6 @@ class ActionParameter implements JPAOperationParameter {
   }
 
   @Override
-  public boolean isPrimitive() {
-    return TypeMapping.isPrimitiveType(getType());
-  }
-
-  @Override
   public Integer getMaxLength() {
     try {
       if (getEdmItem() == null) {

@@ -30,7 +30,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
@@ -50,7 +50,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  * @author Oliver Grande
  *
  */
-class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPASimpleAttribute {
+class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPAMemberAttribute {
 
   private final static Logger LOG = Logger.getLogger(IntermediateProperty.class.getName());
   private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
@@ -166,7 +166,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
   }
 
   @Override
-  public boolean isPrimitive() {
+  public boolean isSimple() {
     if (isComplex()) {
       return false;
     }
@@ -203,7 +203,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
             (Class<? extends Enum<?>>) attributeType);
         return jpaEnumType.getExternalFQN();
       } else if (TypeMapping.isEmbeddableTypeCollection(jpaAttribute)) {
-        return serviceDocument.getStructuredType(jpaAttribute).getExternalFQN();
+        return serviceDocument.getStructuredType(attributeType).getExternalFQN();
       } else {
         // primitive type collection
         return TypeMapping.convertToEdmSimpleType(attributeType, (AccessibleObject) javaMember).getFullQualifiedName();
@@ -341,7 +341,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     // Set element specific attributes of super type
     this.setExternalName(nameBuilder.buildPropertyName(getInternalName()));
 
-    type = serviceDocument.getStructuredType(jpaAttribute);
+    type = serviceDocument.getStructuredType(attributeClass);
 
     if (javaMember instanceof AnnotatedElement) {
       final AnnotatedElement annotatedMember = (AnnotatedElement) javaMember;

@@ -7,7 +7,7 @@ import javax.persistence.criteria.Path;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
@@ -28,8 +28,8 @@ public class JPAMemberOperator<T> implements JPAExpression<T> {
     this.root = root;
   }
 
-  public JPASimpleAttribute determineAttribute() throws ODataApplicationException {
-    return (JPASimpleAttribute) determineAttributePath().getLeaf();
+  public JPAMemberAttribute determineAttribute() throws ODataApplicationException {
+    return (JPAMemberAttribute) determineAttributePath().getLeaf();
   }
 
   @SuppressWarnings("unchecked")

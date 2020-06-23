@@ -109,7 +109,8 @@ class IntermediateNavigationDTOProperty extends IntermediateModelElement impleme
     return AttributeMapping.RELATIONSHIP;
   }
 
-  public boolean isPrimitive() {
+  @Override
+  public boolean isSimple() {
     // navigation properties are targeting always a non primitive object
     return false;
   }

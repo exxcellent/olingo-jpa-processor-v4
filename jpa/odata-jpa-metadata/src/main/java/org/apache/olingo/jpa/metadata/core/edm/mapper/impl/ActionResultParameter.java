@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.persistence.metamodel.PluralAttribute.CollectionType;
 import javax.validation.constraints.NotNull;
 
+import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
@@ -107,8 +108,9 @@ class ActionResultParameter implements JPAOperationResultParameter {
   }
 
   @Override
-  public boolean isPrimitive() {
-    return TypeMapping.isPrimitiveType(getType());
+  public ValueType getResultValueType() {
+    return owner.determineValueType(owner.getIntermediateServiceDocument(), owner.getJavaMethod()
+        .getGenericReturnType(), isCollection());
   }
 
   CsdlReturnType getEdmItem() throws ODataJPAModelException {

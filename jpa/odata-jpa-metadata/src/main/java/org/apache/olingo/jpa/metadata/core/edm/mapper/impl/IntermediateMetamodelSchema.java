@@ -9,11 +9,9 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
-import javax.persistence.metamodel.PluralAttribute;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
@@ -24,6 +22,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
@@ -98,23 +97,13 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return clazz.getCanonicalName();
   }
 
-  /**
-   * {@link IntermediateStructuredType Structured types} including
-   * {@link IntermediateEntityType}'s.
-   */
-  IntermediateStructuredType<?> getStructuredType(final Attribute<?, ?> jpaAttribute) {
-    Class<?> targetClass = null;
-    if (jpaAttribute.isCollection()) {
-      targetClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
-    } else {
-      targetClass = jpaAttribute.getJavaType();
+  @Override
+  JPAStructuredType getStructuredType(final Class<?> typeClass) {
+    final JPAEntityType eType = getEntityType(typeClass);
+    if (eType != null) {
+      return eType;
     }
-    IntermediateStructuredType<?> type = mapInternalName2ComplexType
-        .get(buildStructuredTypeInternalName(targetClass));
-    if (type == null) {
-      type = mapInternalName2EntityType.get(buildStructuredTypeInternalName(targetClass));
-    }
-    return type;
+    return getComplexType(typeClass);
   }
 
   @Override
@@ -229,7 +218,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     final IntermediateFunctionFactory factory = new IntermediateFunctionFactory();
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
 
-      funcList.putAll(factory.create(getNameBuilder(), entity, this));
+      funcList.putAll(factory.create(getNameBuilder(), entity, serviceDocument));
     }
     return funcList;
   }

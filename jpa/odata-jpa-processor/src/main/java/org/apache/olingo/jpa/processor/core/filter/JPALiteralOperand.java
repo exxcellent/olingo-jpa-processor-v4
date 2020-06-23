@@ -34,11 +34,6 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
     }
 
     @Override
-    public boolean isPrimitive() {
-      return true;
-    }
-
-    @Override
     public boolean isNullable() {
       return false;
     }
