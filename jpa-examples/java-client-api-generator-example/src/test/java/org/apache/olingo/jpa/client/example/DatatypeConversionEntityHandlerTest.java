@@ -61,6 +61,7 @@ public class DatatypeConversionEntityHandlerTest extends HandlerTestBase {
     Assert.assertEquals(Timestamp.valueOf(LocalDateTime.of(2010, 01, 01, 23, 00, 59)), dto.getATimestamp1UtilDate());
     Assert.assertEquals(java.sql.Date.valueOf(LocalDate.of(2090, 12, 01)), dto.getADate1());
     Assert.assertEquals(UUID.fromString("7f905a0b-bb6e-11e3-9e8f-000000000001"), dto.getUuid());
+    Assert.assertEquals(5, dto.getUuidFragments().size());
   }
 
 }

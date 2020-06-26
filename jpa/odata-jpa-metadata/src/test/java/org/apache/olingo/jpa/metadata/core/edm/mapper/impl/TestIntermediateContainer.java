@@ -131,7 +131,6 @@ public class TestIntermediateContainer extends TestMappingRoot {
     fail();
   }
 
-  @Ignore("Address/AdministrativeDivision is currently commented out")
   @Test
   public void checkGetNavigationPropertyBindingsPathComplexType() throws ODataJPAModelException {
 

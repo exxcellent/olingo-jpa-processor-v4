@@ -375,7 +375,7 @@ class HandlerAPIWriter extends AbstractWriter {
     } catch (final ODataJPAModelException e) {
       return null;
     }
-    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
     final String methodName = determineConversionMethodName(attribute, false);
     if (mapAlreadeGeneratedMethods.contains(methodName)) {
       return null;
