@@ -440,7 +440,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("Content-Disposition: form-data; name=\"filename\"").append(NEW_LINE);
     requestBody.append(NEW_LINE);
     requestBody.append(fileName).append(NEW_LINE);
-    // part 3: ignored data
+    // part 2: ignored data
     requestBody.append("--").append(boundary).append(NEW_LINE);
     requestBody.append("Content-Disposition: form-data; name=\"document-data\"").append(NEW_LINE);
     requestBody.append(NEW_LINE);
@@ -463,6 +463,48 @@ public class TestJPAActions extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(0).asText().equals(fileName));
     assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(1).asInt() == binaryData.getBytes().length);
+  }
+
+  @Test
+  public void testMultipartFormContentUploadMultipleFiles() throws Exception {
+
+    // build complete multipart body in pure java
+    // https://www.codejava.net/java-se/networking/upload-files-by-sending-multipart-request-programmatically
+    final String fileName = "file-" + Long.toString(System.currentTimeMillis()) + ".tst";
+    final String boundary = "boundary";
+    final String binaryData1 = "1. file content";
+    final String binaryData2 = "2. file content";
+    final String NEW_LINE = "\r\n";
+
+    final StringBuffer requestBody = new StringBuffer("");
+    // part 1: number of files
+    requestBody.append("--").append(boundary).append(NEW_LINE);
+    requestBody.append("Content-Disposition: form-data; name=\"noOfFile\"").append(NEW_LINE);
+    requestBody.append(NEW_LINE);
+    requestBody.append("2").append(NEW_LINE);
+    // part 2: the 1. file content
+    requestBody.append("--").append(boundary).append(NEW_LINE);
+    requestBody.append("Content-Disposition: form-data; name=\"filelist\"; filename=\"" + "1." + fileName + "\"")
+    .append(NEW_LINE);
+    requestBody.append("Content-Type: application/octet-stream").append(NEW_LINE);// content type of multi part entry
+    requestBody.append(NEW_LINE);
+    requestBody.append(binaryData1).append(NEW_LINE);
+    // part 3: the 2. file content
+    requestBody.append("--").append(boundary).append(NEW_LINE);
+    requestBody.append("Content-Disposition: form-data; name=\"filelist\"; filename=\"" + "2." + fileName + "\"")
+    .append(NEW_LINE);
+    requestBody.append("Content-Type: application/octet-stream").append(NEW_LINE);// content type of multi part entry
+    requestBody.append(NEW_LINE);
+    requestBody.append(binaryData2).append(NEW_LINE);
+    // finalize multipart
+    requestBody.append("--").append(boundary).append("--").append(NEW_LINE);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("uploadMultipleFiles");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
+        HttpMethod.POST);
+    helper.setRequestContentType("multipart/form-data; boundary=" + boundary);// global content type
+
+    helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
   @Test

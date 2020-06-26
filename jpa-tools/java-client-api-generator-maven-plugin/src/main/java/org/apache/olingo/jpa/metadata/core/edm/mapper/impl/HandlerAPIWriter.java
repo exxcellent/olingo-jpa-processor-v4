@@ -38,7 +38,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -48,9 +48,9 @@ class HandlerAPIWriter extends AbstractWriter {
 
   private static final String METHOD_EXTRACT_ENUMVALUE = "extractEnumValue";
 
-  private static class KeySorter implements Comparator<JPASimpleAttribute> {
+  private static class KeySorter implements Comparator<JPAMemberAttribute> {
     @Override
-    public int compare(final JPASimpleAttribute o1, final JPASimpleAttribute o2) {
+    public int compare(final JPAMemberAttribute o1, final JPAMemberAttribute o2) {
       return o1.getInternalName().compareTo(o2.getInternalName());
     }
   }
@@ -129,7 +129,7 @@ class HandlerAPIWriter extends AbstractWriter {
   }
 
   private boolean entityContainsEnumAttribute() throws ODataJPAModelException {
-    for (final JPASimpleAttribute prop : type.getAttributes()) {
+    for (final JPAMemberAttribute prop : type.getAttributes()) {
       if (prop.getType().isEnum()) {
         return true;
       }
@@ -165,10 +165,10 @@ class HandlerAPIWriter extends AbstractWriter {
       return;
     }
     boolean firstParam = true;
-    final List<JPASimpleAttribute> keys = type.getKeyAttributes(true);
+    final List<JPAMemberAttribute> keys = type.getKeyAttributes(true);
     keys.sort(new KeySorter());// sort always by name to have deterministic order
     final StringBuilder bufferKeyParameters = new StringBuilder();
-    for (final JPASimpleAttribute attribute : keys) {
+    for (final JPAMemberAttribute attribute : keys) {
       final String memberName = attribute.getInternalName();
       final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
       if (!firstParam) {
@@ -216,13 +216,13 @@ class HandlerAPIWriter extends AbstractWriter {
   private void generate_ConvertValue_HelperMethods(final JPAStructuredType ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    for (final JPASimpleAttribute attribute : ownerType.getAttributes()) {
+    for (final JPAMemberAttribute attribute : ownerType.getAttributes()) {
       if (attribute.isCollection()) {
         generate_ConvertCollectionValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
       } else if (attribute.isComplex()) {
         if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
           // special case for complex key attribute type having nested attributes
-          for (final JPASimpleAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes()) {
+          for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes()) {
             generate_ConvertPrimitiveValue_HelperMethod(embeddedIdAttribute, mapAlreadeGeneratedMethods);
           }
         } else {
@@ -266,9 +266,9 @@ class HandlerAPIWriter extends AbstractWriter {
    */
   private String determineConversionMethodName(final JPAAttribute<?> attribute,
       final boolean respectCollection) throws ODataJPAModelException {
-    if (JPASimpleAttribute.class.isInstance(attribute)) {
+    if (JPAMemberAttribute.class.isInstance(attribute)) {
       @SuppressWarnings("deprecation")
-      final EdmAttributeConversion annoConversionConfiguration = JPASimpleAttribute.class.cast(attribute).getAnnotation(
+      final EdmAttributeConversion annoConversionConfiguration = JPAMemberAttribute.class.cast(attribute).getAnnotation(
           EdmAttributeConversion.class);
       if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
           .converter())) {
@@ -333,7 +333,7 @@ class HandlerAPIWriter extends AbstractWriter {
     return methodName;
   }
 
-  private String generate_ConvertComplexValue_HelperMethod(final JPASimpleAttribute attribute,
+  private String generate_ConvertComplexValue_HelperMethod(final JPAMemberAttribute attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     final String methodName = determineConversionMethodName(attribute, false);
@@ -366,7 +366,7 @@ class HandlerAPIWriter extends AbstractWriter {
    *
    * @return Method signature or <code>null</code> if no method is generated.
    */
-  private String generate_ConvertPrimitiveValue_HelperMethod(final JPASimpleAttribute attribute,
+  private String generate_ConvertPrimitiveValue_HelperMethod(final JPAMemberAttribute attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     EdmPrimitiveTypeKind odataType;
@@ -557,7 +557,7 @@ class HandlerAPIWriter extends AbstractWriter {
     return methodCollectionName;
   }
 
-  private String generate_ConvertCollectionValue_HelperMethod(final JPASimpleAttribute attribute,
+  private String generate_ConvertCollectionValue_HelperMethod(final JPAMemberAttribute attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     final String methodCollectionName = determineConversionMethodName(attribute, true);
@@ -618,14 +618,14 @@ class HandlerAPIWriter extends AbstractWriter {
       generateAssociationConversion(sType, ownerISRootEntity, asso);
     }
     // simple properties
-    for (final JPASimpleAttribute attribute : sType.getAttributes()) {
+    for (final JPAMemberAttribute attribute : sType.getAttributes()) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
         generateSimpleAttributeConversion(sType, ownerISRootEntity, attribute);
         break;
       case EMBEDDED_ID:
         // handle properties of nested complex type (@EmbeddedId) as properties of this type
-        for (final JPASimpleAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
+        for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
           generateSimpleAttributeConversion(sType, ownerISRootEntity, nestedProp);
         }
         break;
@@ -678,7 +678,7 @@ class HandlerAPIWriter extends AbstractWriter {
   }
 
   private void generateSimpleAttributeConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
-      final JPASimpleAttribute attribute)
+      final JPAMemberAttribute attribute)
           throws ODataJPAModelException,
           IOException {
     final String memberName = qualifiedName2FirstCharacterUppercasedString(attribute.getInternalName());

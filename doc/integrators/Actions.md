@@ -31,7 +31,9 @@ Every action parameter with it's name must match the *Content-Disposition* entry
 Limitations:
 The 'filename' of an *Content-Disposition* entry for binary data is not available as part of the specific parameter types. But the 'filename' may provided as separate/additional *form-data* entry represented as own action parameter (see separate action parameter in example method signature)...
 Currently only the following data types are provided for *multipart/form-data* entries: 
-* java.io.InputStream: for any binary data
-* java.lang.String: For all data convertible into strings
+* java.io.InputStream or java.util.Collection<java.io.InputStream>: for any binary data
+* java.lang.String or java.util.Collection<java.lang.String>: For all data convertible into strings
+
+A list of binary data (files) can be handled by an collection declaration of action parameter, but not as (vararg) array.
 
 **Attention**: Binary data are buffered internally as byte array, so this API is not usable for very large files. For such a use case use the standard conform OData streaming functionality (via media entity)

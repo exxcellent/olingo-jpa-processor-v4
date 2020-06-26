@@ -3,7 +3,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +32,7 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
 
   private CsdlAction edmAction = null;
   private final IntermediateServiceDocument isd;
-  private final Class<?> javaEntityClass;
+  private final Class<?> javaOwnerEntityClass;
   private final Method javaMethod;
   private final List<ActionParameter> parameterList;
   private final ActionResultParameter resultParameter;
@@ -44,7 +43,7 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
           throws ODataJPAModelException, IllegalArgumentException {
     super(nameBuilder, buildActionInternalName(jpaEntityClass, actionMethod));
     this.javaMethod = actionMethod;
-    this.javaEntityClass = jpaEntityClass;
+    this.javaOwnerEntityClass = jpaEntityClass;
     if (Modifier.isStatic(actionMethod.getModifiers())) {
       if (!Modifier.isPublic(actionMethod.getModifiers())) {
         throw new IllegalArgumentException(
@@ -79,6 +78,10 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
     }
   }
 
+  IntermediateServiceDocument getIntermediateServiceDocument() {
+    return isd;
+  }
+
   /**
    * The method declaring class may differ from the real owning entity class,
    * because overload of methods is possible.
@@ -111,40 +114,25 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
    * Helper method to extract 'parameter type' from a parameterized (generic) type like a {@link Collection}.
    */
   FullQualifiedName extractGenericTypeQualifiedName(final Type type) throws ODataJPAModelException {
-    Class<?> clazzType = null;
-    if(Class.class.isInstance(type)) {
-      // simply use the argument self without further inspection
-      clazzType = (Class<?>) type;
-    }
-    else if(ParameterizedType.class.isInstance(type)) {
-      final ParameterizedType pType = (ParameterizedType) type;
-      if(pType.getActualTypeArguments().length == 1) {
-        final Type genericType = pType.getActualTypeArguments()[0];
-        if(Class.class.isInstance(genericType)) {
-          clazzType = (Class<?>) genericType;
-        }
-      }
-    }
+    final Class<?> clazzType = determineClassType(type);
     // now adapt to oData type to determine FQN
-    if(clazzType != null) {
-      final JPAStructuredType et = isd.getEntityType(clazzType);
-      if (et != null) {
-        if (et.ignore()) {
-          throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);
-        }
-        return et.getExternalFQN();
-      } else if (clazzType.isEnum()) {
-        final IntermediateEnumType enT = isd.getEnumType(clazzType);
-        if (enT != null) {
-          return enT.getExternalFQN();
-        }
-      } else {
-        // may throw an ODataJPAModelException
-        final EdmPrimitiveTypeKind simpleType = TypeMapping.convertToEdmSimpleType(clazzType);
-        return simpleType.getFullQualifiedName();
+    final JPAStructuredType et = isd.getEntityType(clazzType);
+    if (et != null) {
+      if (et.ignore()) {
+        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_WRONG_TYPE);
       }
+      return et.getExternalFQN();
+    } else if (clazzType.isEnum()) {
+      final IntermediateEnumType enT = isd.getEnumType(clazzType);
+      if (enT != null) {
+        return enT.getExternalFQN();
+      }
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, type.getTypeName());
+    } else {
+      // may throw an ODataJPAModelException
+      final EdmPrimitiveTypeKind simpleType = TypeMapping.convertToEdmSimpleType(clazzType);
+      return simpleType.getFullQualifiedName();
     }
-    throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, type.getTypeName());
   }
 
   /**
@@ -156,7 +144,7 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
     if (isBound) {
       // if an action is 'bound' then the first parameter in list must be the entity
       // type where the action is bound to; we generate that on demand
-      final FullQualifiedName fqn = extractGenericTypeQualifiedName(javaEntityClass);
+      final FullQualifiedName fqn = extractGenericTypeQualifiedName(javaOwnerEntityClass);
       final CsdlParameter parameter = new CsdlParameter();
       parameter.setName(BOUND_ACTION_ENTITY_PARAMETER_NAME);
       parameter.setNullable(false);// TODO mark as 'nullable' to work with Deserializer missing the 'bound resource parameter'?

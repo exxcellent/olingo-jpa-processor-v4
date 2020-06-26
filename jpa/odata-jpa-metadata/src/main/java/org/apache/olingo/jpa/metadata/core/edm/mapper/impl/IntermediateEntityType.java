@@ -26,7 +26,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -277,7 +277,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
     for (final String internalName : propertyList.keySet()) {
       if (propertyList.get(internalName).isKey()) {
         if (propertyList.get(internalName).isComplex()) {
-          final List<JPASimpleAttribute> idAttributes = ((IntermediateComplexType) propertyList
+          final List<JPAMemberAttribute> idAttributes = ((IntermediateComplexType) propertyList
               .get(internalName)
               .getStructuredType())
               .getAttributes();

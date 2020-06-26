@@ -15,7 +15,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -25,7 +25,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediatePropertyDTOField extends IntermediateModelElement implements JPASimpleAttribute {
+class IntermediatePropertyDTOField extends IntermediateModelElement implements JPAMemberAttribute {
 
   private final IntermediateServiceDocument serviceDocument;
   private final Field field;
@@ -214,7 +214,12 @@ class IntermediatePropertyDTOField extends IntermediateModelElement implements J
   }
 
   @Override
-  public boolean isPrimitive() {
+  public boolean isJoinCollection() {
+    return isCollection();
+  }
+
+  @Override
+  public boolean isSimple() {
     return !isComplex();
   }
 

@@ -1,12 +1,18 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.olingo.commons.api.data.ValueType;
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 abstract class IntermediateModelElement implements JPAElement {
@@ -79,6 +85,47 @@ abstract class IntermediateModelElement implements JPAElement {
 
   protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
     return list == null || list.isEmpty() ? null : list;
+  }
+
+  ValueType determineValueType(final IntermediateServiceDocument isd, final Type type, final boolean isCollection) {
+    final Class<?> clazzType = determineClassType(type);
+    if (clazzType.isEnum()) {
+      return (isCollection ? ValueType.COLLECTION_ENUM : ValueType.ENUM);
+    }
+    final JPAEntityType entityType= isd.getEntityType(clazzType);
+    if(entityType != null) {
+      return (isCollection?ValueType.COLLECTION_ENTITY:ValueType.ENTITY);
+    }
+    final JPAStructuredType complexType = isd.getComplexType(clazzType);
+    if(complexType != null) {
+      return (isCollection?ValueType.COLLECTION_COMPLEX:ValueType.COMPLEX);
+    }
+    // at least GEOSPATIAL or PRMITIVE
+    try {
+      final EdmPrimitiveTypeKind pT =TypeMapping.convertToEdmSimpleType(clazzType);
+      if (pT.isGeospatial()) {
+        return (isCollection ? ValueType.COLLECTION_GEOSPATIAL : ValueType.GEOSPATIAL);
+      }
+      return (isCollection ? ValueType.COLLECTION_PRIMITIVE : ValueType.PRIMITIVE);
+    } catch (final ODataJPAModelException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  static Class<?> determineClassType(final Type type) {
+    if (Class.class.isInstance(type)) {
+      // simply use the argument self without further inspection
+      return (Class<?>) type;
+    } else if (ParameterizedType.class.isInstance(type)) {
+      final ParameterizedType pType = (ParameterizedType) type;
+      if (pType.getActualTypeArguments().length == 1) {
+        final Type genericType = pType.getActualTypeArguments()[0];
+        if (Class.class.isInstance(genericType)) {
+          return (Class<?>) genericType;
+        }
+      }
+    }
+    throw new UnsupportedOperationException(type.getTypeName());
   }
 
   abstract <CDSLType extends CsdlAbstractEdmItem> CDSLType getEdmItem() throws ODataJPAModelException;

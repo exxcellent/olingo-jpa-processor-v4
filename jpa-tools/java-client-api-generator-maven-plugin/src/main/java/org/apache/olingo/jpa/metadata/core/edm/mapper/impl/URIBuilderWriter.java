@@ -15,15 +15,15 @@ import java.util.Map;
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 class URIBuilderWriter extends AbstractWriter {
 
-  private static class KeySorter implements Comparator<JPASimpleAttribute> {
+  private static class KeySorter implements Comparator<JPAMemberAttribute> {
     @Override
-    public int compare(final JPASimpleAttribute o1, final JPASimpleAttribute o2) {
+    public int compare(final JPAMemberAttribute o1, final JPAMemberAttribute o2) {
       return o1.getInternalName().compareTo(o2.getInternalName());
     }
   }
@@ -102,10 +102,10 @@ class URIBuilderWriter extends AbstractWriter {
 
   private void generateSpecificAppendKeysMethod() throws IOException, ODataJPAModelException {
     boolean firstParam = true;
-    final List<JPASimpleAttribute> keys = type.getKeyAttributes(true);
+    final List<JPAMemberAttribute> keys = type.getKeyAttributes(true);
     keys.sort(new KeySorter());// sort always by name to have deterministic order
     final StringBuilder bufferKeyParameters = new StringBuilder();
-    for (final JPASimpleAttribute attribute : keys) {
+    for (final JPAMemberAttribute attribute : keys) {
       final String memberName = attribute.getInternalName();
       final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(attribute, false);
       if (!firstParam) {
@@ -123,7 +123,7 @@ class URIBuilderWriter extends AbstractWriter {
       write(NEWLINE + "\t" + "\t" + Map.class.getName() + "<String, Object> keys = new " + HashMap.class.getName()
           + "<>();");
       final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(type.getTypeClass().getSimpleName());
-      for (final JPASimpleAttribute attribute : keys) {
+      for (final JPAMemberAttribute attribute : keys) {
         final String memberName = attribute.getInternalName();
         write(NEWLINE + "\t" + "\t" + "keys.put(" + typeMetaName + "." + TypeMetaAPIWriter
             .determineTypeMetaPropertyNameConstantName(attribute

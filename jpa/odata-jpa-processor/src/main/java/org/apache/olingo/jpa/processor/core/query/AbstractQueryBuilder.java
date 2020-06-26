@@ -171,20 +171,16 @@ abstract class AbstractQueryBuilder {
     Join<?, ?> existingJoin;
     // only @ElementCollection and true relationships should be handled as JOIN, a single complex type (@Embedded) must
     // taken as simple attribute as JPA specification says
-    if (From.class.isInstance(from) && jpaPathElement.isComplex() || jpaPathElement.isCollection()) {
+    if (From.class.isInstance(from) && jpaPathElement.isComplex() || jpaPathElement.isJoinCollection()) {
       existingJoin = findAlreadyDefinedJoin((From<?, ?>) from, jpaPathElement);
       if (existingJoin != null) {
         return existingJoin;
       } else {
-        if (jpaPathElement.isCollection() && !jpaPathElement.isAssociation()) {
-          // @ElementCollection are always optional for the root entity, but loaded in a separate call... so we can use
-          // INNER JOIN also to avoid empty results
-          return ((From<?, ?>) from).join(jpaPathElement.getInternalName());
-        } else {
-          // association (real navigations) must be existing (INNER JOIN)
-          // @Embedded types cannot be null per JPA specification, so we have to use an INNER JOIN
-          return ((From<?, ?>) from).join(jpaPathElement.getInternalName());
-        }
+        // @ElementCollection are always optional for the root entity, but loaded in a separate call... so we can use
+        // INNER JOIN also to avoid empty results
+        // association (real navigations) must be existing (INNER JOIN)
+        // @Embedded types cannot be null per JPA specification, so we have to use an INNER JOIN
+        return ((From<?, ?>) from).join(jpaPathElement.getInternalName());
       }
     } else {
       return from.get(jpaPathElement.getInternalName());

@@ -11,7 +11,7 @@ import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
@@ -143,18 +143,18 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
     final String refColumnName = intermediateColumn.getTargetColumnName();
     final String name = intermediateColumn.getSourceEntityColumnName();
     if ((name == null || name.isEmpty())) {
-      final JPASimpleAttribute keyAttribute = determineSingleKeyAttribute(sourceType);
+      final JPAMemberAttribute keyAttribute = determineSingleKeyAttribute(sourceType);
       intermediateColumn.setSourceEntityColumnName(keyAttribute.getDBFieldName());
     }
     if ((refColumnName == null || refColumnName.isEmpty())) {
-      final JPASimpleAttribute keyAttribute = determineSingleKeyAttribute(targetType);
+      final JPAMemberAttribute keyAttribute = determineSingleKeyAttribute(targetType);
       intermediateColumn.setTargetColumnName(keyAttribute.getDBFieldName());
     }
   }
 
-  private static JPASimpleAttribute determineSingleKeyAttribute(final JPAStructuredType theType)
+  private static JPAMemberAttribute determineSingleKeyAttribute(final JPAStructuredType theType)
       throws ODataJPAModelException {
-    final List<JPASimpleAttribute> attributes = theType.getKeyAttributes(false);
+    final List<JPAMemberAttribute> attributes = theType.getKeyAttributes(false);
     if (attributes.isEmpty()) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ASSOCIATION);
     }

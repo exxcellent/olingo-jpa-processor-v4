@@ -147,25 +147,6 @@ public final class TypeMapping {
     return convertToEdmSimpleType(javaType, field);
   }
 
-  /**
-   * This utility method converts a given jpa Type to equivalent EdmPrimitiveTypeKind for maintaining compatibility
-   * between Java and OData Types.
-   *
-   * @param jpaType
-   *            The JPA Type input.
-   * @return The corresponding EdmPrimitiveTypeKind.
-   * @throws ODataJPAModelException
-   * @throws org.apache.olingo.odata2.jpa.processor.api.exception.ODataJPARuntimeException
-   *
-   * @see EdmPrimitiveTypeKind
-   */
-
-  static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
-      final Attribute<?, ?> currentAttribute) throws ODataJPAModelException {
-    return convertToEdmSimpleType(jpaType,
-        (currentAttribute != null) ? (AccessibleObject) currentAttribute.getJavaMember() : null);
-  }
-
   private static ODataMapping determineODataMapping(final Class<?> jpaType, final AccessibleObject javaMember)
       throws ODataJPAModelException {
     final EdmPrimitiveTypeKind customKind = determineSimpleTypeFromConverter(javaMember);
@@ -285,41 +266,6 @@ public final class TypeMapping {
         IntermediateProperty.class.isInstance(attribute)
         ? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
             : null);
-  }
-
-  /**
-   * @deprecated This method cannot known all the possible primitive types
-   */
-  @Deprecated
-  public static boolean isPrimitiveType(final Class<?> type) {
-    if (type.isEnum()) {
-      return true;
-    }
-    // TODO map to convertToEdmSimpleType(..)
-    if (type == String.class ||
-        type == Character.class ||
-        type == Long.class ||
-        type == Short.class ||
-        type == Integer.class ||
-        type == Double.class ||
-        type == Float.class ||
-        type == BigDecimal.class ||
-        type == Byte.class ||
-        type == Boolean.class ||
-        type == java.time.Duration.class ||
-        java.time.temporal.Temporal.class.isAssignableFrom(type) ||
-        type == java.util.Calendar.class ||
-        type == java.util.Date.class ||
-        type == UUID.class) {
-      return true;
-    }
-    //primitive are also (currently) all types where we have a mapping for
-    for (final ODataMapping mapping : MAPPINGS_JPA2ODATA) {
-      if (mapping.isMatchingJPAType(type)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final String memberName)

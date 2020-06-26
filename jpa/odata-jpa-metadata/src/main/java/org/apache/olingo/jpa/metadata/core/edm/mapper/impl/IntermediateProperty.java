@@ -5,6 +5,9 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +30,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
@@ -47,7 +50,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  * @author Oliver Grande
  *
  */
-class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPASimpleAttribute {
+class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPAMemberAttribute {
 
   private final static Logger LOG = Logger.getLogger(IntermediateProperty.class.getName());
   private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
@@ -61,8 +64,11 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
   private boolean isVersion = false;
   private EdmMediaStream streamInfo;
   private final boolean isComplex;
+  private final boolean isCollection;
+  private final boolean isJoinCollection;
   private final JPAAttributeAccessor accessor;
   private final Member javaMember;
+  private final Class<?> attributeClass;
 
   IntermediateProperty(final JPAEdmNameBuilder nameBuilder, final Attribute<?, ?> jpaAttribute,
       final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
@@ -75,6 +81,23 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
         || TypeMapping.isEmbeddableTypeCollection(jpaAttribute);
     javaMember = determineJavaMemberOfAttribute(jpaAttribute);
     accessor = new FieldAttributeAccessor((Field) javaMember);
+
+    if (jpaAttribute.isCollection()) {
+      attributeClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
+      isCollection = true;
+      isJoinCollection = true;
+    } else if (Collection.class.isAssignableFrom(jpaAttribute.getJavaType())) {
+      // special case for collection of simple attribute declared without @ElementCollection, but handled via
+      // @Convert(er) as collection
+      attributeClass = TypeMapping.extractElementTypeOfCollection((Field) javaMember);
+      isCollection = true;
+      isJoinCollection = false;
+    } else {
+      attributeClass = jpaAttribute.getJavaType();
+      isCollection = false;
+      isJoinCollection = false;
+    }
+
     buildProperty(nameBuilder);
   }
 
@@ -102,19 +125,25 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
   @Override
   public Class<?> getType() {
-    if (isCollection()) {
-      return ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
-    }
-    return jpaAttribute.getJavaType();
+    return attributeClass;
   }
 
   @Override
   public CollectionType getCollectionType() {
-    if (isCollection()) {
+    if (isJoinCollection) {
       return ((PluralAttribute<?, ?, ?>) jpaAttribute).getCollectionType();
+    }
+    //special case for collections not defined as @ElementCollection
+    if (Set.class.isAssignableFrom(((Field)javaMember).getType())) {
+      return CollectionType.SET;
+    } else if (List.class.isAssignableFrom(((Field) javaMember).getType())) {
+      return CollectionType.LIST;
+    } else if (Collection.class.isAssignableFrom(((Field) javaMember).getType())) {
+      return CollectionType.COLLECTION;
     }
     return null;
   }
+
   @Override
   public boolean isComplex() {
     return isComplex;
@@ -137,20 +166,21 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
   }
 
   @Override
-  public boolean isPrimitive() {
+  public boolean isSimple() {
     if (isComplex()) {
       return false;
     }
-    //    if (isCollection()) {
-    //      return TypeMapping.isPrimitiveTypeCollection(jpaAttribute);
-    //    }
-    //    return TypeMapping.isPrimitiveType(getType());
     return true;
   }
 
   @Override
+  public boolean isJoinCollection() {
+    return isJoinCollection;
+  }
+
+  @Override
   public boolean isCollection() {
-    return jpaAttribute.isCollection();
+    return isCollection;
   }
 
   boolean isStream() {
@@ -161,36 +191,23 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     if (isStream()) {
       return EdmPrimitiveTypeKind.Stream.getFullQualifiedName();
     }
+    final Class<?> attributeType = getType();
     switch (jpaAttribute.getPersistentAttributeType()) {
-    case BASIC:
-      if (jpaAttribute.getJavaType().isEnum()) {
-        // register enum type
-        @SuppressWarnings("unchecked")
-        final IntermediateEnumType jpaEnumType = serviceDocument
-        .findOrCreateEnumType((Class<? extends Enum<?>>) jpaAttribute.getJavaType());
-        return jpaEnumType.getExternalFQN();
-      } else {
-        return TypeMapping.convertToEdmSimpleType(getType(), (AccessibleObject) javaMember).getFullQualifiedName();
-      }
     case EMBEDDED:
       return getNameBuilder().buildFQN(type.getExternalName());
-    case ELEMENT_COLLECTION:
-      final PluralAttribute<?, ?, ?> pa = (PluralAttribute<?, ?, ?>) jpaAttribute;
-      if (pa.getElementType().getJavaType().isEnum()) {
+    default:
+      if (attributeType.isEnum()) {
         // register enum type
         @SuppressWarnings("unchecked")
-        final IntermediateEnumType jpaEnumType = serviceDocument
-        .findOrCreateEnumType((Class<? extends Enum<?>>) pa.getElementType().getJavaType());
+        final IntermediateEnumType jpaEnumType = serviceDocument.findOrCreateEnumType(
+            (Class<? extends Enum<?>>) attributeType);
         return jpaEnumType.getExternalFQN();
       } else if (TypeMapping.isEmbeddableTypeCollection(jpaAttribute)) {
-        return serviceDocument.getStructuredType(jpaAttribute).getExternalFQN();
+        return serviceDocument.getStructuredType(attributeType).getExternalFQN();
       } else {
         // primitive type collection
-        return TypeMapping.convertToEdmSimpleType(pa.getElementType().getJavaType(), pa).getFullQualifiedName();
+        return TypeMapping.convertToEdmSimpleType(attributeType, (AccessibleObject) javaMember).getFullQualifiedName();
       }
-    default:
-      // trigger exception if not possible
-      return TypeMapping.convertToEdmSimpleType(jpaAttribute.getJavaType(), jpaAttribute).getFullQualifiedName();
     }
   }
 
@@ -201,7 +218,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
       edmProperty.setName(this.getExternalName());
 
       edmProperty.setType(createTypeName());// trigger exception for unsupported attribute types
-      edmProperty.setCollection(jpaAttribute.isCollection());
+      edmProperty.setCollection(isCollection());
 
       if (javaMember instanceof AnnotatedElement) {
         final AnnotatedElement annotatedMember = (AnnotatedElement) javaMember;
@@ -325,7 +342,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
     // Set element specific attributes of super type
     this.setExternalName(nameBuilder.buildPropertyName(getInternalName()));
 
-    type = serviceDocument.getStructuredType(jpaAttribute);
+    type = serviceDocument.getStructuredType(attributeClass);
 
     if (javaMember instanceof AnnotatedElement) {
       final AnnotatedElement annotatedMember = (AnnotatedElement) javaMember;

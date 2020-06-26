@@ -23,7 +23,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -224,11 +224,11 @@ public abstract class AbstractConverter {
    * </ol>
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected final Property convertJPA2ODataProperty(final JPATypedElement attribute, final String propertyName,
+  protected final Property convertJPA2ODataProperty(final JPAMemberAttribute attribute, final String propertyName,
       final Object input,
       final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException, IllegalArgumentException {
-    if (!attribute.isPrimitive()) {
-      throw new IllegalArgumentException("attribute is not primitive... wrong method call");
+    if (!attribute.isSimple()) {
+      throw new IllegalArgumentException("attribute is not simple... wrong method call");
     }
 
     final Class<?> javaType = attribute.getType();
@@ -236,21 +236,18 @@ public abstract class AbstractConverter {
       throw new IllegalArgumentException("Java type required for property " + propertyName);
     }
     final ValueType valueType;
-    if (attribute.isCollection() && attribute.isPrimitive()) {
+    if (attribute.isCollection()) {
       if (javaType.isEnum()) {
         valueType = ValueType.COLLECTION_ENUM;
       } else {
         valueType = ValueType.COLLECTION_PRIMITIVE;
       }
-    } else if (attribute.isPrimitive()) {
+    } else {
       if (javaType.isEnum()) {
         valueType = ValueType.ENUM;
       } else {
         valueType = ValueType.PRIMITIVE;
       }
-    } else {
-      throw new IllegalArgumentException(
-          "Given value is not of primitive type managable in this method: " + propertyName);
     }
     Property property;
     Object convertedInput;
@@ -498,7 +495,7 @@ public abstract class AbstractConverter {
     switch (jpaAttribute.getAttributeMapping()) {
     case SIMPLE:
       sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());
-      return transferSimpleOData2JPAProperty(targetJPAObject, (JPASimpleAttribute) jpaAttribute,
+      return transferSimpleOData2JPAProperty(targetJPAObject, (JPAMemberAttribute) jpaAttribute,
           sourceOdataProperty);
     case AS_COMPLEX_TYPE:
       sourceOdataProperty = selectProperty(odataObjectProperties, jpaAttribute.getExternalName());

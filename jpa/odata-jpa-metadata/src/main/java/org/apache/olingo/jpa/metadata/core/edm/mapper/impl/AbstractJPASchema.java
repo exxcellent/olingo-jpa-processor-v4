@@ -9,6 +9,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 public abstract class AbstractJPASchema implements JPAElement {
@@ -67,4 +68,11 @@ public abstract class AbstractJPASchema implements JPAElement {
   abstract List<JPAEntitySet> getEntitySets();
   
   abstract IntermediateComplexType getComplexType(final Class<?> targetClass);
+
+  /**
+   *
+   * @return The type descriptor or <code>null</code> of {@link #getEntityType(Class) entity} or
+   * {@link #getComplexType(Class) complex} types.
+   */
+  abstract JPAStructuredType getStructuredType(final Class<?> typeClass);
 }

@@ -8,6 +8,7 @@ import java.time.chrono.IsoEra;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 
@@ -124,6 +126,12 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Column(name = "\"UUID\"")
   private UUID uuid;
 
+  // test to check handling for collections of simple types without @ElementCollection
+  @EdmSearchable
+  @Column(name = "\"UUID\"", insertable = false, nullable = true, updatable = false)
+  @Convert(converter = JPAUuidFragmentsListConverter.class)
+  private List<String> uuidFragments;
+
   @EdmSearchable
   @Column(name = "\"AIntBoolean\"", columnDefinition = "smallint")
   private Boolean aIntBoolean;
@@ -201,6 +209,16 @@ public class DatatypeConversionEntity extends AbstractEntity {
     result.add(Integer.toString(length));
     stream.close();
     return result;
+  }
+
+  @EdmAction
+  public static void uploadMultipleFiles(@EdmActionParameter(name = "noOfFile") final String noOfFile,
+      @EdmActionParameter(name = "filelist") final Collection<java.io.InputStream> streams
+      ) throws IOException {
+    if (Integer.parseInt(noOfFile) != streams.size()) {
+      throw new IllegalStateException("Expected: " + noOfFile + " files, received: " + (streams == null ? 0
+          : streams.size()));
+    }
   }
 
 }

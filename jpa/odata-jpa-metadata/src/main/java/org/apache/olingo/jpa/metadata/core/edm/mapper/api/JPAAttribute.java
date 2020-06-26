@@ -33,8 +33,27 @@ public interface JPAAttribute<CDSLType extends CsdlAbstractEdmItem> extends JPAE
    *         properties.
    */
   public boolean isComplex();
+  
+  /**
+  *
+  * @return TRUE if the property/attribute is of any JAVA simple type (not {@link #isComplex()} and not
+  * {@link #isAssociation()}), maybe in a collection.
+  *
+  * @see org.apache.olingo.commons.api.data.ValueType#ENUM
+  * @see org.apache.olingo.commons.api.data.ValueType#GEOSPATIAL
+  * @see org.apache.olingo.commons.api.data.ValueType#PRIMITIVE
+  */
+ public boolean isSimple();
 
   public boolean isCollection();
+  
+  /**
+  *
+  * @return TRUE if {@link #isCollection()} and is not mapped as single column in a table (and only transformed into a
+  * collection by an {@link javax.persistence.AttributeConverter @AttributeConverter}), means this is a
+  * relationship/association or an @ElementCollection.
+  */
+  public boolean isJoinCollection();
 
   public boolean isKey();
 

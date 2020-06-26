@@ -12,7 +12,7 @@ import org.apache.olingo.jpa.generator.api.client.generatorclassloader.LogWrappe
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -54,13 +54,13 @@ class TypeDtoAPIWriter extends AbstractWriter {
   private static <T extends JPAAttribute<?>> String determineServerSideTypeName(final T attribute,
       final boolean convertPrimitiveClassToObjectClass)
           throws ODataJPAModelException {
-    if (JPASimpleAttribute.class.isInstance(attribute)) {
+    if (JPAMemberAttribute.class.isInstance(attribute)) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
         if (convertPrimitiveClassToObjectClass) {
-          return convertPrimitiveClassToObjectClass(JPASimpleAttribute.class.cast(attribute).getType()).getName();
+          return convertPrimitiveClassToObjectClass(JPAMemberAttribute.class.cast(attribute).getType()).getName();
         }
-        final Class<?> clazz = JPASimpleAttribute.class.cast(attribute).getType();
+        final Class<?> clazz = JPAMemberAttribute.class.cast(attribute).getType();
         if (clazz == byte[].class) {
           return "byte[]";
         }
@@ -69,7 +69,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
         return attribute.getStructuredType().getInternalName();
       default:
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
-            JPASimpleAttribute.class.cast(attribute).getType().getName(),
+            JPAMemberAttribute.class.cast(attribute).getType().getName(),
             attribute.getInternalName());
       }
     } else {
@@ -140,7 +140,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
   }
 
   public void writeDtoTypeProperties() throws ODataJPAModelException, IOException {
-    final List<JPASimpleAttribute> simpleAttributes = type.getAttributes();
+    final List<JPAMemberAttribute> simpleAttributes = type.getAttributes();
     final List<JPAAssociationAttribute> navigationAttributes = type.getAssociations();
     String streamProperty = "";
     if (IntermediateEntityType.class.isInstance(type)) {
@@ -153,7 +153,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
       processAttribute(prop);
     }
     // simple properties
-    for (final JPASimpleAttribute prop : simpleAttributes) {
+    for (final JPAMemberAttribute prop : simpleAttributes) {
       if (streamProperty.equals(prop.getInternalName())) {
         log.debug("Suppress stream property " + type.getExternalName() + "+" + prop.getInternalName() + " in API");
         continue;
@@ -184,10 +184,10 @@ class TypeDtoAPIWriter extends AbstractWriter {
     final String propClientType = determineClientSidePropertyJavaTypeName(attribute, false);
 
     // attribute
-    if (JPASimpleAttribute.class.isInstance(attribute) && JPASimpleAttribute.class.cast(attribute).getType()
+    if (JPAMemberAttribute.class.isInstance(attribute) && JPAMemberAttribute.class.cast(attribute).getType()
         .isPrimitive()) {
       write(NEWLINE + NEWLINE + "\t" + "private " + propClientType + " " + memberName +";");
-    } else if (JPASimpleAttribute.class.isInstance(attribute) && attribute.isCollection()) {
+    } else if (JPAMemberAttribute.class.isInstance(attribute) && attribute.isCollection()) {
       write(NEWLINE + NEWLINE + "\t" + "private " + propClientType + " " + memberName + " = new " + LinkedList.class
           .getName() + "<>();");
     } else {

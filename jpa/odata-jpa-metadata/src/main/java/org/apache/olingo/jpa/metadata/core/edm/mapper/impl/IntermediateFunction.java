@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.persistence.metamodel.PluralAttribute.CollectionType;
 
+import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.geo.SRID;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
@@ -36,17 +37,17 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 class IntermediateFunction extends IntermediateModelElement implements JPAFunction {
   private CsdlFunction edmFunction;
   private final EdmFunction jpaUserDefinedFunction;
-  private final AbstractJPASchema schema;
+  private final IntermediateServiceDocument isd;
   private final Class<?> jpaDefiningPOJO;
 
   IntermediateFunction(final JPAEdmNameBuilder nameBuilder, final EdmFunction jpaFunction,
-      final Class<?> definingPOJO, final AbstractJPASchema schema)
+      final Class<?> definingPOJO, final IntermediateServiceDocument isd)
           throws ODataJPAModelException {
     super(nameBuilder, jpaFunction.name());
     this.setExternalName(jpaFunction.name());
     this.jpaUserDefinedFunction = jpaFunction;
     this.jpaDefiningPOJO = definingPOJO;
-    this.schema = schema;
+    this.isd = isd;
   }
 
   @Override
@@ -132,16 +133,15 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     return edmInputParameterList;
   }
 
-  // TODO handle multiple schemas
   private CsdlReturnType determineEdmResultType(final ReturnType returnType) throws ODataJPAModelException {
     final CsdlReturnType edmResultType = new CsdlReturnType();
     FullQualifiedName fqn;
     if (returnType.type() == Object.class) {
-      final JPAStructuredType et = schema.getEntityType(jpaDefiningPOJO);
+      final JPAStructuredType et = isd.getStructuredType(jpaDefiningPOJO);
       fqn = getNameBuilder().buildFQN(et.getExternalName());
       this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
     } else {
-      final JPAStructuredType et = schema.getEntityType(returnType.type());
+      final JPAStructuredType et = isd.getStructuredType(returnType.type());
       if (et != null) {
         fqn = getNameBuilder().buildFQN(et.getExternalName());
         this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
@@ -241,10 +241,6 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
       return ParameterKind.OData;
     }
 
-    @Override
-    public boolean isPrimitive() {
-      return TypeMapping.isPrimitiveType(jpaParameter.type());
-    }
   }
 
   private class IntermediatResultFunctionParameter implements JPAOperationResultParameter {
@@ -304,8 +300,12 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     }
 
     @Override
-    public boolean isPrimitive() {
-      return TypeMapping.isPrimitiveType(jpaReturnType.type());
+    public ValueType getResultValueType() {
+      final Class<?> type = getType();
+      if (type == Object.class) {
+        return null;
+      }
+      return IntermediateFunction.this.determineValueType(isd, type, isCollection());
     }
   }
 }

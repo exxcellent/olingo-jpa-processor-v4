@@ -20,7 +20,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -188,12 +188,12 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
       return complexTypeNestedProperty;
     } else if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
       // leaf element is the property in the @EmbeddedId type
-      final JPASimpleAttribute attributeComplexProperty = (JPASimpleAttribute) path.getLeaf();
+      final JPAMemberAttribute attributeComplexProperty = (JPAMemberAttribute) path.getLeaf();
       return convertJPA2ODataProperty(attributeComplexProperty, attributeComplexProperty.getExternalName(), value,
           properties);
     } else {
       // ...$select=Name1,Address/Region
-      return convertJPA2ODataProperty((JPASimpleAttribute) attribute, externalName, value, properties);
+      return convertJPA2ODataProperty((JPAMemberAttribute) attribute, externalName, value, properties);
     }
   }
 

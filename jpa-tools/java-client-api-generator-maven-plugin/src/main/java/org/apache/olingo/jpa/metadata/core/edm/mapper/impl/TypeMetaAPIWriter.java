@@ -11,7 +11,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASimpleAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -54,14 +54,14 @@ class TypeMetaAPIWriter extends AbstractWriter {
   }
 
   public void writePropertiesMetaInformations() throws ODataJPAModelException, IOException {
-    final List<JPASimpleAttribute> simpleAttributes = type.getAttributes();
+    final List<JPAMemberAttribute> simpleAttributes = type.getAttributes();
     final List<JPAAssociationAttribute> navigationAttributes = type.getAssociations();
     // navigation properties
     for (final JPAAssociationAttribute prop : navigationAttributes) {
       writeMetaTypeProperty(prop);
     }
     // simple properties
-    for (final JPASimpleAttribute prop : simpleAttributes) {
+    for (final JPAMemberAttribute prop : simpleAttributes) {
       writeMetaTypeProperty(prop);
     }
 
@@ -75,10 +75,10 @@ class TypeMetaAPIWriter extends AbstractWriter {
     + "\";");
   }
 
-  private void writeMetaTypeProperty(final JPASimpleAttribute attribute) throws IOException, ODataJPAModelException {
+  private void writeMetaTypeProperty(final JPAMemberAttribute attribute) throws IOException, ODataJPAModelException {
     if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
       // write attributes of embedded key type directly in that entity meta
-      for (final JPASimpleAttribute prop : attribute.getStructuredType().getAttributes()) {
+      for (final JPAMemberAttribute prop : attribute.getStructuredType().getAttributes()) {
         writeMetaTypeProperty(prop);
       }
       return;

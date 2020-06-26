@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.PluralAttribute;
 
 import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.EdmFunction;
@@ -21,6 +22,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
@@ -178,10 +180,18 @@ public class IntermediateServiceDocument {
   }
 
   /**
-   * @see AbstractJPASchema#getStructuredType(Attribute)
+   * @see IntermediateMetamodelSchema#getStructuredType(Attribute)
+   * @deprecated Use {@link #getStructuredType(Class)}
    */
+  @Deprecated
   IntermediateStructuredType<?> getStructuredType(final Attribute<?, ?> jpaAttribute) {
     synchronized (lock) {
+      Class<?> targetClass = null;
+      if (jpaAttribute.isCollection()) {
+        targetClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
+      } else {
+        targetClass = jpaAttribute.getJavaType();
+      }
       // do not resolve the on-demand schemas here; we have to avoid recursion
       // problems and want to optimize performance
       for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
@@ -189,8 +199,25 @@ public class IntermediateServiceDocument {
         if (!IntermediateMetamodelSchema.class.isInstance(schema)) {
           continue;
         }
-        final IntermediateStructuredType<?> structuredType = IntermediateMetamodelSchema.class.cast(schema)
-            .getStructuredType(jpaAttribute);
+        final IntermediateStructuredType<?> structuredType = (IntermediateStructuredType<?>) schema.getStructuredType(
+            targetClass);
+        if (structuredType != null) {
+          return structuredType;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @see AbstractJPASchema#getStructuredType(Class)
+   */
+  JPAStructuredType getStructuredType(final Class<?> targetClass) {
+    synchronized (lock) {
+      // do not resolve the on-demand schemas here; we have to avoid recursion
+      // problems and want to optimize performance
+      for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
+        final JPAStructuredType structuredType = schema.getStructuredType(targetClass);
         if (structuredType != null) {
           return structuredType;
         }
@@ -224,6 +251,23 @@ public class IntermediateServiceDocument {
         enumType = schema.getEnumType(targetClass);
         if (enumType != null) {
           return enumType;
+        }
+      }
+    }
+    return null;
+  }
+
+  JPAStructuredType getComplexType(final Class<?> targetClass) {
+    JPAStructuredType complexType;
+    if (Object.class.equals(targetClass)) {
+      return null;
+    }
+    synchronized (lock) {
+      resolveSchemas();
+      for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
+        complexType = schema.getComplexType(targetClass);
+        if (complexType != null) {
+          return complexType;
         }
       }
     }
