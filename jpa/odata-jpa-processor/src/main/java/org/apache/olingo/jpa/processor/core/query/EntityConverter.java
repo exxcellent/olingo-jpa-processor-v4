@@ -244,7 +244,7 @@ public class EntityConverter extends AbstractEntityConverter {
       convertJPAAttribute2OData(jpaAttribute, value, jpaType, complexValueBuffer, properties, processedEntities);
     }
 
-    // Olingo JSON serializer seems to support only simple navigation links... no binding links
+    // Olingo JSON serializer seems to support only simple navigation links... no binding or association links
     odataEntity.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(jpaType, jpaEntity, processedEntities));
 
     return odataEntity;

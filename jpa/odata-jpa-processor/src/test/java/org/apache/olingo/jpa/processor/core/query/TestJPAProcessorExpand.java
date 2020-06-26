@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.olingo.client.api.domain.ClientComplexValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.domain.ClientEntitySet;
 import org.apache.olingo.client.api.uri.QueryOption;
@@ -123,18 +124,23 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(created.get("User"));
   }
 
-  @Ignore // Not supported by Olingo as of now
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi2Hops() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')/AdministrativeInformation/Created?$expand=User");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE253");
+    mapKeys.put("CodeID", "NUTS3");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys)
+        .appendNavigationSegment("Parent").appendNavigationSegment("Parent").expand("Children");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
-    final ObjectNode org = helper.getJsonObjectValue();
-    final ObjectNode created = (ObjectNode) org.get("Created");
-    @SuppressWarnings("unused")
-    final ObjectNode user = (ObjectNode) created.get("User");
+    final ObjectNode ad = helper.getJsonObjectValue();
+    assertEquals("NUTS1", ad.get("CodeID").asText());// top level!
+    assertEquals("BE2", ad.get("DivisionCode").asText());// top level!
+    assertEquals(5, ad.withArray("Children").size());// NUTS1/BE2/BEL has 5 children
   }
 
   @Test
@@ -148,50 +154,6 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals("223", address.get("HouseNumber").asText());
     final ObjectNode ad = (ObjectNode) address.get("AdministrativeDivision");
     assertEquals("USA", ad.get("ParentDivisionCode").asText());
-  }
-
-  @Ignore // TODO Check if metadata are generated correct
-  @Test
-  public void testExpandEntitySetViaNonKeyFieldNavi0Hops() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')?$expand=AdministrativeInformation/Created/User");
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ObjectNode org = helper.getJsonObjectValue();
-    final ObjectNode admin = (ObjectNode) org.get("AdministrativeInformation");
-    final ObjectNode created = (ObjectNode) admin.get("Created");
-    assertNotNull(created.get("User"));
-
-  }
-
-  @Ignore // Not supported by Olingo now; Not supported ExpandSelectHelper.getExpandedPropertyNames
-  @Test
-  public void testExpandEntitySetViaNonKeyFieldNavi1Hop() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')/AdministrativeInformation?$expand=Created/User");
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ObjectNode admin = helper.getJsonObjectValue();
-    final ObjectNode created = (ObjectNode) admin.get("Created");
-    assertNotNull(created.get("User"));
-  }
-
-  @Ignore // TODO Check if metadata are generated correct
-  @Test
-  public void testExpandEntitySetViaNonKeyFieldNavi0HopsCollection() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$expand=AdministrativeInformation/Created/User");
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ArrayNode orgs = helper.getJsonObjectValues();
-    final ObjectNode org = (ObjectNode) orgs.get(0);
-    final ObjectNode admin = (ObjectNode) org.get("AdministrativeInformation");
-    final ObjectNode created = (ObjectNode) admin.get("Created");
-    assertNotNull(created.get("User"));
-
   }
 
   @Test
@@ -251,19 +213,6 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(admin);
     final ObjectNode parent = (ObjectNode) admin.get("Parent");
     assertEquals("3166-1", parent.get("CodeID").asText());
-  }
-
-  @Ignore // TODO check how the result should look like
-  @Test
-  public void testExpandWithNavigationToEntity() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE253',CodeID='3',CodePublisher='NUTS')?$expand=Parent/Parent");
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ObjectNode div = helper.getJsonObjectValue();
-    final ObjectNode parent = (ObjectNode) div.get("Parent");
-    assertNotNull(parent.get("Parent").get("CodeID"));
-    assertEquals("1", parent.get("Parent").get("CodeID").asText());
   }
 
   @Test
@@ -350,20 +299,22 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals("BE23", children.get(0).get("DivisionCode").asText());
   }
 
-  // TODO check how to handle $count -> Olingo auch mit $top=1;
-  @Ignore
   @Test
   public void testExpandWithCount() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$count=true&$expand=Roles($count=true)&$orderby=Roles/$count desc");
+
+    final Map<QueryOption, Object> optionsRolesExpand = new HashMap<>();
+    optionsRolesExpand.put(QueryOption.COUNT, Boolean.TRUE);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").count(true).expandWithOptions(
+        "Roles", optionsRolesExpand).orderBy("Roles/$count desc");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
-    final ObjectNode org = (ObjectNode) orgs.get(0);
-    assertNotNull(org.get("Roles"));
-    @SuppressWarnings("unused")
-    final ArrayNode roles = (ArrayNode) org.get("Roles");
-    // assertEquals("3", child1.get("count").asText());
+    assertEquals(10, orgs.size());
+    final ObjectNode orgWithMostRoles = (ObjectNode) orgs.get(0);
+    assertEquals("3", orgWithMostRoles.get("ID").asText());
+    assertEquals(3, orgWithMostRoles.withArray("Roles").size());// 3 roles
+    assertEquals(3, orgWithMostRoles.get("Roles@odata.count").asInt());// must be present
   }
 
   @Ignore("TODO")
@@ -701,7 +652,15 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(set);
     // only Organization('9') should match
     assertTrue(set.getEntities().size() == 1);
-    assertEquals(set.getEntities().get(0).getProperty("ID").getPrimitiveValue().toCastValue(String.class), "9");
+    final ClientEntity org = set.getEntities().get(0);
+    assertEquals(org.getProperty("ID").getPrimitiveValue().toCastValue(String.class), "9");
+    final ClientComplexValue address = set.getEntities().get(0).getProperty("Address").getComplexValue();
+    assertEquals(address.get("HouseNumber").getPrimitiveValue().toCastValue(String.class), "93");
+    final ClientEntity ad = address.getNavigationLink("AdministrativeDivision").asInlineEntity().getEntity();
+    assertNotNull(ad);
+    assertEquals("ISO", ad.getProperty("CodePublisher").getPrimitiveValue().toCastValue(String.class));
+    assertEquals("3166-2", ad.getProperty("CodeID").getPrimitiveValue().toCastValue(String.class));
+    assertEquals("US-MN", ad.getProperty("DivisionCode").getPrimitiveValue().toCastValue(String.class));
   }
 
   @Test
