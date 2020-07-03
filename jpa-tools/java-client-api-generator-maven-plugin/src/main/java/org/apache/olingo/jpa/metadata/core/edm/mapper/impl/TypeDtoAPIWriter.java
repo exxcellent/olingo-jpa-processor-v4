@@ -42,7 +42,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     return typeName + "Dto";
   }
 
-  private static String determineBeanPropertyName(final JPAAttribute<?> attribute) {
+  static String determineBeanPropertyName(final JPAAttribute<?> attribute) {
     return attribute.getInternalName().substring(0, 1).toUpperCase(Locale.ENGLISH).concat(attribute.getInternalName()
         .substring(1));
   }

@@ -48,19 +48,24 @@ public class IntermediateModelGenerator {
     dtoWriter.writeDtoEnd();
     // DTO end
 
-    // ACCESS start
+    // HANDLER start
     if (isEntity && !et.isAbstract() && generateProtocolCode) {
       final URIBuilderWriter accessBuilderWriter = new URIBuilderWriter(generationBaseDirectory, schema, et);
       accessBuilderWriter.writeProtocolCodeStart();
       accessBuilderWriter.writeProtocolCode();
       accessBuilderWriter.writeProtocolCodeEnd();
 
+      final TypeConverterAPIWriter converterWriter = new TypeConverterAPIWriter(generationBaseDirectory, schema, et);
+      converterWriter.writeProtocolCodeStart();
+      converterWriter.writeProtocolCode();
+      converterWriter.writeProtocolCodeEnd();
+
       final HandlerAPIWriter accessWriter = new HandlerAPIWriter(generationBaseDirectory, schema, et);
       accessWriter.writeProtocolCodeStart();
       accessWriter.writeProtocolCode();
       accessWriter.writeProtocolCodeEnd();
     }
-    // ACCESS end
+    // HANDLER end
   }
 
   public void generateTypeAPI(final boolean generateProtocolCode) throws IOException, ODataException {

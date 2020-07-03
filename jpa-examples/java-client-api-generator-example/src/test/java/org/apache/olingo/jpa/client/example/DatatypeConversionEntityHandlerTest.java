@@ -6,13 +6,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.apache.olingo.client.api.ODataClient;
+import org.apache.olingo.client.api.domain.ClientObjectFactory;
 import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.client.example.util.HandlerTestBase;
-import org.apache.olingo.jpa.client.example.util.LocalTestODataClient;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityAbstractHandler;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityDto;
+import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityDtoConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityURIBuilder;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
 import org.junit.Assert;
@@ -20,22 +20,10 @@ import org.junit.Test;
 
 public class DatatypeConversionEntityHandlerTest extends HandlerTestBase {
 
-  private class DatatypeConversionEntityHandler extends DatatypeConversionEntityAbstractHandler {
+  private static class DatatypeConversionEntityCustomConverter extends DatatypeConversionEntityDtoConverter {
 
-    @Override
-    protected java.net.URI getServiceRootUrl() {
-      return URI;
-    }
-
-    @Override
-    protected String determineAuthorizationHeaderValue() {
-      // no authorization required for test
-      return null;
-    }
-
-    @Override
-    protected ODataClient createClient() {
-      return new LocalTestODataClient(persistenceAdapter);
+    public DatatypeConversionEntityCustomConverter(final ClientObjectFactory factory) {
+      super(factory);
     }
 
     @Override
@@ -49,7 +37,8 @@ public class DatatypeConversionEntityHandlerTest extends HandlerTestBase {
 
   @Test
   public void testLoadDatatypeConversionEntity() throws Exception {
-    final DatatypeConversionEntityHandler handler = new DatatypeConversionEntityHandler();
+    final DatatypeConversionEntityAbstractHandler handler = createLocalEntityAccess(
+        DatatypeConversionEntityAbstractHandler.class, DatatypeConversionEntityCustomConverter.class);
     final DatatypeConversionEntityURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment(Integer.valueOf(2));
     final DatatypeConversionEntityDto dto = handler.retrieve(uriBuilder);
     Assert.assertNotNull(dto);

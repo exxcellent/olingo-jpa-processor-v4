@@ -13,6 +13,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.PersonHandler;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonImageMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonURIBuilder;
+import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressDataMeta;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,8 +41,9 @@ public class PersonHandlerTest extends HandlerTestBase {
     final PersonHandler handler = createLocalPersonAccess();
     final Map<QueryOption, Object> expandImage1Options = new HashMap<>();
     expandImage1Options.put(QueryOption.EXPAND, PersonImageMeta.OWNINGPERSON_NAME);
-    final PersonURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment("97").expandWithOptions(
-        PersonMeta.IMAGE1_NAME, expandImage1Options);
+    final PersonURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment("97").expand(PersonMeta.ADDRESS_NAME
+        + "/" + PostalAddressDataMeta.ADMINISTRATIVEDIVISION_NAME).expandWithOptions(
+            PersonMeta.IMAGE1_NAME, expandImage1Options);
     final PersonDto dto = handler.retrieve(uriBuilder);
     Assert.assertNotNull(dto);
     Assert.assertEquals(1, dto.getPhoneNumbers().size());
@@ -54,6 +56,8 @@ public class PersonHandlerTest extends HandlerTestBase {
     Assert.assertNotNull(dto.getAdministrativeInformation().getCreated());
     Assert.assertEquals("99", dto.getAdministrativeInformation().getCreated().getBy());
     Assert.assertNotNull(dto.getAdministrativeInformation().getUpdated());
+    Assert.assertNotNull(dto.getAddress().getAdministrativeDivision());
+    Assert.assertEquals("CH-BL", dto.getAddress().getAdministrativeDivision().getDivisionCode());
 
     Assert.assertNotNull(dto.getImage1());
     Assert.assertEquals("97", dto.getImage1().getPID());
@@ -65,6 +69,16 @@ public class PersonHandlerTest extends HandlerTestBase {
     Assert.assertNotNull(dto.getImage1().getAdministrativeInformation().getCreated());
     Assert.assertNotNull(dto.getImage1().getAdministrativeInformation().getUpdated());
     Assert.assertEquals("John Doe", dto.getImage1().getAdministrativeInformation().getUpdated().getBy());
+  }
+
+  @Test
+  public void testUpdatePerson() throws Exception {
+    final PersonHandler handler = createLocalPersonAccess();
+    final PersonURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment("97").expand(PersonMeta.ADDRESS_NAME
+        + "/" + PostalAddressDataMeta.ADMINISTRATIVEDIVISION_NAME, PersonMeta.IMAGE1_NAME);
+    final PersonDto modifiedPerson = handler.retrieve(uriBuilder);
+    modifiedPerson.setCountry("POL");
+    final PersonDto updatedPerson = handler.update(modifiedPerson);
   }
 
 }
