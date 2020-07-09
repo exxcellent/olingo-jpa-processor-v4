@@ -48,7 +48,7 @@ public abstract class TestBase {
   protected TestHelper helper;
   protected final static JPAEdmNameBuilder nameBuilder = new JPAEdmNameBuilder(Constant.PUNIT_NAME);
   protected TestGenericJPAPersistenceAdapter persistenceAdapter;
-  protected JPAEdmProvider jpaEdm;
+  protected JPAEdmProvider jpaEdmProvider;
   protected OData odata;
   protected ServiceMetadata serviceMetaData;
 
@@ -64,9 +64,9 @@ public abstract class TestBase {
   public final void setupTest() throws ODataException {
     persistenceAdapter = createPersistenceAdapter();
     helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
-    jpaEdm = helper.getEdmProvider();
+    jpaEdmProvider = helper.getEdmProvider();
     odata = OData.newInstance();
-    serviceMetaData = odata.createServiceMetadata(jpaEdm, Collections.emptyList());
+    serviceMetaData = odata.createServiceMetadata(jpaEdmProvider, Collections.emptyList());
   }
 
   /**

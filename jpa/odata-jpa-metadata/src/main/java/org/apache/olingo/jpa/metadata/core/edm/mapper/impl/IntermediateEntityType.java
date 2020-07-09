@@ -25,8 +25,8 @@ import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -83,12 +83,7 @@ class IntermediateEntityType extends IntermediateStructuredType<CsdlEntityType> 
   private DataAccessConditioner<?> buildDataAccessConditionerInstance(final Class<?> entityClass) throws ODataJPAModelException {
     final ODataEntity entityAnnotation = entityClass.getAnnotation(ODataEntity.class);
     if (entityAnnotation == null) {
-      // search also super classes for the annotation...
-      final Class<?> superClass = entityClass.getSuperclass();
-      if (superClass == null || superClass == Object.class) {
         return null;
-      }
-      return buildDataAccessConditionerInstance(superClass);
     }
     final Class<? extends DataAccessConditioner<?>> handlerClass = entityAnnotation.handlerDataAccessConditioner();
     if (handlerClass == null || ODataEntity.DEFAULT.class.equals(handlerClass)) {

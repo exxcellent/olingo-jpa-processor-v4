@@ -17,18 +17,18 @@ public class TestIntermediate extends TestBase {
   public void testDTOEntitySetName() throws ODataJPAModelException {
     final JPAEntityType registeredDTOType = registerDTO(SystemRequirement.class);
     assertTrue(registeredDTOType.getEntitySetName().equals("SystemRequirementEntitySet"));
-    final JPAEntityType dtoType = jpaEdm.getServiceDocument().getEntityType(SystemRequirement.class);
+    final JPAEntityType dtoType = jpaEdmProvider.getServiceDocument().getEntityType(SystemRequirement.class);
     assertNotNull(dtoType);
-    final IntermediateEntitySet eS = (IntermediateEntitySet) jpaEdm.getServiceDocument().getEntitySet(dtoType);
+    final IntermediateEntitySet eS = (IntermediateEntitySet) jpaEdmProvider.getServiceDocument().getEntitySet(dtoType);
     assertNotNull(eS);
     assertEquals("SystemRequirementEntitySet", eS.getExternalName());
   }
 
   @Test
   public void testJPAEntitySetName() throws ODataJPAModelException {
-    final JPAEntityType entityType = jpaEdm.getServiceDocument().getEntityType(Country.class);
+    final JPAEntityType entityType = jpaEdmProvider.getServiceDocument().getEntityType(Country.class);
     assertNotNull(entityType);
-    final IntermediateEntitySet eS = (IntermediateEntitySet) jpaEdm.getServiceDocument().getEntitySet(entityType);
+    final IntermediateEntitySet eS = (IntermediateEntitySet) jpaEdmProvider.getServiceDocument().getEntitySet(entityType);
     assertNotNull(eS);
     assertEquals("CountryEntitySet", eS.getExternalName());
   }
