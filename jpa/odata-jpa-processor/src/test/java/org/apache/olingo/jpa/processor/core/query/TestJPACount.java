@@ -107,4 +107,12 @@ public class TestJPACount extends TestBase {
     assertNull(org.get("Roles"));
   }
 
+  @Test
+  public void testCountForCompositeKey() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisionDescriptions").count();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    assertEquals(285, Integer.parseInt(helper.getRawResult()));
+  }
+
 }
