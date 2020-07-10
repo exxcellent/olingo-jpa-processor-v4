@@ -51,6 +51,10 @@ class TypeDtoAPIWriter extends AbstractWriter {
     return "set" + determineBeanPropertyName(attribute);
   }
 
+  static String determinePropertyGetterMethodName(final JPAAttribute<?> attribute) {
+    return "get" + determineBeanPropertyName(attribute);
+  }
+
   private static <T extends JPAAttribute<?>> String determineServerSideTypeName(final T attribute,
       final boolean convertPrimitiveClassToObjectClass)
           throws ODataJPAModelException {
@@ -78,7 +82,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     }
   }
 
-  private static Class<?> convertPrimitiveClassToObjectClass(final Class<?> clazz) {
+  static Class<?> convertPrimitiveClassToObjectClass(final Class<?> clazz) {
     if (clazz.isPrimitive()) {
       if (long.class == clazz) {
         return Long.class;
@@ -180,7 +184,6 @@ class TypeDtoAPIWriter extends AbstractWriter {
   private void internalWriteDtoTypeProperty(final JPAAttribute<?> attribute) throws IOException,
   ODataJPAModelException {
     final String memberName = attribute.getInternalName();
-    final String beanName = determineBeanPropertyName(attribute);
     final String propClientType = determineClientSidePropertyJavaTypeName(attribute, false);
 
     // attribute
@@ -202,7 +205,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
       write(NEWLINE + "\t" + " * @see " + determineServerSideTypeName(attribute, false));
       write(NEWLINE + "\t" + " */");
     }
-    write(NEWLINE + "\t" + "public " + propClientType + " get" + beanName + "() {");
+    write(NEWLINE + "\t" + "public " + propClientType + " " + determinePropertyGetterMethodName(attribute) + "() {");
     write(NEWLINE + "\t" + "\t" + "return " + memberName + ";");
     write(NEWLINE + "\t" + "}");
     // setter method

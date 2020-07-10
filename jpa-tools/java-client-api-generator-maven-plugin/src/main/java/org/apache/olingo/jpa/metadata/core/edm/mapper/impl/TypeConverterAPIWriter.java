@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import org.apache.olingo.client.api.domain.ClientCollectionValue;
 import org.apache.olingo.client.api.domain.ClientComplexValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientEnumValue;
 import org.apache.olingo.client.api.domain.ClientObjectFactory;
 import org.apache.olingo.client.api.domain.ClientPrimitiveValue;
 import org.apache.olingo.client.api.domain.ClientProperty;
@@ -88,7 +89,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
 
   private void generateConvertDto2Entity() throws IOException, ODataJPAModelException {
     final Set<String> mapAlreadeGeneratedMethods = new HashSet<>();
-    //    generate_ConvertValue_HelperMethods(type, mapAlreadeGeneratedMethods);
+    generateConvertMethods4Attribute2PropertyValue(type, mapAlreadeGeneratedMethods);
 
     final String typeDtoName = TypeDtoAPIWriter.determineTypeName(type.getTypeClass().getSimpleName());
 
@@ -97,23 +98,191 @@ class TypeConverterAPIWriter extends AbstractWriter {
         + ") throws "
         + ODataException.class.getName() + " {");
 
-    write(NEWLINE + "\t" + "\t" + ClientEntity.class.getName() + " entity = factory.newEntity(new "
+    write(NEWLINE + "\t" + "\t" + "final " + ClientEntity.class.getName()
+        + " propertyContainer = factory.newEntity(new "
         + FullQualifiedName.class.getName() + "(\"" + type.getExternalFQN().getNamespace() + "\", \"" + type
         .getExternalFQN().getName() + "\"));");
     write(NEWLINE + "\t" + "\t" + "// convert DTO into generic entity...");
+    generateAllAttribute2PropertyConversion(type, true, mapAlreadeGeneratedMethods);
 
-    write(NEWLINE + "\t" + "\t" + "TODO");
-
-    write(NEWLINE + "\t" + "\t" + "return entity;");
+    write(NEWLINE + "\t" + "\t" + "return propertyContainer;");
     write(NEWLINE + "\t" + "}");
+  }
+
+  private void generateConvertMethods4Attribute2PropertyValue(final JPAStructuredType ownerType,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
+    for (final JPAMemberAttribute attribute : ownerType.getAttributes()) {
+      if (attribute.isCollection()) {
+        generateConvertMethod4Attribute2PropertyCollectionValue(attribute, mapAlreadeGeneratedMethods);
+      } else if (attribute.isComplex()) {
+        if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
+          // special case for complex key attribute type having nested attributes
+          for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes()) {
+            generateConvertMethodAttribute2PrimitiveValue(embeddedIdAttribute, mapAlreadeGeneratedMethods);
+          }
+        } else {
+          generateConvertMethod4Dto2ComplexValue(attribute, mapAlreadeGeneratedMethods);
+        }
+      } else {
+        generateConvertMethodAttribute2PrimitiveValue(attribute, mapAlreadeGeneratedMethods);
+      }
+    }
+
+    for (final JPAAssociationAttribute asso : ownerType.getAssociations()) {
+      if (asso.isCollection()) {
+        generateConvertMethod4Association2PropertyCollectionValue(asso, mapAlreadeGeneratedMethods);
+      } else {
+        generateConvertMethod4Dto2ComplexValue(asso, mapAlreadeGeneratedMethods);
+      }
+    }
+  }
+
+  /**
+   *
+   * @return Method signature or <code>null</code> if no method is generated.
+   */
+  private String generateConvertMethodAttribute2PrimitiveValue(final JPAMemberAttribute attribute,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
+    EdmPrimitiveTypeKind odataType;
+    try {
+      odataType = TypeMapping.convertToEdmSimpleType(attribute);
+    } catch (final ODataJPAModelException e) {
+      return null;
+    }
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
+    final String methodName = determineConversionAttribute2PropertyValueMethodName(attribute, false);
+    if (mapAlreadeGeneratedMethods.contains(methodName)) {
+      return null;
+    }
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "protected " + ClientPrimitiveValue.class.getName() + " " + methodName + "(" + propClientType
+        + " attributeValue" + ") throws "
+        + ODataException.class.getName() + " {");
+
+    @SuppressWarnings("deprecation")
+    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotation(EdmAttributeConversion.class);
+    if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+        .converter())) {
+      write(NEWLINE + "\t" + "\t"
+          + "throw new UnsupportedOperationException(\"implement converter manually on client side: "
+          + annoConversionConfiguration
+          .converter().getCanonicalName() + "\");");
+    } else {
+      if (!attribute.getType().isPrimitive()) {
+        // common null value check
+        write(NEWLINE + "\t" + "\t" + "if(attributeValue == null) {");
+        write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+        write(NEWLINE + "\t" + "\t" + "}");
+      }
+      switch (odataType) {
+      case Boolean:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t"
+              + "return factory.newPrimitiveValueBuilder().buildBoolean(Boolean.valueOf(attributeValue));");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildBoolean(attributeValue);");
+        }
+        break;
+      case String:
+        write(NEWLINE + "\t" + "\t"
+            + "return factory.newPrimitiveValueBuilder().buildString(attributeValue.toString());");
+        break;
+      case Int16:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t"
+              + "return factory.newPrimitiveValueBuilder().buildInt16(Short.valueOf(attributeValue));");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt16(attributeValue);");
+        }
+        break;
+      case Int32:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t"
+              + "return factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(attributeValue));");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt32(attributeValue);");
+        }
+        break;
+      case Int64:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t"
+              + "return factory.newPrimitiveValueBuilder().buildInt64(Long.valueOf(attributeValue));");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt64(attributeValue);");
+        }
+        break;
+      case Double:
+        if (attribute.getType().isPrimitive()) {
+          write(NEWLINE + "\t" + "\t"
+              + "return factory.newPrimitiveValueBuilder().buildDouble(Double.valueOf(attributeValue));");
+        } else {
+          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildDouble(attributeValue);");
+        }
+        break;
+      case Decimal:
+        write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildDecimal(attributeValue);");
+        break;
+      case DateTimeOffset:
+      case TimeOfDay:
+      case Date:
+      case Guid:
+        // all types having a string representation
+        write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
+        write(NEWLINE + "\t" + "\t" + "final String sValue = " + EdmPrimitiveTypeFactory.class.getName()
+            + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "." + odataType.name()
+            + ").valueToString(attributeValue, Boolean.TRUE, " + integer2CodeString(attribute
+                .getMaxLength()) + ", " + integer2CodeString(attribute.getPrecision()) + ", " + integer2CodeString(
+                    attribute.getScale()) + ", Boolean.TRUE" + ");");
+        write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildString(sValue);");
+        break;
+      case Byte:
+        // FIXME
+      default:
+        write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
+      }
+    }
+    write(NEWLINE + "\t" + "}");
+
+    mapAlreadeGeneratedMethods.add(methodName);
+    return methodName;
+  }
+
+  private void generateAllAttribute2PropertyConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
+      final Set<String> mapAlreadeGeneratedMethods) throws ODataJPAModelException,
+  IOException {
+    for (final JPAAssociationAttribute asso : sType.getAssociations()) {
+      generateAssociation2PropertyConversion(sType, ownerISRootEntity, asso);
+    }
+    // simple properties
+    for (final JPAMemberAttribute attribute : sType.getAttributes()) {
+      switch (attribute.getAttributeMapping()) {
+      case SIMPLE:
+        generateAttribute2PropertyConversion(sType, ownerISRootEntity, attribute);
+        break;
+      case EMBEDDED_ID:
+        // handle properties of nested complex type (@EmbeddedId) as properties of this type
+        for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
+          generateAttribute2PropertyConversion(sType, ownerISRootEntity, nestedProp);
+        }
+        break;
+      case AS_COMPLEX_TYPE:
+        generateAttribute2PropertyConversion(sType, ownerISRootEntity, attribute);
+        break;
+      case RELATIONSHIP:
+        throw new UnsupportedOperationException("Relationship '" + attribute.getInternalName()
+        + "' must not occur here");
+      }
+    }
   }
 
   private void generateConvertEntity2Dto() throws IOException, ODataJPAModelException {
     if (entityContainsEnumAttribute()) {
-      generate_ConvertEnumValue_HelperMethod();
+      generateConvertMethod4PrimitivePropertyValue2EnumValue();
     }
     final Set<String> mapAlreadeGeneratedMethods = new HashSet<>();
-    generate_ConvertValue_HelperMethods(type, mapAlreadeGeneratedMethods);
+    generateConvertMethods4Property2Attribute(type, mapAlreadeGeneratedMethods);
 
     final String typeDtoName = TypeDtoAPIWriter.determineTypeName(type.getTypeClass().getSimpleName());
 
@@ -122,43 +291,42 @@ class TypeConverterAPIWriter extends AbstractWriter {
         + ") throws "
         + ODataException.class.getName() + " {");
 
-    write(NEWLINE + "\t" + "\t" + typeDtoName + " dtoResult = new " + typeDtoName + "();");
+    write(NEWLINE + "\t" + "\t" + "final " + typeDtoName + " dtoResult = new " + typeDtoName + "();");
     write(NEWLINE + "\t" + "\t" + "// convert generic response into DTO...");
 
-    generateTypeAttributeConversion(type, true, mapAlreadeGeneratedMethods);
+    generateAllProperty2AttributeConversion(type, true, mapAlreadeGeneratedMethods);
 
     write(NEWLINE + "\t" + "\t" + "return dtoResult;");
     write(NEWLINE + "\t" + "}");
   }
 
-  private void generate_ConvertValue_HelperMethods(final JPAStructuredType ownerType,
+  private void generateConvertMethods4Property2Attribute(final JPAStructuredType ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     for (final JPAMemberAttribute attribute : ownerType.getAttributes()) {
       if (attribute.isCollection()) {
-        generate_ConvertCollectionValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
+        generateConvertMethod4Property2CollectionValue(attribute, mapAlreadeGeneratedMethods);
       } else if (attribute.isComplex()) {
         if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
           // special case for complex key attribute type having nested attributes
           for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes()) {
-            generate_ConvertPrimitiveValue_HelperMethod(embeddedIdAttribute, mapAlreadeGeneratedMethods);
+            generateConvertMethod4PrimitivePropertyValue2AttributeValue(embeddedIdAttribute, mapAlreadeGeneratedMethods);
           }
         } else {
-          generate_ConvertComplexValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
+          generateConvertMethod4ComplexValue2Dto(attribute, mapAlreadeGeneratedMethods);
         }
       } else {
-        generate_ConvertPrimitiveValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
+        generateConvertMethod4PrimitivePropertyValue2AttributeValue(attribute, mapAlreadeGeneratedMethods);
       }
     }
 
     for (final JPAAssociationAttribute asso : ownerType.getAssociations()) {
       if (asso.isCollection()) {
-        generate_ConvertAssociationCollection_HelperMethod(asso, mapAlreadeGeneratedMethods);
+        generateConvertMethod4Property2AssociationCollection(asso, mapAlreadeGeneratedMethods);
       } else {
-        generate_ConvertAssociation_HelperMethod(asso, mapAlreadeGeneratedMethods);
+        generateConvertMethod4ComplexValue2Dto(asso, mapAlreadeGeneratedMethods);
       }
     }
-
   }
 
   /**
@@ -182,7 +350,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
    * @return
    * @throws ODataJPAModelException
    */
-  private String determineConversionMethodName(final JPAAttribute<?> attribute,
+  private String determineConversionProperty2AttributeValueMethodName(final JPAAttribute<?> attribute,
       final boolean respectCollection) throws ODataJPAModelException {
     if (JPAMemberAttribute.class.isInstance(attribute)) {
       @SuppressWarnings("deprecation")
@@ -218,63 +386,98 @@ class TypeConverterAPIWriter extends AbstractWriter {
         propClientType);
   }
 
-  private String generate_ConvertAssociation_HelperMethod(final JPAAssociationAttribute association,
-      final Set<String> mapAlreadeGeneratedMethods)
-          throws ODataJPAModelException, IOException {
-    final String methodName = determineConversionMethodName(association, false);
-    if (mapAlreadeGeneratedMethods.contains(methodName)) {
-      return null;
+  private String determineConversionAttribute2PropertyValueMethodName(final JPAAttribute<?> attribute,
+      final boolean respectCollection) throws ODataJPAModelException {
+    if (JPAMemberAttribute.class.isInstance(attribute)) {
+      @SuppressWarnings("deprecation")
+      final EdmAttributeConversion annoConversionConfiguration = JPAMemberAttribute.class.cast(attribute).getAnnotation(
+          EdmAttributeConversion.class);
+      if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+          .converter())) {
+        return "convert"+ qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName())+"ToOData"+ qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName());
+      }
     }
-    mapAlreadeGeneratedMethods.add(methodName);
+    String fromName;
+    if (attribute.isAssociation()) {
+      fromName = attribute.getExternalName();
+    } else if (attribute.isComplex()) {
+      fromName = attribute.getExternalName();
+    } else if (JPATypedElement.class.cast(attribute).getType().isEnum()) {
+      if (attribute.isCollection()&&respectCollection) {
+        fromName = attribute.getExternalName();
+      } else {
+        throw new IllegalStateException("Call " + METHOD_EXTRACT_ENUMVALUE + " directly");
+      }
+    } else {
+      // simple primitive type conversion
+      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(JPATypedElement.class.cast(attribute));
+      fromName = odataType.name();
+    }
 
-    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(association, false);
-
-    write(NEWLINE);
-    write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + ClientComplexValue.class.getName()
-        + " odataObject" + ") throws "
-        + ODataException.class.getName() + " {");
-
-    write(NEWLINE + "\t" + "\t" + "if (odataObject == null) {");
-    write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
-    write(NEWLINE + "\t" + "\t" + "}");
-
-    write(NEWLINE + "\t" + "\t" + propClientType + " dtoResult = new " + propClientType + "();");
-
-    generateTypeAttributeConversion(association.getTargetEntity(), false, mapAlreadeGeneratedMethods);
-
-    write(NEWLINE + "\t" + "\t" + "return dtoResult;");
-    write(NEWLINE + "\t" + "}");
-
-    // on demand
-    generate_ConvertValue_HelperMethods(association.getTargetEntity(), mapAlreadeGeneratedMethods);
-
-    return methodName;
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
+    return "convert" + (attribute.isCollection() && respectCollection ? "CollectionOf" : "")
+        + qualifiedName2FirstCharacterUppercasedString(propClientType) + "ToOData"
+        + qualifiedName2FirstCharacterUppercasedString(fromName);
   }
 
-  private String generate_ConvertComplexValue_HelperMethod(final JPAMemberAttribute attribute,
+  /**
+   * Called for complex attributes and relationship attributes
+   */
+  private String generateConvertMethod4ComplexValue2Dto(final JPAAttribute<?> attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    final String methodName = determineConversionMethodName(attribute, false);
+    final String methodName = determineConversionProperty2AttributeValueMethodName(attribute, false);
     if (mapAlreadeGeneratedMethods.contains(methodName)) {
       return null;
     }
     mapAlreadeGeneratedMethods.add(methodName);
 
     // on demand
-    generate_ConvertValue_HelperMethods(attribute.getStructuredType(), mapAlreadeGeneratedMethods);
+    generateConvertMethods4Property2Attribute(attribute.getStructuredType(), mapAlreadeGeneratedMethods);
 
     final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
 
     write(NEWLINE);
-    write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + "String propertyName, "
-        + ClientComplexValue.class.getName() + " odataObject" + ") throws "
-        + ODataException.class.getName() + " {");
+    write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + "final " + ClientComplexValue.class
+        .getName() + " odataObject" + ") throws " + ODataException.class.getName() + " {");
 
-    write(NEWLINE + "\t" + "\t" + propClientType + " dtoResult = new " + propClientType + "();");
+    write(NEWLINE + "\t" + "\t" + "final " + propClientType + " dtoResult = new " + propClientType + "();");
 
-    generateTypeAttributeConversion(attribute.getStructuredType(), false, mapAlreadeGeneratedMethods);
+    generateAllProperty2AttributeConversion(attribute.getStructuredType(), false, mapAlreadeGeneratedMethods);
 
     write(NEWLINE + "\t" + "\t" + "return dtoResult;");
+    write(NEWLINE + "\t" + "}");
+
+    return methodName;
+  }
+
+  /**
+   * Called for complex attributes and relationship attributes
+   */
+  private String generateConvertMethod4Dto2ComplexValue(final JPAAttribute<?> attribute,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
+    final String methodName = determineConversionAttribute2PropertyValueMethodName(attribute, false);
+    if (mapAlreadeGeneratedMethods.contains(methodName)) {
+      return null;
+    }
+    mapAlreadeGeneratedMethods.add(methodName);
+
+    // on demand
+    generateConvertMethods4Attribute2PropertyValue(attribute.getStructuredType(), mapAlreadeGeneratedMethods);
+
+    final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
+
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "protected " + ClientComplexValue.class.getName() + " " + methodName + "(" + propClientType
+        + " dto" + ") throws " + ODataException.class.getName() + " {");
+
+    write(NEWLINE + "\t" + "\t" + ClientComplexValue.class.getName() + " propertyContainer = factory.newComplexValue(\""
+        + attribute.getStructuredType().getExternalFQN().getFullQualifiedNameAsString() + "\");");
+
+    generateAllAttribute2PropertyConversion(attribute.getStructuredType(), false, mapAlreadeGeneratedMethods);
+
+    write(NEWLINE + "\t" + "\t" + "return propertyContainer;");
     write(NEWLINE + "\t" + "}");
 
     return methodName;
@@ -284,7 +487,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
    *
    * @return Method signature or <code>null</code> if no method is generated.
    */
-  private String generate_ConvertPrimitiveValue_HelperMethod(final JPAMemberAttribute attribute,
+  private String generateConvertMethod4PrimitivePropertyValue2AttributeValue(final JPAMemberAttribute attribute,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     EdmPrimitiveTypeKind odataType;
@@ -294,7 +497,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
       return null;
     }
     final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, false);
-    final String methodName = determineConversionMethodName(attribute, false);
+    final String methodName = determineConversionProperty2AttributeValueMethodName(attribute, false);
     if (mapAlreadeGeneratedMethods.contains(methodName)) {
       return null;
     }
@@ -356,12 +559,12 @@ class TypeConverterAPIWriter extends AbstractWriter {
         write(NEWLINE + "\t" + "\t" + "return bd;");
         break;
       case DateTimeOffset:
-        generate_ConvertStatementsForDateTimeOffset(attribute.getType(), propClientType);
+        generateConvertMethod4PrimitivePropertyValueForDateTimeOffset2AttributeValue(attribute.getType(), propClientType);
         break;
       case TimeOfDay:
       case Date:
       case Guid:
-        generate_ConvertStatementsForStringBasedDefault(odataType, propClientType);
+        generateConvertMethod4PrimitivePropertyValueForStringBasedDefault2AttributeValue(odataType, propClientType);
         break;
       case Byte:
         // FIXME
@@ -375,14 +578,14 @@ class TypeConverterAPIWriter extends AbstractWriter {
     return methodName;
   }
 
-  private void generate_ConvertStatementsForDateTimeOffset(final Class<?> propJpaType, final String propClientType)
+  private void generateConvertMethod4PrimitivePropertyValueForDateTimeOffset2AttributeValue(final Class<?> propJpaType, final String propClientType)
       throws IOException {
     if (propJpaType == LocalDateTime.class) {
       // convert into ZonedDateTime (avoiding time zone shifting problems) and that into LocalDateTime
       write(NEWLINE + "\t" + "\t" + "\t" + "\t" + EdmPrimitiveType.class.getName() + " pType = "
           + EdmPrimitiveTypeFactory.class.getName() + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "."
           + EdmPrimitiveTypeKind.DateTimeOffset.name() + ");");
-      write(NEWLINE + "\t" + "\t" + "String sV = propertyValue.toCastValue(String.class);");
+      write(NEWLINE + "\t" + "\t" + "final " + "String sV = propertyValue.toCastValue(String.class);");
       write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
       write(NEWLINE + "\t" + "\t"
           + "return pType.valueOfString(sV, Boolean.TRUE, maxLength, precision, scale, Boolean.TRUE, "
@@ -390,27 +593,27 @@ class TypeConverterAPIWriter extends AbstractWriter {
       return;
     }
     // default
-    generate_ConvertStatementsForStringBasedDefault(EdmPrimitiveTypeKind.DateTimeOffset, propClientType);
+    generateConvertMethod4PrimitivePropertyValueForStringBasedDefault2AttributeValue(EdmPrimitiveTypeKind.DateTimeOffset, propClientType);
   }
 
-  private void generate_ConvertStatementsForStringBasedDefault(final EdmPrimitiveTypeKind odataType,
+  private void generateConvertMethod4PrimitivePropertyValueForStringBasedDefault2AttributeValue(final EdmPrimitiveTypeKind odataType,
       final String propClientType) throws IOException {
     // all these primitive types can be constructed from String
     write(NEWLINE + "\t" + "\t" + "\t" + "\t" + EdmPrimitiveType.class.getName() + " pType = "
         + EdmPrimitiveTypeFactory.class.getName() + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "."
         + odataType.name() + ");");
-    write(NEWLINE + "\t" + "\t" + "String sV = propertyValue.toCastValue(String.class);");
+    write(NEWLINE + "\t" + "\t" + " final " + "String sV = propertyValue.toCastValue(String.class);");
     write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
     write(NEWLINE + "\t" + "\t"
         + "return pType.valueOfString(sV, Boolean.TRUE, maxLength, precision, scale, Boolean.TRUE, " + propClientType
         + ".class" + ");");
   }
 
-  private void generate_ConvertEnumValue_HelperMethod() throws ODataJPAModelException, IOException {
+  private void generateConvertMethod4PrimitivePropertyValue2EnumValue() throws ODataJPAModelException, IOException {
     write(NEWLINE);
     write(NEWLINE + "\t" + "@SuppressWarnings({ \"unchecked\", \"rawtypes\" })");
     write(NEWLINE + "\t" + "private " + "<T extends " + ClientValue.class.getName() + ", R>" + " R "
-        + METHOD_EXTRACT_ENUMVALUE + "(" + "T clientValue, " + Class.class.getSimpleName()
+        + METHOD_EXTRACT_ENUMVALUE + "(final " + "T clientValue, " + Class.class.getSimpleName()
         + "<R> resultTypeClass) throws "
         + ODataException.class.getName() + " {");
 
@@ -421,7 +624,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "\t" + "\t" + "return (R)Enum.valueOf((Class<Enum>)resultTypeClass, sV);");
     write(NEWLINE + "\t" + "\t" + "} else if(resultTypeClass.isEnum()) {");
     // if client side type is NOT enum, but JPA type... so it's safe to cast to string
-    write(NEWLINE + "\t" + "\t" + "\t" + "\t" + "String sV = (String)clientValue.asPrimitive().toValue();");
+    write(NEWLINE + "\t" + "\t" + "\t" + "\t" + "final " + "String sV = (String)clientValue.asPrimitive().toValue();");
     write(NEWLINE + "\t" + "\t" + "\t" + "return (R)Enum.valueOf((Class<Enum>)resultTypeClass, sV);");
     write(NEWLINE + "\t" + "\t" + "} else {");
     write(NEWLINE + "\t" + "\t" + "\t" + "\t" + "throw new " + UnsupportedOperationException.class.getSimpleName()
@@ -431,28 +634,28 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
   }
 
-  private String generate_ConvertAssociationCollection_HelperMethod(final JPAAssociationAttribute relationship,
+  private String generateConvertMethod4Property2AssociationCollection(final JPAAssociationAttribute relationship,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     if (!relationship.isCollection()) {
       throw new IllegalStateException(relationship.getInternalName()+" is not a collection relationship");
     }
-    final String methodCollectionName = determineConversionMethodName(relationship, true);
+    final String methodCollectionName = determineConversionProperty2AttributeValueMethodName(relationship, true);
     if (mapAlreadeGeneratedMethods.contains(methodCollectionName)) {
       return null;
     }
     mapAlreadeGeneratedMethods.add(methodCollectionName);
 
     // on demand generation
-    generate_ConvertAssociation_HelperMethod(relationship, mapAlreadeGeneratedMethods);
+    generateConvertMethod4ComplexValue2Dto(relationship, mapAlreadeGeneratedMethods);
 
     final String resultType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(relationship, true);
 
     write(NEWLINE);
     write(NEWLINE + "\t" + "private "
         + Collection.class.getName() + "<" + resultType + "> " + methodCollectionName + "("
-        + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + "> clientValue) throws "
-        + ODataException.class.getName() + " {");
+        + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName()
+        + "> clientValue) throws " + ODataException.class.getName() + " {");
 
     write(NEWLINE + "\t" + "\t" + "if(clientValue == null) {");
     //    write(NEWLINE + "\t" + "\t" + "\t" + "return " + Collections.class.getName() + ".emptyList();");
@@ -464,7 +667,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "\t" + Iterator.class.getName() + "<" + ClientValue.class.getName()
         + "> it = clientValue.iterator();");
     write(NEWLINE + "\t" + "\t" + "while(it.hasNext()) {");
-    final String methodSingleValueName = determineConversionMethodName(relationship, false);
+    final String methodSingleValueName = determineConversionProperty2AttributeValueMethodName(relationship, false);
     write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + methodSingleValueName + "(it.next().asComplex()));");
     write(NEWLINE + "\t" + "\t" + "}");
 
@@ -475,27 +678,67 @@ class TypeConverterAPIWriter extends AbstractWriter {
     return methodCollectionName;
   }
 
-  private String generate_ConvertCollectionValue_HelperMethod(final JPAMemberAttribute attribute,
+  private String generateConvertMethod4Association2PropertyCollectionValue(final JPAAssociationAttribute relationship,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    final String methodCollectionName = determineConversionMethodName(attribute, true);
+    if (!relationship.isCollection()) {
+      throw new IllegalStateException(relationship.getInternalName() + " is not a collection relationship");
+    }
+    final String methodCollectionName = determineConversionAttribute2PropertyValueMethodName(relationship, true);
+    if (mapAlreadeGeneratedMethods.contains(methodCollectionName)) {
+      return null;
+    }
+    mapAlreadeGeneratedMethods.add(methodCollectionName);
+
+    // on demand generation
+    generateConvertMethod4Dto2ComplexValue(relationship, mapAlreadeGeneratedMethods);
+
+    final String attrType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(relationship, true);
+
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "private "
+        + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + ">" + " " + methodCollectionName
+        + "("
+        + "final " + Collection.class.getName() + "<" + attrType + "> " + "values "
+        + ") throws " + ODataException.class.getName() + " {");
+
+    write(NEWLINE + "\t" + "\t" + "if(values == null) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+    write(NEWLINE + "\t" + "\t" + "}");
+    write(NEWLINE + "\t" + "\t" + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName()
+        + ">" + " result = factory.newCollectionValue(\"" + relationship.getProperty().getType() + "\");");
+    write(NEWLINE + "\t" + "\t" + "for(" + attrType + " entry: values) {");
+    final String methodSingleValueName = determineConversionAttribute2PropertyValueMethodName(relationship, false);
+    write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + methodSingleValueName + "(entry)" + ");");
+    write(NEWLINE + "\t" + "\t" + "}");
+    write(NEWLINE + "\t" + "\t" + "return result;");
+    write(NEWLINE + "\t" + "}");
+
+    return methodCollectionName;
+  }
+
+  private String generateConvertMethod4Property2CollectionValue(final JPAMemberAttribute attribute,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
+    final String methodCollectionName = determineConversionProperty2AttributeValueMethodName(attribute, true);
     if (mapAlreadeGeneratedMethods.contains(methodCollectionName)) {
       return null;
     }
     mapAlreadeGeneratedMethods.add(methodCollectionName);
     // on demand generation
     if (attribute.isComplex()) {
-      generate_ConvertComplexValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
+      generateConvertMethod4ComplexValue2Dto(attribute, mapAlreadeGeneratedMethods);
     } else {
-      generate_ConvertPrimitiveValue_HelperMethod(attribute, mapAlreadeGeneratedMethods);
+      generateConvertMethod4PrimitivePropertyValue2AttributeValue(attribute, mapAlreadeGeneratedMethods);
     }
 
     final String resultType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, true);
 
     write(NEWLINE);
     write(NEWLINE + "\t" + "private "
-        + Collection.class.getName() + "<" + resultType + "> " + methodCollectionName + "(" + "String propertyName, "
-        + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + "> clientValue, "
+        + Collection.class.getName() + "<" + resultType + "> " + methodCollectionName + "(final "
+        + "String propertyName, "
+        + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + "> clientValue, "
         + "final Integer maxLength, final Integer precision, final Integer scale) throws "
         + ODataException.class.getName() + " {");
 
@@ -512,43 +755,87 @@ class TypeConverterAPIWriter extends AbstractWriter {
       write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + METHOD_EXTRACT_ENUMVALUE
           + "(it.next(), " + attribute.getType().getName() + ".class" + "));");
     } else if (attribute.isComplex()) {
-      final String methodSingleValueName = determineConversionMethodName(attribute, false);
+      final String methodSingleValueName = determineConversionProperty2AttributeValueMethodName(attribute, false);
       write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + methodSingleValueName
-          + "(propertyName, it.next().asComplex()));");
+          + "(it.next().asComplex()));");
     } else {
-      final String methodSingleValueName = determineConversionMethodName(attribute, false);
+      final String methodSingleValueName = determineConversionProperty2AttributeValueMethodName(attribute, false);
       write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + methodSingleValueName
           + "(propertyName, it.next().asPrimitive(), maxLength, precision, scale));");
     }
     write(NEWLINE + "\t" + "\t" + "}");
-
     write(NEWLINE + "\t" + "\t" + "return result;");
-
     write(NEWLINE + "\t" + "}");
 
     return methodCollectionName;
   }
 
-  private void generateTypeAttributeConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
+  private String generateConvertMethod4Attribute2PropertyCollectionValue(final JPAMemberAttribute attribute,
+      final Set<String> mapAlreadeGeneratedMethods)
+          throws ODataJPAModelException, IOException {
+    final String methodCollectionName = determineConversionAttribute2PropertyValueMethodName(attribute, true);
+    if (mapAlreadeGeneratedMethods.contains(methodCollectionName)) {
+      return null;
+    }
+    mapAlreadeGeneratedMethods.add(methodCollectionName);
+    // on demand generation
+    if (attribute.isComplex()) {
+      generateConvertMethod4Dto2ComplexValue(attribute, mapAlreadeGeneratedMethods);
+    } else {
+      generateConvertMethodAttribute2PrimitiveValue(attribute, mapAlreadeGeneratedMethods);
+    }
+
+    final String attrType = TypeDtoAPIWriter.determineClientSidePropertyRawJavaTypeName(attribute, true);
+
+    write(NEWLINE);
+    write(NEWLINE + "\t" + "private "
+        + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + ">" + " " + methodCollectionName
+        + "(" + "final " + Collection.class.getName() + "<" + attrType + "> " + "values, "
+        + "final Integer maxLength, final Integer precision, final Integer scale) throws "
+        + ODataException.class.getName() + " {");
+
+    write(NEWLINE + "\t" + "\t" + "if(values == null) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+    write(NEWLINE + "\t" + "\t" + "}");
+    write(NEWLINE + "\t" + "\t" + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName()
+        + ">" + " result = factory.newCollectionValue(\"" + attribute.getProperty().getType() + "\");");
+    write(NEWLINE + "\t" + "\t" + "for(" + attrType + " entry: values) {");
+    if (attribute.getType().isEnum()) {
+      write(NEWLINE + "\t" + "\t" + "\t" + "final " + ClientEnumValue.class.getName() + " enumValue = "
+          + "(entry != null) ? " + "factory.newEnumValue(\"" + attribute.getType().getName() + "\", " + "entry.name()"
+          + ") : null" + ";");
+      write(NEWLINE + "\t" + "\t" + "\t" + "result.add(enumValue);");
+    } else {
+      final String methodSingleValueName = determineConversionAttribute2PropertyValueMethodName(attribute, false);
+      write(NEWLINE + "\t" + "\t" + "\t" + "result.add(" + methodSingleValueName + "(entry)" + ");");
+    }
+    write(NEWLINE + "\t" + "\t" + "}");
+    write(NEWLINE + "\t" + "\t" + "return result;");
+    write(NEWLINE + "\t" + "}");
+
+    return methodCollectionName;
+  }
+
+  private void generateAllProperty2AttributeConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
       final Set<String> mapAlreadeGeneratedMethods) throws ODataJPAModelException,
   IOException {
     for (final JPAAssociationAttribute asso : sType.getAssociations()) {
-      generateAssociationConversion(sType, ownerISRootEntity, asso);
+      generateProperty2AssociationConversion(sType, ownerISRootEntity, asso);
     }
     // simple properties
     for (final JPAMemberAttribute attribute : sType.getAttributes()) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
-        generateSimpleAttributeConversion(sType, ownerISRootEntity, attribute);
+        generateProperty2AttributeConversion(sType, ownerISRootEntity, attribute);
         break;
       case EMBEDDED_ID:
         // handle properties of nested complex type (@EmbeddedId) as properties of this type
         for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
-          generateSimpleAttributeConversion(sType, ownerISRootEntity, nestedProp);
+          generateProperty2AttributeConversion(sType, ownerISRootEntity, nestedProp);
         }
         break;
       case AS_COMPLEX_TYPE:
-        generateSimpleAttributeConversion(sType, ownerISRootEntity, attribute);
+        generateProperty2AttributeConversion(sType, ownerISRootEntity, attribute);
         break;
       case RELATIONSHIP:
         throw new UnsupportedOperationException("Relationship '" + attribute.getInternalName()
@@ -557,7 +844,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     }
   }
 
-  private void generateAssociationConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+  private void generateProperty2AssociationConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
       final JPAAssociationAttribute relationship) throws ODataJPAModelException, IOException {
     final String memberName = qualifiedName2FirstCharacterUppercasedString(relationship.getInternalName());
     final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(relationship, false);
@@ -565,14 +852,15 @@ class TypeConverterAPIWriter extends AbstractWriter {
     final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(ownerType.getTypeClass().getSimpleName());
     if (relationship.isCollection()) {
       write(NEWLINE + "\t" + "\t" + "// collection relationship attribute value");
-      write(NEWLINE + "\t" + "\t" + ClientProperty.class.getName() + " prop" + memberName
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
           + " = odataObject." + odataPropertyGetter + "(" + typeMetaName + "." + TypeMetaAPIWriter
           .determineTypeMetaPropertyNameConstantName(relationship.getProperty()) + ");");
       write(NEWLINE + "\t" + "\t" + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName() + ">"
           + " ccv" + memberName + " = (prop" + memberName + " == null)? null : prop" + memberName
           + ".getCollectionValue();");
-      final String methodName = determineConversionMethodName(relationship, true);
-      write(NEWLINE + "\t" + "\t" + propClientType + " c" + memberName + " = " + methodName + "(" + "ccv" + memberName
+      final String methodName = determineConversionProperty2AttributeValueMethodName(relationship, true);
+      write(NEWLINE + "\t" + "\t" + "final " + propClientType + " c" + memberName + " = " + methodName + "(" + "ccv"
+          + memberName
           + ");");
       write(NEWLINE + "\t" + "\t" + "dtoResult." + TypeDtoAPIWriter.determinePropertySetterMethodName(relationship)
       + "(" + "c" + memberName + ");");
@@ -583,11 +871,11 @@ class TypeConverterAPIWriter extends AbstractWriter {
           + " = odataObject." + odataPropertyGetter + "("
           + typeMetaName + "." + TypeMetaAPIWriter.determineTypeMetaPropertyNameConstantName(relationship.getProperty())
           + ");");
-      final String methodName = determineConversionMethodName(relationship, false);
-      write(NEWLINE + "\t" + "\t" + ClientComplexValue.class.getName() + " cv" + memberName + " = (prop" + memberName
-          + " == null)? null : prop" + memberName + ".getComplexValue();");
-      write(NEWLINE + "\t" + "\t" + propClientType + " dto" + memberName + " = " + methodName + "(" + "cv"
-          + memberName + ");");
+      final String methodName = determineConversionProperty2AttributeValueMethodName(relationship, false);
+      write(NEWLINE + "\t" + "\t" + "final " + ClientComplexValue.class.getName() + " cv" + memberName + " = (prop"
+          + memberName + " == null) ? null : prop" + memberName + ".getComplexValue();");
+      write(NEWLINE + "\t" + "\t" + propClientType + " dto" + memberName + " = " + methodName + "(" + "cv" + memberName
+          + ");");
       write(NEWLINE + "\t" + "\t" + "dtoResult." + TypeDtoAPIWriter.determinePropertySetterMethodName(relationship)
       + "("
       + "dto"
@@ -595,7 +883,108 @@ class TypeConverterAPIWriter extends AbstractWriter {
     }
   }
 
-  private void generateSimpleAttributeConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+  private void generateAssociation2PropertyConversion(final JPAStructuredType ownerType,
+      final boolean ownerISRootEntity,
+      final JPAAssociationAttribute relationship) throws ODataJPAModelException, IOException {
+    final String memberName = qualifiedName2FirstCharacterUppercasedString(relationship.getInternalName());
+    final String propertyContainerAdd = ownerISRootEntity ? ".getProperties()" : "";
+    final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(ownerType.getTypeClass().getSimpleName());
+    if (relationship.isCollection()) {
+      write(NEWLINE + "\t" + "\t" + "// collection relationship property value");
+      final String methodName = determineConversionAttribute2PropertyValueMethodName(relationship, true);
+      write(NEWLINE + "\t" + "\t" + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName()
+          + ">" + " prop" + memberName + "Value = " + methodName + "(" + "dto." + TypeDtoAPIWriter
+          .determinePropertyGetterMethodName(relationship) + "()" + ");");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+          + " = factory.newCollectionProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(relationship.getProperty()) + ", " + " prop" + memberName
+          + "Value" + ");");
+      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+    } else {
+      write(NEWLINE + "\t" + "\t" + "// relationship property value");
+      final String methodName = determineConversionAttribute2PropertyValueMethodName(relationship, false);
+      write(NEWLINE + "\t" + "\t" + "final " + ClientComplexValue.class.getName() + " prop" + memberName + "Value"
+          + " = "
+          + methodName + "(" + "dto." + TypeDtoAPIWriter
+          .determinePropertyGetterMethodName(relationship) + "()" + ");");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+          + " = factory.newComplexProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(relationship.getProperty()) + ", " + " prop" + memberName
+          + "Value" + ");");
+      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+    }
+  }
+
+  /**
+   * DTO Attribute -> Olingo Entity Property
+   */
+  private void generateAttribute2PropertyConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+      final JPAMemberAttribute attribute)
+          throws ODataJPAModelException,
+          IOException {
+    final String memberName = qualifiedName2FirstCharacterUppercasedString(attribute.getInternalName());
+    final String typeMetaName = TypeMetaAPIWriter.determineTypeMetaName(ownerType.getTypeClass().getSimpleName());
+    final String propertyContainerAdd = ownerISRootEntity ? ".getProperties()" : "";
+    if (attribute.isCollection()) {
+      // special handling for collection attributes
+      write(NEWLINE + "\t" + "\t" + "// collection (" + (attribute.getType().isEnum() ? "enum" : attribute.isComplex()
+          ? "complex" : "primitive") + ") property value");
+      final String methodName = determineConversionAttribute2PropertyValueMethodName(attribute, true);
+      write(NEWLINE + "\t" + "\t" + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName()
+          + ">"
+          + " prop" + memberName + "Value = "
+          + methodName + "(" + "dto." + TypeDtoAPIWriter
+          .determinePropertyGetterMethodName(attribute) + "()" + ", " + integer2CodeString(
+              attribute.getMaxLength()) + ", " + integer2CodeString(attribute.getPrecision()) + ", "
+              + integer2CodeString(attribute.getScale()) + ");");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+          + " = factory.newCollectionProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ", " + " prop" + memberName
+          + "Value" + ");");
+      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+    } else if (attribute.getType().isEnum()) {
+      write(NEWLINE + "\t" + "\t" + "// enum property value");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientEnumValue.class.getName() + " prop" + memberName
+          + "Value = " + "(dto." + TypeDtoAPIWriter.determinePropertyGetterMethodName(attribute) + "()" + "!= null) ? "
+          + "factory.newEnumValue(\"" + attribute.getType().getName() + "\", " + "dto." + TypeDtoAPIWriter
+          .determinePropertyGetterMethodName(attribute) + "()" + ".name()" + ") : null" + ";");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+          + " = factory.newEnumProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ", " + " prop" + memberName
+          + "Value" + ");");
+      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+    } else if (attribute.isComplex()) {
+      write(NEWLINE + "\t" + "\t" + "//complex value");
+      final String methodName = determineConversionAttribute2PropertyValueMethodName(attribute, false);
+      write(NEWLINE + "\t" + "\t" + "final " + ClientComplexValue.class.getName() + " prop" + memberName + "Value"
+          + " = "
+          + methodName + "(" + "dto." + TypeDtoAPIWriter
+          .determinePropertyGetterMethodName(attribute) + "()" + ");");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+          + " = factory.newComplexProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ", " + " prop" + memberName
+          + "Value" + ");");
+      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+    } else if (TypeMapping.convertToEdmSimpleType(attribute) == EdmPrimitiveTypeKind.Binary) {
+      write(NEWLINE + "\t" + "\t" + "// binary property value for '" + attribute.getInternalName() + "' is ignored");
+    } else {
+      write(NEWLINE + "\t" + "\t" + "// primitive property value");
+      final String methodName = determineConversionAttribute2PropertyValueMethodName(attribute, false);
+      write(NEWLINE + "\t" + "\t" + "final " + ClientPrimitiveValue.class.getName() + " prop" + memberName
+          + "Value = " + methodName + "(" + "dto." + TypeDtoAPIWriter.determinePropertyGetterMethodName(attribute)
+          + "()" + ")" + ";");
+      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+          + " = factory.newPrimitiveProperty(" + typeMetaName + "." + TypeMetaAPIWriter
+          .determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ", " + " prop" + memberName
+          + "Value" + ");");
+      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+    }
+  }
+
+  /**
+   * Olingo Entity Property -> DTO Attribute
+   */
+  private void generateProperty2AttributeConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
       final JPAMemberAttribute attribute)
           throws ODataJPAModelException,
           IOException {
@@ -610,7 +999,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
       write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
           + " = odataObject." + odataPropertyGetter + "(" + typeMetaName + "." + TypeMetaAPIWriter
           .determineTypeMetaPropertyNameConstantName(attribute.getProperty()) + ");");
-      final String methodName = determineConversionMethodName(attribute, true);
+      final String methodName = determineConversionProperty2AttributeValueMethodName(attribute, true);
       write(NEWLINE + "\t" + "\t" + propClientType + " c" + memberName + " = " + methodName + "(" + "prop" + memberName
           + ".getName(), " + "prop" + memberName + ".getCollectionValue(), " + integer2CodeString(
               attribute.getMaxLength()) + ", " + integer2CodeString(attribute.getPrecision()) + ", "
@@ -635,9 +1024,9 @@ class TypeConverterAPIWriter extends AbstractWriter {
           + " = odataObject." + odataPropertyGetter + "("
           + typeMetaName + "." + TypeMetaAPIWriter.determineTypeMetaPropertyNameConstantName(attribute.getProperty())
           + ");");
-      final String methodName = determineConversionMethodName(attribute, false);
+      final String methodName = determineConversionProperty2AttributeValueMethodName(attribute, false);
       write(NEWLINE + "\t" + "\t" + "final " + propClientType + " dto" + memberName + " = " + methodName + "(" + "prop"
-          + memberName + ".getName(), " + "prop" + memberName + ".getComplexValue()" + ");");
+          + memberName + ".getComplexValue()" + ");");
       write(NEWLINE + "\t" + "\t" + "dtoResult." + TypeDtoAPIWriter.determinePropertySetterMethodName(attribute) + "("
           + "dto"
           + memberName + ");");
@@ -649,7 +1038,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
           + " = odataObject." + odataPropertyGetter + "("
           + typeMetaName + "." + TypeMetaAPIWriter.determineTypeMetaPropertyNameConstantName(attribute.getProperty())
           + ");");
-      final String methodName = determineConversionMethodName(attribute, true);
+      final String methodName = determineConversionProperty2AttributeValueMethodName(attribute, true);
       write(NEWLINE + "\t" + "\t" + propClientType + " r" + memberName + " = " + methodName + "(" + "prop" + memberName
           + ".getName(), " + "prop"
           + memberName + ".getPrimitiveValue(), " + integer2CodeString(attribute

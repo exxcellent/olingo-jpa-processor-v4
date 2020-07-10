@@ -78,6 +78,7 @@ public class PersonHandlerTest extends HandlerTestBase {
         + "/" + PostalAddressDataMeta.ADMINISTRATIVEDIVISION_NAME, PersonMeta.IMAGE1_NAME);
     final PersonDto modifiedPerson = handler.retrieve(uriBuilder);
     modifiedPerson.setCountry("POL");
+    modifiedPerson.setLastName("NewLastName");
     final PersonDto updatedPerson = handler.update(modifiedPerson);
   }
 

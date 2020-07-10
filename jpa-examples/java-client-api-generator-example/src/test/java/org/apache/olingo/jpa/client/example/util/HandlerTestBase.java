@@ -160,6 +160,7 @@ public class HandlerTestBase extends TestBase {
     return access;
   }
 
+  @SuppressWarnings("unused")
   private Field determineField(final Class<?> abstractAccessClass, final String fieldName) {
     for (final Field field : abstractAccessClass.getDeclaredFields()) {
       if (field.getName().equals(fieldName)) {
