@@ -65,6 +65,12 @@
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.olingo.jpa.examples</groupId>
+			<artifactId>ui5-client-example</artifactId>
+			<version>${project.version}</version>
+	        <type>war</type>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
 			<scope>runtime</scope>

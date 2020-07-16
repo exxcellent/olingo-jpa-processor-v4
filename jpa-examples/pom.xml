@@ -25,6 +25,7 @@
 	</dependencies>
 
 	<modules>
+		<module>ui5-client-example</module>
 		<module>tutorial-servlet-example</module>
 	</modules>
 
