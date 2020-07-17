@@ -115,7 +115,7 @@ public class ODataServlet extends HttpServlet {
       protected void modifyResponse(final ODataResponse response) {
         super.modifyResponse(response);
         // example header
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("dummy-header", "example to modify reponse header before sending back to client");
       }
     };
 
