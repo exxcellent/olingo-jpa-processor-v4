@@ -33,6 +33,6 @@ The content of the UI5 demo app (contained in module  _ui5-client-example_ ) is 
 1. Do the same as for 'fast build' to bundle all the required artifacts
     _<GIT>/_ : `mvn clean package -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
 1. Start Jetty
-    _<GIT>/_ : `jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false`
+    _<GIT>/_ : `mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false`
 1. Open a browser to start the UI5 app with the url
     _http://localhost:8080/ui5example_ 
