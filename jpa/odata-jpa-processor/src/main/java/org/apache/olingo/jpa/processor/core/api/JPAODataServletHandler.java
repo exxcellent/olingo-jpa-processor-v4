@@ -1,8 +1,10 @@
 package org.apache.olingo.jpa.processor.core.api;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
@@ -25,6 +28,7 @@ import org.apache.olingo.jpa.processor.transformation.TransformationDeclaration;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.api.serializer.RepresentationType;
+import org.apache.olingo.server.core.ODataHttpHandlerImplAccessor;
 
 /**
  * The implementor to handle HTTP servlet requests as an OData REST API.
@@ -66,6 +70,11 @@ public class JPAODataServletHandler {
   @SuppressWarnings("unchecked")
   public void process(final HttpServletRequest request, final HttpServletResponse response) {
 
+    if ("OPTIONS".equals(request.getMethod().toUpperCase(Locale.ENGLISH))) {
+      // special handling as long as HttpMethod.OPTIONS is not existing/supported by Olingo
+      handleOPTIONSRequest(request, response);
+      return;
+    }
     try {
       final JPAODataHttpHandlerImpl handler = new JPAODataHttpHandlerImpl(this, globalContext, request, response);
       final JPAODataRequestContext requestContext = handler.getRequestContext();
@@ -87,6 +96,39 @@ public class JPAODataServletHandler {
     } catch (final ODataException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * As default we have to implement a behavior for preflight-requests in a CORS scenario to handle the
+   * same-origin-policy (SOP) in modern browsers.
+   * @see https://fetch.spec.whatwg.org/#cors-preflight-request
+   * @see https://web.dev/cross-origin-resource-sharing/
+   */
+  private void handleOPTIONSRequest(final HttpServletRequest request, final HttpServletResponse response) {
+    final String corsMethod = request.getHeader("Access-Control-Request-Method");
+    final ODataResponse odataResponse = new ODataResponse();
+    try {
+      if (corsMethod == null) {
+        // if not an pre-flight request, then answer with NOT SUPPORTED
+        response.sendError(HttpStatusCode.METHOD_NOT_ALLOWED.getStatusCode(), request.getMethod()
+            + " is only allowed for CORS pre-flight checks");
+      } else {
+        answerCrossOriginRequest(request, response);
+      }
+      modifyResponse(odataResponse);
+      ODataHttpHandlerImplAccessor.convertToHttp(response, odataResponse);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * This method is called to modify the answer for CORS pre-flight request (OPTIONS request).
+   * @see https://fetch.spec.whatwg.org/#cors-preflight-request
+   */
+  protected void answerCrossOriginRequest(final HttpServletRequest request, final HttpServletResponse response)
+      throws IOException {
+    response.sendError(HttpStatusCode.FORBIDDEN.getStatusCode(), "CORS is not allowed per default");
   }
 
   /**

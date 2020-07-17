@@ -117,6 +117,14 @@ public class ODataServlet extends HttpServlet {
         // example header
         response.setHeader("dummy-header", "example to modify reponse header before sending back to client");
       }
+
+      @Override
+      protected void answerCrossOriginRequest(final HttpServletRequest request, final HttpServletResponse response)
+          throws IOException {
+        super.answerCrossOriginRequest(request, response);
+        //        response.setStatus(HttpStatusCode.OK.getStatusCode());
+        //        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+      }
     };
 
     handler.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
