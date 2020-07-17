@@ -3,8 +3,14 @@
 ---
 # Fast Build to package the artifacts
 * Unit and integration tests are disabled
+   _<GIT>/_ : `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
 
-_<GIT>/_ : `mvn clean verify -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
+# Release (+Build) artifacts to public Maven repository
+* Currently deploying is based on single files (artifacts) to publish
+* We have to deploy multiple artifacts with a list of Maven commands
+* You must build/package **all** the artifacts **before** deploying
+
+_<GIT>/_ : `clean verify deploy:deploy -DskipTests -Djetty.skip`
 
 # Debug (example) code in a running servlet container
 * Jetty is used for integration tests and local debugging of developers
@@ -22,10 +28,11 @@ export JAVA_HOME=/usr/lib/jvm/default-java
 mvn jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false
 ```
 
-# Release (+Build) artifacts to public Maven repository
-* Currently deploying is based on single files (artifacts) to publish
-* We have to deploy multiple artifacts with a list of Maven commands
-* You must build/package **all** the artifacts **before** deploying
-
-_<GIT>/_ : `clean verify deploy:deploy -DskipTests -Djetty.skip`
-
+# Play with the UI5 demo app
+The content of the UI5 demo app (contained in module  _ui5-client-example_ ) is also included in the Jetty defined in module _olingo-generic-servlet-example_ . So you can simply start that Jetty to have an running OData endpoint and a HTTP server hosting the UI5 demo app. Follow the steps:
+1. Do the same as for 'fast build' to bundle all the required artifacts
+    _<GIT>/_ : `mvn clean package -DskipTests -Dmaven.source.skip -Dmaven.javadoc.skip`
+1. Start Jetty
+    _<GIT>/_ : `jetty:run-war -pl :olingo-generic-servlet-example -Ddisable.jetty=false`
+1. Open a browser to start the UI5 app with the url
+    _http://localhost:8080/ui5example_ 
