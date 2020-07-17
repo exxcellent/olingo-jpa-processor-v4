@@ -440,6 +440,9 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE);
     write(NEWLINE + "\t" + "protected " + propClientType + " " + methodName + "(" + "final " + ClientComplexValue.class
         .getName() + " odataObject" + ") throws " + ODataException.class.getName() + " {");
+    write(NEWLINE + "\t" + "\t" + "if(odataObject == null) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+    write(NEWLINE + "\t" + "\t" + "}");
 
     write(NEWLINE + "\t" + "\t" + "final " + propClientType + " dtoResult = new " + propClientType + "();");
 
