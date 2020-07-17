@@ -23,6 +23,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
@@ -121,9 +122,8 @@ public class ODataServlet extends HttpServlet {
       @Override
       protected void answerCrossOriginRequest(final HttpServletRequest request, final HttpServletResponse response)
           throws IOException {
-        super.answerCrossOriginRequest(request, response);
-        //        response.setStatus(HttpStatusCode.OK.getStatusCode());
-        //        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        response.setStatus(HttpStatusCode.OK.getStatusCode());
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
       }
     };
 

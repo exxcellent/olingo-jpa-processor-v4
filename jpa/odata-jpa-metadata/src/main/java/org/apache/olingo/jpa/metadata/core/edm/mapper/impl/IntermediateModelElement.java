@@ -3,8 +3,10 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
@@ -83,6 +85,18 @@ abstract class IntermediateModelElement implements JPAElement {
     // return returnNullIfEmpty(extractionTarget);
   }
 
+  @SuppressWarnings("unchecked")
+  public static <T extends CsdlAbstractEdmItem> List<T> extractEdmModelElements(
+      final Collection<? extends IntermediateModelElement> intermediateElements) {
+    return intermediateElements.stream().map(entry -> {
+      try {
+        return (T)entry.getEdmItem();
+      } catch (final ODataJPAModelException e) {
+        throw new RuntimeException(e);
+      }
+    }).collect(Collectors.toList());
+  }
+
   protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
     return list == null || list.isEmpty() ? null : list;
   }
@@ -128,5 +142,7 @@ abstract class IntermediateModelElement implements JPAElement {
     throw new UnsupportedOperationException(type.getTypeName());
   }
 
+  // FIXME remove checked exception ,because method is called at runtime and not at startup, so we have to avoid checked
+  // exception for that late calls
   abstract <CDSLType extends CsdlAbstractEdmItem> CDSLType getEdmItem() throws ODataJPAModelException;
 }

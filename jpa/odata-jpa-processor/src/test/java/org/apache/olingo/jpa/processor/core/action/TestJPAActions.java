@@ -52,6 +52,7 @@ import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -683,6 +684,26 @@ public class TestJPAActions extends TestBase {
     uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(rootODataEntity
         .getProperty("Id").getPrimitiveValue().toCastValue(Long.class));
     helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.PUT);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
+
+  @Test
+  public void testBoundActionModifyingBusinessPartner() throws IOException, ODataException {
+    // read Organization as BusinessPartner
+    final URIBuilder uriBuilderResource = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(
+        "5");
+    final ServerCallSimulator callRead = new ServerCallSimulator(persistenceAdapter, uriBuilderResource);
+    callRead.execute(HttpStatusCode.OK.getStatusCode());
+    // modify
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode org = callRead.getJsonObjectValue();
+    ((ObjectNode) org.get("CommunicationData")).put("MobilePhoneNumber", "+49/1234/9999 8888");
+    final String json = "{\"modifiedBusinessPartner\": " + mapper.writeValueAsString(org) + "}";
+    // save as BusinessPartner
+    final URIBuilder uriBuilderAction = uriBuilderResource.appendActionCallSegment(Constant.PUNIT_NAME
+        + ".modifyBusinessPartner");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderAction, new StringBuffer(json), HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 

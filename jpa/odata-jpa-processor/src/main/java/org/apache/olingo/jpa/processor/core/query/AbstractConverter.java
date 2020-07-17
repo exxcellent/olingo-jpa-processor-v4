@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +38,8 @@ import org.apache.olingo.jpa.processor.core.mapping.converter.SqlDate2UtilCalend
 import org.apache.olingo.jpa.processor.core.mapping.converter.SqlTime2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.UtilDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
+
+import javassist.util.proxy.ProxyFactory;
 
 public abstract class AbstractConverter {
 
@@ -658,8 +661,16 @@ public abstract class AbstractConverter {
   protected Object newJPAInstance(final JPAStructuredType jpaEntityType) throws ODataJPAModelException {
 
     if (Modifier.isAbstract(jpaEntityType.getTypeClass().getModifiers())) {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE,
-          jpaEntityType.getInternalName() + " is abstract");
+      // special code to create instance of abstract class
+      final ProxyFactory factory = new ProxyFactory();
+      factory.setSuperclass(jpaEntityType.getTypeClass());
+      //      factory.setFilter(handler);
+      try {
+        return factory.create(new Class[0], new Object[0]);
+      } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
+          | InvocationTargetException e) {
+        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.GENERAL, e);
+      }
     }
     try {
       return jpaEntityType.getTypeClass().newInstance();

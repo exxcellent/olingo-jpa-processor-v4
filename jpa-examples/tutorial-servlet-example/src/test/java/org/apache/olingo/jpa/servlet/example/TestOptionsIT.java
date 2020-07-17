@@ -36,7 +36,7 @@ public class TestOptionsIT {
       final HttpOptions options = new HttpOptions(uri);
       options.addHeader("Origin", uri.toASCIIString());
       final CloseableHttpResponse response = httpClient.execute(options);
-      Assert.assertEquals(HttpStatusCode.FORBIDDEN.getStatusCode(), response.getStatusLine().getStatusCode());
+      Assert.assertEquals(HttpStatusCode.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatusLine().getStatusCode());
     }
   }
 
@@ -50,7 +50,7 @@ public class TestOptionsIT {
       options.addHeader("Access-Control-Request-Method", HttpMethod.GET.name());
       final CloseableHttpResponse response = httpClient.execute(options);
       // the example servlet must have overwritten the default and must accept cross origin requests
-      Assert.assertEquals(uri.toASCIIString(), response.getFirstHeader("Access-Control-Allow-Origin"));
+      Assert.assertEquals(uri.toASCIIString(), response.getFirstHeader("Access-Control-Allow-Origin").getValue());
     }
   }
 
