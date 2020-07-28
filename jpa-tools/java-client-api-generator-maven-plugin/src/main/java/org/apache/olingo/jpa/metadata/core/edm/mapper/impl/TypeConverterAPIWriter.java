@@ -475,6 +475,9 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "protected " + ClientComplexValue.class.getName() + " " + methodName + "(" + propClientType
         + " dto" + ") throws " + ODataException.class.getName() + " {");
 
+    write(NEWLINE + "\t" + "\t" + "if(dto == null) {");
+    write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+    write(NEWLINE + "\t" + "\t" + "}");
     write(NEWLINE + "\t" + "\t" + ClientComplexValue.class.getName() + " propertyContainer = factory.newComplexValue(\""
         + attribute.getStructuredType().getExternalFQN().getFullQualifiedNameAsString() + "\");");
 
@@ -896,13 +899,16 @@ class TypeConverterAPIWriter extends AbstractWriter {
       write(NEWLINE + "\t" + "\t" + "// collection relationship property value");
       final String methodName = determineConversionAttribute2PropertyValueMethodName(relationship, true);
       write(NEWLINE + "\t" + "\t" + "final " + ClientCollectionValue.class.getName() + "<" + ClientValue.class.getName()
-          + ">" + " prop" + memberName + "Value = " + methodName + "(" + "dto." + TypeDtoAPIWriter
+          + ">" + " prop" + memberName + "Values = " + methodName + "(" + "dto." + TypeDtoAPIWriter
           .determinePropertyGetterMethodName(relationship) + "()" + ");");
-      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+      write(NEWLINE + "\t" + "\t" + "if(" + "prop" + memberName + "Values" + " != null" + ") {");
+      write(NEWLINE + "\t" + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
           + " = factory.newCollectionProperty(" + typeMetaName + "." + TypeMetaAPIWriter
           .determineTypeMetaPropertyNameConstantName(relationship.getProperty()) + ", " + " prop" + memberName
-          + "Value" + ");");
-      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+          + "Values" + ");");
+      write(NEWLINE + "\t" + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + "prop" + memberName
+          + ");");
+      write(NEWLINE + "\t" + "\t" + "}");
     } else {
       write(NEWLINE + "\t" + "\t" + "// relationship property value");
       final String methodName = determineConversionAttribute2PropertyValueMethodName(relationship, false);
@@ -910,11 +916,14 @@ class TypeConverterAPIWriter extends AbstractWriter {
           + " = "
           + methodName + "(" + "dto." + TypeDtoAPIWriter
           .determinePropertyGetterMethodName(relationship) + "()" + ");");
-      write(NEWLINE + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
+      write(NEWLINE + "\t" + "\t" + "if(" + "prop" + memberName + "Value" + " != null" + ") {");
+      write(NEWLINE + "\t" + "\t" + "\t" + "final " + ClientProperty.class.getName() + " prop" + memberName
           + " = factory.newComplexProperty(" + typeMetaName + "." + TypeMetaAPIWriter
           .determineTypeMetaPropertyNameConstantName(relationship.getProperty()) + ", " + " prop" + memberName
           + "Value" + ");");
-      write(NEWLINE + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName + ");");
+      write(NEWLINE + "\t" + "\t" + "\t" + "propertyContainer" + propertyContainerAdd + ".add(" + " prop" + memberName
+          + ");");
+      write(NEWLINE + "\t" + "\t" + "}");
     }
   }
 

@@ -79,7 +79,11 @@ public class PersonHandlerTest extends HandlerTestBase {
     final PersonDto modifiedPerson = handler.retrieve(uriBuilder);
     modifiedPerson.setCountry("POL");
     modifiedPerson.setLastName("NewLastName");
+    // TODO Olingo's server side deserializer doesn't suppport relationships (navigation property) as part of an
+    // (embedded) complex type
+    modifiedPerson.getAddress().setAdministrativeDivision(null);
     final PersonDto updatedPerson = handler.update(modifiedPerson);
+    Assert.assertEquals(modifiedPerson.getID(), updatedPerson.getID());
   }
 
 }
