@@ -38,7 +38,7 @@ public class TestObjectModification extends TestBase {
     dceFirstRead.put("AOrdinalMappedEnum", ChronoUnit.FOREVER.name());
     final StringBuffer requestBody = new StringBuffer(dceFirstRead.toString());
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilderResource,
-        requestBody, HttpMethod.PUT);
+        requestBody.toString(), HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode dceResponse = helper.getJsonObjectValue();
     assertNotNull(dceResponse);

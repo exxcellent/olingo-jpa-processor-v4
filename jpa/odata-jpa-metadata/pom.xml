@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.43.2</version>
+		<version>0.44.0</version>
 	</parent>
 
 	<artifactId>odata-jpa-metadata</artifactId>
@@ -67,11 +67,6 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-api</artifactId>
-		    <scope>test</scope>
 		</dependency>
 		<dependency>
 		    <groupId>ch.qos.logback</groupId>

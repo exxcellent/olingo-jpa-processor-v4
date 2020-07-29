@@ -230,7 +230,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
         final Column annotationColumn = annotatedMember.getAnnotation(Column.class);
         if (annotationColumn != null) {
-          if (maxLength == null && annotationColumn.length() > 0) {
+          if (maxLength == null && annotationColumn.length() != 255) {
             maxLength = Integer.valueOf(annotationColumn.length());
           }
           edmProperty.setNullable(annotationColumn.nullable());
@@ -242,6 +242,7 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
           } else if (edmProperty.getType().equals(EdmPrimitiveTypeKind.Decimal.getFullQualifiedName().toString())
               || edmProperty.getType().equals(EdmPrimitiveTypeKind.DateTimeOffset.getFullQualifiedName().toString())
               || edmProperty.getType().equals(EdmPrimitiveTypeKind.TimeOfDay.getFullQualifiedName().toString())) {
+            edmProperty.setMaxLength(maxLength);
             // For a decimal property the value of this attribute specifies the maximum number of digits allowed in the
             // properties value; it MUST be a positive integer. If no value is specified, the decimal property has
             // unspecified precision.

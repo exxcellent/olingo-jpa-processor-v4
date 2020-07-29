@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa.examples</groupId>
 		<artifactId>odata-jpa-examples</artifactId>
-		<version>0.43.2</version>
+		<version>0.44.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -52,6 +52,12 @@
 			<groupId>org.apache.olingo.jpa</groupId>
 			<artifactId>odata-jpa-processor</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa.examples</groupId>
+			<artifactId>java-client-api-generator-example</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.olingo.jpa</groupId>

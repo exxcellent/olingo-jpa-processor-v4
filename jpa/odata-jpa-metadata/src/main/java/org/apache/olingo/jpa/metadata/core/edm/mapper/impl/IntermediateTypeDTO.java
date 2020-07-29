@@ -37,7 +37,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 /**
  * A DTO is mapped as OData entity!
  *
- * @author rzozmann
+ * @author Ralf Zozmann
  *
  */
 class IntermediateTypeDTO extends IntermediateModelElement implements JPAEntityType {

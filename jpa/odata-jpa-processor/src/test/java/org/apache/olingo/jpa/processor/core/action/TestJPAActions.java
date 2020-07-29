@@ -137,7 +137,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
         .appendActionCallSegment(Constant.PUNIT_NAME + ".extractCountryCode");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -174,7 +174,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode object = helper.getJsonObjectValue();
@@ -202,7 +202,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createOrganization");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.setRequestedResponseContentType("application/json;odata.metadata=full");
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -238,7 +238,7 @@ public class TestJPAActions extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("99")
         .appendActionCallSegment(Constant.PUNIT_NAME + ".sendBackEnumParameter");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        uriBuilder, requestBody, HttpMethod.POST);
+        uriBuilder, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode object = helper.getJsonObjectValue();
@@ -276,7 +276,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("unboundActionCheckLoadingOfEmbeddedId");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        uriBuilder, requestBody, HttpMethod.POST);
+        uriBuilder, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -456,7 +456,8 @@ public class TestJPAActions extends TestBase {
     requestBody.append("--").append(boundary).append("--").append(NEW_LINE);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("uploadFile");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody
+        .toString(), HttpMethod.POST);
     helper.setRequestContentType("multipart/form-data; boundary=" + boundary);// global content type
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -499,7 +500,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("--").append(boundary).append("--").append(NEW_LINE);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("uploadMultipleFiles");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.setRequestContentType("multipart/form-data; boundary=" + boundary);// global content type
 
@@ -518,7 +519,7 @@ public class TestJPAActions extends TestBase {
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("checkPersonImageWithoutEmbeddedArgument");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        uriBuilder, requestBody, HttpMethod.POST);
+        uriBuilder, requestBody.toString(), HttpMethod.POST);
 
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
@@ -532,7 +533,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("\"numberOfLevels\": 4");
     requestBody.append("}");
     URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
-    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -543,10 +544,10 @@ public class TestJPAActions extends TestBase {
 
     // reuse created structure to as parameter for another action
     requestBody = new StringBuffer("{");
-    requestBody.append("\"structure\": " + jsonRaw);
+    requestBody.append("  \"structure\": " + jsonRaw);
     requestBody.append("}");
     uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
-    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -565,7 +566,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("processDTOCollection");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
@@ -588,7 +589,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("processEntityCollection");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
@@ -622,7 +623,7 @@ public class TestJPAActions extends TestBase {
     requestBody.append("  \"numberOfLevels\": 2");
     requestBody.append("}");
     URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructure");
-    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.POST);
     // important: normal metadata to avoid presence of binding link annotations
     helper.setRequestedResponseContentType(ContentType.JSON.toContentTypeString());
@@ -635,7 +636,7 @@ public class TestJPAActions extends TestBase {
     requestBody = buildActionPayload(actionParameters);
 
     uriBuilder = newUriBuilder().appendActionCallSegment("validateNestedStructure");
-    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.POST);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
@@ -682,7 +683,7 @@ public class TestJPAActions extends TestBase {
     // try to update via handler to trigger parsing
     uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(rootODataEntity
         .getProperty("Id").getPrimitiveValue().toCastValue(Long.class));
-    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody, HttpMethod.PUT);
+    helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(), HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 

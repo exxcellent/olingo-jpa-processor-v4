@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+	  <groupId>org.apache.olingo.jpa.tools</groupId>
+	  <artifactId>tools-parent</artifactId>
+	  <version>0.44.0</version>
+	</parent>
+	
+	<artifactId>java-client-api-generator-maven-plugin</artifactId>
+	<packaging>maven-plugin</packaging>
+	<name>OData-JPA-Adapter client api code generator for Java</name>
+  
+	<properties>
+	</properties>
+  
+	<dependencies>
+		<dependency>
+		  <groupId>org.apache.maven</groupId>
+		  <artifactId>maven-plugin-api</artifactId>
+		</dependency>
+		<dependency>
+		  <groupId>org.apache.maven.plugin-tools</groupId>
+		  <artifactId>maven-plugin-annotations</artifactId>
+		  <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.maven.shared</groupId>
+		    <artifactId>maven-shared-utils</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.maven</groupId>
+		    <artifactId>maven-project</artifactId>
+		</dependency>
+	    <dependency>
+	      <groupId>org.apache.maven.shared</groupId>
+	      <artifactId>maven-artifact-transfer</artifactId>
+	    </dependency>
+
+		<!-- use H2 as builtin database for code generation so the JPA provider can get an connection -->
+		<dependency>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		</dependency>			
+		
+		<dependency>
+			<groupId>org.apache.olingo.jpa</groupId>
+			<artifactId>odata-jpa-processor</artifactId>
+			<version>${project.version}</version>
+		</dependency> 
+		<dependency>
+		    <groupId>org.apache.olingo</groupId>
+		    <artifactId>odata-client-core</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>javax.persistence</groupId>
+		    <artifactId>javax.persistence-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <scope>test</scope>
+		</dependency>
+	</dependencies>
+  
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-descriptor</id>
+            <phase>process-classes</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>  
+  </build>
+</project>

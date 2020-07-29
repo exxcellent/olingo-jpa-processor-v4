@@ -61,8 +61,12 @@ public abstract class AbstractJPASchema implements JPAElement {
 
   abstract List<JPAEntityType> getEntityTypes();
 
-  abstract List<JPAEntitySet> getEntitySets();
+  abstract List<IntermediateComplexType> getComplexTypes();
 
+  abstract List<IntermediateEnumType> getEnumTypes();
+
+  abstract List<JPAEntitySet> getEntitySets();
+  
   abstract IntermediateComplexType getComplexType(final Class<?> targetClass);
 
   /**

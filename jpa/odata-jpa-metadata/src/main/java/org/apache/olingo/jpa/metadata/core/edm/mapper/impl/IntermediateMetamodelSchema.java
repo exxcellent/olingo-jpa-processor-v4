@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,6 +118,11 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   @Override
+  List<IntermediateComplexType> getComplexTypes() {
+    return new ArrayList<>(mapInternalName2ComplexType.values());
+  }
+
+  @Override
   JPAEntityType getEntityType(final String externalName) {
     for (final String internalName : mapInternalName2EntityType.keySet()) {
       if (mapInternalName2EntityType.get(internalName).getExternalName().equals(externalName)) {
@@ -128,10 +134,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
   @Override
   List<JPAEntityType> getEntityTypes() {
-    final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(
-        mapInternalName2EntityType.size());
-    entityTypes.addAll(mapInternalName2EntityType.values());
-    return entityTypes;
+    return new ArrayList<JPAEntityType>(mapInternalName2EntityType.values());
   }
 
   @Override
@@ -231,6 +234,11 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
       actionList.putAll(factory.create(getNameBuilder(), entity.getJavaType(), serviceDocument));
     }
     return actionList;
+  }
+
+  @Override
+  List<IntermediateEnumType> getEnumTypes() {
+    return Collections.emptyList();
   }
 
   @Override
