@@ -704,7 +704,7 @@ public class TestJPAActions extends TestBase {
     final URIBuilder uriBuilderAction = uriBuilderResource.appendActionCallSegment(Constant.PUNIT_NAME
         + ".modifyBusinessPartner");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        uriBuilderAction, new StringBuffer(json), HttpMethod.POST);
+        uriBuilderAction, json, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
