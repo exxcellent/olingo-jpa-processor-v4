@@ -117,6 +117,11 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   @Override
+  List<IntermediateComplexType> getComplexTypes() {
+    return new ArrayList<>(mapInternalName2ComplexType.values());
+  }
+
+  @Override
   JPAEntityType getEntityType(final String externalName) {
     for (final String internalName : mapInternalName2EntityType.keySet()) {
       if (mapInternalName2EntityType.get(internalName).getExternalName().equals(externalName)) {
@@ -128,10 +133,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
   @Override
   List<JPAEntityType> getEntityTypes() {
-    final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(
-        mapInternalName2EntityType.size());
-    entityTypes.addAll(mapInternalName2EntityType.values());
-    return entityTypes;
+    return new ArrayList<JPAEntityType>(mapInternalName2EntityType.values());
   }
 
   @Override
@@ -247,6 +249,11 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
       }
     }
     return new ArrayList<>(actionList.values());
+  }
+
+  @Override
+  List<IntermediateEnumType> getEnumTypes() {
+    return Collections.emptyList();
   }
 
   @Override

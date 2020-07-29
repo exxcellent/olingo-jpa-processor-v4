@@ -28,25 +28,24 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
-import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.commons.core.Decoder;
 
-class HttpServletRequestDouble implements HttpServletRequest {
+public class HttpServletRequestDouble implements HttpServletRequest {
 
   private final HttpRequestHeaderDouble reqHeader;
   private final String queryString;
   private final StringBuffer url;
-  private final StringBuffer input;
+  private final String input;
   private final URI uri;
   private HttpMethod requestMethod = null;
   private Principal principal = null;
 
-  HttpServletRequestDouble(final URIBuilder uriBuilder, final StringBuffer body) throws IOException {
+  public HttpServletRequestDouble(final URI uri, final String body) throws IOException {
     super();
     this.reqHeader = new HttpRequestHeaderDouble();
-    this.uri = uriBuilder.build();
+    this.uri = uri;
     final String uriString = Decoder.decode(uri.toString());
     final String[] uriParts = uriString.split("\\?");
     this.url = new StringBuffer(uriParts[0]);

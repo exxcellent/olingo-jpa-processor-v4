@@ -52,6 +52,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ServerCallSimulator {
 
+  public static final String SERVLET_PATH = "/Olingo.svc";
+  static final String SERVLET_LOCAL_BASE_URI = "http://localhost:8080/Test" + SERVLET_PATH + "/";
+
   private static class TestErrorProcessor extends DefaultProcessor implements ErrorProcessor {
 
     Logger LOG = Logger.getLogger(ErrorProcessor.class.getName());
@@ -67,11 +70,9 @@ public class ServerCallSimulator {
   // ----------------------------------------------------------------------------------
   private final Logger LOG = Logger.getLogger(ServerCallSimulator.class.getName());
 
-  public final HttpServletRequestDouble req;
-  public HttpServletResponseDouble resp = null;
+  private final HttpServletRequestDouble req;
   private final JPAAdapter persistenceAdapter;
-  static final String SERVLET_PATH = "/Olingo.svc";
-  static final String uriPrefix = "http://localhost:8080/Test" + SERVLET_PATH + "/";
+  private HttpServletResponseDouble resp = null;
   private boolean executed = false;
   private SecurityInceptor securityInceptor = null;
 
@@ -94,7 +95,7 @@ public class ServerCallSimulator {
    */
   @Deprecated
   public ServerCallSimulator(final JPAAdapter persistenceAdapter,
-      final String urlPath, final StringBuffer requestBody, final HttpMethod requestMethod)
+      final String urlPath, final String requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
     this(persistenceAdapter, wrapUrl(urlPath), requestBody, requestMethod);
@@ -102,7 +103,7 @@ public class ServerCallSimulator {
   }
 
   private static URIBuilder wrapUrl(final String urlPath) {
-    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.uriPrefix + urlPath.replace(" ", "%20"));
+    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.SERVLET_LOCAL_BASE_URI + urlPath.replace(" ", "%20"));
   }
 
   /**
@@ -117,11 +118,11 @@ public class ServerCallSimulator {
    * @see TestBase#newUriBuilder()
    */
   public ServerCallSimulator(final JPAAdapter persistenceAdapter,
-      final URIBuilder uriBuilder, final StringBuffer requestBody, final HttpMethod requestMethod)
+      final URIBuilder uriBuilder, final String requestBody, final HttpMethod requestMethod)
           throws IOException,
           ODataException {
     super();
-    this.req = new HttpServletRequestDouble(uriBuilder, requestBody);
+    this.req = new HttpServletRequestDouble(uriBuilder.build(), requestBody);
     this.req.setMethod(requestMethod);
     this.persistenceAdapter = persistenceAdapter;
     if (persistenceAdapter == null) {

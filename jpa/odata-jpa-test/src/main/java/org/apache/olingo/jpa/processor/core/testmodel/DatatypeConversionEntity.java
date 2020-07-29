@@ -82,7 +82,7 @@ public class DatatypeConversionEntity extends AbstractEntity {
   private URL aUrl;
 
   @EdmSearchable
-  @Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5)
+  @Column(name = "\"ADecimal\"", columnDefinition = "decimal", precision = 16, scale = 5, length = 123)
   private BigDecimal aDecimal;
 
   // reuse decimal column for double representation

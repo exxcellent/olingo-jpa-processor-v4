@@ -244,7 +244,7 @@ ComplexProcessor, PrimitiveValueProcessor {
         final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
         final Object persistenceModifiedEntity = entityConverter.convertOData2JPAEntity(odataEntityMerged,
             jpaEntityType);
-        // FIXME we cannot use em.merge(), because relationships are removed...
+        // FIXME we cannot use em.merge(), because some relationships are removed...
         final Object persistenceMergedEntity = em.merge(persistenceModifiedEntity);
 
         // convert reverse to get also generated fields

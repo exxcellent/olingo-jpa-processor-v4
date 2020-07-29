@@ -56,10 +56,15 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     return enumTypes.get(targetClass.getSimpleName());
   }
 
+  @Override
+  List<IntermediateComplexType> getComplexTypes() {
+    return Collections.emptyList();
+  }
+
   IntermediateTypeDTO getDTOType(final Class<?> targetClass) {
     return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
   }
-
+  
   protected final void lazyBuildEdmItem() throws ODataJPAModelException {
     if (edmSchema != null) {
       return;
@@ -143,7 +148,6 @@ class IntermediateCustomSchema extends AbstractJPASchema {
       edmSchema = null;
     }
     return dtoType;
-
   }
 
   @Override
@@ -209,9 +213,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
   @Override
   List<JPAEntityType> getEntityTypes() {
-    final List<JPAEntityType> entityTypes = new ArrayList<JPAEntityType>(dtoTypes.size());
-    entityTypes.addAll(dtoTypes.values());
-    return entityTypes;
+    return new ArrayList<JPAEntityType>(dtoTypes.values());
   }
 
   @Override
@@ -223,4 +225,10 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   List<JPAEntitySet> getEntitySets() {
     return new ArrayList<>(entitySets.values());
   }
+
+  @Override
+  List<IntermediateEnumType> getEnumTypes() {
+    return new ArrayList<IntermediateEnumType>(enumTypes.values());
+  }
+
 }

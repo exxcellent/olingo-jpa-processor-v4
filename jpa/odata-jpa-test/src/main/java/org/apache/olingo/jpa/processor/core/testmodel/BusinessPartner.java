@@ -103,7 +103,7 @@ public abstract class BusinessPartner {
   // Hibernate has problems to support a scenario to join only one column from a
   // table with more columns as part of the id so we "invent" a dynamic filled
   // join table
-  @OneToMany(fetch = FetchType.EAGER, orphanRemoval = false)
+  @OneToMany(fetch = FetchType.EAGER, orphanRemoval = false, cascade = { CascadeType.REFRESH })
   @JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::BPADDJoinTable\"", joinColumns = {
       @JoinColumn(referencedColumnName = "\"ID\"", name = "\"BusinessPartnerID\"") }, inverseJoinColumns = {
           @JoinColumn(referencedColumnName = "\"CodePublisher\"", name = "\"CodePublisher\""),

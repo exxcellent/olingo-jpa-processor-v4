@@ -9,14 +9,20 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.olingo.commons.api.http.HttpHeader;
 
 public class HttpServletResponseDouble implements HttpServletResponse {
 
@@ -181,8 +187,8 @@ public class HttpServletResponseDouble implements HttpServletResponse {
 
   @Override
   public void setHeader(final String name, final String value) {
-    fail();
-
+    headers.remove(name);
+    addHeader(name, value);
   }
 
   @Override
@@ -246,30 +252,38 @@ public class HttpServletResponseDouble implements HttpServletResponse {
     }
   }
 
+
   public InputStream getInputStream() {
     return new ByteArrayInputStream(this.outputStream.buffer.toByteArray());
   }
 
   @Override
   public void setContentLengthLong(final long len) {
-    fail();
+    setHeader(HttpHeader.CONTENT_LENGTH, Long.toString(len));
   }
 
   @Override
   public String getHeader(final String name) {
-    fail();
-    return null;
+    final Collection<String> values = getHeaders(name);
+    if (values == null) {
+      return null;
+    }
+    if (values.isEmpty()) {
+      return null;
+    }
+    return values.iterator().next();
   }
 
   @Override
   public Collection<String> getHeaders(final String name) {
-    fail();
-    return null;
+    if (!headers.containsKey(name)) {
+      return Collections.emptyList();
+    }
+    return headers.get(name);
   }
 
   @Override
   public Collection<String> getHeaderNames() {
-    fail();
-    return null;
+    return headers.keySet();
   }
 }

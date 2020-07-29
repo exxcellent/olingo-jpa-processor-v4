@@ -118,7 +118,7 @@ public class TestDependencyInjection extends TestBase {
     requestBody.append("}");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Dtos").appendKeySegment(Integer.valueOf(iId));
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody,
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
         HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }

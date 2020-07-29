@@ -97,7 +97,7 @@ public class TestDTOs extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(Integer
         .valueOf(iId));
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        requestBody, HttpMethod.PUT);
+        requestBody.toString(), HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertEquals(sId, helper.getJsonObjectValue().get("Id").asText());
   }

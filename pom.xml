@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.43.2</version>
+	<version>0.44.0</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>
@@ -32,6 +32,7 @@
 
 	<modules>
 		<module>jpa</module>
+		<module>jpa-tools</module>
 		<module>jpa-examples</module>
 		<module>code-coverage-report</module>
 	</modules>
@@ -223,6 +224,31 @@
 			    <artifactId>poi-ooxml</artifactId>
 			    <version>4.1.2</version>
 			</dependency>
+			<dependency>
+			  <groupId>org.apache.maven</groupId>
+			  <artifactId>maven-plugin-api</artifactId>
+			  <version>3.6.2</version>
+			</dependency>
+			<dependency>
+			  <groupId>org.apache.maven.plugin-tools</groupId>
+			  <artifactId>maven-plugin-annotations</artifactId>
+			  <version>3.6.0</version>
+			</dependency>
+			<dependency>
+			    <groupId>org.apache.maven.shared</groupId>
+			    <artifactId>maven-shared-utils</artifactId>
+			    <version>3.2.1</version>
+			</dependency>
+			<dependency>
+			    <groupId>org.apache.maven</groupId>
+			    <artifactId>maven-project</artifactId>
+			    <version>2.2.1</version>
+			</dependency>
+		    <dependency>
+		      <groupId>org.apache.maven.shared</groupId>
+		      <artifactId>maven-artifact-transfer</artifactId>
+		      <version>0.9.1</version>
+		    </dependency>
 			<dependency>
 			    <groupId>org.javassist</groupId>
 			    <artifactId>javassist</artifactId>
@@ -435,6 +461,11 @@
 							</configuration>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+				  <groupId>org.apache.maven.plugins</groupId>
+				  <artifactId>maven-plugin-plugin</artifactId>
+				  <version>3.6.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

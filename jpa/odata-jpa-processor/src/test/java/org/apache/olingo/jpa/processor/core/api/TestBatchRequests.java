@@ -21,7 +21,7 @@ public class TestBatchRequests extends TestBase {
 
   @Test
   public void testOneGetRequestGetResponce() throws IOException, ODataException {
-    final StringBuffer requestBody = createBodyOneGet();
+    final String requestBody = createBodyOneGet();
 
     final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -34,7 +34,7 @@ public class TestBatchRequests extends TestBase {
 
   @Test
   public void testOneGetRequestCheckStatus() throws IOException, ODataException {
-    final StringBuffer requestBody = createBodyOneGet();
+    final String requestBody = createBodyOneGet();
 
     final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -45,7 +45,7 @@ public class TestBatchRequests extends TestBase {
 
   @Test
   public void testOneGetRequestCheckValue() throws IOException, ODataException {
-    final StringBuffer requestBody = createBodyOneGet();
+    final String requestBody = createBodyOneGet();
 
     final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -57,7 +57,7 @@ public class TestBatchRequests extends TestBase {
 
   @Test
   public void testTwoGetRequestSecondFailCheckStatus() throws IOException, ODataException {
-    final StringBuffer requestBody = createBodyTwoGetOneFail();
+    final String requestBody = createBodyTwoGetOneFail();
 
     final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -68,7 +68,7 @@ public class TestBatchRequests extends TestBase {
 
   @Test
   public void testTwoGetRequestCheckValue() throws IOException, ODataException {
-    final StringBuffer requestBody = createBodyTwoGet();
+    final String requestBody = createBodyTwoGet();
 
     final URIBuilder uriBuilder = newUriBuilder().appendBatchSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -79,7 +79,7 @@ public class TestBatchRequests extends TestBase {
     assertEquals("5", value.get("ID").asText());
   }
 
-  private StringBuffer createBodyTwoGetOneFail() {
+  private String createBodyTwoGetOneFail() {
     final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
     requestBody.append("Content-Type: application/http\r\n");
     requestBody.append("Content-Transfer-Encoding: binary\r\n");
@@ -97,10 +97,10 @@ public class TestBatchRequests extends TestBase {
     requestBody.append("\r\n");
     requestBody.append("\r\n");
     requestBody.append("--abc123--");
-    return requestBody;
+    return requestBody.toString();
   }
 
-  private StringBuffer createBodyTwoGet() {
+  private String createBodyTwoGet() {
     final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
     requestBody.append("Content-Type: application/http\r\n");
     requestBody.append("Content-Transfer-Encoding: binary\r\n");
@@ -118,10 +118,10 @@ public class TestBatchRequests extends TestBase {
     requestBody.append("\r\n");
     requestBody.append("\r\n");
     requestBody.append("--abc123--");
-    return requestBody;
+    return requestBody.toString();
   }
 
-  private StringBuffer createBodyOneGet() {
+  private String createBodyOneGet() {
     final StringBuffer requestBody = new StringBuffer("--abc123\r\n");
     requestBody.append("Content-Type: application/http\r\n");
     requestBody.append("Content-Transfer-Encoding: binary\r\n");
@@ -131,6 +131,6 @@ public class TestBatchRequests extends TestBase {
     requestBody.append("\r\n");
     requestBody.append("\r\n");
     requestBody.append("--abc123--");
-    return requestBody;
+    return requestBody.toString();
   }
 }

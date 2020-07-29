@@ -125,7 +125,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
 
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos(1)", requestBody, HttpMethod.PUT);
+        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PUT);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123"));
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -137,7 +137,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
 
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos(1)", requestBody, HttpMethod.PATCH);
+        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PATCH);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123", new String[] { "role.patch" }));
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -149,7 +149,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
 
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos(1)", requestBody, HttpMethod.PATCH);
+        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PATCH);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123", new String[] { "role.wrong" }));
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());
