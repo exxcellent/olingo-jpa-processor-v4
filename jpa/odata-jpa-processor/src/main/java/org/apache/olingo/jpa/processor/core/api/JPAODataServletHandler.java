@@ -28,7 +28,6 @@ import org.apache.olingo.jpa.processor.transformation.TransformationDeclaration;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.api.serializer.RepresentationType;
-import org.apache.olingo.server.core.ODataHttpHandlerImplAccessor;
 
 /**
  * The implementor to handle HTTP servlet requests as an OData REST API.
@@ -106,7 +105,6 @@ public class JPAODataServletHandler {
    */
   private void handleOPTIONSRequest(final HttpServletRequest request, final HttpServletResponse response) {
     final String corsMethod = request.getHeader("Access-Control-Request-Method");
-    final ODataResponse odataResponse = new ODataResponse();
     try {
       if (corsMethod == null) {
         // if not an pre-flight request, then answer with NOT SUPPORTED
@@ -115,8 +113,6 @@ public class JPAODataServletHandler {
       } else {
         answerCrossOriginRequest(request, response);
       }
-      modifyResponse(odataResponse);
-      ODataHttpHandlerImplAccessor.convertToHttp(response, odataResponse);
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }

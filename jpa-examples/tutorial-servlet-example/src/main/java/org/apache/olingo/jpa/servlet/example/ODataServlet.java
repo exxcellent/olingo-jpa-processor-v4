@@ -124,6 +124,16 @@ public class ODataServlet extends HttpServlet {
           throws IOException {
         response.setStatus(HttpStatusCode.OK.getStatusCode());
         response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        final String methodHeader = request.getHeader("Access-Control-Request-Method");
+        if (methodHeader != null && !methodHeader.isEmpty()) {
+          // reflect all requested methods as allowed
+          response.setHeader("Access-Control-Allow-Methods", methodHeader);
+        }
+        final String headersHeader = request.getHeader("Access-Control-Request-Headers");
+        if (headersHeader != null && !headersHeader.isEmpty()) {
+          // reflect all requested headers as allowed
+          response.setHeader("Access-Control-Allow-Headers", headersHeader);
+        }
       }
     };
 
