@@ -1,0 +1,7 @@
+<mvc:View controllerName="exxcellent.ui5.example.controller.App"
+		  displayBlock="true"
+		  xmlns:mvc="sap.ui.core.mvc"
+		  xmlns="sap.m">
+	<App id="idAppControl" autoFocus="false">
+	</App>
+</mvc:View>

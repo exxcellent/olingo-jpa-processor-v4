@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.AttributeOverride;
@@ -231,15 +232,35 @@ public abstract class BusinessPartner {
    * Bound oData action, called by UI5 demo client
    */
   @EdmAction
-  public BusinessPartner modifyBusinessPartner(@EdmActionParameter(
-      name = "modifiedBusinessPartner") final BusinessPartner modifiedBP, @Inject final EntityManager em) {
-    if (!this.getCountry().equals(modifiedBP.getCountry())) {
-      throw new IllegalStateException("Country of BP cannot be changed, edit the address!");
+  public BusinessPartner modifyBusinessPartner(
+          @EdmActionParameter(name = "changedRegion") final String changedRegion,
+          @EdmActionParameter(name = "changedPostalCode") final String changedPostalCode,
+          @EdmActionParameter(name = "changedCityName") final String changedCityName,
+          @EdmActionParameter(name = "changedStreetName") final String changedStreetName,
+          @EdmActionParameter(name = "changedHouseNumber") final String changedHouseNumber,
+          @Inject final EntityManager em) {
+
+    // Just a very simple example of a possible application-logic triggered by odata-action calls
+    if (Integer.parseInt(changedPostalCode) > 2000) {
+      this.seteTag(2000L);
     }
-    // we cannot simply call'em.merge(modifiedBP);', because entity manage can handle only concrete sub classes
-    this.setCustomNum1(modifiedBP.customNum1);
-    this.getCommunicationData().setMobilePhoneNumber(modifiedBP.getCommunicationData().getMobilePhoneNumber());
-    this.getAddress().setCountry(modifiedBP.getAddress().getCountry());
+
+    PostalAddressData addressData = this.getAddress();
+    if (Objects.nonNull(changedRegion)) {
+      addressData.setRegion(changedRegion);
+    }
+    if (Objects.nonNull(changedPostalCode)) {
+      addressData.setPostalCode(changedPostalCode);
+    }
+    if (Objects.nonNull(changedCityName)) {
+      addressData.setCityName(changedCityName);
+    }
+    if (Objects.nonNull(changedStreetName)) {
+      addressData.setStreetName(changedStreetName);
+    }
+    if (Objects.nonNull(changedHouseNumber)) {
+      addressData.setHouseNumber(changedHouseNumber);
+    }
     return this;
   }
 }

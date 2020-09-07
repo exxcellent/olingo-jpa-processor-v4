@@ -1,0 +1,85 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:f="sap.ui.layout.form"
+	xmlns:core="sap.ui.core">
+	<VBox class="sapUiSmallMargin">
+		<f:Form id="FormDisplay354wideDual"
+			editable="false">
+			<f:title>
+				<core:Title text="Business Partner" />
+			</f:title>
+			<f:layout>
+				<f:ResponsiveGridLayout
+					labelSpanXL="4"
+					labelSpanL="3"
+					labelSpanM="4"
+					labelSpanS="12"
+					adjustLabelSpan="false"
+					emptySpanXL="0"
+					emptySpanL="4"
+					emptySpanM="0"
+					emptySpanS="0"
+					columnsXL="2"
+					columnsL="1"
+					columnsM="1"
+					singleContainerFullSize="false" />
+			</f:layout>
+			<f:formContainers>
+				<f:FormContainer title="General Data">
+					<f:formElements>
+						<f:FormElement label="ID">
+							<f:fields>
+								<Text text="{demoModel>ID}"  />
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="ETag">
+							<f:fields>
+								<Text text="{demoModel>ETag}" />
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="Type">
+							<f:fields>
+								<Text text="{demoModel>Type}" />
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="Country">
+							<f:fields>
+								<Text text="{demoModel>Country}"/>
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="Region">
+							<f:fields>
+								<Text text="{demoModel>Address/Region}"/>
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="Postal Code">
+							<f:fields>
+								<Text text="{demoModel>Address/PostalCode}"/>
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="City name">
+							<f:fields>
+								<Text text="{demoModel>Address/CityName}"/>
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="Street name">
+							<f:fields>
+								<Text text="{demoModel>Address/StreetName}"/>
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="House number">
+							<f:fields>
+								<Text text="{demoModel>Address/HouseNumber}"/>
+							</f:fields>
+						</f:FormElement>
+						<f:FormElement label="CreationDateTime">
+							<f:fields>
+								<Text text="{demoModel>CreationDateTime}"/>
+							</f:fields>
+						</f:FormElement>
+					</f:formElements>
+				</f:FormContainer>
+			</f:formContainers>
+		</f:Form>
+	</VBox>
+</core:FragmentDefinition>
