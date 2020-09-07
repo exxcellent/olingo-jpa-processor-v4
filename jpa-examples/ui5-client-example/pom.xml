@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>ui5-client-example</artifactId>
-	<packaging>war</packaging>
+	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter UI5 Client Example</name>
 

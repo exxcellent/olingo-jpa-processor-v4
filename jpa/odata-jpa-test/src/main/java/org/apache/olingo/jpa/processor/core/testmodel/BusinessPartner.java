@@ -233,23 +233,23 @@ public abstract class BusinessPartner {
    */
   @EdmAction
   public BusinessPartner modifyBusinessPartner(
-          @EdmActionParameter(name = "changedRegion") final String changedRegion,
-          @EdmActionParameter(name = "changedPostalCode") final String changedPostalCode,
-          @EdmActionParameter(name = "changedCityName") final String changedCityName,
-          @EdmActionParameter(name = "changedStreetName") final String changedStreetName,
-          @EdmActionParameter(name = "changedHouseNumber") final String changedHouseNumber,
-          @Inject final EntityManager em) {
+      @EdmActionParameter(name = "changedRegion") final String changedRegion,
+      @EdmActionParameter(name = "changedPostalCode") final String changedPostalCode,
+      @EdmActionParameter(name = "changedCityName") final String changedCityName,
+      @EdmActionParameter(name = "changedStreetName") final String changedStreetName,
+      @EdmActionParameter(name = "changedHouseNumber") final String changedHouseNumber,
+      @Inject final EntityManager em) {
 
     // Just a very simple example of a possible application-logic triggered by odata-action calls
-    if (Integer.parseInt(changedPostalCode) > 2000) {
-      this.seteTag(2000L);
-    }
 
-    PostalAddressData addressData = this.getAddress();
+    final PostalAddressData addressData = this.getAddress();
     if (Objects.nonNull(changedRegion)) {
       addressData.setRegion(changedRegion);
     }
     if (Objects.nonNull(changedPostalCode)) {
+      if (Integer.parseInt(changedPostalCode) > 2000) {
+        this.seteTag(2000L);
+      }
       addressData.setPostalCode(changedPostalCode);
     }
     if (Objects.nonNull(changedCityName)) {
