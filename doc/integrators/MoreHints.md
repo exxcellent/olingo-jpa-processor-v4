@@ -62,3 +62,10 @@ The configuration allows:
 * Define data format for columns/cells
 * ...
 For more details see also into the test classes of that add-on.
+
+# <a id="Weaving"></a>4. EclipseLink, Hibernate and weaving (byte code enhancement)...
+Short answer: **Weaving is not necessary!**
+
+Long story: Aside from change tracking or fetch groups weaving is normally used to manage loading of relationships (via lazy or eager settings). But the OData standard does delegate the control over handling of relationships to the client using the $expand capability. On the other side is weaving implemented as byte code enhancement making the entity model less transparent and the access per reflection more complex. The access to fields (attributes/properties) is replaced by synthetic get/set methods having concepts like 'value holder'. More problematic is the fact, that annotations for fields are not longer accessible, because a method (for read) without these annotations is used for property access. As a effect the meta model of the OData-JPA-Adapter may become incomplete resulting in a unexpected behaviour.  
+Currently the OData-JPA-Adapter works with a byte code enhanced JPA entity model (for EclipseLink), but there is a risk for uncovered scenarios. So only for an already designed legacy model where the OData interface is only an additional functionality leave weaving still alive.  
+With Hibernate byte code enhancement produce problems with every configuration (cannot enhance final fields at build time or invalid queries at runtime), so byte code enhancement for Hibernate seems to be complete broken.

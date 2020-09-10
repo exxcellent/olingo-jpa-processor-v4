@@ -27,7 +27,7 @@
 		<javax.servlet.version>4.0.1</javax.servlet.version>
 		<eclipselink.version>2.7.5</eclipselink.version>
 		<openjpa.version>3.1.0</openjpa.version>
-		<hibernate.version>5.4.13.Final</hibernate.version>
+		<hibernate.version>5.4.21.Final</hibernate.version>
 	</properties>
 
 	<modules>
@@ -467,6 +467,16 @@
 				  <artifactId>maven-plugin-plugin</artifactId>
 				  <version>3.6.0</version>
 				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>build-helper-maven-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+		        <plugin>
+		            <groupId>org.hibernate.orm.tooling</groupId>
+		            <artifactId>hibernate-enhance-maven-plugin</artifactId>
+				    <version>${hibernate.version}</version>
+				</plugin>				
 			</plugins>
 		</pluginManagement>
 

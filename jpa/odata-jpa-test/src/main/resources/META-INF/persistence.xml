@@ -39,7 +39,7 @@
 			<!-- <property name="eclipselink.logging.level" value="FINER"/> -->
 			<property name="eclipselink.logging.parameters" value="true" />
 			<property name="eclipselink.logging.timestamp" value="true" />
-			<property name="eclipselink.weaving" value="false" />
+			<property name="eclipselink.weaving" value="static" />
 			<property name="eclipselink.persistence-context.flush-mode"	value="commit" />
 			<!-- Hibernate properties -->
 			<property name="hibernate.show_sql" value="true" />
@@ -56,13 +56,11 @@
 	<persistence-unit name="openjpa" transaction-type="RESOURCE_LOCAL"> 
 
         <!-- Attribute converters -->
-        <!--
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter</class>
         <class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter</class>
-		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter</class>
-		-->
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter</class>		
 
         <!-- Persistent entities -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.AbstractEntity</class>

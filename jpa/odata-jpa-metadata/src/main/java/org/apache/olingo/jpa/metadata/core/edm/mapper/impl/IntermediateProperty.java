@@ -50,7 +50,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  * @author Oliver Grande
  *
  */
-class IntermediateProperty extends IntermediateModelElement implements IntermediatePropertyAccess, JPAMemberAttribute {
+class IntermediateProperty extends AbstractProperty implements IntermediatePropertyAccess, JPAMemberAttribute {
 
   private final static Logger LOG = Logger.getLogger(IntermediateProperty.class.getName());
   private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
@@ -112,10 +112,8 @@ class IntermediateProperty extends IntermediateModelElement implements Intermedi
 
   @Override
   public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-    if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
-      return ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(annotationClass);
-    }
-    return null;
+    final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(jpaAttribute);
+    return annotatedElement == null ? null : annotatedElement.getAnnotation(annotationClass);
   }
 
   @Override

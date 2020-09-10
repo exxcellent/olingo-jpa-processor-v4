@@ -35,7 +35,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getStructuredType(jpaAttribute.getJavaType()),
         jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
   }
 
   @Test
@@ -43,7 +43,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertEquals("Wrong name", "Roles", property.getEdmItem().getName());
   }
@@ -53,7 +53,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertEquals("Wrong name", PUNIT_NAME + ".BusinessPartnerRole", property.getEdmItem().getType());
   }
@@ -64,7 +64,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getStructuredType(jpaAttribute.getJavaType()),
         jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertFalse(property.ignore());
   }
 
@@ -76,7 +76,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getStructuredType(jpaAttribute.getJavaType()),
         jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertTrue(property.ignore());
   }
 
@@ -85,7 +85,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertTrue(property.getEdmItem().isNullable().booleanValue());
   }
@@ -95,7 +95,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertEquals(CsdlOnDeleteAction.Cascade, property.getEdmItem().getOnDelete().getAction());
   }
@@ -107,7 +107,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartnerRole.class),
         jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertFalse(property.getEdmItem().isNullable().booleanValue());
   }
@@ -117,7 +117,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertTrue(property.getEdmItem().isNullable().booleanValue());
   }
@@ -129,7 +129,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartnerRole.class),
         jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     assertFalse(property.getEdmItem().isCollection());
   }
@@ -141,7 +141,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals(1, property.getSourceJoinColumns().size());
   }
 
@@ -152,7 +152,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "parent");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals("Children", property.getEdmItem().getPartner());
   }
 
@@ -163,7 +163,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "children");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals("Parent", property.getEdmItem().getPartner());
   }
 
@@ -174,7 +174,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals("BusinessPartner", property.getEdmItem().getPartner());
   }
 
@@ -185,7 +185,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "businessPartner");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals("Roles", property.getEdmItem().getPartner());
   }
 
@@ -196,7 +196,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     final IntermediateJoinColumn act = property.getSourceJoinColumns().get(0);
     assertEquals("\"ID\"", act.getSourceEntityColumnName());
@@ -210,7 +210,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "businessPartner");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
 
     final IntermediateJoinColumn act = property.getSourceJoinColumns().get(0);
     assertEquals("\"BusinessPartnerID\"", act.getSourceEntityColumnName());
@@ -224,7 +224,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(et, "businessPartner");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(et.getJavaType()), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals(1, property.getSourceJoinColumns().size());
   }
 
@@ -245,7 +245,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     assertEquals(1, property.getProperty().getReferentialConstraints().size());
   }
 
@@ -254,7 +254,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getDeclaredAttribute(helper.getEntityType("BusinessPartner"), "roles");
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartner.class), jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     final List<CsdlReferentialConstraint> constraints = property.getProperty().getReferentialConstraints();
 
     for (final CsdlReferentialConstraint c : constraints) {
@@ -270,7 +270,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
     final IntermediateNavigationProperty property = new IntermediateNavigationProperty(new JPAEdmNameBuilder(PUNIT_NAME),
         (IntermediateStructuredType<?>) helper.getServiceDocument().getEntityType(BusinessPartnerRole.class),
         jpaAttribute,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     final List<CsdlReferentialConstraint> constraints = property.getProperty().getReferentialConstraints();
 
     for (final CsdlReferentialConstraint c : constraints) {
