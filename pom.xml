@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.44.1</version>
+	<version>0.45.0</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>
@@ -22,11 +22,11 @@
 		<logback.version>1.2.3</logback.version>
 		<olingo.version>4.7.1</olingo.version>
 		<jetty.version>9.4.24.v20191120</jetty.version>
-        <jersey.version>2.30.1</jersey.version>
-		<jackson.version>2.10.1</jackson.version>
+        <jersey.version>2.31</jersey.version>
+		<jackson.version>2.11.2</jackson.version>
 		<javax.servlet.version>4.0.1</javax.servlet.version>
-		<eclipselink.version>2.7.5</eclipselink.version>
-		<openjpa.version>3.1.0</openjpa.version>
+		<eclipselink.version>2.7.7</eclipselink.version>
+		<openjpa.version>3.1.2</openjpa.version>
 		<hibernate.version>5.4.21.Final</hibernate.version>
 	</properties>
 
@@ -271,7 +271,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.22.1</version>
+					<version>2.22.2</version>
 					<configuration>
                         <argLine>${surefireArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
@@ -289,7 +289,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>2.22.1</version>
+					<version>2.22.2</version>
 					<configuration>
                         <argLine>${failsafeArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
