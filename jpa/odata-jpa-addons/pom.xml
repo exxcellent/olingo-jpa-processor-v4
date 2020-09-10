@@ -20,8 +20,6 @@
 	</modules>
 
 	<properties>
-		<!-- disable in all module, but test model -->
-		<disable.enhancer>true</disable.enhancer>
 	</properties>
 	
 	<dependencies>
