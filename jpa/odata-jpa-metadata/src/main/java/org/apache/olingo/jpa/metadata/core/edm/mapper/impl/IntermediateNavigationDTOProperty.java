@@ -116,6 +116,12 @@ class IntermediateNavigationDTOProperty extends AbstractProperty implements JPAA
   }
 
   @Override
+  public JPAAssociationAttribute getBidirectionalOppositeAssociation() {
+    // not supported
+    return null;
+  }
+
+  @Override
   public boolean isKey() {
     return field.getAnnotation(javax.persistence.Id.class) != null;
   }

@@ -69,6 +69,7 @@ JPAAssociationAttribute {
   private final JPAAttributeAccessor accessor;
   private JoinConfiguration joinConfiguration = null;
   private InitializationState initStateEdm = InitializationState.NotInitialized;
+  private JPAAssociationAttribute bidirectionalOppositeAssociation = null;
 
   IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType<?> parent,
       final Attribute<?, ?> jpaAttribute,
@@ -165,6 +166,11 @@ JPAAssociationAttribute {
   public boolean isSimple() {
     // navigation properties are targeting always a non primitive object
     return false;
+  }
+
+  @Override
+  public JPAAssociationAttribute getBidirectionalOppositeAssociation() {
+    return bidirectionalOppositeAssociation;
   }
 
   @Override
@@ -266,14 +272,20 @@ JPAAssociationAttribute {
         // "mappedBy" at the Parent.
         String partnerName = null;
         if (isNonEmptyString(mappedBy)) {
-          final JPAAssociationAttribute association = targetType.getAssociationByAttributeName(mappedBy);
-          if (association != null) {
-            partnerName = association.getExternalName();
+          bidirectionalOppositeAssociation = targetType.getAssociationByAttributeName(mappedBy);
+          if (bidirectionalOppositeAssociation != null) {
+            partnerName = bidirectionalOppositeAssociation.getExternalName();
           }
         } else {
           // no 'mappedBy'... try alternative ways
-          partnerName = targetType.determineCorrespondingMappedByImplementingAssociationName(sourceType,
-              getInternalName());
+          // this happens if we are on the owning side of an relationship (where the 'mappedBy' of referencing side
+          // points to us) or if this is an unidirectional relationship (no opposite will be found)
+          final Attribute<?, ?> oppositeAttribute = targetType.findCorrespondingMappedByImplementingAttribute(sourceType
+              .getTypeClass(), getInternalName());
+          if (oppositeAttribute != null) {
+            partnerName = targetType.getNameBuilder().buildNaviPropertyName(oppositeAttribute);
+            bidirectionalOppositeAssociation = targetType.getAssociationByAttributeName(oppositeAttribute.getName());
+          }
         }
         if (partnerName != null) {
           edmNaviProperty.setPartner(partnerName);
@@ -298,6 +310,7 @@ JPAAssociationAttribute {
       initStateEdm = InitializationState.Initialized;
     }
   }
+
 
   private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> sourceJpaAttribute,
       final String mappedBy, final IntermediateStructuredType<?> sourceType,

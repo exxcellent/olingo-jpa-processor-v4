@@ -27,6 +27,13 @@ public abstract class AbstractEntity {
     return ID;
   }
 
+  /**
+   * For special purposes only
+   */
+  protected void setID(final Integer iD) {
+    ID = iD;
+  }
+
   @EdmAction(name = "actionInMappedSuperclass")
   public void actionInMappedSuperclass() {
     // do nothing

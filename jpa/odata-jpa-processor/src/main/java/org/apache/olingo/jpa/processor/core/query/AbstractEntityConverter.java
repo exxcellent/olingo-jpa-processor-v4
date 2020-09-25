@@ -19,8 +19,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -92,11 +92,13 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
         return new URI(uriBuffer.toString());
       }
     } catch (final URISyntaxException e) {
-      throw new ODataRuntimeException("Unable to create id for entity: " + jpaEntityType.getInternalName(), e);
+      throw new ODataRuntimeException("Unable to determine external id for entity: " + jpaEntityType.getInternalName(),
+          e);
     } catch (final IllegalArgumentException e) {
       return null;
     } catch (final SerializerException e) {
-      throw new ODataRuntimeException("Unable to create id for entity: " + jpaEntityType.getInternalName(), e);
+      throw new ODataRuntimeException("Unable to determine external id for entity: " + jpaEntityType.getInternalName(),
+          e);
     }
   }
 

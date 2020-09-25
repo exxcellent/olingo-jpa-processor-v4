@@ -33,8 +33,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribut
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -405,13 +405,6 @@ implements JPAStructuredType {
     return result;
   }
 
-  String determineCorrespondingMappedByImplementingAssociationName(final JPAStructuredType sourceType,
-      final String sourceRelationshipName) {
-    final Attribute<?, ?> jpaAttribute = findCorrespondingMappedByImplementingAttribute(sourceType.getTypeClass(),
-        sourceRelationshipName);
-    return jpaAttribute == null ? null : getNameBuilder().buildNaviPropertyName(jpaAttribute);
-  }
-
   /**
    *
    * @param relationshipAttributeName
@@ -430,12 +423,13 @@ implements JPAStructuredType {
 
   /**
    *
-   * Find a attribute having the requested relationship target/entity type and
+   * Find a attribute having the relationship annotation targeting the requested relationship target/entity type and
    * having a 'mappedBy' annotation value of given name.
    *
-   * @return The attribute defining the mapping for the given 'mappedBy' value.
+   * @return The attribute defining the mapping for the given 'mappedBy' value on the relationship owning side (pointed
+   * by 'mappedBy' on referencing side) or <code>null</code>.
    */
-  private Attribute<?, ?> findCorrespondingMappedByImplementingAttribute(final Class<?> relationshipEntityType,
+  Attribute<?, ?> findCorrespondingMappedByImplementingAttribute(final Class<?> relationshipTargetType,
       final String mappedByIdentifier) {
     Class<?> targetClass = null;
 
@@ -448,7 +442,7 @@ implements JPAStructuredType {
         } else {
           targetClass = jpaAttribute.getJavaType();
         }
-        if (!targetClass.equals(relationshipEntityType)) {
+        if (!targetClass.equals(relationshipTargetType)) {
           continue;
         }
         final OneToMany o2m = ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(OneToMany.class);

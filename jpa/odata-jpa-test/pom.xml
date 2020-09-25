@@ -164,7 +164,7 @@
 				        <artifactId>openjpa-maven-plugin</artifactId>
 				        <version>${openjpa.version}</version>
 				        <configuration>
-				            <persistenceUnitName>openjpa</persistenceUnitName>
+				            <persistenceUnitName>org.apache.olingo.jpa</persistenceUnitName>
 				            <includes>**/testmodel/**/*.class</includes>
 				            <excludes>**/testmodel/dto/**, **/testmodel/converter/**, **/testmodel/dataaccessconditioner/**</excludes>
 				            <addDefaultConstructor>true</addDefaultConstructor>               
