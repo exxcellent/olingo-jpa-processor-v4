@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa.examples</groupId>
 		<artifactId>odata-jpa-examples</artifactId>
-		<version>0.44.0</version>
+		<version>0.46.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -168,7 +168,6 @@
 				    </execution>
 				</executions>
 			</plugin>
-            
         </plugins>
         
 	</build>

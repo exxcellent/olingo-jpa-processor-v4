@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.44.0</version>
+		<version>0.46.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -20,8 +20,6 @@
 	</modules>
 
 	<properties>
-		<!-- disable in all module, but test model -->
-		<disable.enhancer>true</disable.enhancer>
 	</properties>
 	
 	<dependencies>

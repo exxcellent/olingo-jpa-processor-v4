@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.action;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
@@ -687,6 +688,62 @@ public class TestJPAActions extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
+  @Test
+  public void testActionReturningComplexEntityNetworkWithMetadata() throws IOException, ODataException,
+  NoSuchMethodException {
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createEntities");
+
+    final ServerCallSimulator simulatorFullMetadata = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder, null,
+        HttpMethod.POST);
+    simulatorFullMetadata.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
+    simulatorFullMetadata.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode sourceFull = simulatorFullMetadata.getJsonObjectValue();
+    assertNotNull(sourceFull);
+    // 'targets' must be filled, so no 'reference' must be present
+    assertTrue(sourceFull.get("targets@odata.navigationLink").isNull());
+    final ArrayNode targetsFull = sourceFull.withArray("targets");
+    assertEquals(1, targetsFull.size());
+    final ObjectNode target = (ObjectNode) targetsFull.get(0);
+    assertNotNull(target);
+    // 'source' backlink must not be filled, but the 'reference' must be present
+    assertNotNull(target.get("SOURCE@odata.navigationLink"));
+    assertTrue(target.get("SOURCE").isNull());
+  }
+
+  @Test
+  public void testActionHandlingComplexEntityNetworkWithoutMetadata() throws IOException, ODataException,
+  NoSuchMethodException {
+    final URIBuilder uriBuilderCreate = newUriBuilder().appendActionCallSegment("createEntities");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderCreate, null,
+        HttpMethod.POST);
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode sourceCreated = simulatorCreate.getJsonObjectValue();
+    assertNotNull(sourceCreated);
+    final ArrayNode targets = sourceCreated.withArray("targets");
+    assertEquals(1, targets.size());
+    final ObjectNode target = (ObjectNode) targets.get(0);
+    assertNotNull(target);
+    // 'source' backlink must not be filled
+    assertTrue(target.get("SOURCE").isNull());
+
+    final String sourceNameBefore = "client side modified source name";
+    sourceCreated.replace("Name", sourceCreated.textNode(sourceNameBefore));
+    final String saveBody = "{\"source\": " + sourceCreated.toString() + "}";
+    final URIBuilder uriBuilderSave = newUriBuilder().appendActionCallSegment("saveEntities");
+    final ServerCallSimulator simulatorSave = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderSave, saveBody,
+        HttpMethod.POST);
+    simulatorSave.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorSave.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode sourceSaved = simulatorSave.getJsonObjectValue();
+    assertNotNull(sourceSaved);
+    // source name must be modified on server side
+    assertNotEquals(sourceNameBefore, sourceSaved.get("Name").asText());
+  }
+  
   @Test
   public void testBoundActionModifyingBusinessPartner() throws IOException, ODataException {
     final URIBuilder uriBuilderResource = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(

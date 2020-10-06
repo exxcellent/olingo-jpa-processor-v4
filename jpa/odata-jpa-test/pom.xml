@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
-		<version>0.44.0</version>
+		<version>0.46.0</version>
 	</parent>
 
 	<artifactId>odata-jpa-test</artifactId>
@@ -15,7 +15,6 @@
 	<url>http://maven.apache.org</url>
 	
 	<properties>
-		<disable.enhancer>false</disable.enhancer>
 		<!-- Do not coverage the test model -->
 		<jacoco.skip>true</jacoco.skip>
 	</properties>
@@ -74,6 +73,125 @@
 		</dependency>			
 	</dependencies>
 	
+	<profiles>
+		<profile>
+			<id>use-eclipselink</id>
+			<activation>
+				<property><name>use-eclipselink</name></property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+					    <groupId>de.empulse.eclipselink</groupId>
+					    <artifactId>staticweave-maven-plugin</artifactId>
+					    <version>1.0.0</version>
+					    <executions>
+					        <execution>
+								<!-- modern lifecycle-mapping for M2E ...but not working in reality? -->				        	
+					        	<?m2e execute onConfiguration,onIncremental?>
+					        	
+					            <phase>process-classes</phase>
+					            <goals>
+					                <goal>weave</goal>
+					            </goals>
+					            <configuration>					            
+					                <logLevel>INFO</logLevel>					                
+					            </configuration>
+					        </execution>
+					    </executions>
+					    <dependencies>
+					        <dependency>
+					            <groupId>org.eclipse.persistence</groupId>
+					            <artifactId>org.eclipse.persistence.jpa</artifactId>
+								<version>${eclipselink.version}</version>
+					        </dependency>
+					    </dependencies>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>use-hibernate</id>
+			<activation>
+				<property><name>use-hibernate</name></property>
+			</activation>
+			<build>
+				<plugins>
+			        <plugin>
+			            <groupId>org.hibernate.orm.tooling</groupId>
+			            <artifactId>hibernate-enhance-maven-plugin</artifactId>
+			            <executions>
+			                <execution>
+			                    <configuration>
+			                        <failOnError>true</failOnError>
+			                        <!-- any value set to TRUE will produce errors at build time or runtime -->
+			                        <enableLazyInitialization>false</enableLazyInitialization>
+			                        <enableDirtyTracking>false</enableDirtyTracking>
+			                        <enableAssociationManagement>false</enableAssociationManagement>
+			                        <enableExtendedEnhancement>false</enableExtendedEnhancement>
+			                    </configuration>
+			                    <goals>
+			                        <goal>enhance</goal>
+			                    </goals>
+			                </execution>
+			            </executions>
+			        </plugin>		
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>use-openJPA</id>
+			<activation>
+				<property><name>use-openjpa</name></property>
+			</activation>
+			<build>
+				<plugins>
+					<!-- plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<useSystemClassLoader>false</useSystemClassLoader>
+							<systemProperties>
+								<property>
+									<name>persistence-unit</name>
+									<value>openjpa</value>
+								</property>
+							</systemProperties>
+						</configuration>
+					</plugin-->
+				    <plugin>
+				        <groupId>org.apache.openjpa</groupId>
+				        <artifactId>openjpa-maven-plugin</artifactId>
+				        <version>${openjpa.version}</version>
+				        <configuration>
+				            <persistenceUnitName>org.apache.olingo.jpa</persistenceUnitName>
+				            <includes>**/testmodel/**/*.class</includes>
+				            <excludes>**/testmodel/dto/**, **/testmodel/converter/**, **/testmodel/dataaccessconditioner/**</excludes>
+				            <addDefaultConstructor>true</addDefaultConstructor>               
+				            <enforcePropertyRestrictions>false</enforcePropertyRestrictions>
+				        </configuration>
+				        <executions>
+				            <execution>
+				                <id>enhancer</id>
+				                <phase>process-classes</phase>
+				                <goals>
+				                    <goal>enhance</goal>
+				                </goals>
+				            </execution>
+				        </executions>
+				        <dependencies>
+				            <dependency>
+				                <groupId>org.apache.openjpa</groupId>
+				                <artifactId>openjpa</artifactId>
+						        <version>${openjpa.version}</version>
+				            </dependency>
+				        </dependencies>
+				    </plugin>				
+				</plugins>
+			</build>
+		</profile>		
+	</profiles>
+	
 	<build>
         <plugins>
             <plugin>
@@ -87,39 +205,6 @@
                     </execution>
                 </executions>   
             </plugin>
-        </plugins>
-        
-		<pluginManagement>
-		    <plugins>
-		        <!--
-		            This plugin's configuration is used to store Eclipse m2e settings only.
-		            It has no influence on the Maven build itself.
-		        -->
-		        <!-- plugin>
-		            <groupId>org.eclipse.m2e</groupId>
-		            <artifactId>lifecycle-mapping</artifactId>
-		            <version>1.0.0</version>
-		            <configuration>
-		                <lifecycleMappingMetadata>
-		                    <pluginExecutions>
-		                        <pluginExecution>
-		                            <pluginExecutionFilter>
-		                                <groupId>de.empulse.eclipselink</groupId>
-		                                <artifactId>staticweave-maven-plugin</artifactId>
-		                                <versionRange>[1.0,)</versionRange>
-		                                <goals>
-		                                    <goal>weave</goal>
-		                                </goals>
-		                            </pluginExecutionFilter>
-		                            <action>
-		                                <execute/>
-		                            </action>
-		                        </pluginExecution>
-		                    </pluginExecutions>
-		                </lifecycleMappingMetadata>
-		            </configuration>
-		        </plugin-->
-		    </plugins>
-		</pluginManagement>        
+        </plugins>        
 	</build>
 </project>

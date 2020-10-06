@@ -25,7 +25,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediatePropertyDTOField extends IntermediateModelElement implements JPAMemberAttribute {
+class IntermediatePropertyDTOField extends AbstractProperty implements JPAMemberAttribute {
 
   private final IntermediateServiceDocument serviceDocument;
   private final Field field;

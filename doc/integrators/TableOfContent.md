@@ -10,15 +10,13 @@
 1. Detailed informations  
     * More [hints](MoreHints.md)  
     * Use [Excel export](MoreHints.md#ExcelExport)  
+    * [EclipseLink, Hibernate](MoreHints.md#Weaving) and weaving (byte code enhancement)  
     * [Migration guide](MigrationGuide.md)  
 
 ---
 # Known issues
 **Integration with JPA providers**  
-Recommend is Eclipselink, because no issues are known!
-
-_EclipseLink_
-* Weaving is currently not supported the OData-JPA bridge
+Recommend is Eclipselink, because no major issues are known!
 
 _Hibernate_
 * Hibernate has a broken meta model, so a few workarounds are required:
@@ -27,3 +25,4 @@ _Hibernate_
 * It cannot compare a java.lang.Short as java.lang.Number, so OData filter conditions like 'population lt 6000' will not work
 * Hibernate build a default join column name (as in @JoinColumn#name() described) always with quotes as part of the column name
 * The handling for columns declared without quoting and the default join column name derivation is not working (adaption of SQL table model by developer required as workaround)
+* Weaving (byte code enhancement) seems to work only in very specific scenarios and must assumed as not usable.

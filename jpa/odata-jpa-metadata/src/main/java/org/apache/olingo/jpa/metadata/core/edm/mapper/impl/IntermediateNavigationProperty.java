@@ -49,8 +49,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavi
  * @author Oliver Grande
  *
  */
-class IntermediateNavigationProperty extends IntermediateModelElement
-implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
+class IntermediateNavigationProperty extends AbstractProperty implements IntermediateNavigationPropertyAccess,
+JPAAssociationAttribute {
 
   private static class JoinConfiguration {
     private final List<IntermediateJoinColumn> sourceJoinColumns = new LinkedList<IntermediateJoinColumn>();
@@ -69,6 +69,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
   private final JPAAttributeAccessor accessor;
   private JoinConfiguration joinConfiguration = null;
   private InitializationState initStateEdm = InitializationState.NotInitialized;
+  private JPAAssociationAttribute bidirectionalOppositeAssociation = null;
 
   IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType<?> parent,
       final Attribute<?, ?> jpaAttribute,
@@ -80,19 +81,25 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
 
     this.setExternalName(nameBuilder.buildNaviPropertyName(jpaAttribute));
 
-    final AccessibleObject attribute = (AccessibleObject) jpaAttribute.getJavaMember();
-    if (Field.class.isInstance(attribute)) {
-      accessor = new FieldAttributeAccessor((Field) attribute);
-    } else if (Method.class.isInstance(attribute)) {
-      throw new UnsupportedOperationException(
-          "The attribute access to " + parent.getInternalName() + "#" + jpaAttribute.getName()
-          + " is covered by an method; this happens for example in a scenarion with EclipseLink weaving... Sorry that is not supported, you have to disable weaving!");
+    final AccessibleObject member = (AccessibleObject) jpaAttribute.getJavaMember();
+    if (Field.class.isInstance(member)) {
+      accessor = new FieldAttributeAccessor((Field) member);
+    } else if (Method.class.isInstance(member)) {
+      if (EclipseLinkWeavingMethodAttributeAccessor.isEclipseLinkValueHolderWeavingMethod((Method) member)) {
+        accessor = new EclipseLinkWeavingMethodAttributeAccessor(jpaAttribute);
+      } else {
+        //        accessor = new MethodAttributeAccessor((Method) member, null);
+        throw new UnsupportedOperationException(
+            "The attribute access to " + parent.getInternalName() + "#" + jpaAttribute.getName()
+            + " is covered by an method; Sorry that is not supported!");
+      }
     } else {
-      throw new UnsupportedOperationException("Unsupported property type: "+attribute);
+      throw new UnsupportedOperationException("Unsupported kind of member: " + member);
     }
 
     // do not wait with setting this important property
-    setIgnore(attribute.isAnnotationPresent(EdmIgnore.class));
+    final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(jpaAttribute);
+    setIgnore(annotatedElement.isAnnotationPresent(EdmIgnore.class));
   }
 
   @Override
@@ -101,10 +108,8 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
   }
 
   public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-    if (jpaAttribute.getJavaMember() instanceof AnnotatedElement) {
-      return ((AnnotatedElement) jpaAttribute.getJavaMember()).getAnnotation(annotationClass);
-    }
-    return null;
+    final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(jpaAttribute);
+    return annotatedElement == null ? null : annotatedElement.getAnnotation(annotationClass);
   }
 
   @Override
@@ -164,6 +169,11 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
   }
 
   @Override
+  public JPAAssociationAttribute getBidirectionalOppositeAssociation() {
+    return bidirectionalOppositeAssociation;
+  }
+
+  @Override
   public boolean isKey() {
     if (jpaAttribute instanceof SingularAttribute<?, ?>) {
       return ((SingularAttribute<?, ?>) jpaAttribute).isId();
@@ -213,31 +223,36 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
       }
       edmNaviProperty.setCollection(jpaAttribute.isCollection());
 
-      final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
+      final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(jpaAttribute);
 
       switch (jpaAttribute.getPersistentAttributeType()) {
       case ONE_TO_MANY:
         final OneToMany o2m = annotatedElement.getAnnotation(OneToMany.class);
         if (o2m != null) {
           mappedBy = o2m.mappedBy();
-          edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(o2m.cascade()));
+          edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : determineJPAOnDelete(o2m.cascade()));
         }
         break;
       case ONE_TO_ONE:
+        // ..._TO_ONE is always a SingularAttribute
+        final boolean isO2OOptional = ((SingularAttribute<?, ?>) jpaAttribute).isOptional();
+        edmNaviProperty.setNullable(Boolean.valueOf(isO2OOptional));
         final OneToOne oto = annotatedElement.getAnnotation(OneToOne.class);
-        edmNaviProperty.setNullable(Boolean.valueOf(oto.optional()));
         mappedBy = oto.mappedBy();
-        edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(oto.cascade()));
+        edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : determineJPAOnDelete(oto.cascade()));
         break;
       case MANY_TO_ONE:
+        // ..._TO_ONE is always a SingularAttribute
+        final boolean isM2MOptional = ((SingularAttribute<?, ?>) jpaAttribute).isOptional();
+        edmNaviProperty.setNullable(Boolean.valueOf(isM2MOptional));
         final ManyToOne mto = annotatedElement.getAnnotation(ManyToOne.class);
-        edmNaviProperty.setNullable(Boolean.valueOf(mto.optional()));
-        edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(mto.cascade()));
+        edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : (mto != null? determineJPAOnDelete(mto.cascade()) : null));
         break;
       case MANY_TO_MANY:
         final ManyToMany m2m = annotatedElement.getAnnotation(ManyToMany.class);
-        edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : setJPAOnDelete(m2m.cascade()));
-        mappedBy = m2m.mappedBy();
+        edmNaviProperty.setOnDelete(edmOnDelete != null ? edmOnDelete : (m2m != null ? determineJPAOnDelete(m2m
+            .cascade()) : null));
+        mappedBy = m2m != null ? m2m.mappedBy() : null;
         break;
       default:
         break;
@@ -257,14 +272,20 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
         // "mappedBy" at the Parent.
         String partnerName = null;
         if (isNonEmptyString(mappedBy)) {
-          final JPAAssociationAttribute association = targetType.getAssociationByAttributeName(mappedBy);
-          if (association != null) {
-            partnerName = association.getExternalName();
+          bidirectionalOppositeAssociation = targetType.getAssociationByAttributeName(mappedBy);
+          if (bidirectionalOppositeAssociation != null) {
+            partnerName = bidirectionalOppositeAssociation.getExternalName();
           }
         } else {
           // no 'mappedBy'... try alternative ways
-          partnerName = targetType.determineCorrespondingMappedByImplementingAssociationName(sourceType,
-              getInternalName());
+          // this happens if we are on the owning side of an relationship (where the 'mappedBy' of referencing side
+          // points to us) or if this is an unidirectional relationship (no opposite will be found)
+          final Attribute<?, ?> oppositeAttribute = targetType.findCorrespondingMappedByImplementingAttribute(sourceType
+              .getTypeClass(), getInternalName());
+          if (oppositeAttribute != null) {
+            partnerName = targetType.getNameBuilder().buildNaviPropertyName(oppositeAttribute);
+            bidirectionalOppositeAssociation = targetType.getAssociationByAttributeName(oppositeAttribute.getName());
+          }
         }
         if (partnerName != null) {
           edmNaviProperty.setPartner(partnerName);
@@ -290,12 +311,13 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
     }
   }
 
+
   private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> sourceJpaAttribute,
       final String mappedBy, final IntermediateStructuredType<?> sourceType,
       final IntermediateStructuredType<?> targetType)
           throws ODataJPAModelException {
     final String relationshipLabel = sourceType.getInternalName().concat("#").concat(sourceJpaAttribute.getName());
-    final AnnotatedElement annotatedElement = (AnnotatedElement) sourceJpaAttribute.getJavaMember();
+    final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(sourceJpaAttribute);
     final JoinConfiguration joinConfiguration = new JoinConfiguration();
     final JoinTable annoJoinTable = annotatedElement.getAnnotation(JoinTable.class);
     final JoinColumns annoJoinColumns = annotatedElement.getAnnotation(JoinColumns.class);
@@ -459,7 +481,7 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
   }
 
   private void assignReferentialConstraints() throws ODataJPAModelException {
-    final AnnotatedElement annotatedElement = (AnnotatedElement) jpaAttribute.getJavaMember();
+    final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(jpaAttribute);
 
     final AssociationOverride overwrite = annotatedElement.getAnnotation(AssociationOverride.class);
     if (overwrite != null) {
@@ -627,7 +649,10 @@ implements IntermediateNavigationPropertyAccess, JPAAssociationAttribute {
     return joinColumns;
   }
 
-  private CsdlOnDelete setJPAOnDelete(final CascadeType[] cascades) {
+  /**
+   * @see http://docs.oasis-open.org/odata/odata/v4.0/errata03/os/complete/part3-csdl/odata-v4.0-errata03-os-part3-csdl-complete.html#_Toc453752546
+   */
+  private CsdlOnDelete determineJPAOnDelete(final CascadeType[] cascades) {
     for (final CascadeType cascade : cascades) {
       if (cascade == CascadeType.REMOVE || cascade == CascadeType.ALL) {
         final CsdlOnDelete onDelete = new CsdlOnDelete();

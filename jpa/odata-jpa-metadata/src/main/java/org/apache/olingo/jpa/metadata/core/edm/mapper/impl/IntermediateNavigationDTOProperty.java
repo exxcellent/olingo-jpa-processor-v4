@@ -18,7 +18,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediateNavigationDTOProperty extends IntermediateModelElement implements JPAAssociationAttribute {
+class IntermediateNavigationDTOProperty extends AbstractProperty implements JPAAssociationAttribute {
 
   private CsdlNavigationProperty edmNaviProperty;
   private JPAStructuredType targetType;
@@ -113,6 +113,12 @@ class IntermediateNavigationDTOProperty extends IntermediateModelElement impleme
   public boolean isSimple() {
     // navigation properties are targeting always a non primitive object
     return false;
+  }
+
+  @Override
+  public JPAAssociationAttribute getBidirectionalOppositeAssociation() {
+    // not supported
+    return null;
   }
 
   @Override

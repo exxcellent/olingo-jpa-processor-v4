@@ -16,7 +16,8 @@ Developers using this library have to write only a few lines of code to get a se
 
 # Documentation
 ## For integrators
-More informations how to integrate the library into your Java project read "[Get Started](doc/integrators/GetStarted.md)". Migration requiring tasks resulting from API changes while updating are described in the [migration guide](doc/integrators/MigrationGuide.md).
+More informations how to integrate the library into your Java project read "[Get Started](doc/integrators/GetStarted.md)". Migration requiring tasks resulting from API changes while updating are described in the [migration guide](doc/integrators/MigrationGuide.md).  
+All informations are available under [doc/integrators](doc/integrators/TableOfContent.md).
 
 ## For developers
-More informations can be found under [doc/development](doc/development/Project-Structure.md).
+More informations can be found under [doc/development](doc/development/TableOfContent.md).

@@ -105,7 +105,7 @@ public class EntityConverter extends AbstractEntityConverter {
     return result;
   }
 
-  private Object convertODataNavigationLink2JPAAssociationProperty(final Object targetJPAObject,
+  private Object convertODataNavigationLink2JPAAssociationProperty(final Object owningJPAInstance,
       final JPAAssociationAttribute association, final Link odataLink,
       final Map<String, Object> mapId2Instance)
           throws ODataJPAModelException,
@@ -121,11 +121,14 @@ public class EntityConverter extends AbstractEntityConverter {
         final JPAStructuredType jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(
             childEntity
             .getType()));
-        final Object jpaInstance = convertOData2JPAEntityInternal(childEntity, jpaType, mapId2Instance);
-        list.add(jpaInstance);
+        final Object associationTargetJPAInstance = convertOData2JPAEntityInternal(childEntity, jpaType,
+            mapId2Instance);
+        manageBacklink(owningJPAInstance, association, associationTargetJPAInstance);
+        list.add(associationTargetJPAInstance);
       }
       result = list;
     } else {
+      // single value
       final Entity childEntity = odataLink.getInlineEntity();
       if(childEntity == null) {
         return null;
@@ -133,10 +136,30 @@ public class EntityConverter extends AbstractEntityConverter {
       final JPAStructuredType jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(childEntity
           .getType()));
       result = convertOData2JPAEntityInternal(childEntity, jpaType, mapId2Instance);
+      manageBacklink(owningJPAInstance, association, result);
     }
     // assign to owner entity
-    association.getAttributeAccessor().setPropertyValue(targetJPAObject, result);
+    association.getAttributeAccessor().setPropertyValue(owningJPAInstance, result);
     return result;
+  }
+
+  private void manageBacklink(final Object owningJPAInstance, final JPAAssociationAttribute association,
+      final Object associationTargetJPAInstance) throws ODataJPAModelException {
+    final JPAAssociationAttribute associationBidirectionalOpposite = association.getBidirectionalOppositeAssociation();
+    if (associationBidirectionalOpposite == null) {
+      return;
+    }
+    if (associationBidirectionalOpposite.isCollection()) {
+      // we can currently handle only ...-2-One relationships
+      return;
+    }
+    // check presence of backlink or set it (if single value target only)
+    final Object backlinkValue = associationBidirectionalOpposite.getAttributeAccessor().getPropertyValue(
+        associationTargetJPAInstance);
+    if (backlinkValue == null) {
+      associationBidirectionalOpposite.getAttributeAccessor().setPropertyValue(associationTargetJPAInstance,
+          owningJPAInstance);
+    }
   }
 
   /**
