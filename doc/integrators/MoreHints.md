@@ -28,7 +28,7 @@ In the backend some more configuration is required...
 ```
 * The servlet must be aware of that new available transformation:
 
-```
+```java
 	JPAODataServletHandler handler = ...;
 	// register Excel as output format
     handler.activateCustomResponseTransformation(
@@ -40,7 +40,7 @@ In the backend some more configuration is required...
 The `Transformation` has a declaration part describing what the transformation needs to run and what it can transform (types of input). The registration part will activate that transformation for an specific subset of that declared capabilities (normally a specific mime type/content type and a representation type).
 To control the excel export in more details a `Configuration` can be injected into the context like this way:
 
-```
+```java
 	import org.apache.olingo.jpa.processor.transformation.excel.Configuration ;
 	
 	Configuration configuration = ...;

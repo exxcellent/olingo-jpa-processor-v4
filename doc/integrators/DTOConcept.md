@@ -25,7 +25,7 @@ There are some limitations to an DTO:
 
 Example:
 
-```
+```java
 @ODataDTO(handler=MyAddressFactory.class)
 public class Address {
 	@Id
@@ -53,7 +53,7 @@ A DTO instance is automatically transformed from/into a OData entity instance li
 # 2. Dependency injection
 For DTO's a limited support for dependency injection is available (see [JSR-330](https://jcp.org/en/jsr/detail?id=330) for annotations). Supported is the injection of some DTO call related context objects via field injection (using @Inject). Available types are listed in [Dependency Injection](DependencyInjection.md).
 
-```
+```java
 public static class MyAddressFactory implements ODataDTOHandler<Address> {
 
 	@Inject

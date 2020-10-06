@@ -11,7 +11,7 @@ For DTO handlers and action methods there is a limited support for injection run
 ## Register values for later injection	
 The injection support can be extended by custom injections (see example servlet for details):
 
-```
+```java
 final JPAODataServletHandler handler = new JPAODataServletHandler(mappingAdapter) {
 	@Override
 	protected void prepareRequestContext(final JPAODataRequestContext requestContext) {
@@ -25,7 +25,7 @@ final JPAODataServletHandler handler = new JPAODataServletHandler(mappingAdapter
 
 or via
 
-```
+```java
 ...
 handler.getJPAODataContext().getDependencyInjector().registerDependencyMapping(String.class, getServletName());
 ```
