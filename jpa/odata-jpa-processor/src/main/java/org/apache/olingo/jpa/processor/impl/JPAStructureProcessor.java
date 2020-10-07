@@ -27,6 +27,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
+import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.EntityCountQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
@@ -88,7 +89,7 @@ ComplexProcessor, PrimitiveValueProcessor {
           throws ODataApplicationException, ODataLibraryException {
     final JPASerializer serializer = new JPASerializeEntity(getServiceMetadata(), getOData(), responseFormat,
         uriInfo);
-    processSingle(request, response, uriInfo, responseFormat, serializer);
+    readEntity(request, response, uriInfo, responseFormat, serializer);
   }
 
   @Override
@@ -212,7 +213,7 @@ ComplexProcessor, PrimitiveValueProcessor {
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, EntityCollection.class, new TypedParameter(UriInfoResource.class,
             uriInfo));
-    final EntityCollection entityCollectionCompleteEntities = retrieveEntityData(request, uriInfo, transformation);
+    final EntityCollection entityCollectionCompleteEntities = loadDataBaseData(request, uriInfo, transformation);
 
     if (entityCollectionCompleteEntities.getEntities() == null || entityCollectionCompleteEntities.getEntities().isEmpty()) {
       response.setStatusCode(HttpStatusCode.NOT_FOUND.getStatusCode());
@@ -244,7 +245,6 @@ ComplexProcessor, PrimitiveValueProcessor {
         final EntityConverter entityConverter = new EntityConverter(odata.createUriHelper(), sd, serviceMetadata);
         final Object persistenceModifiedEntity = entityConverter.convertOData2JPAEntity(odataEntityMerged,
             jpaEntityType);
-        // FIXME we cannot use em.merge(), because some relationships are removed...
         final Object persistenceMergedEntity = em.merge(persistenceModifiedEntity);
 
         // convert reverse to get also generated fields
@@ -272,14 +272,15 @@ ComplexProcessor, PrimitiveValueProcessor {
   public void deleteEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
       throws ODataApplicationException, ODataLibraryException {
 
+    // TODO DTO support for Delete
     final Transformation<QueryEntityResult, EntityCollection> transformation = getRequestContext()
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, EntityCollection.class, new TypedParameter(UriInfoResource.class,
             uriInfo));
-    final EntityCollection entityCollection = retrieveEntityData(request, uriInfo, transformation);
+    final EntityCollection entityCollection = loadDataBaseData(request, uriInfo, transformation);
 
     if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
-      // a 'dummy' message content will prevent the OData client reponse parser from
+      // a 'dummy' message content will prevent the OData client response parser from
       // exceptions because empty body
       response.setContent(new ByteArrayInputStream("{}".getBytes()));
       response.setStatusCode(HttpStatusCode.NOT_FOUND.getStatusCode());
@@ -309,6 +310,10 @@ ComplexProcessor, PrimitiveValueProcessor {
   private EntityCollection retrieveFunctionData(final ODataRequest request, final UriInfo uriInfo)
       throws ODataApplicationException, ODataLibraryException {
 
+    if (uriInfo.getApplyOption() != null) {
+      throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+          HttpStatusCode.NOT_IMPLEMENTED);
+    }
     final UriResourceFunction uriResourceFunction = (UriResourceFunction) uriInfo.getUriResourceParts().get(0);
     final JPAFunction jpaFunction = sd.getFunction(uriResourceFunction.getFunction());
     final JPAOperationResultParameter resultParameter = jpaFunction.getResultParameter();
@@ -345,14 +350,15 @@ ComplexProcessor, PrimitiveValueProcessor {
   }
 
   /**
-   * Central method to load (entity/dto) data from a source.
+   * Central method to load single or many (entity/dto) data from a source.
    */
   @SuppressWarnings("unchecked")
-  private <O> O retrieveEntityData(final ODataRequest request, final UriInfo uriInfo,
+  private <O> O retrieveEntityResult(final ODataRequest request, final UriInfo uriInfo,
       final Transformation<QueryEntityResult, O> transformation)
           throws ODataApplicationException, ODataLibraryException {
 
     final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+
     final int lastPathSegmentIndex = resourceParts.size() - 1;
     final UriResource lastPathSegment = resourceParts.get(lastPathSegmentIndex);
     if (lastPathSegment.getKind() == UriResourceKind.function) {
@@ -364,31 +370,36 @@ ComplexProcessor, PrimitiveValueProcessor {
       return (O) retrieveFunctionData(request, uriInfo);
     }
 
-    // continue with normal entity (collection) query
     final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
-
     if (targetEdmEntitySet == null) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
           HttpStatusCode.BAD_REQUEST, new IllegalArgumentException("EntitySet not found"));
     }
 
-    final ServiceMetadata serviceMetadata = getServiceMetadata();
     final DTOEntityHelper helper = new DTOEntityHelper(getRequestContext(), uriInfo);
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       return helper.loadEntities(transformation, targetEdmEntitySet);
-    } else {
-      // Create a JPQL Query and execute it
-      try {
-        // load entities
-        final EntityQueryBuilder query = new EntityQueryBuilder(getRequestContext(), new NavigationRoot(uriInfo),
-            getEntityManager(),
-            serviceMetadata);
-        return query.execute(true, transformation);
+    }
+    return loadDataBaseData(request, uriInfo, transformation);
+  }
 
-      } catch (final ODataJPAModelException e) {
-        throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
-            HttpStatusCode.INTERNAL_SERVER_ERROR, e);
-      }
+  /**
+   * Central method to load single or many entity data from database.
+   */
+  private <O> O loadDataBaseData(final ODataRequest request, final UriInfo uriInfo,
+      final Transformation<QueryEntityResult, O> transformation)
+          throws ODataApplicationException, ODataLibraryException {
+    final ServiceMetadata serviceMetadata = getServiceMetadata();
+    try {
+      // Create a JPQL Query and execute it (load entities)
+      final EntityQueryBuilder query = new EntityQueryBuilder(getRequestContext(), new NavigationRoot(uriInfo),
+          getEntityManager(),
+          serviceMetadata);
+      return query.execute(true, transformation);
+
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+          HttpStatusCode.INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -404,7 +415,7 @@ ComplexProcessor, PrimitiveValueProcessor {
                     ODataRequest.class, request), new TypedParameter(ContentType.class,
                         responseFormat));
 
-    final ODataResponseContent result = retrieveEntityData(request, uriInfo, transformation);
+    final ODataResponseContent result = retrieveEntityResult(request, uriInfo, transformation);
     if (result.getContentState() == ContentState.NULL) {
       // 404 Not Found indicates that the resource specified by the request URL does
       // not exist. The response body MAY
@@ -427,8 +438,7 @@ ComplexProcessor, PrimitiveValueProcessor {
     // count entities
     try {
       final EntityCountQueryBuilder query = new EntityCountQueryBuilder(getRequestContext(), new NavigationRoot(
-          uriInfo),
-          getEntityManager());
+          uriInfo), getEntityManager());
       final long count = query.execute();
       final FixedFormatSerializer serializer = getOData().createFixedFormatSerializer();
       response.setContent(serializer.count(Integer.valueOf(Long.valueOf(count).intValue())));
@@ -455,14 +465,14 @@ ComplexProcessor, PrimitiveValueProcessor {
         HttpStatusCode.NOT_IMPLEMENTED);
   }
 
-  private void processSingle(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
+  private void readEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
       final ContentType responseFormat, final JPASerializer serializer)
           throws ODataApplicationException, ODataLibraryException {
     final Transformation<QueryEntityResult, EntityCollection> transformation = getRequestContext()
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, EntityCollection.class, new TypedParameter(UriInfoResource.class,
             uriInfo));
-    final EntityCollection entityCollection = retrieveEntityData(request, uriInfo, transformation);
+    final EntityCollection entityCollection = retrieveEntityResult(request, uriInfo, transformation);
     if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
       // 404 Not Found indicates that the resource specified by the request URL does
       // not exist. The response body MAY
@@ -490,7 +500,7 @@ ComplexProcessor, PrimitiveValueProcessor {
           throws ODataApplicationException, ODataLibraryException {
     final JPASerializer serializer = new JPASerializeComplex(getServiceMetadata(), getOData().createSerializer(
         responseFormat), getOData().createUriHelper(), uriInfo);
-    processSingle(request, response, uriInfo, responseFormat, serializer);
+    readEntity(request, response, uriInfo, responseFormat, serializer);
   }
 
   @Override
@@ -499,7 +509,7 @@ ComplexProcessor, PrimitiveValueProcessor {
           throws ODataApplicationException, ODataLibraryException {
     final JPASerializer serializer = new JPASerializePrimitive(getServiceMetadata(), getOData().createSerializer(
         responseFormat), getOData().createUriHelper(), uriInfo);
-    processSingle(request, response, uriInfo, responseFormat, serializer);
+    readEntity(request, response, uriInfo, responseFormat, serializer);
   }
 
   @Override
@@ -522,7 +532,7 @@ ComplexProcessor, PrimitiveValueProcessor {
       final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
     final JPASerializer serializer = new JPASerializeValue(getServiceMetadata(), getOData()
         .createFixedFormatSerializer(), getOData().createUriHelper(), uriInfo);
-    processSingle(request, response, uriInfo, responseFormat, serializer);
+    readEntity(request, response, uriInfo, responseFormat, serializer);
   }
 
   @Override

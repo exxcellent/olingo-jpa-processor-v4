@@ -15,6 +15,14 @@ import org.apache.olingo.server.api.serializer.RepresentationType;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 
+/**
+ * High level transformation combining {@link QueryEntityResult2EntityCollectionTransformation} (from
+ * {@link QueryEntityResult}) +
+ * {@link EntityCollection2ODataResponseContentTransformation} (to {@link ODataResponseContent}).
+ *
+ * @author Ralf Zozmann
+ *
+ */
 public class QueryEntityResult2ODataResponseContentTransformation implements
 Transformation<QueryEntityResult, ODataResponseContent> {
 
