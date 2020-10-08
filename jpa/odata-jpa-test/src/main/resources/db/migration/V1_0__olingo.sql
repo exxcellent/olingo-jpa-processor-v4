@@ -55,10 +55,10 @@ insert into "org.apache.olingo.jpa::BusinessPartner" values ('8', 0, '2', '','',
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('9', 0, '2', '','',null,null,'Ninth Org.','',null,'Test Road', '93','', 'Test City','55021','ISO', '3166-2','US-MN', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'USA');
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('10', 0, '2', '','',null,null,'Tenth Org.','',null,'Test Road', '12','', 'Test City','03921','ISO', '3166-2', null, 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'DEU');
 -- persons
-insert into "org.apache.olingo.jpa::BusinessPartner" values ('99', 0, '1', '','',null,null,'Max','Mustermann',null,'Test Straße', '12','', 'Teststadt','10115','ISO', '3166-2','DE-BE', 'DEU', '', '','','', '99','2016-01-20 09:21:23', null, null, 'DEU'); 
-insert into "org.apache.olingo.jpa::BusinessPartner" values ('98', 0, '1', '','',null,null,'John','Doe',null,'Test Road', '55','', 'Test City','76321','ISO', '3166-2','US-TX', 'USA', '+41 12345 6789012-0', '','','', '99','2016-01-20 09:21:23', null, null, 'USA'); 
-insert into "org.apache.olingo.jpa::BusinessPartner" values ('97', 0, '1', '','',null,null,'Urs','Müller',null,'Test Straße', '23','', 'Test Dorf','4123','ISO', '3166-2','CH-BL', 'CHE', '', '','','Urs@email.ch', '99','2016-07-20 09:21:23', null, null, 'CHE'); 
-insert into "org.apache.olingo.jpa::BusinessPartner" values ('96', 0, '1', '','',null,null,'Person','without phone', '2000-12-12','Road', '66', 'PF 12345', 'Test Dorf','4123','ISO', '3166-2','DE-BE', 'DEU', '', '','','', '1', '2016-07-20 09:21:23', null, null, 'DEU'); 
+insert into "org.apache.olingo.jpa::BusinessPartner" values ('99', 6, '1', '','',null,null,'Max','Mustermann',null,'Test Straße', '12','', 'Teststadt','10115','ISO', '3166-2','DE-BE', 'DEU', '', '','','', '99','2016-01-20 09:21:23', null, null, 'DEU'); 
+insert into "org.apache.olingo.jpa::BusinessPartner" values ('98', 5, '1', '','',null,null,'John','Doe',null,'Test Road', '55','', 'Test City','76321','ISO', '3166-2','US-TX', 'USA', '+41 12345 6789012-0', '','','', '99','2016-01-20 09:21:23', null, null, 'USA'); 
+insert into "org.apache.olingo.jpa::BusinessPartner" values ('97', 4, '1', '','',null,null,'Urs','Müller',null,'Test Straße', '23','', 'Test Dorf','4123','ISO', '3166-2','CH-BL', 'CHE', '', '','','Urs@email.ch', '99','2016-07-20 09:21:23', null, null, 'CHE'); 
+insert into "org.apache.olingo.jpa::BusinessPartner" values ('96', 3, '1', '','',null,null,'Person','without phone', '2000-12-12','Road', '66', 'PF 12345', 'Test Dorf','4123','ISO', '3166-2','DE-BE', 'DEU', '', '','','', '1', '2016-07-20 09:21:23', null, null, 'DEU'); 
 
 -- used for @ElementCollection test
 CREATE TABLE "org.apache.olingo.jpa::Phone" (
@@ -787,7 +787,7 @@ insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 1);
 -- illegal entry, because points from 'RelationshipTargetEntity' to 'RelationshipSourceEntity'
 insert into "org.apache.olingo.jpa::RELATIONSHIPJoinTable" values( 5, 4); 
 
--- EclipseLink+Hibernate doesn't full qualified names
+-- EclipseLink+Hibernate doesn't use full qualified names
 CREATE TABLE SecondaryTableExampleWithSimpleName (
 	"ID" VARCHAR(32) NOT NULL , 
 	"DATA" VARCHAR(128) NOT NULL , 

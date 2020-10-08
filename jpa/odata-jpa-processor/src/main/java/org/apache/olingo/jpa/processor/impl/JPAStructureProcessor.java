@@ -28,6 +28,7 @@ import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.query.EntityAggregationQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
 import org.apache.olingo.jpa.processor.core.query.EntityCountQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
@@ -272,7 +273,6 @@ ComplexProcessor, PrimitiveValueProcessor {
   public void deleteEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo)
       throws ODataApplicationException, ODataLibraryException {
 
-    // TODO DTO support for Delete
     final Transformation<QueryEntityResult, EntityCollection> transformation = getRequestContext()
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, EntityCollection.class, new TypedParameter(UriInfoResource.class,
@@ -312,7 +312,7 @@ ComplexProcessor, PrimitiveValueProcessor {
 
     if (uriInfo.getApplyOption() != null) {
       throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
-          HttpStatusCode.NOT_IMPLEMENTED);
+          HttpStatusCode.NOT_IMPLEMENTED, "$apply not supported for database functions");
     }
     final UriResourceFunction uriResourceFunction = (UriResourceFunction) uriInfo.getUriResourceParts().get(0);
     final JPAFunction jpaFunction = sd.getFunction(uriResourceFunction.getFunction());
@@ -354,7 +354,7 @@ ComplexProcessor, PrimitiveValueProcessor {
    */
   @SuppressWarnings("unchecked")
   private <O> O retrieveEntityResult(final ODataRequest request, final UriInfo uriInfo,
-      final Transformation<QueryEntityResult, O> transformation)
+      final Transformation<QueryEntityResult, O> transformation, final ContentType responseFormat)
           throws ODataApplicationException, ODataLibraryException {
 
     final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
@@ -380,6 +380,27 @@ ComplexProcessor, PrimitiveValueProcessor {
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       return helper.loadEntities(transformation, targetEdmEntitySet);
     }
+
+    if (Util.hasApplyAggregateOption(uriInfo)) {
+      // aggregate query
+      if (!ODataResponseContent.class.isAssignableFrom(transformation.getOutputType())) {
+        throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
+            HttpStatusCode.BAD_REQUEST, new IllegalStateException("Transformation cannot be used for aggregate()"));
+      }
+      try {
+        final EntityAggregationQueryBuilder query = new EntityAggregationQueryBuilder(getRequestContext(),
+            new NavigationRoot(uriInfo), getEntityManager());
+        return (O) query.execute(responseFormat);
+      } catch (final ODataJPAModelException e) {
+        throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
+            HttpStatusCode.INTERNAL_SERVER_ERROR, e);
+      }
+    } else if (uriInfo.getApplyOption() != null) {
+      // all other $apply transformations are not supported
+      throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+          HttpStatusCode.NOT_IMPLEMENTED, "Not supported");
+    }
+
     return loadDataBaseData(request, uriInfo, transformation);
   }
 
@@ -415,7 +436,7 @@ ComplexProcessor, PrimitiveValueProcessor {
                     ODataRequest.class, request), new TypedParameter(ContentType.class,
                         responseFormat));
 
-    final ODataResponseContent result = retrieveEntityResult(request, uriInfo, transformation);
+    final ODataResponseContent result = retrieveEntityResult(request, uriInfo, transformation, responseFormat);
     if (result.getContentState() == ContentState.NULL) {
       // 404 Not Found indicates that the resource specified by the request URL does
       // not exist. The response body MAY
@@ -472,7 +493,7 @@ ComplexProcessor, PrimitiveValueProcessor {
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, EntityCollection.class, new TypedParameter(UriInfoResource.class,
             uriInfo));
-    final EntityCollection entityCollection = retrieveEntityResult(request, uriInfo, transformation);
+    final EntityCollection entityCollection = retrieveEntityResult(request, uriInfo, transformation, responseFormat);
     if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
       // 404 Not Found indicates that the resource specified by the request URL does
       // not exist. The response body MAY

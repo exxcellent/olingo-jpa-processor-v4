@@ -9,9 +9,9 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
+import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.FilterSubQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
-import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -27,12 +27,12 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
 
   protected final UriInfoResource member;
 
-  JPALambdaOperation(final JPAEntityFilterProcessor jpaComplier, final UriInfoResource member) {
+  JPALambdaOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final UriInfoResource member) {
     super(jpaComplier);
     this.member = member;
   }
 
-  public JPALambdaOperation(final JPAEntityFilterProcessor jpaComplier, final Member member) {
+  public JPALambdaOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final Member member) {
     super(jpaComplier);
     this.member = member.getResourcePath();
   }

@@ -32,12 +32,12 @@ import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
 
 class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 
-  private final JPAEntityFilterProcessor jpaComplier;
+  private final JPAAbstractFilterProcessor<?> jpaComplier;
 
   /**
    * @param jpaFilterCrossComplier
    */
-  JPAVisitor(final JPAEntityFilterProcessor jpaFilterCrossComplier) {
+  JPAVisitor(final JPAAbstractFilterProcessor<?> jpaFilterCrossComplier) {
     this.jpaComplier = jpaFilterCrossComplier;
   }
 
