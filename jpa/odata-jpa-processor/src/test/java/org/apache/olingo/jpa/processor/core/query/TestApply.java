@@ -69,6 +69,21 @@ public class TestApply extends TestBase {
   }
 
   @Test
+  public void testAggregationWithZeroResult() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").addQueryOption(
+        "apply", "aggregate(ADecimal with sum as Sum)", false).filter("AIntegerYear gt 9999999");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ObjectNode response = helper.getJsonObjectValue();
+    final ArrayNode valueArray = response.withArray("value");
+    assertEquals(1, valueArray.size());
+    final ObjectNode aggNode = (ObjectNode) valueArray.get(0);
+    assertEquals(0.0, aggNode.get("Sum").asDouble(), 0.0);
+  }
+
+  @Test
   public void testAggregationWithFilterNavigation() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").addQueryOption("apply",
         "aggregate(ETag with sum as Sum)", false).filter("Roles/any(d:d/RoleCategory eq 'X')");

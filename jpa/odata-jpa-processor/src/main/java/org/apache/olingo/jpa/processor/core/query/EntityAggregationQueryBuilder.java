@@ -188,7 +188,9 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
     for (final TupleElement<?> element : row.getElements()) {
       final Property p = new Property(null, element.getAlias());
       final Object result = row.get(element.getAlias());
-      p.setValue(ValueType.PRIMITIVE, result);
+      // if aggregation is working on an empty result set we got 'null' as result, but we want to give back at least a
+      // zero...
+      p.setValue(ValueType.PRIMITIVE, result != null ? result : BigDecimal.valueOf(0));
       properties.add(p);
     }
 
@@ -220,11 +222,13 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
     for (final Property odataProperty : odataEntity.getProperties()) {
       final CsdlProperty csdlProperty = new CsdlProperty();
       csdlProperty.setName(odataProperty.getName());
-      final EdmPrimitiveTypeKind kind = TypeMapping.convertToEdmSimpleType(odataProperty.getValue().getClass());
+      final boolean valueIsNull = odataProperty.getValue() == null;
+      final EdmPrimitiveTypeKind kind = valueIsNull ? EdmPrimitiveTypeKind.Decimal : TypeMapping.convertToEdmSimpleType(
+          odataProperty.getValue().getClass());
       csdlProperty.setType(kind.getFullQualifiedName());
       csdlProperty.setScale(determineScale(odataProperty.getValue()));
       // don't set precision to avoid trouble with serializer for small numbers (double)
-      csdlProperty.setNullable(false);
+      csdlProperty.setNullable(valueIsNull);
       csdlProperty.setCollection(false);
 
       csdlEntityType.getProperties().add(csdlProperty);
