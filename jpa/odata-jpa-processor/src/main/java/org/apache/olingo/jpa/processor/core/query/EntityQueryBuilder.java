@@ -118,7 +118,6 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     // Pre-process URI parameter, so they can be used at different places
     // TODO check if Path is also required for OrderBy Attributes, as it is for descriptions
 
-    final boolean hasLimits = hasQueryLimits();
     final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
     final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(orderByNaviAttributes);
 
@@ -144,7 +143,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     }
 
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
-    if (hasLimits) {
+    if (hasQueryLimits()) {
       addTopSkip(tq);
     }
 

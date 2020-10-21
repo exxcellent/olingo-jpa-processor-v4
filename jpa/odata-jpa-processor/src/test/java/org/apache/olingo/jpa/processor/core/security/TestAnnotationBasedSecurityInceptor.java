@@ -94,10 +94,10 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testDeriveActionSecurityFromResource() throws IOException, ODataException, SQLException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "ActionInResourceSecuredDtos(1)/" + ActionInResourceSecuredDto.class.getPackage().getName()
-        + ".actionTakingSecurityFromResource",
-        null, HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("ActionInResourceSecuredDtos")
+        .appendKeySegment(Integer.valueOf(1)).appendActionCallSegment(ActionInResourceSecuredDto.class.getPackage()
+            .getName() + ".actionTakingSecurityFromResource");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.execute(HttpStatusCode.UNAUTHORIZED.getStatusCode());
   }
@@ -113,8 +113,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testReadDTO2() throws IOException, ODataException, SQLException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DefaultResourceSecurityDtos");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() == 1);
@@ -123,9 +123,10 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testPutWithoutRoleDTO() throws IOException, ODataException, SQLException {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PUT);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DefaultResourceSecurityDtos")
+        .appendKeySegment(Integer.valueOf(1));
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
+        HttpMethod.PUT);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123"));
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -135,9 +136,10 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testAcceptPatchDTO() throws IOException, ODataException, SQLException {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PATCH);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DefaultResourceSecurityDtos")
+        .appendKeySegment(Integer.valueOf(1));
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
+        HttpMethod.PATCH);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123", new String[] { "role.patch" }));
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -147,9 +149,10 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testRejectPatchDTO() throws IOException, ODataException, SQLException {
     final StringBuffer requestBody = new StringBuffer("{\"Id\": 2}");
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "DefaultResourceSecurityDtos(1)", requestBody.toString(), HttpMethod.PATCH);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DefaultResourceSecurityDtos")
+        .appendKeySegment(Integer.valueOf(1));
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
+        HttpMethod.PATCH);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.setUser(new PrincipalMock("user123", new String[] { "role.wrong" }));
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());
@@ -157,12 +160,10 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testDTOUnsecureActionCall() throws IOException, ODataException, NoSuchMethodException {
-
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "actionWithNoSecurity", null,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithNoSecurity");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValue().get("value").asInt() == 42);
@@ -173,8 +174,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "actionWithOnlyAuthentication", null, HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyAuthentication");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
     final String userName = "abcUser";
     helper.setUser(new PrincipalMock(userName));
@@ -189,8 +190,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "actionWithOnlyAuthentication", null, HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyAuthentication");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.UNAUTHORIZED.getStatusCode());
   }
 
@@ -200,8 +201,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "actionWithOnlyRole", null, HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyRole");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     final String userName = "abcUser";
     helper.setUser(new PrincipalMock(userName, new String[] { "role.dummy" }));
     helper.execute(HttpStatusCode.FORBIDDEN.getStatusCode());
@@ -212,8 +213,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
       throws IOException, ODataException, NoSuchMethodException {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "actionWithOnlyRole", null,
-        HttpMethod.POST);
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyRole");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     final String userName = "superUser";
     helper.setUser(new PrincipalMock(userName, new String[] { "access" }));
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());

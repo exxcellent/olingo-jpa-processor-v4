@@ -58,8 +58,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterOneDescriptionEqualsFieldNotSelected() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$filter=LocationName eq 'Deutschland'&$select=ID");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter(
+        "LocationName eq 'Deutschland'").select("ID");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -70,8 +71,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterOneEqualsTwoProperties() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions?$filter=DivisionCode eq CountryCode");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "DivisionCode eq CountryCode");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -81,8 +83,8 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterOneEqualsInvert() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$filter='3' eq ID");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("'3' eq ID");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();

@@ -33,7 +33,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
  *
  */
 //TODO handle $it ...
-public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
+public class JPAEntityFilterProcessor<O> extends JPAAbstractFilterProcessor<O> {
   private final JPAODataDatabaseProcessor converter;
   // TODO Check if it is allowed to select via navigation
   // ...Organizations?$select=Roles/RoleCategory eq 'C'
@@ -61,13 +61,13 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Expression<Boolean> compile() throws ExpressionVisitException, ODataApplicationException {
+  public Expression<O> compile() throws ExpressionVisitException, ODataApplicationException {
 
     if (getExpression() == null) {
       return null;
     }
     final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
-    final Expression<Boolean> finalExpression = (Expression<Boolean>) getExpression().accept(visitor).get();
+    final Expression<O> finalExpression = (Expression<O>) getExpression().accept(visitor).get();
 
     return finalExpression;
   }
@@ -97,6 +97,7 @@ public class JPAEntityFilterProcessor extends JPAAbstractFilterProcessor {
     return uriResourceParts;
   }
 
+  @Override
   public FilterContextQueryBuilderIfc getParent() {
     return parent;
   }

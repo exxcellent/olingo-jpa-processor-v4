@@ -37,6 +37,9 @@ import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 import org.apache.olingo.server.api.uri.UriResourceValue;
+import org.apache.olingo.server.api.uri.queryoption.ApplyItem;
+import org.apache.olingo.server.api.uri.queryoption.ApplyItem.Kind;
+import org.apache.olingo.server.api.uri.queryoption.ApplyOption;
 import org.apache.olingo.server.api.uri.queryoption.ExpandItem;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 
@@ -445,5 +448,23 @@ public class Util {
       jpaPathList.add(keyPath);
     }
     return jpaPathList;
+  }
+
+  /**
+   *
+   * @param uriInfo
+   * @return TRUE if uri contains a $apply=aggregate(...) expression
+   */
+  public static boolean hasApplyAggregateOption(final UriInfoResource uriInfo) {
+    final ApplyOption applyOption = uriInfo.getApplyOption();
+    if (applyOption == null) {
+      return false;
+    }
+    for (final ApplyItem item : applyOption.getApplyItems()) {
+      if (item.getKind() == Kind.AGGREGATE) {
+        return true;
+      }
+    }
+    return false;
   }
 }

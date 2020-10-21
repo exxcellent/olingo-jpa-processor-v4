@@ -50,7 +50,7 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
   final JPAMemberOperator<?> jpaMember;
   final JPALiteralOperand operand;
 
-  JPANavigationOperation(final JPAEntityFilterProcessor jpaComplier, final BinaryOperatorKind operator,
+  JPANavigationOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final BinaryOperatorKind operator,
       final JPAExpressionElement<?> left, final JPAExpressionElement<?> right) {
 
     super(jpaComplier);

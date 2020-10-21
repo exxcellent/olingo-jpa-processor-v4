@@ -23,7 +23,7 @@ abstract class JPAExistsOperation implements JPAExpression<Boolean> {
   private final EntityManager em;
   private final OData odata;
 
-  JPAExistsOperation(final JPAEntityFilterProcessor jpaComplier) {
+  JPAExistsOperation(final JPAAbstractFilterProcessor<?> jpaComplier) {
 
     this.uriResourceParts = jpaComplier.getUriResourceParts();
     this.queryBuilder = jpaComplier.getParent();

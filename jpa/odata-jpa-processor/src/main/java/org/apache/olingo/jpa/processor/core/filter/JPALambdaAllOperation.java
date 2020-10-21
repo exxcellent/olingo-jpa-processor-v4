@@ -16,7 +16,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind
 
 public class JPALambdaAllOperation extends JPALambdaOperation {
 
-  JPALambdaAllOperation(final JPAEntityFilterProcessor jpaComplier, final Member member) {
+  JPALambdaAllOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final Member member) {
     super(jpaComplier, member);
   }
 
