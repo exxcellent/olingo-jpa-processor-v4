@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -63,6 +64,13 @@ class IntermediateActionFactory {
           + action.getInternalName() + " -> " + buildMethodSignature(action.getJavaMethod()));
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INNER_EXCEPTION, cause);
     }
+    if (action.isBound() && Modifier.isAbstract(jpaEntityClass.getModifiers())) {
+      LOGGER.log(Level.WARNING,
+          "Calling the bound action '" + actionMethod.getName() + "' on the abstract entity " + jpaEntityClass
+              .getSimpleName()
+              + " is not recommended, because only a few JPA providers support loading of abstract entities from database");
+    }
+
     actionList.put(action.getInternalName(), action);
   }
 

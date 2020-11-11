@@ -81,13 +81,11 @@ public class RelationshipSourceEntity extends AbstractRelationshipEntity {
       assert target.SOURCE != null;
       assert target.SOURCE == source;
     }
-    final Integer sourceId = source.getID();
     source.name = "server side modified created source name";
     // with existing id we have to 'merge' instead of 'persist'
-    em.merge(source);
-    // must not be overwritten
-    assert sourceId.equals(source.getID());
-    return source;
+    // in Hibernate merge will generate new id's!
+    final RelationshipSourceEntity merged = em.merge(source);
+    return merged;
   }
 
   /**
@@ -112,6 +110,31 @@ public class RelationshipSourceEntity extends AbstractRelationshipEntity {
     source2.addLeftM2Ns(target);
 
     return Arrays.asList(source1, source2);
+  }
+
+  /**
+   * @see #createEntityCollection(EntityManager)
+   */
+  @EdmAction
+  public static Collection<RelationshipSourceEntity> validateEntityCollection(@Inject final EntityManager em,
+      @EdmActionParameter(
+          name = "entities") final Collection<RelationshipSourceEntity> entities) {
+    RelationshipTargetEntity sharedTarget = null;
+    for (final RelationshipSourceEntity source : entities) {
+      assert source.leftM2Ns.size() == 1;
+
+      if (sharedTarget == null) {
+        sharedTarget = source.leftM2Ns.iterator().next();
+        //        final RelationshipTargetEntity mergedTarget = em.merge(sharedTarget);
+      } else {
+        // the id must be the same
+        final RelationshipTargetEntity second = source.leftM2Ns.iterator().next();
+        assert sharedTarget.getID().intValue() == second.getID().intValue();
+        // the instance should also be the same
+        assert sharedTarget == second;
+      }
+    }
+    return entities;
   }
 
 }

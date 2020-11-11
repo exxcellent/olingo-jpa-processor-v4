@@ -247,9 +247,6 @@ public abstract class BusinessPartner {
       addressData.setRegion(changedRegion);
     }
     if (Objects.nonNull(changedPostalCode)) {
-      if (Integer.parseInt(changedPostalCode) > 2000) {
-        this.seteTag(2000L);
-      }
       addressData.setPostalCode(changedPostalCode);
     }
     if (Objects.nonNull(changedCityName)) {
