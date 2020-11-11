@@ -1,0 +1,73 @@
+{
+	"sap.app": {
+		"id": "exxcellent.ui5.example",
+		"applicationVersion": {
+			"version": "1.0.0"
+		},
+		"dataSources" : {
+            "default" : {
+                "uri" : "http://localhost:8080/odata/",
+                "type" : "OData",
+                "settings" : {
+                    "odataVersion" : "4.0"
+                }
+            }
+        }
+	},
+	"sap.ui5": {
+		"rootView": {
+			"viewName": "exxcellent.ui5.example.view.App",
+			"type": "XML"
+		},
+		"handleValidation": true,
+		"models" : {
+            "demoModel" : {
+				"dataSource" : "default",
+                "settings" : {
+					"synchronizationMode" : "None",
+					"groupId": "$direct",
+					"operationMode": "Server"
+                }
+            }
+        },
+		"routing": {
+			"config": {
+				"routerClass": "sap.m.routing.Router",
+				"viewType": "XML",
+				"controlId": "idAppControl",
+				"controlAggregation": "pages",
+				"transition": "show"
+			},
+			"routes": [
+				{
+					"pattern": "persons",
+					"name": "persons",
+					"target": "persons"
+				},
+				{
+					"pattern": "persons/detail:?query:",
+					"name": "personsDetail",
+					"target": "personsDetail"
+				}
+			],
+			"targets": {
+				"persons": {
+					"viewName": "exxcellent.ui5.example.view.OverviewTable",
+					"controlAggregation": "pages",
+					"viewLevel": 1
+				},
+				"personsDetail": {
+					"viewName": "exxcellent.ui5.example.view.Detail",
+					"controlAggregation": "pages",
+					"viewLevel": 1
+				}
+			}
+		},
+		"dependencies": {
+			"libs": {
+				"sap.m": {},
+				"sap.ui.table": {}
+			}
+		}
+	}
+}

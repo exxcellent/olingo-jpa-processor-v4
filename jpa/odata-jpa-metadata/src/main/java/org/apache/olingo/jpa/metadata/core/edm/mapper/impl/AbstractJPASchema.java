@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.util.List;
 
+import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
@@ -51,7 +52,7 @@ public abstract class AbstractJPASchema implements JPAElement {
 
   abstract List<JPAFunction> getFunctions();
 
-  abstract JPAAction getAction(final String externalName);
+  abstract JPAAction getAction(final EdmAction edmAction);
 
   abstract List<JPAAction> getActions();
 

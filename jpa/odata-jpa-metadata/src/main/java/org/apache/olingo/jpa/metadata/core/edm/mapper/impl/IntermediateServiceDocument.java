@@ -173,7 +173,7 @@ public class IntermediateServiceDocument {
       resolveSchemas();
       final AbstractJPASchema schema = schemaListInternalKey.get(action.getNamespace());
       if (schema != null) {
-        return schema.getAction(action.getName());
+        return schema.getAction(action);
       }
     }
     return null;

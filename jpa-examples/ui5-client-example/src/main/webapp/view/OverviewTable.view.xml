@@ -1,0 +1,94 @@
+<mvc:View
+	controllerName="exxcellent.ui5.example.controller.OverviewTable"
+	xmlns="sap.ui.table"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:m="sap.m"
+    height="100%">
+	<m:Page
+		showHeader="true"
+		title="UI5-Demo Table"
+		enableScrolling="false"
+		class="sapUiContentPadding">
+		<m:content>
+			<Table
+				id="table"
+				selectionMode="Single"
+                selectionBehavior="Row"
+				rows="{path: 'demoModel>/BusinessPartners',
+					parameters: {
+       					$expand: 'Roles'
+					}
+				}"
+				rowSelectionChange=".onSelect"
+				visibleRowCount="4"
+				filter="filterPrice"
+				ariaLabelledBy="title">
+				<extension>
+					<m:OverflowToolbar>
+						<m:Title id="title" text="BusinessPartners"/>
+						<m:ToolbarSpacer/>
+						<m:Button
+							icon="sap-icon://decline"
+							tooltip="Clear all filters"
+							press="clearAllFilters"/>
+						<m:ToolbarSeparator/>
+					</m:OverflowToolbar>
+				</extension>
+				<columns>
+					<Column
+						width="11rem"
+						filterProperty="ID"
+						sortProperty="ID">
+						<m:Label text="ID" />
+						<template>
+							<m:Text text="{demoModel>ID}" wrapping="false" />
+						</template>
+					</Column>
+					<Column
+						width="11rem"
+						sortProperty="ETag">
+						<m:Label text="ETag" />
+						<template>
+							<m:Text text="{demoModel>ETag}" wrapping="false" />
+						</template>
+					</Column>
+					<Column width="9rem"
+							filterProperty="Type"
+							sortProperty="Type">
+						<m:Label text="Type" />
+						<template>
+							<m:Text text="{demoModel>Type}" wrapping="false" />
+						</template>
+					</Column>
+					<Column width="9rem"
+							filterProperty="Country"
+							sortProperty="Country">
+						<m:Label text="Country" />
+						<template>
+							<m:Text text="{demoModel>Country}" wrapping="false" />
+						</template>
+					</Column>
+					<Column width="14rem"
+							filterProperty="CreationDateTime"
+							sortProperty="CreationDateTime">
+						<m:Label text="CreationDateTime" />
+						<template>
+							<m:Text text="{demoModel>CreationDateTime}" wrapping="false" />
+						</template>
+					</Column>
+					<Column
+						width="11rem">
+						<m:Label text="Roles" />
+						<template>
+							<m:VBox items="{path: 'demoModel>Roles', templateShareable: true}">
+								<m:items>
+									<m:Text text="{demoModel>RoleCategory}" wrapping="false" />
+								</m:items>
+							</m:VBox>
+						</template>
+					</Column>
+				</columns>
+			</Table>
+		</m:content>
+	</m:Page>
+</mvc:View>

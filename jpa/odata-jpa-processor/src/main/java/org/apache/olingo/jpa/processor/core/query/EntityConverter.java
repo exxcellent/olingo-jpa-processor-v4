@@ -218,6 +218,10 @@ public class EntityConverter extends AbstractEntityConverter {
       // couldn't be happen
       throw new IllegalStateException();
     } else if (jpaAttribute.isComplex()) {
+      if (jpaAttribute.isKey()) {
+        throw new IllegalStateException("Do not call this method for @EmbeddedId attributes, like "+jpaAttribute.getInternalName());
+      }
+      // complex keys (aka @EmbeddedId) must be exploded into simple attribute values
       final Property complexTypeProperty = convertJPAComplexAttribute2OData(jpaAttribute, value, processedEntities);
       if (complexTypeProperty != null) {
         properties.add(complexTypeProperty);
@@ -239,13 +243,20 @@ public class EntityConverter extends AbstractEntityConverter {
 
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
     // 1. convert key attributes to create an id for the entity
-    for (final JPAMemberAttribute jpaAttribute : jpaType.getAttributes()) {
-      if (!jpaAttribute.isKey()) {
-        // only key attribute
-        continue;
+    for (final JPAMemberAttribute jpaAttribute : jpaType.getKeyAttributes(false)) {
+      if (jpaAttribute.isComplex()) {
+        // for @EmbeddedId
+        // transfer nested key attribute values to owning oadata entity
+        final JPAStructuredType keyType = jpaAttribute.getStructuredType();
+        final Object keyObject = jpaAttribute.getAttributeAccessor().getPropertyValue(jpaEntity);
+        for (final JPAMemberAttribute nestedAttribute : keyType.getAttributes()) {
+          final Object value = nestedAttribute.getAttributeAccessor().getPropertyValue(keyObject);
+          convertJPAAttribute2OData(nestedAttribute, value, keyType, complexValueBuffer, properties, processedEntities);
+        }
+      } else {
+        final Object value = jpaAttribute.getAttributeAccessor().getPropertyValue(jpaEntity);
+        convertJPAAttribute2OData(jpaAttribute, value, jpaType, complexValueBuffer, properties, processedEntities);
       }
-      final Object value = jpaAttribute.getAttributeAccessor().getPropertyValue(jpaEntity);
-      convertJPAAttribute2OData(jpaAttribute, value, jpaType, complexValueBuffer, properties, processedEntities);
     }
 
     // id of entity must be set before relationships are processed

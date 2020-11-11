@@ -23,10 +23,12 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 		    <groupId>javax.persistence</groupId>
 		    <artifactId>javax.persistence-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<!-- Using EclipseLink as JPA provider -->
@@ -69,6 +71,14 @@
 			<artifactId>odata-jpa-test</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo.jpa.examples</groupId>
+			<artifactId>ui5-client-example</artifactId>
+			<version>${project.version}</version>
+			<!-- see jetty configuration -->
+	        <scope>provided</scope>
+			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.derby</groupId>
@@ -137,13 +147,18 @@
 					<stopPort>9199</stopPort>
 					<dumpOnStart>false</dumpOnStart>
 					<skip>${disable.jetty}</skip>
+					<scanIntervalSeconds>0</scanIntervalSeconds>
 			      	<httpConnector>
 						<port>8080</port>
 					</httpConnector>
 					<webApp>
 						<contextPath>/</contextPath>
 						<jettyEnvXml>${project.basedir}/src/main/jetty/jetty-env.xml</jettyEnvXml>
-						<!-- descriptor>${project.basedir}/src/main/jetty/web.xml</descriptor-->
+						<resourceBases>
+							<resourceBase>${project.basedir}/src/main/webapp</resourceBase>
+							<resourceBase>${project.basedir}/../ui5-client-example/src/main/webapp</resourceBase>
+						</resourceBases>
+						<!-- descriptor>${project.basedir}/src/main/jetty/web.xml</descriptor-->						
 					</webApp>
 					<war>${project.build.directory}/${project.build.finalName}.war</war>
 					<loginServices>
@@ -161,9 +176,6 @@
 					  <goals>
 						<goal>start</goal>
 					  </goals>
-					  <configuration>
-						<scanIntervalSeconds>0</scanIntervalSeconds>
-					  </configuration>
 					</execution>
 					<execution>
 					  <id>stop-jetty</id>

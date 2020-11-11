@@ -1,0 +1,21 @@
+<mvc:View
+	controllerName="exxcellent.ui5.example.controller.Detail"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+    height="100%">
+	<Page
+		id="page">
+		<customHeader>
+			<Bar>
+			<contentLeft>
+				<Button id="navBack" text="Back" press=".onNavBack" />
+			</contentLeft>
+				<contentRight>
+					<Button id="edit" text="Edit" press="handleEditPress" />
+					<Button id="save" text="Save" type="Emphasized" visible="false" press="onSaveBusinessPartner" />
+					<Button id="cancel" text="Cancel" visible="false" press="handleCancelPress" />
+				</contentRight>
+			</Bar>
+		</customHeader>
+	</Page>
+</mvc:View>

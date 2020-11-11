@@ -743,5 +743,21 @@ public class TestJPAActions extends TestBase {
     // source name must be modified on server side
     assertNotEquals(sourceNameBefore, sourceSaved.get("Name").asText());
   }
+  
+  @Test
+  public void testBoundActionModifyingBusinessPartner() throws IOException, ODataException {
+    final URIBuilder uriBuilderResource = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(
+        "5");
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("  \"changedCityName\": \"MyCity\"");
+    requestBody.append("}");
+
+    // save changed BusinessPartner
+    final URIBuilder uriBuilderAction = uriBuilderResource.appendActionCallSegment(Constant.PUNIT_NAME
+        + ".modifyBusinessPartner");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderAction, requestBody.toString(), HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
 
 }

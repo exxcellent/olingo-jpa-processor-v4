@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
@@ -156,12 +157,24 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  JPAAction getAction(final String externalName) {
+  JPAAction getAction(final EdmAction edmAction) {
     for (final Entry<String, IntermediateAction> entry : actions.entrySet()) {
-      if (entry.getValue().getExternalName().equals(externalName)) {
-        if (!entry.getValue().ignore()) {
-          return entry.getValue();
+      if (!entry.getValue().getExternalName().equals(edmAction.getName())) {
+        continue;
+      }
+      try {
+        if (entry.getValue().isBound() && !entry.getValue().getEdmItem().getParameters().get(0).getTypeFQN().equals(
+            edmAction
+                .getBindingParameterTypeFqn())) {
+          // for bound actions the 'entity' parameter (parameter[0]) must the same type as from request call
+          continue;
         }
+      } catch (final ODataJPAModelException e) {
+        throw new IllegalStateException(e);
+      }
+
+      if (!entry.getValue().ignore()) {
+        return entry.getValue();
       }
     }
     return null;

@@ -11,7 +11,7 @@ The annotation based security inceptor will look for the presence of proper anno
 ### 2.1.1. resource security
 To activate security checks for an specific resource (entity) simply place the annotation `@ODataEntityAccess` on a JPA entity:
 
-```
+```java
 @Entity
 @ODataEntityAccess({ @AccessDefinition(method = HttpMethod.GET) })
 public class Address {	
@@ -27,7 +27,7 @@ Extend the list of `@AccessDefinition`'s with all HTTP methods you need (PUT, DE
 ### 2.1.2. action security
 The security for OData actions (implemented as Java methods) is similar to the resource security, but have to use the annotation `@ODataOperationAccess`.
 
-```
+```java
 @Entity
 public class Address {
 	...

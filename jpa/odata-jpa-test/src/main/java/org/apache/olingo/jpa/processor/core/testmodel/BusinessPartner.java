@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.AttributeOverride;
@@ -16,6 +17,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Embeddable;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
@@ -25,6 +27,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import org.apache.olingo.jpa.cdi.Inject;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
@@ -187,6 +192,10 @@ public abstract class BusinessPartner {
     this.customNum2 = customNum2;
   }
 
+  public String getCountry() {
+    return country;
+  }
+
   public void setCountry(final String country) {
     this.country = country;
   }
@@ -217,5 +226,41 @@ public abstract class BusinessPartner {
 
   public void setRoles(final Collection<BusinessPartnerRole> roles) {
     this.roles = roles;
+  }
+
+  /**
+   * Bound oData action, called by UI5 demo client
+   */
+  @EdmAction
+  public BusinessPartner modifyBusinessPartner(
+      @EdmActionParameter(name = "changedRegion") final String changedRegion,
+      @EdmActionParameter(name = "changedPostalCode") final String changedPostalCode,
+      @EdmActionParameter(name = "changedCityName") final String changedCityName,
+      @EdmActionParameter(name = "changedStreetName") final String changedStreetName,
+      @EdmActionParameter(name = "changedHouseNumber") final String changedHouseNumber,
+      @Inject final EntityManager em) {
+
+    // Just a very simple example of a possible application-logic triggered by odata-action calls
+
+    final PostalAddressData addressData = this.getAddress();
+    if (Objects.nonNull(changedRegion)) {
+      addressData.setRegion(changedRegion);
+    }
+    if (Objects.nonNull(changedPostalCode)) {
+      if (Integer.parseInt(changedPostalCode) > 2000) {
+        this.seteTag(2000L);
+      }
+      addressData.setPostalCode(changedPostalCode);
+    }
+    if (Objects.nonNull(changedCityName)) {
+      addressData.setCityName(changedCityName);
+    }
+    if (Objects.nonNull(changedStreetName)) {
+      addressData.setStreetName(changedStreetName);
+    }
+    if (Objects.nonNull(changedHouseNumber)) {
+      addressData.setHouseNumber(changedHouseNumber);
+    }
+    return this;
   }
 }

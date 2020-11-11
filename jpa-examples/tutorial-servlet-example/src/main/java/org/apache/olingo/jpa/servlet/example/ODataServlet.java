@@ -23,6 +23,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
@@ -116,6 +117,23 @@ public class ODataServlet extends HttpServlet {
         super.modifyResponse(response);
         // example header
         response.setHeader("dummy-header", "example to modify reponse header before sending back to client");
+      }
+
+      @Override
+      protected void answerCrossOriginRequest(final HttpServletRequest request, final HttpServletResponse response)
+          throws IOException {
+        response.setStatus(HttpStatusCode.OK.getStatusCode());
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        final String methodHeader = request.getHeader("Access-Control-Request-Method");
+        if (methodHeader != null && !methodHeader.isEmpty()) {
+          // reflect all requested methods as allowed
+          response.setHeader("Access-Control-Allow-Methods", methodHeader);
+        }
+        final String headersHeader = request.getHeader("Access-Control-Request-Headers");
+        if (headersHeader != null && !headersHeader.isEmpty()) {
+          // reflect all requested headers as allowed
+          response.setHeader("Access-Control-Allow-Headers", headersHeader);
+        }
       }
     };
 
