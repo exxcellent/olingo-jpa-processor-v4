@@ -743,7 +743,75 @@ public class TestJPAActions extends TestBase {
     // source name must be modified on server side
     assertNotEquals(sourceNameBefore, sourceSaved.get("Name").asText());
   }
-  
+
+  @Test
+  public void testActionHandlingEntityCollectionWithReusedEntityRelationshipWithMetadata() throws IOException,
+      ODataException,
+      NoSuchMethodException {
+    final URIBuilder uriBuilderCreate = newUriBuilder().appendActionCallSegment("createEntityCollection");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderCreate, null,
+        HttpMethod.POST);
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode sourcesCreated = simulatorCreate.getJsonObjectValues();
+    assertEquals(2, sourcesCreated.size());
+
+    final ObjectNode source1 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source1);
+    final ArrayNode targetsSource1 = source1.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource1.size());
+    final Number targetId = targetsSource1.get(0).get("ID").numberValue();
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget1 = targetsSource1.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget1.size());
+
+    final ObjectNode source2 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source2);
+    final ArrayNode targetsSource2 = source2.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource2.size());
+    assertEquals(targetId, targetsSource2.get(0).get("ID").numberValue());
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget2 = targetsSource2.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget2.size());
+  }
+
+  @Test
+  public void testActionHandlingEntityCollectionWithReusedEntityRelationshipWithoutMetadata() throws IOException,
+  ODataException,
+  NoSuchMethodException {
+    final URIBuilder uriBuilderCreate = newUriBuilder().appendActionCallSegment("createEntityCollection");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderCreate, null,
+        HttpMethod.POST);
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode sourcesCreated = simulatorCreate.getJsonObjectValues();
+    assertEquals(2, sourcesCreated.size());
+
+    final ObjectNode source1 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source1);
+    final ArrayNode targetsSource1 = source1.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource1.size());
+    final Number targetId = targetsSource1.get(0).get("ID").numberValue();
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget1 = targetsSource1.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget1.size());
+
+    final ObjectNode source2 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source2);
+    final ArrayNode targetsSource2 = source2.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource2.size());
+    assertEquals(targetId, targetsSource2.get(0).get("ID").numberValue());
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget2 = targetsSource2.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget2.size());
+  }
+
   @Test
   public void testBoundActionModifyingBusinessPartner() throws IOException, ODataException {
     final URIBuilder uriBuilderResource = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(
