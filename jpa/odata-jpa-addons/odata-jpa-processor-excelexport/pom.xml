@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa</groupId>
 		<artifactId>odata-jpa-addons</artifactId>
-		<version>0.48.0</version>
+		<version>0.48.1</version>
 	</parent>
 
 	<artifactId>odata-jpa-processor-excelexport</artifactId>

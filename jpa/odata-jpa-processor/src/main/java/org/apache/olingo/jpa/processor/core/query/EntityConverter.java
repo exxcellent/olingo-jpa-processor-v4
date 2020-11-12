@@ -67,12 +67,16 @@ public class EntityConverter extends AbstractEntityConverter {
      */
     private JPAAssociationAttribute currentRelationship = null;
     private Set<Object> processedEntities = new HashSet<>();
-    private final List<JPAAssociationAttribute> processedRelationships = Collections.emptyList();
+    private List<JPAAssociationAttribute> processedRelationships = Collections.emptyList();
 
     JPA2ODataProcessingContext createSubContext(final JPAAssociationAttribute workingRelationShip) {
       final JPA2ODataProcessingContext subContext = new JPA2ODataProcessingContext();
       subContext.currentRelationship = workingRelationShip;
       subContext.processedEntities = new HashSet<>(this.processedEntities);
+      subContext.processedRelationships = new LinkedList<>(this.processedRelationships);
+      if (this.currentRelationship != null) {
+        subContext.processedRelationships.add(this.currentRelationship);
+      }
       return subContext;
     }
   }
