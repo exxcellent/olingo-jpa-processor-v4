@@ -73,14 +73,14 @@ With Hibernate byte code enhancement produce problems with every configuration (
 # Hints to modelling entities
 * **Avoid circular dependencies**</br>
   This can be a problem for JPA also, but normally it's simply a design issue. The JPA model will be exposed as OData, normally using JSON as representation. JSON represents data as an tree without circular dependencies. That means OData cannot 'reference' another existing entity, it must embed the complete entity content as nested structure. In a circular graph you get an endless recursion. The OData-JPA-Adapter will manage that, but the behaviour may be unexpected for you.
-    * The OData-JPA-Adapter will never process the same instance again.
+    * The OData-JPA-Adapter will never process the same instance again in a specific model tree part while converting to OData.
 * **Use unidirectional relationships**</br>
   Another more concrete aspect of the bullet point above: bidirectional relationships are the smallest possible circular dependency.
-    * The OData-JPA-Adapter will set the backlink while processing.
+    * The OData-JPA-Adapter will set the backlink while converting from OData to JPA.
 * **Be careful with shared/reused entities in relationsships**</br>
   If you have 1:n or m:n relationships and the same target entity (instance) is referenced from different source entities then the representation in OData and JPA is not bijective.
-    * The OData-JPA-Adapter will enforce that all the redundant/multiple representations on OData side are identical.
+    * The OData-JPA-Adapter will enforce that all the redundant/multiple representations on OData side are identical while converting from OData to JPA.
     * The OData-JPA-Adapter will merge multiple OData representations of the same entity into one instance on JPA side.
 * **Define bound actions not for an abstract entity class**</br>
   Calling bound action means that the entity will be loaded from database. JPA provider like Hibernate cannot (EclipseLink will do) instance/load data for abstract entity classes.
-    * The OData-JPA-Adapter will create a entity proxy for abstract classes to work on it.
+    * The OData-JPA-Adapter will create a entity proxy for abstract classes to work on it while converting from OData to JPA.

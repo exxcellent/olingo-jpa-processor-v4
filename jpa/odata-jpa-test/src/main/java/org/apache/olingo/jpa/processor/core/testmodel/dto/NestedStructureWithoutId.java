@@ -12,7 +12,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
  *
  */
 @ODataDTO(attributeNaming = NamingStrategy.AsIs,
-edmEntitySetName = "NestedStructures")
+    edmEntitySetName = "NestedStructuresWithoutId")
 public class NestedStructureWithoutId {
 
   int levelCurrent = 1;

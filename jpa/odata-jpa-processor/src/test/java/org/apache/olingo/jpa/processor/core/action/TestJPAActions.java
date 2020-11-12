@@ -44,6 +44,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructureWithId;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructureWithoutId;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
@@ -867,6 +868,30 @@ public class TestJPAActions extends TestBase {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilderAction, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
+
+  @Test
+  public void testNestedStructureWithIdUsingOlingoSerialization() throws IOException, ODataException,
+  NoSuchMethodException, URISyntaxException {
+
+    persistenceAdapter.registerDTO(NestedStructureWithId.class);
+
+    // produce server side content
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructureWithShared");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter, uriBuilder, null,
+        HttpMethod.POST);
+    // important: normal metadata to avoid presence of binding link annotations
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode sourceCreated = simulatorCreate.getJsonObjectValue();
+    assertNotNull(sourceCreated);
+    final ArrayNode childrenRoot = sourceCreated.withArray("children");
+    assertEquals(2, childrenRoot.size());
+    // the only child 'shared leaf' must exist on both middle nodes
+    assertEquals(1, childrenRoot.get(0).withArray("children").size());
+    assertEquals(1, childrenRoot.get(1).withArray("children").size());
+    assertEquals(childrenRoot.get(0).withArray("children").get(0).get("name"), childrenRoot.get(1).withArray("children")
+        .get(0).get("name"));
   }
 
 }
