@@ -412,6 +412,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
           jpaInstances = Collections.singletonList(resultEntry);
         }
         for (final Object jpaInstance : jpaInstances) {
+          // convert every instance separate to avoid binding link creation instead of complete JSON generation...
           final Entity entity = entityConverter.convertJPA2ODataEntity(acr.resultType, jpaInstance);
           odataEntityCollection.getEntities().add(entity);
         }
