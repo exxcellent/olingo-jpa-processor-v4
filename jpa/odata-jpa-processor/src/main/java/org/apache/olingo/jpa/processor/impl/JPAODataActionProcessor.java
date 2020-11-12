@@ -371,7 +371,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor {
         if (resultAction != null) {
           results.add(resultAction);
         }
-      } catch (final ODataJPAConversionException | ODataJPAModelException e) {
+      } catch (final ODataJPAModelException e) {
         throw new ODataJPAProcessorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
       }
     }

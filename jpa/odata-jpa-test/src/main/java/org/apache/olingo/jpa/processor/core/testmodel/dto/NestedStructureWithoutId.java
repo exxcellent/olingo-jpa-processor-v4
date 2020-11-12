@@ -12,7 +12,7 @@ import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
  *
  */
 @ODataDTO(attributeNaming = NamingStrategy.AsIs,
-    edmEntitySetName = "NestedStructures")
+edmEntitySetName = "NestedStructures")
 public class NestedStructureWithoutId {
 
   int levelCurrent = 1;
@@ -36,12 +36,12 @@ public class NestedStructureWithoutId {
       if (i == 0) {
         root = new NestedStructureWithoutId();
         root.levelCurrent = i + 1;
-        root.childDepth = numberOfLevels;
+        root.childDepth = numberOfLevels - 1;
         current = root;
       } else {
         tmp = new NestedStructureWithoutId();
         tmp.levelCurrent = i + 1;
-        tmp.childDepth = numberOfLevels - (i + 1);
+        tmp.childDepth = numberOfLevels - 1 - i;
         current.child = tmp;
         current = tmp;
       }

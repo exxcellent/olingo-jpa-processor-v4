@@ -743,18 +743,127 @@ public class TestJPAActions extends TestBase {
     // source name must be modified on server side
     assertNotEquals(sourceNameBefore, sourceSaved.get("Name").asText());
   }
-  
+
+  @Test
+  public void testActionHandlingEntityCollectionWithReusedEntityRelationshipWithMetadata() throws IOException,
+  ODataException,
+  NoSuchMethodException {
+    final URIBuilder uriBuilderCreate = newUriBuilder().appendActionCallSegment("createEntityCollection");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderCreate, null,
+        HttpMethod.POST);
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode sourcesCreated = simulatorCreate.getJsonObjectValues();
+    assertEquals(2, sourcesCreated.size());
+
+    final ObjectNode source1 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source1);
+    final ArrayNode targetsSource1 = source1.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource1.size());
+    final Number targetId = targetsSource1.get(0).get("ID").numberValue();
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget1 = targetsSource1.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget1.size());
+
+    final ObjectNode source2 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source2);
+    final ArrayNode targetsSource2 = source2.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource2.size());
+    assertEquals(targetId, targetsSource2.get(0).get("ID").numberValue());
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget2 = targetsSource2.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget2.size());
+  }
+
+  @Test
+  public void testActionHandlingEntityCollectionWithReusedEntityRelationshipWithoutMetadata() throws IOException,
+  ODataException,
+  NoSuchMethodException {
+    final URIBuilder uriBuilderCreate = newUriBuilder().appendActionCallSegment("createEntityCollection");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderCreate, null,
+        HttpMethod.POST);
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode sourcesCreated = simulatorCreate.getJsonObjectValues();
+    assertEquals(2, sourcesCreated.size());
+
+    final ObjectNode source1 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source1);
+    final ArrayNode targetsSource1 = source1.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource1.size());
+    final Number targetId = targetsSource1.get(0).get("ID").numberValue();
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget1 = targetsSource1.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget1.size());
+
+    final ObjectNode source2 = (ObjectNode) sourcesCreated.get(0);
+    assertNotNull(source2);
+    final ArrayNode targetsSource2 = source2.withArray("leftM2Ns");
+    // 1 shared target
+    assertEquals(1, targetsSource2.size());
+    assertEquals(targetId, targetsSource2.get(0).get("ID").numberValue());
+    // backlink must be empty
+    final ArrayNode backlingSourceTarget2 = targetsSource2.get(0).withArray("RightM2Ns");
+    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget2.size());
+
+    // now send back the shared target entity (must be merged on backend side)
+    final String sourceNameBefore = "client side modified source1 name";
+    source1.replace("Name", source1.textNode(sourceNameBefore));
+    final String saveBody = "{\"entities\": " + sourcesCreated.toString() + "}";
+    final URIBuilder uriBuilderSave = newUriBuilder().appendActionCallSegment("validateEntityCollection");
+    final ServerCallSimulator simulatorSave = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderSave, saveBody,
+        HttpMethod.POST);
+    simulatorSave.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorSave.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode sourcesSaved = simulatorSave.getJsonObjectValues();
+    assertNotNull(sourcesSaved);
+  }
+
+  @Test
+  public void testDetectionOfModifiedReusedEntityRelationship() throws IOException,
+  ODataException,
+  NoSuchMethodException {
+    final URIBuilder uriBuilderCreate = newUriBuilder().appendActionCallSegment("createEntityCollection");
+    final ServerCallSimulator simulatorCreate = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderCreate, null,
+        HttpMethod.POST);
+    simulatorCreate.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorCreate.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode sourcesCreated = simulatorCreate.getJsonObjectValues();
+    assertEquals(2, sourcesCreated.size());
+
+    // now modify shared target and send back the shared target entity (merge must be failing on backend side)
+    final ObjectNode sharedTargetOnSource1 = (ObjectNode) sourcesCreated.get(0).withArray("leftM2Ns").get(0);
+    sharedTargetOnSource1.replace("Name", sharedTargetOnSource1.textNode(
+        "client side modified target name on source 1"));
+    final String saveBody = "{\"entities\": " + sourcesCreated.toString() + "}";
+    final URIBuilder uriBuilderSave = newUriBuilder().appendActionCallSegment("validateEntityCollection");
+    final ServerCallSimulator simulatorSave = new ServerCallSimulator(persistenceAdapter,
+        uriBuilderSave, saveBody,
+        HttpMethod.POST);
+    simulatorSave.setRequestedResponseContentType(ContentType.JSON_NO_METADATA.toContentTypeString());
+    simulatorSave.execute(HttpStatusCode.CONFLICT.getStatusCode());
+  }
+
   @Test
   public void testBoundActionModifyingBusinessPartner() throws IOException, ODataException {
-    final URIBuilder uriBuilderResource = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(
-        "5");
+    assumeTrue("Hibernate cannot handle an abstract entity class as resource",
+        getJPAProvider() != JPAProvider.Hibernate);
+
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("  \"changedCityName\": \"MyCity\"");
     requestBody.append("}");
 
     // save changed BusinessPartner
-    final URIBuilder uriBuilderAction = uriBuilderResource.appendActionCallSegment(Constant.PUNIT_NAME
-        + ".modifyBusinessPartner");
+    final URIBuilder uriBuilderAction = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(
+        "5").appendActionCallSegment(Constant.PUNIT_NAME
+            + ".modifyBusinessPartner");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilderAction, requestBody.toString(), HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());

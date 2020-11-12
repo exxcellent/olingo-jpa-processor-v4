@@ -2,7 +2,6 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -165,12 +164,7 @@ public class JPAEntityHelper {
       case COLLECTION_ENTITY:
         final JPAEntityType jpaTypeCE = sd.getEntityType(jpaParameter.getTypeFQN());
         final EntityCollection odataEntities = (EntityCollection) p.getValue();
-        final List<Object> jpaEntities = new ArrayList<>(odataEntities.getEntities().size());
-        for (final Entity odataEntityCE : odataEntities) {
-          final Object jpaEntity = entityConverter.convertOData2JPAEntity(odataEntityCE, jpaTypeCE);
-          jpaEntities.add(jpaEntity);
-        }
-        args[i] = jpaEntities;
+        args[i] = entityConverter.convertOData2JPAEntity(odataEntities, jpaTypeCE);
         break;
       default:
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, p.getValueType().toString(),

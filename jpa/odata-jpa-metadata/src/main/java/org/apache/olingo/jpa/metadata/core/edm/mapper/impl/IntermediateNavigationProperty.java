@@ -23,6 +23,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
+import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
@@ -70,6 +71,7 @@ JPAAssociationAttribute {
   private JoinConfiguration joinConfiguration = null;
   private InitializationState initStateEdm = InitializationState.NotInitialized;
   private JPAAssociationAttribute bidirectionalOppositeAssociation = null;
+  private final Class<?> attributeClass;
 
   IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType<?> parent,
       final Attribute<?, ?> jpaAttribute,
@@ -80,6 +82,12 @@ JPAAssociationAttribute {
     this.sourceType = parent;
 
     this.setExternalName(nameBuilder.buildNaviPropertyName(jpaAttribute));
+
+    if (jpaAttribute.isCollection()) {
+      attributeClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
+    } else {
+      attributeClass = jpaAttribute.getJavaType();
+    }
 
     final AccessibleObject member = (AccessibleObject) jpaAttribute.getJavaMember();
     if (Field.class.isInstance(member)) {
@@ -170,6 +178,11 @@ JPAAssociationAttribute {
 
   @Override
   public JPAAssociationAttribute getBidirectionalOppositeAssociation() {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new IllegalStateException(e);
+    }
     return bidirectionalOppositeAssociation;
   }
 
@@ -208,7 +221,7 @@ JPAAssociationAttribute {
     try {
       initStateEdm = InitializationState.InProgress;
 
-      targetType = serviceDocument.getStructuredType(jpaAttribute);
+      targetType = (IntermediateStructuredType<?>) serviceDocument.getStructuredType(attributeClass);
       if (targetType == null) {
         LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
             + getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");

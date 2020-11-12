@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -43,6 +44,17 @@ public class RelationshipSourceEntity extends AbstractRelationshipEntity {
   }
 
 
+  public void addLeftM2Ns(final RelationshipTargetEntity leftM2NsEntry) {
+    if (leftM2Ns == null) {
+      leftM2Ns = new LinkedList<>();
+    }
+    leftM2Ns.add(leftM2NsEntry);
+    if (leftM2NsEntry.rightM2Ns == null) {
+      leftM2NsEntry.rightM2Ns = new LinkedList<>();
+    }
+    leftM2NsEntry.rightM2Ns.add(this);
+  }
+
   /**
    * @see #saveEntities(EntityManager, RelationshipSourceEntity)
    */
@@ -69,13 +81,60 @@ public class RelationshipSourceEntity extends AbstractRelationshipEntity {
       assert target.SOURCE != null;
       assert target.SOURCE == source;
     }
-    final Integer sourceId = source.getID();
     source.name = "server side modified created source name";
     // with existing id we have to 'merge' instead of 'persist'
-    em.merge(source);
-    // must not be overwritten
-    assert sourceId.equals(source.getID());
-    return source;
+    // in Hibernate merge will generate new id's!
+    final RelationshipSourceEntity merged = em.merge(source);
+    return merged;
+  }
+
+  /**
+   * Create 2 entities sharing the same target entity (m:n relationship)
+   */
+  @EdmAction
+  public static Collection<RelationshipSourceEntity> createEntityCollection(@Inject final EntityManager em) {
+    final RelationshipSourceEntity source1 = new RelationshipSourceEntity();
+    source1.name = "created source1 name";
+    // we need an ID, but cannot persist to auto generate
+    source1.setID(Integer.valueOf(Long.valueOf(System.currentTimeMillis()).intValue()));
+
+    final RelationshipSourceEntity source2 = new RelationshipSourceEntity();
+    source2.name = "created source2 name";
+    source2.setID(Integer.valueOf(source1.getID().intValue() + 1));
+
+    final RelationshipTargetEntity target = new RelationshipTargetEntity();
+    target.name = "created shared target name";
+    target.setID(Integer.valueOf(source1.getID().intValue() + 100));
+
+    source1.addLeftM2Ns(target);
+    source2.addLeftM2Ns(target);
+
+    return Arrays.asList(source1, source2);
+  }
+
+  /**
+   * @see #createEntityCollection(EntityManager)
+   */
+  @EdmAction
+  public static Collection<RelationshipSourceEntity> validateEntityCollection(@Inject final EntityManager em,
+      @EdmActionParameter(
+          name = "entities") final Collection<RelationshipSourceEntity> entities) {
+    RelationshipTargetEntity sharedTarget = null;
+    for (final RelationshipSourceEntity source : entities) {
+      assert source.leftM2Ns.size() == 1;
+
+      if (sharedTarget == null) {
+        sharedTarget = source.leftM2Ns.iterator().next();
+        //        final RelationshipTargetEntity mergedTarget = em.merge(sharedTarget);
+      } else {
+        // the id must be the same
+        final RelationshipTargetEntity second = source.leftM2Ns.iterator().next();
+        assert sharedTarget.getID().intValue() == second.getID().intValue();
+        // the instance should also be the same
+        assert sharedTarget == second;
+      }
+    }
+    return entities;
   }
 
 }

@@ -6,9 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.Metamodel;
-import javax.persistence.metamodel.PluralAttribute;
 
 import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.EdmFunction;
@@ -174,36 +172,6 @@ public class IntermediateServiceDocument {
       final AbstractJPASchema schema = schemaListInternalKey.get(action.getNamespace());
       if (schema != null) {
         return schema.getAction(action);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @see IntermediateMetamodelSchema#getStructuredType(Attribute)
-   * @deprecated Use {@link #getStructuredType(Class)}
-   */
-  @Deprecated
-  IntermediateStructuredType<?> getStructuredType(final Attribute<?, ?> jpaAttribute) {
-    synchronized (lock) {
-      Class<?> targetClass = null;
-      if (jpaAttribute.isCollection()) {
-        targetClass = ((PluralAttribute<?, ?, ?>) jpaAttribute).getElementType().getJavaType();
-      } else {
-        targetClass = jpaAttribute.getJavaType();
-      }
-      // do not resolve the on-demand schemas here; we have to avoid recursion
-      // problems and want to optimize performance
-      for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
-        // only the JPA meta model based schema can have the requested type of attribute
-        if (!IntermediateMetamodelSchema.class.isInstance(schema)) {
-          continue;
-        }
-        final IntermediateStructuredType<?> structuredType = (IntermediateStructuredType<?>) schema.getStructuredType(
-            targetClass);
-        if (structuredType != null) {
-          return structuredType;
-        }
       }
     }
     return null;

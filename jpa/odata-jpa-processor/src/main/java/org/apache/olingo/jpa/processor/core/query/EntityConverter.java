@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +10,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.persistence.EntityManager;
 
@@ -22,6 +25,7 @@ import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -30,6 +34,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.Pair;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
@@ -65,7 +70,7 @@ public class EntityConverter extends AbstractEntityConverter {
   @SuppressWarnings({ "null" })
   private Object convertODataBindingLink2JPAAssociationProperty(final Object targetJPAObject,
       final JPAAssociationAttribute association, final Entity odataOwnerEntity, final Link odataLink,
-      final Map<String, Object> mapId2Instance) throws ODataJPAModelException,
+      final Map<String, Pair<Entity, Object>> mapId2Instance) throws ODataJPAModelException,
   ODataJPAConversionException {
     if(odataLink==null) {
       return null;
@@ -86,7 +91,8 @@ public class EntityConverter extends AbstractEntityConverter {
       // for otherwise not existing base uri
       final String bindingId = odataOwnerEntity.getBaseURI() == null && bindingUri.startsWith("/") ? bindingUri
           .substring(1) : bindingUri;
-          final Object target = mapId2Instance.get(bindingId);
+      final Pair<?, Object> pair = mapId2Instance.get(bindingId);
+      final Object target = pair != null ? pair.getRight() : null;
           if(target == null) {
             throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.BINDING_LINK_NOT_RESOLVED,
                 bindingId, association.getExternalName());
@@ -107,7 +113,7 @@ public class EntityConverter extends AbstractEntityConverter {
 
   private Object convertODataNavigationLink2JPAAssociationProperty(final Object owningJPAInstance,
       final JPAAssociationAttribute association, final Link odataLink,
-      final Map<String, Object> mapId2Instance)
+      final Map<String, Pair<Entity, Object>> mapId2Instance)
           throws ODataJPAModelException,
           ODataJPAConversionException {
     if(odataLink==null) {
@@ -123,7 +129,7 @@ public class EntityConverter extends AbstractEntityConverter {
             .getType()));
         final Object associationTargetJPAInstance = convertOData2JPAEntityInternal(childEntity, jpaType,
             mapId2Instance);
-        manageBacklink(owningJPAInstance, association, associationTargetJPAInstance);
+        manageOData2JPABacklink(owningJPAInstance, association, associationTargetJPAInstance);
         list.add(associationTargetJPAInstance);
       }
       result = list;
@@ -136,49 +142,95 @@ public class EntityConverter extends AbstractEntityConverter {
       final JPAStructuredType jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(childEntity
           .getType()));
       result = convertOData2JPAEntityInternal(childEntity, jpaType, mapId2Instance);
-      manageBacklink(owningJPAInstance, association, result);
+      manageOData2JPABacklink(owningJPAInstance, association, result);
     }
     // assign to owner entity
     association.getAttributeAccessor().setPropertyValue(owningJPAInstance, result);
     return result;
   }
 
-  private void manageBacklink(final Object owningJPAInstance, final JPAAssociationAttribute association,
+  private void manageOData2JPABacklink(final Object owningJPAInstance, final JPAAssociationAttribute association,
       final Object associationTargetJPAInstance) throws ODataJPAModelException {
     final JPAAssociationAttribute associationBidirectionalOpposite = association.getBidirectionalOppositeAssociation();
     if (associationBidirectionalOpposite == null) {
       return;
     }
     if (associationBidirectionalOpposite.isCollection()) {
-      // we can currently handle only ...-2-One relationships
-      return;
-    }
-    // check presence of backlink or set it (if single value target only)
-    final Object backlinkValue = associationBidirectionalOpposite.getAttributeAccessor().getPropertyValue(
-        associationTargetJPAInstance);
-    if (backlinkValue == null) {
-      associationBidirectionalOpposite.getAttributeAccessor().setPropertyValue(associationTargetJPAInstance,
-          owningJPAInstance);
+      @SuppressWarnings("unchecked")
+      final Collection<Object> oppositeTargets = (Collection<Object>) associationBidirectionalOpposite
+      .getAttributeAccessor()
+      .getPropertyValue(associationTargetJPAInstance);
+      if (oppositeTargets == null) {
+        LOG.log(Level.FINE,
+            "Collection for backlink (" + "--[" + associationBidirectionalOpposite.getExternalName() + "]->"
+                + associationBidirectionalOpposite
+                .getTargetEntity().getExternalName() + ") is NULL, cannot manage backlink for you!");
+        return;
+      }
+      if (!oppositeTargets.contains(owningJPAInstance)) {
+        oppositeTargets.add(owningJPAInstance);
+      }
+    } else {
+      // check presence of backlink or set it (if single value target only)
+      final Object backlinkValue = associationBidirectionalOpposite.getAttributeAccessor().getPropertyValue(
+          associationTargetJPAInstance);
+      if (backlinkValue == null) {
+        associationBidirectionalOpposite.getAttributeAccessor().setPropertyValue(associationTargetJPAInstance,
+            owningJPAInstance);
+      }
     }
   }
 
   /**
+   * Convert a collection of OData entities into a JPA entities. This is the <b>preferred method</b> for collection
+   * because relationships between that entities can be handled properly.
+   */
+  public Collection<Object> convertOData2JPAEntity(final EntityCollection odataEntities,
+      final JPAStructuredType jpaEntityType)
+          throws ODataJPAModelException, ODataJPAConversionException {
+    final HashMap<String, Pair<Entity, Object>> cacheMap = new HashMap<>();
+    final List<Object> jpaEntities = new ArrayList<>(odataEntities.getEntities().size());
+    for (final Entity odataEntity : odataEntities) {
+      final Object jpaEntity = convertOData2JPAEntityInternal(odataEntity, jpaEntityType, cacheMap);
+      jpaEntities.add(jpaEntity);
+    }
+    return jpaEntities;
+  }
+
+  /**
    * Convert a OData entity into a JPA entity.
+   * @see #convertOData2JPAEntity(EntityCollection, JPAStructuredType)
    */
   public Object convertOData2JPAEntity(final Entity entity, final JPAStructuredType jpaEntityType)
       throws ODataJPAModelException, ODataJPAConversionException {
-    return convertOData2JPAEntityInternal(entity, jpaEntityType, new HashMap<String, Object>());
+    return convertOData2JPAEntityInternal(entity, jpaEntityType, new HashMap<String, Pair<Entity, Object>>());
+  }
+
+  /**
+   * Flat comparison to ensure that both entities contains the same values. That means the entities must have:
+   * <ul>
+   * <li>same id</li>
+   * <li>same number of properties and property values</li>
+   * <li>same number of links and link values</li>
+   * </ul>
+   */
+  private void checkEntitiesMustBeIdentical(final Entity a, final Entity b, final String errorId)
+      throws ODataJPAConversionException {
+    if (!Objects.equals(a, b)) {
+      throw new ODataJPAConversionException(HttpStatusCode.CONFLICT,
+          ODataJPAConversionException.MessageKeys.RUNTIME_PROBLEM, "Found shared instance for '" + errorId
+          + "', but is modified and cannot be merged");
+    }
   }
 
   private Object convertOData2JPAEntityInternal(final Entity entity, final JPAStructuredType jpaEntityType,
-      final Map<String, Object> mapId2Instance)
+      final Map<String, Pair<Entity, Object>> mapId2Instance)
           throws ODataJPAModelException, ODataJPAConversionException {
     if (!jpaEntityType.getExternalFQN().getFullQualifiedNameAsString().equals(entity.getType())) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE,
           jpaEntityType.getExternalFQN().getFullQualifiedNameAsString());
     }
     try {
-      final Object targetJPAInstance = newJPAInstance(jpaEntityType);
       URI id = entity.getId();
       if (id == null && JPAEntityType.class.isInstance(jpaEntityType)) {
         // try to create id on demand
@@ -189,9 +241,19 @@ public class EntityConverter extends AbstractEntityConverter {
           id = null;
         }
       }
-      if (id != null) {
-        mapId2Instance.put(id.toASCIIString(), targetJPAInstance);
+      final Object targetJPAInstance;
+      if (id == null) {
+        targetJPAInstance = newJPAInstance(jpaEntityType);
+      } else if (mapId2Instance.containsKey(id.toASCIIString())) {
+        // shared instance, optimize handling -> skip merging (take first created instance)
+        final Pair<Entity, Object> existing = mapId2Instance.get(id.toASCIIString());
+        checkEntitiesMustBeIdentical(entity, existing.getLeft(), id.toASCIIString());
+        return existing.getRight();
+      } else {
+        targetJPAInstance = newJPAInstance(jpaEntityType);
+        mapId2Instance.put(id.toASCIIString(), new Pair<Entity, Object>(entity, targetJPAInstance));
       }
+
       for (final JPAAttribute<?> jpaAttribute : jpaEntityType.getAttributes()) {
         transferOData2JPAProperty(targetJPAInstance, jpaAttribute, entity.getProperties());
       }
@@ -234,8 +296,14 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private Entity convertJPA2ODataEntityInternal(final JPAEntityType jpaType, final Object jpaEntity,
-      final Set<URI> processedEntities)
+  /**
+   *
+   * @param currentRelationship <code>null</code> for processing of an root/(initial) entry entity otherwise the
+   * <i>jpaEntity</i> will be the target of an relationship identified by <i>currentRelationship</i>.
+   */
+  private Entity convertJPA2ODataEntityInternal(final JPAAssociationAttribute currentRelationship,
+      final JPAEntityType jpaType, final Object jpaEntity,
+      final Set<URI> processedEntities, final JPAAssociationAttribute... processedRelationships)
           throws ODataJPAModelException, ODataJPAConversionException, EntityAsLinkException {
     final Entity odataEntity = new Entity();
     odataEntity.setType(jpaType.getExternalFQN().getFullQualifiedNameAsString());
@@ -262,13 +330,18 @@ public class EntityConverter extends AbstractEntityConverter {
     // id of entity must be set before relationships are processed
     odataEntity.setId(createId(odataEntity, jpaType, false));
 
+    if (isBacklinkOfProcessedRelationship(currentRelationship, processedRelationships)) {
+      // suppress created odata entity in response, use navigation link as representation instead
+      throw new EntityAsLinkException(odataEntity.getId());
+    }
+
     // break the loop?
     if (processedEntities.contains(odataEntity.getId())) {
       throw new EntityAsLinkException(odataEntity.getId());
     }
     processedEntities.add(odataEntity.getId());
 
-    // 2. convert complex types and relationships
+    // 2. convert other simple attributes, complex types and relationships
     for (final JPAMemberAttribute jpaAttribute : jpaType.getAttributes()) {
       if (jpaAttribute.isKey()) {
         // already processed
@@ -279,7 +352,8 @@ public class EntityConverter extends AbstractEntityConverter {
     }
 
     // Olingo JSON serializer seems to support only simple navigation links... no binding or association links
-    odataEntity.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(jpaType, jpaEntity, processedEntities));
+    odataEntity.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(jpaType, jpaEntity, processedEntities,
+        processedRelationships));
 
     return odataEntity;
   }
@@ -291,17 +365,51 @@ public class EntityConverter extends AbstractEntityConverter {
    */
   public Entity convertJPA2ODataEntity(final JPAEntityType jpaType, final Object jpaEntity)
       throws ODataJPAModelException, ODataJPAConversionException {
-    return convertJPA2ODataEntityInternal(jpaType, jpaEntity, new HashSet<URI>());
+    return convertJPA2ODataEntityInternal(null, jpaType, jpaEntity, new HashSet<URI>());
+  }
+
+  /**
+   *
+   * @return TRUE if <i>currentRelationship</i> is a relationship with the opposite direction (backlink aka inverse
+   * direction) for any relationship in the list of already processed relationships in <i>processedRelationships</i>
+   */
+  private boolean isBacklinkOfProcessedRelationship(final JPAAssociationAttribute currentRelationship,
+      final JPAAssociationAttribute... processedRelationships) {
+    if (currentRelationship == null || processedRelationships == null) {
+      return false;
+    }
+    for (final JPAAssociationAttribute entry : processedRelationships) {
+      final JPAAssociationAttribute backlink = entry.getBidirectionalOppositeAssociation();
+      if (backlink == null) {
+        continue;
+      }
+      if (backlink == currentRelationship) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static JPAAssociationAttribute[] appendArray(final JPAAssociationAttribute[] existingArray,
+      final JPAAssociationAttribute newElement) {
+    if (existingArray == null) {
+      return new JPAAssociationAttribute[] { newElement };
+    }
+    final Object result = Array.newInstance(JPAAssociationAttribute.class, existingArray.length + 1);
+    System.arraycopy(existingArray, 0, result, 0, existingArray.length);
+    Array.set(result, existingArray.length, newElement);
+    return (JPAAssociationAttribute[]) result;
   }
 
   private Collection<Link> convertJPAAssociations2ODataLinks(final JPAStructuredType jpaType, final Object jpaObject,
-      final Set<URI> processedEntities)
+      final Set<URI> processedEntities, final JPAAssociationAttribute... processedRelationships)
           throws ODataJPAModelException, ODataJPAConversionException {
     final List<Link> entityExpandLinks = new LinkedList<Link>();
-    for (final JPAAssociationAttribute jpaAttribute : jpaType.getAssociations()) {
-      final JPAAssociationPath assoziation = jpaType.getDeclaredAssociation(jpaAttribute.getExternalName());
-      final Object value = jpaAttribute.getAttributeAccessor().getPropertyValue(jpaObject);
-      if (!jpaAttribute.isAssociation()) {
+    for (final JPAAssociationAttribute relationship : jpaType.getAssociations()) {
+      final JPAAssociationAttribute[] processingPath = appendArray(processedRelationships, relationship);
+      final JPAAssociationPath assoziation = jpaType.getDeclaredAssociation(relationship.getExternalName());
+      final Object value = relationship.getAttributeAccessor().getPropertyValue(jpaObject);
+      if (!relationship.isAssociation()) {
         throw new IllegalStateException();
       }
       if (value == null || assoziation.getLeaf().isCollection() && ((Collection<?>) value).isEmpty()) {
@@ -315,30 +423,32 @@ public class EntityConverter extends AbstractEntityConverter {
         final EntityCollection expandCollection = new EntityCollection();
         for (final Object cEntry : ((Collection<?>) value)) {
           try {
-            final Entity expandEntity = convertJPA2ODataEntityInternal((JPAEntityType) jpaAttribute.getStructuredType(),
-                cEntry, processedEntities);
+            final Entity expandEntity = convertJPA2ODataEntityInternal(relationship, (JPAEntityType) relationship
+                .getStructuredType(),
+                cEntry, processedEntities, processingPath);
             if (expandEntity == null) {
               continue;
             }
             expandCollection.getEntities().add(expandEntity);
           } catch (final EntityAsLinkException e) {
+            // Olingo serializer will ignore these binding links without 'href'
             linkNavigation.getBindingLinks().add(e.getLink().toASCIIString());
             linkNavigation.setType(Constants.ENTITY_COLLECTION_BINDING_LINK_TYPE);
             isLinkValid = true;
           }
         } // for
-        if (expandCollection.getEntities().isEmpty()) {
-          continue;
+        if (!expandCollection.getEntities().isEmpty()) {
+          expandCollection.setCount(Integer.valueOf(expandCollection.getEntities().size()));
+          linkNavigation.setInlineEntitySet(expandCollection);
+          linkNavigation.setType(Constants.ENTITY_SET_NAVIGATION_LINK_TYPE);
+          isLinkValid = true;
         }
-        expandCollection.setCount(Integer.valueOf(expandCollection.getEntities().size()));
-        linkNavigation.setInlineEntitySet(expandCollection);
-        linkNavigation.setType(Constants.ENTITY_SET_NAVIGATION_LINK_TYPE);
-        isLinkValid = true;
       } else {
         // no collection -> 1:1
         try {
-          final Entity expandEntity = convertJPA2ODataEntityInternal((JPAEntityType) jpaAttribute.getStructuredType(),
-              value, processedEntities);
+          final Entity expandEntity = convertJPA2ODataEntityInternal(relationship, (JPAEntityType) relationship
+              .getStructuredType(),
+              value, processedEntities, processingPath);
           if (expandEntity == null) {
             continue;
           }

@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.apache.olingo.jpa</groupId>
     <artifactId>odata-jpa</artifactId>
-    <version>0.47.1</version>
+    <version>0.48.0</version>
   </parent>
   <artifactId>odata-jpa-annotation</artifactId>
   <name>OData-JPA-Adapter data model configuration API</name>

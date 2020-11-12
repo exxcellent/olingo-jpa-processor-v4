@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.47.1</version>
+	<version>0.48.0</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>
@@ -27,7 +27,7 @@
 		<javax.servlet.version>4.0.1</javax.servlet.version>
 		<eclipselink.version>2.7.7</eclipselink.version>
 		<openjpa.version>3.1.2</openjpa.version>
-		<hibernate.version>5.4.21.Final</hibernate.version>
+		<hibernate.version>5.4.23.Final</hibernate.version>
 	</properties>
 
 	<modules>
