@@ -27,7 +27,7 @@ import org.junit.Test;
 
 public class TestJPAVisitor {
 
-  private JPAEntityFilterProcessor compiler;
+  private JPAEntityFilterProcessor<?> compiler;
   private FilterContextQueryBuilderIfc query;
   private JPAVisitor cut;
   private AbstractJPADatabaseProcessor converter;

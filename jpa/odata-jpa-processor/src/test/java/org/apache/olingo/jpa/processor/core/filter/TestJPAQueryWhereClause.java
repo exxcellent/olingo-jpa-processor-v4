@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
-  public void testFilterNullValue() throws IOException, ODataException {
+  public void testFilterLeftEqualsNullValue() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "AlternativeCode eq null");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
@@ -28,7 +28,39 @@ public class TestJPAQueryWhereClause extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertTrue(orgs.size() > 0);
+  }
 
+  @Test
+  public void testFilterNullEqualsRightValue() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "null eq AlternativeCode");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertTrue(orgs.size() > 0);
+  }
+
+  @Test
+  public void testFilterLeftNotEqualsNullValue() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "ParentDivisionCode ne null");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertTrue(orgs.size() > 0);
+  }
+
+  @Test
+  public void testFilterNullNotEqualsRightValue() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "null ne ParentDivisionCode");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertTrue(orgs.size() > 0);
   }
 
   @Test
@@ -104,9 +136,8 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterOneGreaterEqualsString() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$filter=ID ge '5'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("ID ge '5'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -115,9 +146,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterOneLowerThanTwoProperties() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions?$filter=DivisionCode lt CountryCode");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
+        "DivisionCode lt CountryCode");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();

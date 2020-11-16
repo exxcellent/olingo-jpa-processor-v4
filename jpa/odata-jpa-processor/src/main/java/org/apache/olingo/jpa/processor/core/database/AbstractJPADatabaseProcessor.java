@@ -136,7 +136,13 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
         return cb.equal(operand1, operand2);
       }
     case NE:
-      return cb.notEqual(operand1, operand2);
+      if (operand1 == null) {
+        return cb.isNotNull(operand2);
+      } else if (operand2 == null) {
+        return cb.isNotNull(operand1);
+      } else {
+        return cb.notEqual(operand1, operand2);
+      }
     case GE:
       return cb.greaterThanOrEqualTo(operand1, operand2);
     case GT:

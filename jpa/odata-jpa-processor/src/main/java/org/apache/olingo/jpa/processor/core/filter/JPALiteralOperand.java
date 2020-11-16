@@ -122,12 +122,13 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
 
   /**
    * Converts a literal value into system type of attribute
+   * @return An expression or <code>null</code> in case of {@link #isNullLiteral() null} literal of OData.
    */
   public Expression<Object> getLiteralExpression(final JPATypedElement attribute)
       throws ODataApplicationException {
 
     if (isNullLiteral()) {
-      return wrapIntoExpression(null);
+      return null;
     }
     if (attribute.getType().isEnum()) {
       final Enum<?> enumValue = getEnumValue(attribute);
