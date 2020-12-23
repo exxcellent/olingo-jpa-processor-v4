@@ -1,6 +1,5 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -24,6 +23,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.geo.SRID;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
@@ -33,7 +33,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediatePropertyAccess;
 
 /**
  * A Property is described on the one hand by its Name and Type and on the other hand by its Property Facets. The
@@ -50,7 +49,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateProp
  * @author Oliver Grande
  *
  */
-class IntermediateProperty extends AbstractProperty implements IntermediatePropertyAccess, JPAMemberAttribute {
+class IntermediateProperty extends AbstractProperty<CsdlProperty> implements JPAMemberAttribute {
 
   private final static Logger LOG = Logger.getLogger(IntermediateProperty.class.getName());
   private static final String DB_FIELD_NAME_PATTERN = "\"&1\"";
@@ -101,19 +100,14 @@ class IntermediateProperty extends AbstractProperty implements IntermediatePrope
     buildProperty(nameBuilder);
   }
 
-  Member getJavaMember() {
-    return javaMember;
-  }
-
   @Override
   public JPAAttributeAccessor getAttributeAccessor() {
     return accessor;
   }
 
   @Override
-  public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-    final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(jpaAttribute);
-    return annotatedElement == null ? null : annotatedElement.getAnnotation(annotationClass);
+  public AnnotatedElement getAnnotatedElement() {
+    return determineRealPropertyDeclarationElement(jpaAttribute);
   }
 
   @Override
@@ -181,7 +175,8 @@ class IntermediateProperty extends AbstractProperty implements IntermediatePrope
     return isCollection;
   }
 
-  boolean isStream() {
+  @Override
+  final boolean isStream() {
     return (streamInfo != null);
   }
 
@@ -289,10 +284,13 @@ class IntermediateProperty extends AbstractProperty implements IntermediatePrope
     return null;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlProperty getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlProperty getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmProperty;
   }
 
@@ -391,44 +389,28 @@ class IntermediateProperty extends AbstractProperty implements IntermediatePrope
   }
 
   @Override
-  public CsdlProperty getProperty() throws ODataJPAModelException {
+  public CsdlProperty getProperty() throws ODataRuntimeException {
     return getEdmItem();
   }
 
   @Override
   public Integer getMaxLength() {
-    try {
-      return getProperty().getMaxLength();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().getMaxLength();
   }
 
   @Override
   public Integer getPrecision() {
-    try {
-      return getProperty().getPrecision();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().getPrecision();
   }
 
   @Override
   public Integer getScale() {
-    try {
-      return getProperty().getScale();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().getScale();
   }
 
   @Override
   public boolean isNullable() {
-    try {
-      return getProperty().isNullable();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().isNullable();
   }
 
   @Override

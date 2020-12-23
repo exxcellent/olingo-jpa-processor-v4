@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -43,6 +45,8 @@ public class EnvironmentInfo {
 
   private final Collection<SystemRequirement> systemRequirements = new ArrayList<>();
 
+  private final Map<String, Collection<Integer>> mapOfNumberCollections = new HashMap<>();
+
   private EnvironmentInfo aliasEnvironment = null;
 
   public EnvironmentInfo() {
@@ -52,6 +56,8 @@ public class EnvironmentInfo {
   EnvironmentInfo(final String javaVersion, final Collection<String> envNames) {
     this.javaVersion = javaVersion;
     this.envNames.addAll(envNames);
+    mapOfNumberCollections.put("numberOfEnv", Collections.singletonList(Integer.valueOf(envNames.size())));
+    mapOfNumberCollections.put("NullTest", null);
   }
 
   public void setJavaVersion(final String jv) {
@@ -76,6 +82,10 @@ public class EnvironmentInfo {
 
   public EnvironmentInfo getAliasEnvironment() {
     return aliasEnvironment;
+  }
+
+  public Map<String, Collection<Integer>> getMapOfNumberCollections() {
+    return mapOfNumberCollections;
   }
 
   /**

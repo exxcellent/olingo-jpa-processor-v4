@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumMember;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.generator.api.client.generatorclassloader.LogWrapper;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
@@ -77,8 +78,8 @@ public class IntermediateModelGenerator {
         generate4Type(entry.getKey(), et, generateProtocolCode);
       }
     }
-    for (final Map.Entry<AbstractJPASchema, List<IntermediateComplexType>> entry : getComplexTypes().entrySet()) {
-      for (final IntermediateComplexType ct : entry.getValue()) {
+    for (final Map.Entry<AbstractJPASchema, List<JPAComplexType>> entry : getComplexTypes().entrySet()) {
+      for (final JPAComplexType ct : entry.getValue()) {
         if (ct.ignore()) {
           continue;
         }
@@ -129,11 +130,11 @@ public class IntermediateModelGenerator {
     return map;
   }
 
-  private Map<AbstractJPASchema, List<IntermediateComplexType>> getComplexTypes() {
-    final Map<AbstractJPASchema, List<IntermediateComplexType>> map = new HashMap<>();
+  private Map<AbstractJPASchema, List<JPAComplexType>> getComplexTypes() {
+    final Map<AbstractJPASchema, List<JPAComplexType>> map = new HashMap<>();
     final Collection<AbstractJPASchema> schemas = isd.getJPASchemas();
     for (final AbstractJPASchema s : schemas) {
-      final List<IntermediateComplexType> types = new LinkedList<>();
+      final List<JPAComplexType> types = new LinkedList<>();
       types.addAll(s.getComplexTypes());
       map.put(s, types);
     }

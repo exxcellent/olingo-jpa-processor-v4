@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -27,7 +28,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
   }
 
   @Override
-  public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+  public AnnotatedElement getAnnotatedElement() {
     // currently not supported
     return null;
   }
@@ -113,8 +114,12 @@ class ActionResultParameter implements JPAOperationResultParameter {
         .getGenericReturnType(), isCollection());
   }
 
-  CsdlReturnType getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlReturnType getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return returnType;
   }
 

@@ -91,6 +91,7 @@ public class TestDTOs extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"EnvNames\": [\"envA\"], ");
     requestBody.append("\"JavaVersion\": \"0.0.ex\", ");
+    requestBody.append("\"MapOfNumberCollections\": {\"NullTest\": null, \"numberOfEnv\": [0, 1]},");
     requestBody.append("\"Id\": " + sId);
     requestBody.append("}");
 

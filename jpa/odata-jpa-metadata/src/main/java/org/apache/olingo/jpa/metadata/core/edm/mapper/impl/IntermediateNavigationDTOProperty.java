@@ -3,8 +3,13 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
@@ -18,7 +23,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediateNavigationDTOProperty extends AbstractProperty implements JPAAssociationAttribute {
+class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
 
   private CsdlNavigationProperty edmNaviProperty;
   private JPAStructuredType targetType;
@@ -49,7 +54,7 @@ class IntermediateNavigationDTOProperty extends AbstractProperty implements JPAA
   }
 
   @Override
-  public CsdlNavigationProperty getProperty() throws ODataJPAModelException {
+  public CsdlNavigationProperty getProperty() throws ODataRuntimeException {
     return getEdmItem();
   }
 
@@ -168,11 +173,39 @@ class IntermediateNavigationDTOProperty extends AbstractProperty implements JPAA
 
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlNavigationProperty getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlNavigationProperty getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmNaviProperty;
+  }
+
+  @Override
+  boolean isStream() {
+    return false;
+  }
+
+  @Override
+  List<IntermediateJoinColumn> getSourceJoinColumns() throws ODataJPAModelException {
+    return Collections.emptyList();
+  }
+
+  @Override
+  List<IntermediateJoinColumn> getTargetJoinColumns() throws ODataJPAModelException {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public boolean doesUseJoinTable() {
+    return false;
+  }
+
+  @Override
+  PersistentAttributeType getJoinCardinality() throws ODataJPAModelException {
+    return null;
   }
 
 }

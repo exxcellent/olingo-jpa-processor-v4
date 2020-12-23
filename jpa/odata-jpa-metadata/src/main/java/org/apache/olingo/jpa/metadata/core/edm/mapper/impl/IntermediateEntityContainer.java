@@ -10,6 +10,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
@@ -22,7 +23,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Oliver Grande
  *
  */
-class IntermediateEntityContainer extends IntermediateModelElement {
+class IntermediateEntityContainer extends IntermediateModelElement<CsdlEntityContainer> {
   private final IntermediateServiceDocument serviceDocument;
   private CsdlEntityContainer edmContainer;
 
@@ -47,10 +48,13 @@ class IntermediateEntityContainer extends IntermediateModelElement {
     // TODO Singleton
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlEntityContainer getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlEntityContainer getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmContainer;
   }
 

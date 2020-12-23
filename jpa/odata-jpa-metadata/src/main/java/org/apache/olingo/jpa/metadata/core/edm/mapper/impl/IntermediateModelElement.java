@@ -3,21 +3,20 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-abstract class IntermediateModelElement implements JPAElement {
+abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> implements JPAElement {
 
   protected static enum InitializationState {
     NotInitialized, InProgress, Initialized;
@@ -68,13 +67,17 @@ abstract class IntermediateModelElement implements JPAElement {
 
   protected abstract void lazyBuildEdmItem() throws ODataJPAModelException;
 
+  /**
+   * @deprecated User direct transformations
+   */
+  @Deprecated
   @SuppressWarnings("unchecked")
   protected static <T> List<?> extractEdmModelElements(
-      final Map<String, ? extends IntermediateModelElement> mappingBuffer) throws ODataJPAModelException {
+      final Map<String, ? extends IntermediateModelElement<?>> mappingBuffer) throws ODataJPAModelException {
     final List<T> extractionTarget = new ArrayList<T>(mappingBuffer.size());
     for (final String externalName : mappingBuffer.keySet()) {
-      if (!((IntermediateModelElement) mappingBuffer.get(externalName)).toBeIgnored) {
-        final IntermediateModelElement element = mappingBuffer.get(externalName);
+      if (!((IntermediateModelElement<?>) mappingBuffer.get(externalName)).toBeIgnored) {
+        final IntermediateModelElement<?> element = mappingBuffer.get(externalName);
         final CsdlAbstractEdmItem edmElement = element.getEdmItem();
         if (!element.ignore()) {
           extractionTarget.add((T) edmElement);
@@ -83,18 +86,6 @@ abstract class IntermediateModelElement implements JPAElement {
     }
     return extractionTarget;
     // return returnNullIfEmpty(extractionTarget);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T extends CsdlAbstractEdmItem> List<T> extractEdmModelElements(
-      final Collection<? extends IntermediateModelElement> intermediateElements) {
-    return intermediateElements.stream().map(entry -> {
-      try {
-        return (T)entry.getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
   }
 
   protected static <T> List<T> returnNullIfEmpty(final List<T> list) {
@@ -142,7 +133,11 @@ abstract class IntermediateModelElement implements JPAElement {
     throw new UnsupportedOperationException(type.getTypeName());
   }
 
+  /**
+   * @deprecated Use more specialized methods...
+   */
   // FIXME remove checked exception ,because method is called at runtime and not at startup, so we have to avoid checked
   // exception for that late calls
-  abstract <CDSLType extends CsdlAbstractEdmItem> CDSLType getEdmItem() throws ODataJPAModelException;
+  @Deprecated
+  abstract CDSLType getEdmItem() throws ODataRuntimeException;
 }

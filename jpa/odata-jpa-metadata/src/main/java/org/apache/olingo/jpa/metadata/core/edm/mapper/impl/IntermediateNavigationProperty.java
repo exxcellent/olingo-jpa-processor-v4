@@ -30,6 +30,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDelete;
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
@@ -50,8 +51,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavi
  * @author Oliver Grande
  *
  */
-class IntermediateNavigationProperty extends AbstractProperty implements IntermediateNavigationPropertyAccess,
-JPAAssociationAttribute {
+class IntermediateNavigationProperty extends AbstractNavigationProperty implements
+IntermediateNavigationPropertyAccess {
 
   private static class JoinConfiguration {
     private final List<IntermediateJoinColumn> sourceJoinColumns = new LinkedList<IntermediateJoinColumn>();
@@ -64,8 +65,8 @@ JPAAssociationAttribute {
   private final Attribute<?, ?> jpaAttribute;
   private CsdlNavigationProperty edmNaviProperty;
   private CsdlOnDelete edmOnDelete;
-  private final IntermediateStructuredType<?> sourceType;
-  private IntermediateStructuredType<?> targetType;
+  private final AbstractStructuredTypeJPA<?, ?> sourceType;
+  private AbstractStructuredTypeJPA<?, ?> targetType;
   private final IntermediateServiceDocument serviceDocument;
   private final JPAAttributeAccessor accessor;
   private JoinConfiguration joinConfiguration = null;
@@ -73,7 +74,7 @@ JPAAssociationAttribute {
   private JPAAssociationAttribute bidirectionalOppositeAssociation = null;
   private final Class<?> attributeClass;
 
-  IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final IntermediateStructuredType<?> parent,
+  IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final AbstractStructuredTypeJPA<?, ?> parent,
       final Attribute<?, ?> jpaAttribute,
       final IntermediateServiceDocument serviceDocument) {
     super(nameBuilder, jpaAttribute.getName());
@@ -121,7 +122,7 @@ JPAAssociationAttribute {
   }
 
   @Override
-  public CsdlNavigationProperty getProperty() throws ODataJPAModelException {
+  public CsdlNavigationProperty getProperty() throws ODataRuntimeException {
     return getEdmItem();
   }
 
@@ -221,7 +222,7 @@ JPAAssociationAttribute {
     try {
       initStateEdm = InitializationState.InProgress;
 
-      targetType = (IntermediateStructuredType<?>) serviceDocument.getStructuredType(attributeClass);
+      targetType = (AbstractStructuredTypeJPA<?, ?>) serviceDocument.getStructuredType(attributeClass);
       if (targetType == null) {
         LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
             + getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
@@ -278,7 +279,7 @@ JPAAssociationAttribute {
 
       // TODO determine ContainsTarget
 
-      if (sourceType instanceof IntermediateEntityType && targetType != null) {
+      if (sourceType instanceof IntermediateEntityTypeJPA && targetType != null) {
         // Partner Attribute must not be defined at Complex Types.
         // JPA bi-directional associations are defined at both sides, e.g.
         // at the BusinessPartner and at the Roles. JPA only defines the
@@ -326,8 +327,8 @@ JPAAssociationAttribute {
 
 
   private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> sourceJpaAttribute,
-      final String mappedBy, final IntermediateStructuredType<?> sourceType,
-      final IntermediateStructuredType<?> targetType)
+      final String mappedBy, final AbstractStructuredTypeJPA<?, ?> sourceType,
+      final AbstractStructuredTypeJPA<?, ?> targetType)
           throws ODataJPAModelException {
     final String relationshipLabel = sourceType.getInternalName().concat("#").concat(sourceJpaAttribute.getName());
     final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(sourceJpaAttribute);
@@ -386,8 +387,8 @@ JPAAssociationAttribute {
   }
 
   private static void handleJoinColumnsMappedByOfTarget(final JoinConfiguration joinConfiguration,
-      final Attribute<?, ?> oppositeJpaAttribute, final IntermediateStructuredType<?> oppositeType,
-      final IntermediateStructuredType<?> originalRelationshipStartingType) throws ODataJPAModelException {
+      final Attribute<?, ?> oppositeJpaAttribute, final AbstractStructuredTypeJPA<?, ?> oppositeType,
+      final AbstractStructuredTypeJPA<?, ?> originalRelationshipStartingType) throws ODataJPAModelException {
 
     // take all informations from the other end of relationship (switch source and
     // target)
@@ -489,6 +490,7 @@ JPAAssociationAttribute {
    *
    * @return TRUE if a @JoinTable annotation was found
    */
+  @Override
   public boolean doesUseJoinTable() {
     return joinConfiguration.useJoinTable;
   }
@@ -515,13 +517,12 @@ JPAAssociationAttribute {
       if (pair == null) {
         continue;
       }
-      final IntermediateModelElement sP = sourceType
-          .getPropertyByDBField(pair.left);
+      final JPAMemberAttribute sP = sourceType.getPropertyByDBField(pair.getLeft());
       if (sP == null) {
         // may happen if source db field is part of an @EmbeddedId
         // may happen if relationship join column is not mapped as separate property
         final ODataJPAModelException ex = new ODataJPAModelException(
-            ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(), pair.left,
+            ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(), pair.getLeft(),
             sourceType.getExternalName());
         LOG.log(Level.FINER, ex.getMessage());
         continue;
@@ -531,13 +532,13 @@ JPAAssociationAttribute {
       if (sP.ignore()) {
         continue;
       }
-      final IntermediateModelElement tP = targetType.getPropertyByDBField(pair.right);
+      final JPAMemberAttribute tP = targetType.getPropertyByDBField(pair.getRight());
       if (tP == null) {
         // may happen if target db field is part of an @EmbeddedId
         // may happen for inverted join columns from 'mappedBy' having now an not set
         // 'referencedColumnName'
         final ODataJPAModelException ex = new ODataJPAModelException(
-            ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(), pair.right,
+            ODataJPAModelException.MessageKeys.REFERENCED_PROPERTY_NOT_FOUND, getInternalName(), pair.getRight(),
             targetType.getExternalName());
         LOG.log(Level.FINER, ex.getMessage());
         continue;
@@ -592,13 +593,17 @@ JPAAssociationAttribute {
     return new Pair<String, String>(left, right);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlNavigationProperty getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlNavigationProperty getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmNaviProperty;
   }
 
+  @Override
   PersistentAttributeType getJoinCardinality() throws ODataJPAModelException {
     return jpaAttribute.getPersistentAttributeType();
   }
@@ -608,6 +613,7 @@ JPAAssociationAttribute {
    * @return The list of columns (aka attributes) of the source entity to select
    *         for this relationship in a JOIN
    */
+  @Override
   List<IntermediateJoinColumn> getSourceJoinColumns() throws ODataJPAModelException {
     lazyBuildEdmItem();
     return joinConfiguration.sourceJoinColumns;
@@ -620,6 +626,7 @@ JPAAssociationAttribute {
    *         {@link #doesUseJoinTable() join table}. The result will
    *         <code>null</code> if no join table is used.
    */
+  @Override
   List<IntermediateJoinColumn> getTargetJoinColumns() throws ODataJPAModelException {
     lazyBuildEdmItem();
     return joinConfiguration.targetJoinColumns;
@@ -636,7 +643,7 @@ JPAAssociationAttribute {
    * set
    */
   private static Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(
-      final String relationshipName, final IntermediateStructuredType<?> targetType)
+      final String relationshipName, final AbstractStructuredTypeJPA<?, ?> targetType)
           throws ODataJPAModelException {
     final List<JPAMemberAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
     final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());
@@ -674,5 +681,10 @@ JPAAssociationAttribute {
       }
     }
     return null;
+  }
+
+  @Override
+  boolean isStream() {
+    return false;
   }
 }

@@ -32,7 +32,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
   @Test
   public void checkComplexTypeCanBeCreated() throws ODataJPAModelException {
 
-    new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType("CommunicationData"),
+    new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType("CommunicationData"),
         serviceDocument);
   }
 
@@ -47,19 +47,18 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertiesSkipIgnored() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
-        "CommunicationData"),
-        serviceDocument);
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+        "CommunicationData"), serviceDocument);
     // one attribute is ignored, so we should have 3 public entries
     assertEquals("Wrong number of declared attributes", 4, ct.getSimpleAttributePathMap().size());
-    assertEquals("Wrong number of attributes", 3, ct.getAttributes().size());
+    assertEquals("Wrong number of attributes", 3, ct.getAttributes(true).size());
     assertEquals("Wrong number of properties", 3, ct.getEdmItem().getProperties().size());
     assertEquals("Wrong number of paths", 3, ct.getPathList().size());
   }
 
   @Test
   public void checkGetPropertyByNameNotNull() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "CommunicationData"),
         serviceDocument);
     assertNotNull(ct.getEdmItem().getProperty("LandlinePhoneNumber"));
@@ -67,7 +66,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertyByNameCorrectEntity() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "CommunicationData"),
         serviceDocument);
     assertEquals("LandlinePhoneNumber", ct.getEdmItem().getProperty("LandlinePhoneNumber").getName());
@@ -75,7 +74,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertyIsNullable() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     // In case nullable = true, nullable is not past to $metadata, as this is the default
@@ -84,7 +83,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetAllNaviProperties() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     assertEquals("Wrong number of properties", 1, ct.getEdmItem().getNavigationProperties().size());
@@ -92,7 +91,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetNaviPropertyByNameNotNull() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     assertNotNull(ct.getEdmItem().getNavigationProperty("AdministrativeDivision").getName());
@@ -100,7 +99,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetNaviPropertyByNameRightEntity() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     assertEquals("AdministrativeDivision", ct.getEdmItem().getNavigationProperty("AdministrativeDivision").getName());
@@ -109,7 +108,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
   @Ignore("countryName is currently commented out")
   @Test
   public void checkGetDescriptionPropertyManyToOne() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     assertNotNull(ct.getEdmItem().getProperty("CountryName"));
@@ -118,7 +117,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
   @Ignore("regionName is currently commented out")
   @Test
   public void checkGetDescriptionPropertyManyToMany() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     assertNotNull(ct.getEdmItem().getProperty("RegionName"));
@@ -127,16 +126,16 @@ public class TestIntermediateComplexType extends TestMappingRoot {
   @Ignore("countryName is currently commented out")
   @Test
   public void checkDescriptionPropertyType() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     ct.getEdmItem();
-    assertTrue(ct.getProperty("countryName") instanceof IntermediateProperty);
+    assertTrue(ct.getAttribute("countryName") instanceof IntermediateProperty);
   }
 
   @Test
   public void checkGetPropertyOfNestedComplexType() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "AdministrativeInformation"),
         serviceDocument);
     assertNotNull(ct.getPath("Created/By"));
@@ -144,7 +143,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertyDBName() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
     assertEquals("\"Address.PostOfficeBox\"", ((JPAAttributePath) ct.getPath("POBox")).getDBFieldName());
@@ -152,7 +151,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertyDBNameOfNestedComplexType() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "AdministrativeInformation"),
         serviceDocument);
     assertEquals("\"by\"", ((JPAAttributePath) ct.getPath("Created/By")).getDBFieldName());
@@ -160,7 +159,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertyWithComplexType() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "AdministrativeInformation"),
         serviceDocument);
     assertNotNull(ct.getEdmItem().getProperty("Created"));
@@ -168,16 +167,16 @@ public class TestIntermediateComplexType extends TestMappingRoot {
 
   @Test
   public void checkGetPropertiesWithSameComplexTypeNotEqual() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         AdministrativeInformation.class.getSimpleName()),
         serviceDocument);
     assertNotEquals(ct.getEdmItem().getProperty("Created"), ct.getEdmItem().getProperty("Updated"));
-    assertNotEquals(ct.getProperty("created"), ct.getProperty("updated"));
+    assertNotEquals(ct.getAttribute("created"), ct.getAttribute("updated"));
   }
 
   @Test
   public void checkComplexTypeWithAsIsAttributeNames() throws ODataJPAModelException {
-    final IntermediateComplexType ct = new IntermediateComplexType(new JPAEdmNameBuilder(PUNIT_NAME),
+    final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME),
         getEmbeddedableType(
             Phone.class.getSimpleName()),
         serviceDocument);

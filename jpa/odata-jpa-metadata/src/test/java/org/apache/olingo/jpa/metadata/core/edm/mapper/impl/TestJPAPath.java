@@ -17,7 +17,7 @@ public class TestJPAPath extends TestMappingRoot {
   @Before
   public void setup() throws ODataJPAModelException {
     helper = new TestHelper(emf.getMetamodel(), PUNIT_NAME);
-    organization = new IntermediateEntityType(new JPAEdmNameBuilder(PUNIT_NAME), helper.getEntityType(
+    organization = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), helper.getEntityType(
         "Organization"), helper.getEdmProvider().getServiceDocument());
   }
 

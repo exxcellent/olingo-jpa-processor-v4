@@ -6,6 +6,7 @@ import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -62,18 +63,40 @@ public abstract class AbstractJPASchema implements JPAElement {
 
   abstract List<JPAEntityType> getEntityTypes();
 
-  abstract List<IntermediateComplexType> getComplexTypes();
+  abstract List<JPAComplexType> getComplexTypes();
 
   abstract List<IntermediateEnumType> getEnumTypes();
 
   abstract List<JPAEntitySet> getEntitySets();
-  
-  abstract IntermediateComplexType getComplexType(final Class<?> targetClass);
+
+  abstract JPAComplexType getComplexType(final Class<?> targetClass);
+
+  abstract JPAComplexType getComplexType(String externalName);
 
   /**
    *
    * @return The type descriptor or <code>null</code> of {@link #getEntityType(Class) entity} or
    * {@link #getComplexType(Class) complex} types.
    */
-  abstract JPAStructuredType getStructuredType(final Class<?> typeClass);
+  final JPAStructuredType getStructuredType(final Class<?> typeClass) {
+    final JPAEntityType eType = getEntityType(typeClass);
+    if (eType != null) {
+      return eType;
+    }
+    return getComplexType(typeClass);
+  }
+
+  /**
+   *
+   * @return The type descriptor or <code>null</code> of {@link #getEntityType(String) entity} or
+   * {@link #getComplexType(String) complex} types.
+   */
+  final JPAStructuredType getStructuredType(final String externalName) {
+    final JPAEntityType eType = getEntityType(externalName);
+    if (eType != null) {
+      return eType;
+    }
+    return getComplexType(externalName);
+  }
+
 }

@@ -18,9 +18,9 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPANavigationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
@@ -222,7 +222,7 @@ abstract class AbstractQueryBuilder {
     if (path == null) {
       return;
     }
-    if (!JPATypedElement.class.isInstance(jpaPathElement)) {
+    if (!JPAParameterizedElement.class.isInstance(jpaPathElement)) {
     }
     if (jpaPathElement.isCollection()) {
       return;
@@ -245,9 +245,17 @@ abstract class AbstractQueryBuilder {
     if (st == null) {
       return;
     }
-    final JPATypedElement attribute = JPATypedElement.class.cast(jpaPathElement);
-    final AttributeOverrides overrides = attribute.getAnnotation(AttributeOverrides.class);
-    final AttributeOverride override = attribute.getAnnotation(AttributeOverride.class);
+    final JPAParameterizedElement attribute = JPAParameterizedElement.class.cast(jpaPathElement);
+    final AttributeOverrides overrides;
+    final AttributeOverride override;
+    if (attribute.getAnnotatedElement() != null) {
+      overrides = attribute.getAnnotatedElement().getAnnotation(AttributeOverrides.class);
+      override = attribute.getAnnotatedElement().getAnnotation(AttributeOverride.class);
+    } else {
+      overrides = null;
+      override = null;
+    }
+
     AttributeOverride[] arrDefs;
     if (overrides != null) {
       arrDefs = overrides.value();

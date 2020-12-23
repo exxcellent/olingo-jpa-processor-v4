@@ -20,9 +20,9 @@ import javax.persistence.TupleElement;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPADescribedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
@@ -403,9 +403,9 @@ public class ExcelConverter {
       final JPAAttribute<?> targetAttribute, final Object value) {
     final EdmPrimitiveTypeKind kindOfCell = determineCellRepresentation(entityType, attributePath, targetAttribute);
     Object odataValue;
-    if (JPATypedElement.class.isInstance(targetAttribute)) {
+    if (JPADescribedElement.class.isInstance(targetAttribute)) {
       try {
-        odataValue = CONVERTER.convertJPA2ODataPrimitiveValue((JPATypedElement) targetAttribute, value);
+        odataValue = CONVERTER.convertJPA2ODataPrimitiveValue((JPADescribedElement) targetAttribute, value);
       } catch (ODataJPAConversionException | ODataJPAModelException e) {
         // do not convert
         LOG.log(Level.FINER, "Problem converting attribute value for Excel export: " + targetAttribute
@@ -425,9 +425,9 @@ public class ExcelConverter {
    */
   protected EdmPrimitiveTypeKind determineCellRepresentation(final JPAEntityType entityType, final String attributePath,
       final JPAAttribute<?> targetAttribute) {
-    if (JPATypedElement.class.isInstance(targetAttribute)) {
+    if (JPADescribedElement.class.isInstance(targetAttribute)) {
       try {
-        return TypeMapping.convertToEdmSimpleType((JPATypedElement) targetAttribute);
+        return TypeMapping.convertToEdmSimpleType((JPADescribedElement) targetAttribute);
       } catch (final ODataJPAModelException e) {
         // ignore -> use default
         return EdmPrimitiveTypeKind.String;

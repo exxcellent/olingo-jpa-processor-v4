@@ -34,17 +34,11 @@ public interface JPAEntityType extends JPAStructuredType {
 
   public JPAAttributePath getStreamAttributePath() throws ODataJPAModelException;
 
-  /**
-   *
-   * @return Name of the database table
-   */
-  public String getTableName();
-
   public boolean hasEtag() throws ODataJPAModelException;
 
   public boolean hasStream() throws ODataJPAModelException;
 
-  public List<JPAAttributePath> searchChildPath(JPASelector selectItemPath);
+  public List<JPASelector> searchChildPath(JPASelector selectItemPath) throws ODataJPAModelException;
 
   /**
    *

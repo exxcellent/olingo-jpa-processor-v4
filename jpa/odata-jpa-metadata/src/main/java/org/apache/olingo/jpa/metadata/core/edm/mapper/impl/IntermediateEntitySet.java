@@ -8,7 +8,9 @@ import java.util.logging.Logger;
 import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -20,7 +22,7 @@ import org.apache.olingo.server.api.etag.CustomETagSupport;
  * @author Oliver Grande
  *
  */
-class IntermediateEntitySet extends IntermediateModelElement implements JPAEntitySet, CustomETagSupport {
+class IntermediateEntitySet extends IntermediateModelElement<CsdlEntitySet> implements JPAEntitySet, CustomETagSupport {
   private final static Logger LOG = Logger.getLogger(IntermediateEntitySet.class.getName());
 
   private final JPAEntityType entityType;
@@ -29,13 +31,15 @@ class IntermediateEntitySet extends IntermediateModelElement implements JPAEntit
   IntermediateEntitySet(final JPAEntityType et)
       throws ODataJPAModelException {
     // use same name builder as the entity is using
-    super(((IntermediateModelElement) et).getNameBuilder(), ((IntermediateModelElement) et).getNameBuilder().buildFQN(et
-        .getInternalName())
+    super(((IntermediateModelElement<?>) et).getNameBuilder(), ((IntermediateModelElement<?>) et).getNameBuilder()
+        .buildFQN(et
+            .getInternalName())
         .getFullQualifiedNameAsString());
     entityType = et;
     setExternalName(et.getEntitySetName());
   }
 
+  @Override
   public JPAEntityType getEntityType() {
     return entityType;
   }
@@ -59,9 +63,8 @@ class IntermediateEntitySet extends IntermediateModelElement implements JPAEntit
         // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part3-csdl/odata-v4.0-errata02-os-part3-csdl-complete.html#_Toc406398035
         final List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
         for (final JPAAssociationPath naviPropertyPath : naviPropertyList) {
-          final IntermediateNavigationProperty naviProperty = ((IntermediateNavigationProperty) naviPropertyPath
-              .getLeaf());
-          final JPAStructuredType target = naviProperty.getTargetEntity();
+          final JPAAttribute<?> naviProperty = naviPropertyPath.getLeaf();
+          final JPAStructuredType target = naviProperty.getStructuredType();
           if (JPAEntityType.class.isInstance(target)) {
             final CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
             navPropBinding.setPath(naviPropertyPath.getAlias());
@@ -78,10 +81,13 @@ class IntermediateEntitySet extends IntermediateModelElement implements JPAEntit
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlEntitySet getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlEntitySet getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmEntitySet;
   }
 

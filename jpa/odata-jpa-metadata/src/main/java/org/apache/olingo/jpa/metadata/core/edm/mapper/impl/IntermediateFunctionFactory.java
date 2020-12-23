@@ -40,7 +40,7 @@ class IntermediateFunctionFactory {
           throws ODataJPAModelException {
     final IntermediateFunction func = new IntermediateFunction(nameBuilder, jpaStoredProcedure, jpaEntityType
         .getJavaType(), isd);
-    funcList.put(func.getInternalName(), func);
+    funcList.put(func.getExternalName(), func);
   }
 
 }

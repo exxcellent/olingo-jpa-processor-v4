@@ -3,7 +3,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-public interface JPAOperationParameter extends JPATypedElement {
+public interface JPAOperationParameter extends JPAParameterizedElement {
 
 	public enum ParameterKind {
 		/**

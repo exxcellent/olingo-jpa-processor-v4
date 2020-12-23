@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPADescribedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 
@@ -17,7 +17,7 @@ public final class ValueConverter extends AbstractConverter {
   }
 
   @Override
-  public Object convertJPA2ODataPrimitiveValue(final JPATypedElement attribute, final Object jpaValue)
+  public Object convertJPA2ODataPrimitiveValue(final JPADescribedElement attribute, final Object jpaValue)
       throws ODataJPAConversionException, ODataJPAModelException {
     return super.convertJPA2ODataPrimitiveValue(attribute, jpaValue);
   }

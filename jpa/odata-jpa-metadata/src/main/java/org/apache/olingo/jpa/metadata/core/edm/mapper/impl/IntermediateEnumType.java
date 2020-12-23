@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumMember;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -16,49 +17,53 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Oliver Grande
  *
  */
-class IntermediateEnumType extends IntermediateModelElement {
-	private final Class<? extends Enum<?>> enumType;
-	private CsdlEnumType edmEnumType = null;
+class IntermediateEnumType extends IntermediateModelElement<CsdlEnumType> {
+  private final Class<? extends Enum<?>> enumType;
+  private CsdlEnumType edmEnumType = null;
 
-	IntermediateEnumType(final JPAEdmNameBuilder nameBuilder, final Class<? extends Enum<?>> enumType,
-			final IntermediateServiceDocument serviceDocument)
-					throws ODataJPAModelException {
-		super(nameBuilder, enumType.getName());
-		this.enumType = enumType;
-		this.setExternalName(nameBuilder.buildEnumTypeName(enumType));
-	}
+  IntermediateEnumType(final JPAEdmNameBuilder nameBuilder, final Class<? extends Enum<?>> enumType,
+      final IntermediateServiceDocument serviceDocument)
+          throws ODataJPAModelException {
+    super(nameBuilder, enumType.getName());
+    this.enumType = enumType;
+    this.setExternalName(nameBuilder.buildEnumTypeName(enumType));
+  }
 
-	@Override
-	protected void lazyBuildEdmItem() throws ODataJPAModelException {
-		if (edmEnumType != null) {
-			return;
-		}
-		edmEnumType = new CsdlEnumType();
-		edmEnumType.setName(getExternalName());
-		edmEnumType.setFlags(false); // always false
-		edmEnumType.setMembers(buildEnumMembers());
-		edmEnumType.setUnderlyingType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName());
-	}
+  @Override
+  protected void lazyBuildEdmItem() throws ODataJPAModelException {
+    if (edmEnumType != null) {
+      return;
+    }
+    edmEnumType = new CsdlEnumType();
+    edmEnumType.setName(getExternalName());
+    edmEnumType.setFlags(false); // always false
+    edmEnumType.setMembers(buildEnumMembers());
+    edmEnumType.setUnderlyingType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName());
+  }
 
-	private List<CsdlEnumMember> buildEnumMembers() throws ODataJPAModelException {
-		final Enum<?>[] literals = enumType.getEnumConstants();
-		if(literals == null) {
-			return new LinkedList<CsdlEnumMember>();
-		}
-		final List<CsdlEnumMember> listMembers = new ArrayList<>(literals.length);
-		CsdlEnumMember member;
-		for(final Enum<?> literal: literals) {
-			member = new CsdlEnumMember();
-			member.setName(literal.name());
-			member.setValue(Integer.toString(literal.ordinal()));
-			listMembers.add(member);
-		}
-		return listMembers;
-	}
+  private List<CsdlEnumMember> buildEnumMembers() throws ODataJPAModelException {
+    final Enum<?>[] literals = enumType.getEnumConstants();
+    if(literals == null) {
+      return new LinkedList<CsdlEnumMember>();
+    }
+    final List<CsdlEnumMember> listMembers = new ArrayList<>(literals.length);
+    CsdlEnumMember member;
+    for(final Enum<?> literal: literals) {
+      member = new CsdlEnumMember();
+      member.setName(literal.name());
+      member.setValue(Integer.toString(literal.ordinal()));
+      listMembers.add(member);
+    }
+    return listMembers;
+  }
 
-	@Override
-	CsdlEnumType getEdmItem() throws ODataJPAModelException {
-		lazyBuildEdmItem();
-		return edmEnumType;
-	}
+  @Override
+  CsdlEnumType getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
+    return edmEnumType;
+  }
 }
