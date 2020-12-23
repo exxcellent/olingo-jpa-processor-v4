@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +12,7 @@ import org.apache.olingo.commons.api.edm.geo.SRID;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
 import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction.ReturnType;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
@@ -34,7 +35,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  *
  */
 
-class IntermediateFunction extends IntermediateModelElement implements JPAFunction {
+class IntermediateFunction extends IntermediateModelElement<CsdlFunction> implements JPAFunction {
   private CsdlFunction edmFunction;
   private final EdmFunction jpaUserDefinedFunction;
   private final IntermediateServiceDocument isd;
@@ -84,10 +85,13 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlFunction getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlFunction getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmFunction;
   }
 
@@ -177,7 +181,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     }
 
     @Override
-    public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+    public AnnotatedElement getAnnotatedElement() {
       // currently not supported
       return null;
     }
@@ -251,7 +255,7 @@ class IntermediateFunction extends IntermediateModelElement implements JPAFuncti
     }
 
     @Override
-    public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+    public AnnotatedElement getAnnotatedElement() {
       // currently not supported
       return null;
     }

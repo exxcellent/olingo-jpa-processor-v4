@@ -8,6 +8,7 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmProvider;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlActionImport;
+import org.apache.olingo.commons.api.edm.provider.CsdlAnnotations;
 import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
@@ -17,6 +18,9 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunctionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
+import org.apache.olingo.commons.api.edm.provider.CsdlSingleton;
+import org.apache.olingo.commons.api.edm.provider.CsdlTerm;
+import org.apache.olingo.commons.api.edm.provider.CsdlTypeDefinition;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.AbstractJPASchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -139,5 +143,30 @@ public final class JPAEdmProvider extends CsdlAbstractEdmProvider {
    */
   public final IntermediateServiceDocument getServiceDocument() {
     return serviceDocument;
+  }
+
+  @Override
+  public CsdlAnnotations getAnnotationsGroup(final FullQualifiedName targetName, final String qualifier)
+      throws ODataException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public CsdlSingleton getSingleton(final FullQualifiedName entityContainer, final String singletonName)
+      throws ODataException {
+    return super.getSingleton(entityContainer, singletonName);
+  }
+
+  @Override
+  public CsdlTerm getTerm(final FullQualifiedName termName) throws ODataException {
+    // we accept every term request to work with annotations...
+    final CsdlTerm term = new CsdlTerm();
+    term.setName(termName.getName());
+    return term;
+  }
+
+  @Override
+  public CsdlTypeDefinition getTypeDefinition(final FullQualifiedName typeDefinitionName) throws ODataException {
+    return super.getTypeDefinition(typeDefinitionName);
   }
 }

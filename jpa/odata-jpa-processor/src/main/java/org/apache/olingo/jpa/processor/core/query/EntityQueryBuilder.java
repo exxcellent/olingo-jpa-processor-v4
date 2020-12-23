@@ -28,7 +28,6 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -331,7 +330,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
         final JPASelector selectItemPath = jpaEntity.getPath(selectItem);
         if (selectItemPath.getLeaf().isComplex()) {
           // Complex Type
-          final List<JPAAttributePath> c = jpaEntity.searchChildPath(selectItemPath);
+          final List<JPASelector> c = jpaEntity.searchChildPath(selectItemPath);
           jpaPathList.addAll(c);
         } else {
           // Primitive Type

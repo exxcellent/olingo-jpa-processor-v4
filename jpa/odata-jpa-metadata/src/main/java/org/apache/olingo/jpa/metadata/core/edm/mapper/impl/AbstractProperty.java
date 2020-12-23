@@ -8,11 +8,16 @@ import java.util.Arrays;
 
 import javax.persistence.metamodel.Attribute;
 
-abstract class AbstractProperty extends IntermediateModelElement {
+import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmItem;
+
+public abstract class AbstractProperty<CsdlType extends CsdlAbstractEdmItem> extends
+    IntermediateModelElement<CsdlType> {
 
   protected AbstractProperty(final JPAEdmNameBuilder nameBuilder, final String internalName) {
     super(nameBuilder, internalName);
   }
+
+  abstract boolean isStream();
 
   /**
    * With the different JPA implementations we may have several scenarios:

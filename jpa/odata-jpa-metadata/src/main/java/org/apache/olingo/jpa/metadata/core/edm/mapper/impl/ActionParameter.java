@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -66,9 +66,8 @@ class ActionParameter implements JPAOperationParameter {
   }
 
   @Override
-  public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-    // currently not supported
-    return null;
+  public AnnotatedElement getAnnotatedElement() {
+    return javaParameter;
   }
 
   /**

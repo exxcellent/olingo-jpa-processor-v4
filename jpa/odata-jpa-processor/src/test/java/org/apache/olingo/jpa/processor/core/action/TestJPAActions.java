@@ -422,8 +422,10 @@ public class TestJPAActions extends TestBase {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(helper.getJsonObjectValues().size() == 2);
-    assertTrue(((ObjectNode) helper.getJsonObjectValues().get(0)).get("SystemRequirements").size() == 3);
+    final ArrayNode results = helper.getJsonObjectValues();
+    assertTrue(results.size() == 2);
+    assertTrue(((ObjectNode) results.get(0)).get("SystemRequirements").size() == 3);
+    assertTrue(((ObjectNode) results.get(0)).get("MapOfNumberCollections").size() == 2);
   }
 
   @Test
@@ -670,7 +672,16 @@ public class TestJPAActions extends TestBase {
         HttpMethod.POST);
     // important: full metadata to force presence of binding link annotations
     helper.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
+
     helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode jsonTree = helper.getJsonObjectValues();
+    final ObjectNode jsonMapNode = (ObjectNode) jsonTree.get(0).get("MapOfNumberCollections");
+    assertNotNull(jsonMapNode);
+    final ArrayNode jsonArray = (ArrayNode) jsonMapNode.get("numberOfEnv");
+    assertEquals(1, jsonArray.size());
+    final ArrayNode jsonArray2 = (ArrayNode) jsonMapNode.get("NullTest");
+    assertEquals(0, jsonArray2.size());
+
     final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
 
     assertEquals(2, set.getEntities().size());
@@ -680,7 +691,6 @@ public class TestJPAActions extends TestBase {
     final StringBuffer requestBody = buildEntityPayload(rootODataEntity);
     // this test is only useful if the transfered request data contains binding link information
     assertTrue(requestBody.toString().contains("AliasEnvironment" + Constants.JSON_BIND_LINK_SUFFIX));
-
 
     // try to update via handler to trigger parsing
     uriBuilder = newUriBuilder().appendEntitySetSegment("EnvironmentInfos").appendKeySegment(rootODataEntity

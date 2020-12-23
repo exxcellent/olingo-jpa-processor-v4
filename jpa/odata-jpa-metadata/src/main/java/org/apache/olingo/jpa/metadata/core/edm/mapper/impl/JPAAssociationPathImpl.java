@@ -10,8 +10,8 @@ import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
@@ -19,8 +19,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 public class JPAAssociationPathImpl implements JPAAssociationPath {
   final private String alias;
   final private List<JPAAttribute<?>> pathElements;
-  final private IntermediateStructuredType<?> sourceType;
-  final private IntermediateStructuredType<?> targetType;
+  final private AbstractStructuredType<?> sourceType;
+  final private AbstractStructuredType<?> targetType;
   private final List<IntermediateJoinColumn> sourceJoinColumns;
   private final List<IntermediateJoinColumn> targetJoinColumns;
   private final PersistentAttributeType cardinality;
@@ -33,7 +33,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
    * attribute in the top level structured type.
    */
   JPAAssociationPathImpl(final JPAEdmNameBuilder namebuilder, final JPAAttribute<?> attribute,
-      final JPAAssociationPath nestedAssociationPath, final IntermediateStructuredType<?> source,
+      final JPAAssociationPath nestedAssociationPath, final AbstractStructuredType<?> source,
       final List<IntermediateJoinColumn> joinColumns) {
 
     final List<JPAAttribute<?>> pathElementsBuffer = new ArrayList<JPAAttribute<?>>();
@@ -42,7 +42,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
 
     alias = namebuilder.buildNaviPropertyBindingName(nestedAssociationPath, attribute);
     this.sourceType = source;
-    this.targetType = (IntermediateStructuredType<?>) nestedAssociationPath.getTargetType();
+    this.targetType = (AbstractStructuredTypeJPA<?, ?>) nestedAssociationPath.getTargetType();
     if (joinColumns.isEmpty()) {
       // if nor explicit join columns are given for the 'attribute' the we take the
       // join columns as defined on the nested association path
@@ -58,14 +58,14 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
     this.cardinality = ((JPAAssociationPathImpl) nestedAssociationPath).getCardinality();
   }
 
-  JPAAssociationPathImpl(final IntermediateNavigationProperty navProperty, final IntermediateStructuredType<?> source)
+  JPAAssociationPathImpl(final AbstractNavigationProperty navProperty, final AbstractStructuredType<?> source)
       throws ODataJPAModelException {
 
     alias = navProperty.getExternalName();
     // the given source may be a sub class of the class declared via
     // navProperty::sourceType!
     this.sourceType = source;
-    this.targetType = (IntermediateStructuredType<?>) navProperty.getTargetEntity();
+    this.targetType = (AbstractStructuredType<?>) navProperty.getTargetEntity();
     this.sourceJoinColumns = navProperty.getSourceJoinColumns();
     this.targetJoinColumns = navProperty.getTargetJoinColumns();
     this.useJoinTable = navProperty.doesUseJoinTable();
@@ -165,7 +165,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
     return attributes.get(0);
   }
 
-  private JPASelector findJoinConditionPath(final IntermediateStructuredType<?> type,
+  private JPASelector findJoinConditionPath(final AbstractStructuredType<?> type,
       final String joinColumnName)
           throws ODataJPAModelException {
     final JPASelector selector = type.getPathByDBField(joinColumnName);

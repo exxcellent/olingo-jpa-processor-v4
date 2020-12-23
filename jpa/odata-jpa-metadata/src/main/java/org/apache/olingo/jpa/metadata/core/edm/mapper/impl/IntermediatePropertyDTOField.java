@@ -1,9 +1,12 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.metamodel.PluralAttribute.CollectionType;
@@ -12,6 +15,7 @@ import javax.validation.constraints.Size;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
@@ -25,12 +29,13 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediatePropertyDTOField extends AbstractProperty implements JPAMemberAttribute {
+class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implements JPAMemberAttribute {
 
   private final IntermediateServiceDocument serviceDocument;
   private final Field field;
   private final JPAAttributeAccessor accessor;
   private CsdlProperty edmProperty = null;
+  private FullQualifiedName propertyTypeName = null;
 
   public IntermediatePropertyDTOField(final JPAEdmNameBuilder nameBuilder, final Field field,
       final IntermediateServiceDocument serviceDocument) {
@@ -57,27 +62,70 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
     return field.getAnnotation(javax.persistence.Id.class) != null;
   }
 
-  private FullQualifiedName createTypeName() throws ODataJPAModelException {
+  private FullQualifiedName initializePropertyType() throws ODataJPAModelException {
+    if (propertyTypeName != null) {
+      return propertyTypeName;
+    }
     final Class<?> attributeType = getType();
     if (TypeMapping.isFieldTargetingDTO(field)) {
-      final JPAStructuredType dtoType = getStructuredType();
+      final JPAStructuredType dtoType = serviceDocument.getStructuredType(attributeType);
       if (dtoType == null) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
             attributeType.getName() + " is not registered as Entity/DTO");
       }
-      return dtoType.getExternalFQN();
+      propertyTypeName = dtoType.getExternalFQN();
+    } else if (Map.class.isAssignableFrom(field.getType())) {
+      // special handling for java.util.Map
+      final Triple<Class<?>, Class<?>, Boolean> typeInfo = checkTypeArgumentsMustBeSimple(field);
+      final AbstractIntermediateComplexTypeDTO jpaMapType = serviceDocument.createDynamicJavaUtilMapType(typeInfo
+          .getLeft(), typeInfo.getMiddle(), typeInfo.getRight().booleanValue());
+      propertyTypeName = jpaMapType.getExternalFQN();
+    } else if (field.getType().isEnum()) {
+      @SuppressWarnings("unchecked")
+      final IntermediateEnumType jpaEnumType = serviceDocument.findOrCreateEnumType((Class<? extends Enum<?>>) field
+          .getType());
+      propertyTypeName = jpaEnumType.getExternalFQN();
     } else {
       // assume primitive
-      if (field.getType().isEnum()) {
-        @SuppressWarnings("unchecked")
-        final IntermediateEnumType jpaEnumType = serviceDocument
-        .findOrCreateEnumType((Class<? extends Enum<?>>) field.getType());
-        return jpaEnumType.getExternalFQN();
-      }
-      // simple types
       // trigger exception if not possible
-      return TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
+      propertyTypeName = TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
     }
+    return propertyTypeName;
+  }
+
+  private static Triple<Class<?>, Class<?>, Boolean> checkTypeArgumentsMustBeSimple(final Field field)
+      throws ODataJPAModelException {
+    if (!ParameterizedType.class.isInstance(field.getGenericType())) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
+          field.getGenericType().getTypeName() + " [must be generic]", field.getName());
+    }
+    final java.lang.reflect.Type[] typeArguments = ((ParameterizedType) field.getGenericType())
+        .getActualTypeArguments();
+    if (typeArguments.length != 2) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE, field.getName(),
+          "Map<x,y>, having two type arguments expected");
+    }
+    final Type keyType = extractTypeOfGenericType(typeArguments[0]);
+    final Type valueType = extractTypeOfGenericType(typeArguments[1]);
+    final boolean isCollection = Class.class.isInstance(typeArguments[1]) && Collection.class.isAssignableFrom(
+        Class.class.cast(typeArguments[1])) || ParameterizedType.class.isInstance(typeArguments[1]) && Collection.class
+        .isAssignableFrom((Class<?>) ParameterizedType.class.cast(typeArguments[1]).getRawType());
+    return new Triple<Class<?>, Class<?>, Boolean>(Class.class.cast(keyType), Class.class.cast(valueType), Boolean
+        .valueOf(isCollection));
+  }
+
+  private static Class<?> extractTypeOfGenericType(final Type type) throws ODataJPAModelException {
+    if (ParameterizedType.class.isInstance(type)) {
+      final java.lang.reflect.Type[] types = ((ParameterizedType) type)
+          .getActualTypeArguments();
+      if (types.length == 1) {
+        return (Class<?>) types[0];
+      } else {
+        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
+            "Only one type parameter acceptable");
+      }
+    }
+    return (Class<?>) type;
   }
 
   @Override
@@ -88,7 +136,7 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
     edmProperty = new CsdlProperty();
     edmProperty.setName(this.getExternalName());
 
-    edmProperty.setType(createTypeName());// trigger exception for unsupported attribute types
+    edmProperty.setType(initializePropertyType());// trigger exception for unsupported attribute types
     edmProperty.setCollection(Collection.class.isAssignableFrom(field.getType()));
 
     Integer maxLength = null;
@@ -106,17 +154,23 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlProperty getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlProperty getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmProperty;
   }
 
   @Override
   public JPAStructuredType getStructuredType() {
-    final Class<?> attributeType = getType();
-    return serviceDocument.getEntityType(attributeType);
+    try {
+      return serviceDocument.getStructuredType(initializePropertyType());
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
   }
 
   @Override
@@ -140,14 +194,16 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
       return CollectionType.LIST;
     } else if (Collection.class.isAssignableFrom(field.getType())) {
       return CollectionType.COLLECTION;
+    } else if (Map.class.isAssignableFrom(field.getType())) {
+      return CollectionType.MAP;
     }
     return null;
   }
 
   @Override
   public boolean isComplex() {
-    // per definition
-    return false;
+    // only the map is handled as complex
+    return (CollectionType.MAP == getCollectionType());
   }
 
   @Override
@@ -171,38 +227,22 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
 
   @Override
   public Integer getMaxLength() {
-    try {
-      return getProperty().getMaxLength();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().getMaxLength();
   }
 
   @Override
   public Integer getPrecision() {
-    try {
-      return getProperty().getPrecision();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().getPrecision();
   }
 
   @Override
   public Integer getScale() {
-    try {
-      return getProperty().getScale();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().getScale();
   }
 
   @Override
   public boolean isNullable() {
-    try {
-      return getProperty().isNullable();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return getProperty().isNullable();
   }
 
   @Override
@@ -224,7 +264,7 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
   }
 
   @Override
-  public CsdlProperty getProperty() throws ODataJPAModelException {
+  public CsdlProperty getProperty() throws ODataRuntimeException {
     return getEdmItem();
   }
 
@@ -234,7 +274,17 @@ class IntermediatePropertyDTOField extends AbstractProperty implements JPAMember
   }
 
   @Override
-  public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-    return field.getAnnotation(annotationClass);
+  public AnnotatedElement getAnnotatedElement() {
+    return field;
+  }
+
+  @Override
+  boolean isStream() {
+    return false;
+  }
+
+  @Override
+  public boolean isEtag() {
+    return false;
   }
 }

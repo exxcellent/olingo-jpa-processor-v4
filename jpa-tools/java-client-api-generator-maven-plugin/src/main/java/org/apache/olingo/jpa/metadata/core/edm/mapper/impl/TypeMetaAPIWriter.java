@@ -12,8 +12,8 @@ import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 class TypeMetaAPIWriter extends AbstractWriter {
@@ -31,8 +31,8 @@ class TypeMetaAPIWriter extends AbstractWriter {
     write(HEADER_TEXT);
     final String typeMetaName = determineTypeMetaName(type.getTypeClass().getSimpleName());
     String extendsBaseClass = "";
-    if (IntermediateStructuredType.class.isInstance(type)) {
-      final JPAStructuredType base = IntermediateStructuredType.class.cast(type).getBaseType();
+    if (AbstractStructuredTypeJPA.class.isInstance(type)) {
+      final JPAStructuredType base = AbstractStructuredTypeJPA.class.cast(type).getBaseType();
       if (base != null) {
         extendsBaseClass = " extends " + determineTypeMetaName(base.getTypeClass().getSimpleName());
       }
@@ -54,7 +54,7 @@ class TypeMetaAPIWriter extends AbstractWriter {
   }
 
   public void writePropertiesMetaInformations() throws ODataJPAModelException, IOException {
-    final List<JPAMemberAttribute> simpleAttributes = type.getAttributes();
+    final List<JPAMemberAttribute> simpleAttributes = type.getAttributes(false);
     final List<JPAAssociationAttribute> navigationAttributes = type.getAssociations();
     // navigation properties
     for (final JPAAssociationAttribute prop : navigationAttributes) {
@@ -78,7 +78,7 @@ class TypeMetaAPIWriter extends AbstractWriter {
   private void writeMetaTypeProperty(final JPAMemberAttribute attribute) throws IOException, ODataJPAModelException {
     if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
       // write attributes of embedded key type directly in that entity meta
-      for (final JPAMemberAttribute prop : attribute.getStructuredType().getAttributes()) {
+      for (final JPAMemberAttribute prop : attribute.getStructuredType().getAttributes(false)) {
         writeMetaTypeProperty(prop);
       }
       return;
@@ -108,7 +108,7 @@ class TypeMetaAPIWriter extends AbstractWriter {
     }
   }
 
-  private EdmPrimitiveTypeKind determineEmdPrimitiveType(final JPATypedElement attribute) {
+  private EdmPrimitiveTypeKind determineEmdPrimitiveType(final JPAParameterizedElement attribute) {
     try {
       return TypeMapping.convertToEdmSimpleType(attribute);
     } catch (final ODataJPAModelException e) {

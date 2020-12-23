@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
@@ -12,7 +12,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeException;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.TypeMapping;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
@@ -24,7 +24,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Literal;
 @SuppressWarnings("rawtypes")
 public class JPALiteralOperand implements JPAExpressionElement<Object> {
 
-  private static class AnonymousSimpleTypeElement implements JPATypedElement {
+  private static class AnonymousSimpleTypeElement implements JPAParameterizedElement {
 
     @SuppressWarnings("unused")
     private final EdmPrimitiveTypeKind edmTypeKind;
@@ -69,8 +69,8 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
     }
 
     @Override
-    public <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
-      throw new UnsupportedOperationException();
+    public AnnotatedElement getAnnotatedElement() {
+      return null;
     }
   }
 
@@ -94,7 +94,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
 
   @Override
   public Comparable get() throws ODataApplicationException {
-    final JPATypedElement typeInformation = new AnonymousSimpleTypeElement(null);
+    final JPAParameterizedElement typeInformation = new AnonymousSimpleTypeElement(null);
     return convert2Value(null, typeInformation);
   }
 
@@ -115,7 +115,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
   public Expression<Object> getLiteralExpression(final EdmPrimitiveTypeKind requestedTargetEdmTypeKind)
       throws ODataApplicationException {
     // try to convert/cast the literal into an object of requested type
-    final JPATypedElement typeInformation = new AnonymousSimpleTypeElement(requestedTargetEdmTypeKind);
+    final JPAParameterizedElement typeInformation = new AnonymousSimpleTypeElement(requestedTargetEdmTypeKind);
     final Comparable<Object> value = convert2Value(requestedTargetEdmTypeKind, typeInformation);
     return wrapIntoExpression(value);
   }
@@ -124,7 +124,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
    * Converts a literal value into system type of attribute
    * @return An expression or <code>null</code> in case of {@link #isNullLiteral() null} literal of OData.
    */
-  public Expression<Object> getLiteralExpression(final JPATypedElement attribute)
+  public Expression<Object> getLiteralExpression(final JPAParameterizedElement attribute)
       throws ODataApplicationException {
 
     if (isNullLiteral()) {
@@ -147,7 +147,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
 
   @SuppressWarnings("unchecked")
   private Comparable<Object> convert2Value(final EdmPrimitiveTypeKind requestedTargetEdmTypeKind,
-      final JPATypedElement typeInformation)
+      final JPAParameterizedElement typeInformation)
           throws ODataApplicationException {
     if (isNullLiteral()) {
       return null;
@@ -197,7 +197,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
   }
 
   @SuppressWarnings({ "unchecked" })
-  private Enum<?> getEnumValue(final JPATypedElement attribute) {
+  private Enum<?> getEnumValue(final JPAParameterizedElement attribute) {
     return Enum.valueOf((Class<Enum>) attribute.getType(), literal.getText());
   }
 

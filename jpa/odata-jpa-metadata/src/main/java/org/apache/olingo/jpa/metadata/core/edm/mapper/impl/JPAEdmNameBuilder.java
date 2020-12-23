@@ -1,7 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
@@ -52,12 +51,8 @@ public final class JPAEdmNameBuilder {
    * EDM Complex Type Name - RULES
    * ************************************************************************
    */
-  final public String buildComplexTypeName(final Attribute<?, ?> jpaAttribute) {
-    return jpaAttribute.getJavaType().getSimpleName();
-  }
-
-  final public String buildComplexTypeName(final EmbeddableType<?> jpaEnbeddedType) {
-    return jpaEnbeddedType.getJavaType().getSimpleName();
+  final public String buildComplexTypeName(final Class<?> typeClass) {
+    return typeClass.getSimpleName();
   }
 
   /*
@@ -216,10 +211,6 @@ public final class JPAEdmNameBuilder {
 
   final public String buildPath(final String pathRoot, final String pathElement) {
     return pathRoot + JPASelector.PATH_SEPERATOR + pathElement;
-  }
-
-  final public FullQualifiedName buildPropertyFQN(final String jpaAttributeName) {
-    return buildFQN(buildPropertyName(jpaAttributeName));
   }
 
   /*

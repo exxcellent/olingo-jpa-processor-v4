@@ -32,9 +32,10 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPADescribedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 
@@ -79,7 +80,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
   }
 
   private boolean entityContainsEnumAttribute() throws ODataJPAModelException {
-    for (final JPAMemberAttribute prop : type.getAttributes()) {
+    for (final JPAMemberAttribute prop : type.getAttributes(false)) {
       if (prop.getType().isEnum()) {
         return true;
       }
@@ -112,13 +113,13 @@ class TypeConverterAPIWriter extends AbstractWriter {
   private void generateConvertMethods4Attribute2PropertyValue(final JPAStructuredType ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    for (final JPAMemberAttribute attribute : ownerType.getAttributes()) {
+    for (final JPAMemberAttribute attribute : ownerType.getAttributes(false)) {
       if (attribute.isCollection()) {
         generateConvertMethod4Attribute2PropertyCollectionValue(attribute, mapAlreadeGeneratedMethods);
       } else if (attribute.isComplex()) {
         if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
           // special case for complex key attribute type having nested attributes
-          for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes()) {
+          for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes(false)) {
             generateConvertMethodAttribute2PrimitiveValue(embeddedIdAttribute, mapAlreadeGeneratedMethods);
           }
         } else {
@@ -161,92 +162,92 @@ class TypeConverterAPIWriter extends AbstractWriter {
         + " attributeValue" + ") throws "
         + ODataException.class.getName() + " {");
 
-    @SuppressWarnings("deprecation")
-    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotation(EdmAttributeConversion.class);
-    if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
-        .converter())) {
-      write(NEWLINE + "\t" + "\t"
-          + "throw new UnsupportedOperationException(\"implement converter manually on client side: "
-          + annoConversionConfiguration
-          .converter().getCanonicalName() + "\");");
-    } else {
-      if (!attribute.getType().isPrimitive()) {
-        // common null value check
-        write(NEWLINE + "\t" + "\t" + "if(attributeValue == null) {");
-        write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
-        write(NEWLINE + "\t" + "\t" + "}");
-      }
-      switch (odataType) {
-      case Boolean:
-        if (attribute.getType().isPrimitive()) {
+    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotatedElement() != null ? attribute
+        .getAnnotatedElement().getAnnotation(EdmAttributeConversion.class) : null;
+        if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+            .converter())) {
           write(NEWLINE + "\t" + "\t"
-              + "return factory.newPrimitiveValueBuilder().buildBoolean(Boolean.valueOf(attributeValue));");
+              + "throw new UnsupportedOperationException(\"implement converter manually on client side: "
+              + annoConversionConfiguration
+              .converter().getCanonicalName() + "\");");
         } else {
-          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildBoolean(attributeValue);");
+          if (!attribute.getType().isPrimitive()) {
+            // common null value check
+            write(NEWLINE + "\t" + "\t" + "if(attributeValue == null) {");
+            write(NEWLINE + "\t" + "\t" + "\t" + "return null;");
+            write(NEWLINE + "\t" + "\t" + "}");
+          }
+          switch (odataType) {
+          case Boolean:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t"
+                  + "return factory.newPrimitiveValueBuilder().buildBoolean(Boolean.valueOf(attributeValue));");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildBoolean(attributeValue);");
+            }
+            break;
+          case String:
+            write(NEWLINE + "\t" + "\t"
+                + "return factory.newPrimitiveValueBuilder().buildString(attributeValue.toString());");
+            break;
+          case Int16:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t"
+                  + "return factory.newPrimitiveValueBuilder().buildInt16(Short.valueOf(attributeValue));");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt16(attributeValue);");
+            }
+            break;
+          case Int32:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t"
+                  + "return factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(attributeValue));");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt32(attributeValue);");
+            }
+            break;
+          case Int64:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t"
+                  + "return factory.newPrimitiveValueBuilder().buildInt64(Long.valueOf(attributeValue));");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt64(attributeValue);");
+            }
+            break;
+          case Double:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t"
+                  + "return factory.newPrimitiveValueBuilder().buildDouble(Double.valueOf(attributeValue));");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildDouble(attributeValue);");
+            }
+            break;
+          case Decimal:
+            write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildDecimal(attributeValue);");
+            break;
+          case DateTimeOffset:
+          case TimeOfDay:
+          case Date:
+          case Guid:
+            // all types having a string representation
+            write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
+            write(NEWLINE + "\t" + "\t" + "final String sValue = " + EdmPrimitiveTypeFactory.class.getName()
+                + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "." + odataType.name()
+                + ").valueToString(attributeValue, Boolean.TRUE, " + integer2CodeString(attribute
+                    .getMaxLength()) + ", " + integer2CodeString(attribute.getPrecision()) + ", " + integer2CodeString(
+                        attribute.getScale()) + ", Boolean.TRUE" + ");");
+            write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildString(sValue);");
+            break;
+          case Byte:
+            // FIXME
+          default:
+            write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
+          }
         }
-        break;
-      case String:
-        write(NEWLINE + "\t" + "\t"
-            + "return factory.newPrimitiveValueBuilder().buildString(attributeValue.toString());");
-        break;
-      case Int16:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t"
-              + "return factory.newPrimitiveValueBuilder().buildInt16(Short.valueOf(attributeValue));");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt16(attributeValue);");
-        }
-        break;
-      case Int32:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t"
-              + "return factory.newPrimitiveValueBuilder().buildInt32(Integer.valueOf(attributeValue));");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt32(attributeValue);");
-        }
-        break;
-      case Int64:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t"
-              + "return factory.newPrimitiveValueBuilder().buildInt64(Long.valueOf(attributeValue));");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildInt64(attributeValue);");
-        }
-        break;
-      case Double:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t"
-              + "return factory.newPrimitiveValueBuilder().buildDouble(Double.valueOf(attributeValue));");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildDouble(attributeValue);");
-        }
-        break;
-      case Decimal:
-        write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildDecimal(attributeValue);");
-        break;
-      case DateTimeOffset:
-      case TimeOfDay:
-      case Date:
-      case Guid:
-        // all types having a string representation
-        write(NEWLINE + "\t" + "\t" + "//always nullable, always unicode");
-        write(NEWLINE + "\t" + "\t" + "final String sValue = " + EdmPrimitiveTypeFactory.class.getName()
-            + ".getInstance(" + EdmPrimitiveTypeKind.class.getName() + "." + odataType.name()
-            + ").valueToString(attributeValue, Boolean.TRUE, " + integer2CodeString(attribute
-                .getMaxLength()) + ", " + integer2CodeString(attribute.getPrecision()) + ", " + integer2CodeString(
-                    attribute.getScale()) + ", Boolean.TRUE" + ");");
-        write(NEWLINE + "\t" + "\t" + "return factory.newPrimitiveValueBuilder().buildString(sValue);");
-        break;
-      case Byte:
-        // FIXME
-      default:
-        write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
-      }
-    }
-    write(NEWLINE + "\t" + "}");
+        write(NEWLINE + "\t" + "}");
 
-    mapAlreadeGeneratedMethods.add(methodName);
-    return methodName;
+        mapAlreadeGeneratedMethods.add(methodName);
+        return methodName;
   }
 
   private void generateAllAttribute2PropertyConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
@@ -256,14 +257,14 @@ class TypeConverterAPIWriter extends AbstractWriter {
       generateAssociation2PropertyConversion(sType, ownerISRootEntity, asso);
     }
     // simple properties
-    for (final JPAMemberAttribute attribute : sType.getAttributes()) {
+    for (final JPAMemberAttribute attribute : sType.getAttributes(false)) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
         generateAttribute2PropertyConversion(sType, ownerISRootEntity, attribute);
         break;
       case EMBEDDED_ID:
         // handle properties of nested complex type (@EmbeddedId) as properties of this type
-        for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
+        for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes(false)) {
           generateAttribute2PropertyConversion(sType, ownerISRootEntity, nestedProp);
         }
         break;
@@ -303,13 +304,13 @@ class TypeConverterAPIWriter extends AbstractWriter {
   private void generateConvertMethods4Property2Attribute(final JPAStructuredType ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
-    for (final JPAMemberAttribute attribute : ownerType.getAttributes()) {
+    for (final JPAMemberAttribute attribute : ownerType.getAttributes(false)) {
       if (attribute.isCollection()) {
         generateConvertMethod4Property2CollectionValue(attribute, mapAlreadeGeneratedMethods);
       } else if (attribute.isComplex()) {
         if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
           // special case for complex key attribute type having nested attributes
-          for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes()) {
+          for (final JPAMemberAttribute embeddedIdAttribute : attribute.getStructuredType().getAttributes(false)) {
             generateConvertMethod4PrimitivePropertyValue2AttributeValue(embeddedIdAttribute, mapAlreadeGeneratedMethods);
           }
         } else {
@@ -353,21 +354,21 @@ class TypeConverterAPIWriter extends AbstractWriter {
   private String determineConversionProperty2AttributeValueMethodName(final JPAAttribute<?> attribute,
       final boolean respectCollection) throws ODataJPAModelException {
     if (JPAMemberAttribute.class.isInstance(attribute)) {
-      @SuppressWarnings("deprecation")
-      final EdmAttributeConversion annoConversionConfiguration = JPAMemberAttribute.class.cast(attribute).getAnnotation(
-          EdmAttributeConversion.class);
-      if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
-          .converter())) {
-        return "convertOData" + qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName()) + "Via"
-            + qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName());
-      }
+      final EdmAttributeConversion annoConversionConfiguration = JPAMemberAttribute.class.cast(attribute)
+          .getAnnotatedElement() != null ? JPAMemberAttribute.class.cast(attribute).getAnnotatedElement().getAnnotation(
+              EdmAttributeConversion.class) : null;
+              if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+                  .converter())) {
+                return "convertOData" + qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName()) + "Via"
+                    + qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName());
+              }
     }
     String fromName;
     if (attribute.isAssociation()) {
       fromName = attribute.getExternalName();
     } else if (attribute.isComplex()) {
       fromName = attribute.getExternalName();
-    } else if (JPATypedElement.class.cast(attribute).getType().isEnum()) {
+    } else if (JPAParameterizedElement.class.cast(attribute).getType().isEnum()) {
       if (attribute.isCollection()&&respectCollection) {
         fromName = attribute.getExternalName();
       } else {
@@ -375,7 +376,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
       }
     } else {
       // simple primitive type conversion
-      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(JPATypedElement.class.cast(attribute));
+      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(JPAParameterizedElement.class.cast(attribute));
       fromName = odataType.name();
     }
 
@@ -388,21 +389,22 @@ class TypeConverterAPIWriter extends AbstractWriter {
 
   private String determineConversionAttribute2PropertyValueMethodName(final JPAAttribute<?> attribute,
       final boolean respectCollection) throws ODataJPAModelException {
-    if (JPAMemberAttribute.class.isInstance(attribute)) {
-      @SuppressWarnings("deprecation")
-      final EdmAttributeConversion annoConversionConfiguration = JPAMemberAttribute.class.cast(attribute).getAnnotation(
-          EdmAttributeConversion.class);
-      if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
-          .converter())) {
-        return "convert"+ qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName())+"ToOData"+ qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName());
-      }
+    if (JPADescribedElement.class.isInstance(attribute)) {
+      final EdmAttributeConversion annoConversionConfiguration = JPADescribedElement.class.cast(attribute)
+          .getAnnotatedElement() != null ? JPADescribedElement.class.cast(attribute).getAnnotatedElement()
+              .getAnnotation(
+                  EdmAttributeConversion.class) : null;
+                  if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+                      .converter())) {
+                    return "convert"+ qualifiedName2FirstCharacterUppercasedString(annoConversionConfiguration.converter().getCanonicalName())+"ToOData"+ qualifiedName2FirstCharacterUppercasedString(attribute.getExternalName());
+                  }
     }
     String fromName;
     if (attribute.isAssociation()) {
       fromName = attribute.getExternalName();
     } else if (attribute.isComplex()) {
       fromName = attribute.getExternalName();
-    } else if (JPATypedElement.class.cast(attribute).getType().isEnum()) {
+    } else if (JPAParameterizedElement.class.cast(attribute).getType().isEnum()) {
       if (attribute.isCollection()&&respectCollection) {
         fromName = attribute.getExternalName();
       } else {
@@ -410,7 +412,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
       }
     } else {
       // simple primitive type conversion
-      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(JPATypedElement.class.cast(attribute));
+      final EdmPrimitiveTypeKind odataType = TypeMapping.convertToEdmSimpleType(JPAParameterizedElement.class.cast(attribute));
       fromName = odataType.name();
     }
 
@@ -513,75 +515,75 @@ class TypeConverterAPIWriter extends AbstractWriter {
         + "final Integer maxLength, final Integer precision, final Integer scale) throws "
         + ODataException.class.getName() + " {");
 
-    @SuppressWarnings("deprecation")
-    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotation(EdmAttributeConversion.class);
-    if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
-        .converter())) {
-      write(NEWLINE + "\t" + "\t"
-          + "throw new UnsupportedOperationException(\"implement converter manually on client side: "
-          + annoConversionConfiguration
-          .converter().getCanonicalName() + "\");");
-    } else {
-      switch (odataType) {
-      case Boolean:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class).booleanValue();");
+    final EdmAttributeConversion annoConversionConfiguration = attribute.getAnnotatedElement() != null ? attribute
+        .getAnnotatedElement().getAnnotation(EdmAttributeConversion.class) : null;
+        if (annoConversionConfiguration != null && !EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration
+            .converter())) {
+          write(NEWLINE + "\t" + "\t"
+              + "throw new UnsupportedOperationException(\"implement converter manually on client side: "
+              + annoConversionConfiguration
+              .converter().getCanonicalName() + "\");");
         } else {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class);");
+          switch (odataType) {
+          case Boolean:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class).booleanValue();");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Boolean.class);");
+            }
+            break;
+          case String:
+            write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(" + propClientType + ".class);");
+            break;
+          case Int16:
+          case Int32:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class).intValue();");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class);");
+            }
+            break;
+          case Int64:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class).longValue();");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class);");
+            }
+            break;
+          case Double:
+            if (attribute.getType().isPrimitive()) {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Double.class).doubleValue();");
+            } else {
+              write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Double.class);");
+            }
+            break;
+          case Decimal:
+            write(NEWLINE + "\t" + "\t" + "Double dV = propertyValue.toCastValue(Double.class);");
+            write(NEWLINE + "\t" + "\t"
+                + BigDecimal.class.getCanonicalName() + " bd = precision != null ? new " + BigDecimal.class
+                .getCanonicalName() + "(dV.doubleValue(), new " + MathContext.class.getCanonicalName()
+                + "(precision.intValue())) : new " + BigDecimal.class.getCanonicalName() + "(dV.doubleValue());");
+            write(NEWLINE + "\t" + "\t" + "bd = scale != null ? bd.setScale(scale.intValue()) : bd;");
+            write(NEWLINE + "\t" + "\t" + "return bd;");
+            break;
+          case DateTimeOffset:
+            generateConvertMethod4PrimitivePropertyValueForDateTimeOffset2AttributeValue(attribute.getType(), propClientType);
+            break;
+          case TimeOfDay:
+          case Date:
+          case Guid:
+            generateConvertMethod4PrimitivePropertyValueForStringBasedDefault2AttributeValue(odataType, propClientType);
+            break;
+          case Byte:
+            // FIXME
+          default:
+            write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
+          }
         }
-        break;
-      case String:
-        write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(" + propClientType + ".class);");
-        break;
-      case Int16:
-      case Int32:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class).intValue();");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Integer.class);");
-        }
-        break;
-      case Int64:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class).longValue();");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Long.class);");
-        }
-        break;
-      case Double:
-        if (attribute.getType().isPrimitive()) {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Double.class).doubleValue();");
-        } else {
-          write(NEWLINE + "\t" + "\t" + "return propertyValue.toCastValue(Double.class);");
-        }
-        break;
-      case Decimal:
-        write(NEWLINE + "\t" + "\t" + "Double dV = propertyValue.toCastValue(Double.class);");
-        write(NEWLINE + "\t" + "\t"
-            + BigDecimal.class.getCanonicalName() + " bd = precision != null ? new " + BigDecimal.class
-            .getCanonicalName() + "(dV.doubleValue(), new " + MathContext.class.getCanonicalName()
-            + "(precision.intValue())) : new " + BigDecimal.class.getCanonicalName() + "(dV.doubleValue());");
-        write(NEWLINE + "\t" + "\t" + "bd = scale != null ? bd.setScale(scale.intValue()) : bd;");
-        write(NEWLINE + "\t" + "\t" + "return bd;");
-        break;
-      case DateTimeOffset:
-        generateConvertMethod4PrimitivePropertyValueForDateTimeOffset2AttributeValue(attribute.getType(), propClientType);
-        break;
-      case TimeOfDay:
-      case Date:
-      case Guid:
-        generateConvertMethod4PrimitivePropertyValueForStringBasedDefault2AttributeValue(odataType, propClientType);
-        break;
-      case Byte:
-        // FIXME
-      default:
-        write(NEWLINE + "\t" + "\t" + "throw new UnsupportedOperationException();");
-      }
-    }
-    write(NEWLINE + "\t" + "}");
+        write(NEWLINE + "\t" + "}");
 
-    mapAlreadeGeneratedMethods.add(methodName);
-    return methodName;
+        mapAlreadeGeneratedMethods.add(methodName);
+        return methodName;
   }
 
   private void generateConvertMethod4PrimitivePropertyValueForDateTimeOffset2AttributeValue(final Class<?> propJpaType, final String propClientType)
@@ -829,14 +831,14 @@ class TypeConverterAPIWriter extends AbstractWriter {
       generateProperty2AssociationConversion(sType, ownerISRootEntity, asso);
     }
     // simple properties
-    for (final JPAMemberAttribute attribute : sType.getAttributes()) {
+    for (final JPAMemberAttribute attribute : sType.getAttributes(false)) {
       switch (attribute.getAttributeMapping()) {
       case SIMPLE:
         generateProperty2AttributeConversion(sType, ownerISRootEntity, attribute);
         break;
       case EMBEDDED_ID:
         // handle properties of nested complex type (@EmbeddedId) as properties of this type
-        for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes()) {
+        for (final JPAMemberAttribute nestedProp : attribute.getStructuredType().getAttributes(false)) {
           generateProperty2AttributeConversion(sType, ownerISRootEntity, nestedProp);
         }
         break;

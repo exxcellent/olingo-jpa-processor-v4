@@ -144,12 +144,12 @@ class TypeDtoAPIWriter extends AbstractWriter {
   }
 
   public void writeDtoTypeProperties() throws ODataJPAModelException, IOException {
-    final List<JPAMemberAttribute> simpleAttributes = type.getAttributes();
+    final List<JPAMemberAttribute> simpleAttributes = type.getAttributes(false);
     final List<JPAAssociationAttribute> navigationAttributes = type.getAssociations();
     String streamProperty = "";
-    if (IntermediateEntityType.class.isInstance(type)) {
-      if (IntermediateEntityType.class.cast(type).hasStream()) {
-        streamProperty = IntermediateEntityType.class.cast(type).getStreamAttributePath().getLeaf().getInternalName();
+    if (IntermediateEntityTypeJPA.class.isInstance(type)) {
+      if (IntermediateEntityTypeJPA.class.cast(type).hasStream()) {
+        streamProperty = IntermediateEntityTypeJPA.class.cast(type).getStreamAttributePath().getLeaf().getInternalName();
       }
     }
     // navigation properties
@@ -171,7 +171,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     List<JPAAttribute<?>> listProcessAttributes;
     if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {
       // special case for complex key attribute type having nested attributes
-      listProcessAttributes = new ArrayList<JPAAttribute<?>>(attribute.getStructuredType().getAttributes());
+      listProcessAttributes = new ArrayList<JPAAttribute<?>>(attribute.getStructuredType().getAttributes(false));
     } else {
       listProcessAttributes = Collections.singletonList(attribute);
     }

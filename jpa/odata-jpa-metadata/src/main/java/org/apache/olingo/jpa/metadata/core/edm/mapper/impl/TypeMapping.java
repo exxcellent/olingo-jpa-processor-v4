@@ -1,6 +1,5 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -27,7 +26,7 @@ import org.apache.olingo.commons.api.edm.geo.Geospatial.Dimension;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPATypedElement;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPADescribedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -129,7 +128,7 @@ public final class TypeMapping {
   }
 
   public static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> type) throws ODataJPAModelException {
-    return convertToEdmSimpleType(type, (AccessibleObject) null);
+    return convertToEdmSimpleType(type, (AnnotatedElement) null);
   }
 
   /**
@@ -147,7 +146,7 @@ public final class TypeMapping {
     return convertToEdmSimpleType(javaType, field);
   }
 
-  private static ODataMapping determineODataMapping(final Class<?> jpaType, final AccessibleObject javaMember)
+  private static ODataMapping determineODataMapping(final Class<?> jpaType, final AnnotatedElement javaMember)
       throws ODataJPAModelException {
     final EdmPrimitiveTypeKind customKind = determineSimpleTypeFromConverter(javaMember);
     if (customKind != null) {
@@ -214,8 +213,8 @@ public final class TypeMapping {
    * @throws ODataJPAModelException
    *             If given type cannot be converted into a primitive type.
    */
-  static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType,
-      final AccessibleObject javaMember) throws ODataJPAModelException {
+  static EdmPrimitiveTypeKind convertToEdmSimpleType(final Class<?> jpaType, final AnnotatedElement javaMember)
+      throws ODataJPAModelException {
 
     final ODataMapping mapping = determineODataMapping(jpaType, javaMember);
     if (mapping != null) {
@@ -244,28 +243,24 @@ public final class TypeMapping {
   }
 
   /**
-   * @param jpaType The JPA type to find the OData representation for.
+   * @param javaTypeOfAttribute The class type of attribute
+   * @param accessorOfAttribute The field or method used as accessor for attribute of given type
    * @return The java class representing the OData type of Olingo or <code>null</code> if no match was found.
    * @throws ODataJPAModelException For multiple mappings
    */
-  public static Class<?> determineODataRepresentationtype(final JPATypedElement attribute)
-      throws IllegalStateException, ODataJPAModelException {
-    final ODataMapping mapping = determineODataMapping(attribute.getType(), IntermediateProperty.class.isInstance(
-        attribute)
-        ? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
-            : null);
+  public static Class<?> determineODataRepresentationtype(final Class<?> javaTypeOfAttribute,
+      final AnnotatedElement accessorOfAttribute)
+          throws IllegalStateException, ODataJPAModelException {
+    final ODataMapping mapping = determineODataMapping(javaTypeOfAttribute, accessorOfAttribute);
     if (mapping != null) {
       return mapping.odataRepresentationType;
     }
     return null;
   }
 
-  public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPATypedElement attribute)
+  public static EdmPrimitiveTypeKind convertToEdmSimpleType(final JPADescribedElement attribute)
       throws ODataJPAModelException {
-    return convertToEdmSimpleType(attribute.getType(),
-        IntermediateProperty.class.isInstance(attribute)
-        ? (AccessibleObject) IntermediateProperty.class.cast(attribute).getJavaMember()
-            : null);
+    return convertToEdmSimpleType(attribute.getType(), attribute.getAnnotatedElement());
   }
 
   private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final String memberName)

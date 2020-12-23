@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
@@ -20,10 +21,10 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
@@ -43,9 +44,9 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
   final private IntermediateServiceDocument serviceDocument;
   final private Metamodel jpaMetamodel;
-  final private Map<String, IntermediateComplexType> mapInternalName2ComplexType;
-  final private Map<String, IntermediateEntityType> mapInternalName2EntityType;
-  final private Map<String, IntermediateFunction> mapeInternalName2Function;
+  final private Map<String, IntermediateComplexTypeJPA> mapExternalName2ComplexType;
+  final private Map<String, IntermediateEntityTypeJPA> mapExternalName2EntityType;
+  final private Map<String, IntermediateFunction> mapeExternalName2Function;
   final private List<IntermediateAction> collectionActions;
   final private Map<String, JPAEntitySet> mapExternalName2EntitySet;
   private CsdlSchema edmSchema = null;
@@ -55,11 +56,11 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     super(namespace);
     this.serviceDocument = serviceDocument;
     this.jpaMetamodel = jpaMetamodel;
-    this.mapInternalName2ComplexType = buildComplexTypeList();
-    this.mapInternalName2EntityType = buildEntityTypeList();
-    this.mapeInternalName2Function = buildFunctionList();
+    this.mapExternalName2ComplexType = buildComplexTypeList();
+    this.mapExternalName2EntityType = buildEntityTypeList();
+    this.mapeExternalName2Function = buildFunctionList();
     this.collectionActions = buildActionList();
-    this.mapExternalName2EntitySet = buildEntitySetList(mapInternalName2EntityType.values());
+    this.mapExternalName2EntitySet = buildEntitySetList(mapExternalName2EntityType.values());
   }
 
   @SuppressWarnings("unchecked")
@@ -70,12 +71,12 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     edmSchema = new CsdlSchema();
     edmSchema.setNamespace(getNameBuilder().buildNamespace());
     edmSchema.setComplexTypes(
-        (List<CsdlComplexType>) IntermediateModelElement.extractEdmModelElements(mapInternalName2ComplexType));
+        (List<CsdlComplexType>) IntermediateModelElement.extractEdmModelElements(mapExternalName2ComplexType));
     edmSchema.setEntityTypes(
-        (List<CsdlEntityType>) IntermediateModelElement.extractEdmModelElements(mapInternalName2EntityType));
+        (List<CsdlEntityType>) IntermediateModelElement.extractEdmModelElements(mapExternalName2EntityType));
     edmSchema.setFunctions(
-        (List<CsdlFunction>) IntermediateModelElement.extractEdmModelElements(mapeInternalName2Function));
-    edmSchema.setActions(IntermediateModelElement.extractEdmModelElements(collectionActions));
+        (List<CsdlFunction>) IntermediateModelElement.extractEdmModelElements(mapeExternalName2Function));
+    edmSchema.setActions(collectionActions.stream().map(entry -> entry.getEdmItem()).collect(Collectors.toList()));
 
     // edm:Annotations
     // edm:Annotation
@@ -93,68 +94,50 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return edmSchema;
   }
 
-  private static String buildStructuredTypeInternalName(final Class<?> clazz) {
-    return clazz.getCanonicalName();
+  @Override
+  IntermediateComplexTypeJPA getComplexType(final Class<?> targetClass) {
+    return mapExternalName2ComplexType.get(getNameBuilder().buildComplexTypeName(targetClass));
   }
 
   @Override
-  JPAStructuredType getStructuredType(final Class<?> typeClass) {
-    final JPAEntityType eType = getEntityType(typeClass);
-    if (eType != null) {
-      return eType;
-    }
-    return getComplexType(typeClass);
+  JPAComplexType getComplexType(final String externalName) {
+    return mapExternalName2ComplexType.get(externalName);
+  }
+
+  @Override
+  List<JPAComplexType> getComplexTypes() {
+    return new ArrayList<>(mapExternalName2ComplexType.values());
   }
 
   @Override
   JPAEntityType getEntityType(final Class<?> targetClass) {
-    return mapInternalName2EntityType.get(buildStructuredTypeInternalName(targetClass));
-  }
-
-  @Override
-  IntermediateComplexType getComplexType(final Class<?> targetClass) {
-    return mapInternalName2ComplexType.get(buildStructuredTypeInternalName(targetClass));
-  }
-
-  @Override
-  List<IntermediateComplexType> getComplexTypes() {
-    return new ArrayList<>(mapInternalName2ComplexType.values());
+    // an JPA entity can have a complete different name...
+    for (final IntermediateEntityTypeJPA jpaEntity : mapExternalName2EntityType.values()) {
+      if (jpaEntity.getManagedType().getJavaType().equals(targetClass)) {
+        return jpaEntity;
+      }
+    }
+    return null;
   }
 
   @Override
   JPAEntityType getEntityType(final String externalName) {
-    for (final String internalName : mapInternalName2EntityType.keySet()) {
-      if (mapInternalName2EntityType.get(internalName).getExternalName().equals(externalName)) {
-        return mapInternalName2EntityType.get(internalName);
-      }
-    }
-    return null;
+    return mapExternalName2EntityType.get(externalName);
   }
 
   @Override
   List<JPAEntityType> getEntityTypes() {
-    return new ArrayList<JPAEntityType>(mapInternalName2EntityType.values());
+    return new ArrayList<JPAEntityType>(mapExternalName2EntityType.values());
   }
 
   @Override
   JPAFunction getFunction(final String externalName) {
-    for (final String internalName : mapeInternalName2Function.keySet()) {
-      if (mapeInternalName2Function.get(internalName).getExternalName().equals(externalName)) {
-        if (!mapeInternalName2Function.get(internalName).ignore()) {
-          return mapeInternalName2Function.get(internalName);
-        }
-      }
-    }
-    return null;
+    return mapeExternalName2Function.get(externalName);
   }
 
   @Override
   List<JPAFunction> getFunctions() {
-    final ArrayList<JPAFunction> functions = new ArrayList<JPAFunction>(mapeInternalName2Function.size());
-    for (final String internalName : mapeInternalName2Function.keySet()) {
-      functions.add(mapeInternalName2Function.get(internalName));
-    }
-    return functions;
+    return new ArrayList<JPAFunction>(mapeExternalName2Function.values());
   }
 
   @Override
@@ -163,14 +146,10 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
       if (!jpaAction.getExternalName().equals(edmAction.getName())) {
         continue;
       }
-      try {
-        if (jpaAction.isBound() && !jpaAction.getEdmItem().getParameters().get(0).getTypeFQN().equals(edmAction
-            .getBindingParameterTypeFqn())) {
-          // for bound actions the 'entity' parameter (parameter[0]) must the same type as from request call
-          continue;
-        }
-      } catch (final ODataJPAModelException e) {
-        throw new IllegalStateException(e);
+      if (jpaAction.isBound() && !jpaAction.getEdmItem().getParameters().get(0).getTypeFQN().equals(edmAction
+          .getBindingParameterTypeFqn())) {
+        // for bound actions the 'entity' parameter (parameter[0]) must the same type as from request call
+        continue;
       }
       if (jpaAction.ignore()) {
         LOGGER.log(Level.WARNING, "Attempted call to ignored action '" + jpaAction.getJavaMethod().getName()
@@ -187,22 +166,22 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return Collections.unmodifiableList(collectionActions);
   }
 
-  private Map<String, IntermediateComplexType> buildComplexTypeList() throws ODataJPAModelException {
-    final HashMap<String, IntermediateComplexType> ctList = new HashMap<String, IntermediateComplexType>();
+  private Map<String, IntermediateComplexTypeJPA> buildComplexTypeList() throws ODataJPAModelException {
+    final HashMap<String, IntermediateComplexTypeJPA> ctList = new HashMap<String, IntermediateComplexTypeJPA>();
 
     for (final EmbeddableType<?> embeddable : this.jpaMetamodel.getEmbeddables()) {
-      final IntermediateComplexType ct = new IntermediateComplexType(getNameBuilder(), embeddable,
+      final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(getNameBuilder(), embeddable,
           serviceDocument);
-      ctList.put(ct.getInternalName(), ct);
+      ctList.put(ct.getExternalName(), ct);
     }
     return ctList;
   }
 
-  private Map<String, JPAEntitySet> buildEntitySetList(final Collection<IntermediateEntityType> entities)
+  private Map<String, JPAEntitySet> buildEntitySetList(final Collection<IntermediateEntityTypeJPA> entities)
       throws ODataJPAModelException {
     final HashMap<String, JPAEntitySet> esList = new HashMap<>();
 
-    for (final IntermediateEntityType entity : entities) {
+    for (final IntermediateEntityTypeJPA entity : entities) {
       if (esList.containsKey(entity.getEntitySetName())) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.UNIQUE_NAME_VIOLATION, entity
             .getEntitySetName());
@@ -213,14 +192,14 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return esList;
   }
 
-  private Map<String, IntermediateEntityType> buildEntityTypeList() throws ODataJPAModelException {
-    final HashMap<String, IntermediateEntityType> etList = new HashMap<String, IntermediateEntityType>();
+  private Map<String, IntermediateEntityTypeJPA> buildEntityTypeList() throws ODataJPAModelException {
+    final HashMap<String, IntermediateEntityTypeJPA> etMap = new HashMap<String, IntermediateEntityTypeJPA>();
 
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
-      final IntermediateEntityType et = new IntermediateEntityType(getNameBuilder(), entity, serviceDocument);
-      etList.put(et.getInternalName(), et);
+      final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(getNameBuilder(), entity, serviceDocument);
+      etMap.put(et.getExternalName(), et);
     }
-    return etList;
+    return etMap;
   }
 
   private Map<String, IntermediateFunction> buildFunctionList() throws ODataJPAModelException {

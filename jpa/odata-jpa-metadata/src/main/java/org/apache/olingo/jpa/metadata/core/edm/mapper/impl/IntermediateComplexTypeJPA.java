@@ -1,13 +1,13 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.metamodel.EmbeddableType;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
-import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
-import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -33,15 +33,16 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Oliver Grande
  *
  */
-class IntermediateComplexType extends IntermediateStructuredType<CsdlComplexType> {
+class IntermediateComplexTypeJPA extends AbstractStructuredTypeJPA<EmbeddableType<?>, CsdlComplexType> implements
+JPAComplexType {
 
   private CsdlComplexType edmComplexType;
 
-  IntermediateComplexType(final JPAEdmNameBuilder nameBuilder, final EmbeddableType<?> jpaEmbeddable,
+  IntermediateComplexTypeJPA(final JPAEdmNameBuilder nameBuilder, final EmbeddableType<?> jpaEmbeddable,
       final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
 
     super(determineComplexTypeNameBuilder(nameBuilder, jpaEmbeddable.getJavaType()), jpaEmbeddable, serviceDocument);
-    this.setExternalName(getNameBuilder().buildComplexTypeName(jpaEmbeddable));
+    this.setExternalName(getNameBuilder().buildComplexTypeName(jpaEmbeddable.getJavaType()));
 
   }
 
@@ -56,22 +57,21 @@ class IntermediateComplexType extends IntermediateStructuredType<CsdlComplexType
     return new JPAEdmNameBuilder(nameBuilderDefault.getNamespace(), ctAnnotation.attributeNaming());
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  protected void lazyBuildEdmItem() throws ODataJPAModelException {
+  final protected void lazyBuildEdmItem() throws ODataJPAModelException {
     initializeType();
     if (edmComplexType == null) {
       edmComplexType = new CsdlComplexType();
 
       edmComplexType.setName(this.getExternalName());
-      edmComplexType.setProperties((List<CsdlProperty>) extractEdmModelElements(declaredPropertiesList));
-      edmComplexType.setNavigationProperties((List<CsdlNavigationProperty>) extractEdmModelElements(
-          declaredNaviPropertiesList));
+      edmComplexType.setProperties(getAttributes(true).stream().map(attribute -> attribute.getProperty()).collect(
+          Collectors
+          .toList()));
+      edmComplexType.setNavigationProperties(getAssociations().stream().map(association -> association.getProperty())
+          .collect(Collectors.toList()));
       edmComplexType.setBaseType(determineBaseType());
-      // TODO Abstract
-      // edmComplexType.setAbstract(isAbstract)
-      // TODO OpenType
-      // edmComplexType.setOpenType(isOpenType)
+      edmComplexType.setAbstract(isAbstract());
+      edmComplexType.setOpenType(isOpenType());
       if (determineHasStream()) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_STREAM,
             getInternalName());
@@ -79,15 +79,13 @@ class IntermediateComplexType extends IntermediateStructuredType<CsdlComplexType
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  CsdlComplexType getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlComplexType getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmComplexType;
-  }
-
-  @Override
-  CsdlComplexType getEdmStructuralType() throws ODataJPAModelException {
-    return getEdmItem();
   }
 }

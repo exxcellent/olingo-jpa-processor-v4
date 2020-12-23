@@ -2,20 +2,20 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.util.Objects;
 
-public final class Pair<X, Y> {
-  final X left;
-  final Y right;
+public class Pair<X, Y> {
+  final private X left;
+  final private Y right;
 
   public Pair(final X left, final Y right) {
     this.left = left;
     this.right = right;
   }
 
-  public X getLeft() {
+  final public X getLeft() {
     return left;
   }
 
-  public Y getRight() {
+  final public Y getRight() {
     return right;
   }
 

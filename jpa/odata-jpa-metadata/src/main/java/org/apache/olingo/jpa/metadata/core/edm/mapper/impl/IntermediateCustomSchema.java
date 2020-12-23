@@ -6,18 +6,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
+import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEnumType;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
 
@@ -27,12 +30,16 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 class IntermediateCustomSchema extends AbstractJPASchema {
 
-  private CsdlSchema edmSchema = null;
+  final private static Logger LOGGER = Logger.getLogger(IntermediateCustomSchema.class.getName());
+
   final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
-  final private Map<String, IntermediateTypeDTO> dtoTypes = new HashMap<>();
+  final private Map<String, IntermediateEnityTypeDTO> dtoTypes = new HashMap<>();
+  final private Map<String, AbstractIntermediateComplexTypeDTO> complexTypes = new HashMap<>();
   final private Map<String, IntermediateAction> actions = new HashMap<>();
   final private Map<String, JPAEntitySet> entitySets = new HashMap<>();
   final private IntermediateServiceDocument serviceDocument;
+  private CsdlSchema edmSchema = null;
+  private int dtCount = 0;
 
   IntermediateCustomSchema(final IntermediateServiceDocument serviceDocument, final String namespace)
       throws ODataJPAModelException {
@@ -41,14 +48,13 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  JPAEntityType getEntityType(final Class<?> targetClass) {
-    return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
+  JPAComplexType getComplexType(final Class<?> targetClass) {
+    return getComplexType(getNameBuilder().buildComplexTypeName(targetClass));
   }
 
   @Override
-  IntermediateComplexType getComplexType(final Class<?> targetClass) {
-    // currently not supported
-    return null;
+  JPAComplexType getComplexType(final String externalName) {
+    return complexTypes.get(externalName);
   }
 
   @Override
@@ -57,14 +63,14 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  List<IntermediateComplexType> getComplexTypes() {
-    return Collections.emptyList();
+  List<JPAComplexType> getComplexTypes() {
+    return new ArrayList<JPAComplexType>(complexTypes.values());
   }
 
-  IntermediateTypeDTO getDTOType(final Class<?> targetClass) {
+  IntermediateEnityTypeDTO getDTOType(final Class<?> targetClass) {
     return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
   }
-  
+
   protected final void lazyBuildEdmItem() throws ODataJPAModelException {
     if (edmSchema != null) {
       return;
@@ -77,39 +83,26 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     edmSchema = new CsdlSchema();
     edmSchema.setNamespace(getNameBuilder().buildNamespace());
     edmSchema.setEnumTypes(buildEnumTypeList());
+    edmSchema.setComplexTypes(buildComplexTypeList());
     edmSchema.setEntityTypes(buildEntityTypeList());
     edmSchema.setActions(buildActionList());
   }
 
   private List<CsdlEntityType> buildEntityTypeList() throws RuntimeException {
     // TODO: entities (=empty) + dto's (as entities)
-    return dtoTypes.entrySet().stream().map(x -> {
-      try {
-        return x.getValue().getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
+    return dtoTypes.entrySet().stream().map(x -> x.getValue().getEdmItem()).collect(Collectors.toList());
+  }
+
+  private List<CsdlComplexType> buildComplexTypeList() throws RuntimeException {
+    return complexTypes.entrySet().stream().map(x -> x.getValue().getEdmItem()).collect(Collectors.toList());
   }
 
   private List<CsdlEnumType> buildEnumTypeList() throws RuntimeException {
-    return enumTypes.entrySet().stream().map(x -> {
-      try {
-        return x.getValue().getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
+    return enumTypes.entrySet().stream().map(x -> x.getValue().getEdmItem()).collect(Collectors.toList());
   }
 
   private List<CsdlAction> buildActionList() throws RuntimeException {
-    return actions.entrySet().stream().map(x -> {
-      try {
-        return x.getValue().getEdmItem();
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    }).collect(Collectors.toList());
+    return actions.entrySet().stream().map(x -> x.getValue().getEdmItem()).collect(Collectors.toList());
   }
 
   @Override
@@ -121,22 +114,47 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     IntermediateEnumType enumType = getEnumType(clazz);
     if (enumType == null) {
       enumType = new IntermediateEnumType(getNameBuilder(), clazz, serviceDocument);
-      enumTypes.put(clazz.getSimpleName(), enumType);
+      enumTypes.put(enumType.getExternalName(), enumType);
       // force rebuild
       edmSchema = null;
     }
     return enumType;
   }
 
-  IntermediateTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+  /**
+   * A call to this method will always create an new complex type. The name of type is generated, based on map type, but
+   * with suffix.
+   * The map may be part of an schema (namespace), but as representation for {@link java.util.Map} the related namespace
+   * should be used.
+   */
+  AbstractIntermediateComplexTypeDTO createDynamicMapType(final Class<?> mapKeyType, final Class<?> mapValueType,
+      final boolean valueIsCollection) throws ODataJPAModelException {
+    final String simpleName = Map.class.getSimpleName() + "{" + Integer.toString(++dtCount) + "}";
+    AbstractIntermediateComplexTypeDTO mapType = complexTypes.get(simpleName);
+    if (mapType != null)
+    {
+      return mapType;
+    }
+    // define a Map DTO type... the map will have no attributes (mostly EdmUntyped), because all attributes are dynamic.
+    mapType = new IntermediateMapComplexTypeDTO(getNameBuilder(), simpleName, mapKeyType, mapValueType,
+        valueIsCollection);
+    LOGGER.info("The type " + Map.class.getCanonicalName()
+        + " was created as complex open type. Open types are not supported by Olingo's (de)serializer, so a custom (de)serializer by OData-JPA-Adapter must be used. There is only JSON supported!");
+    complexTypes.put(mapType.getExternalName(), mapType);
+    // force rebuild
+    edmSchema = null;
+    return mapType;
+  }
+
+  IntermediateEnityTypeDTO findOrCreateDTOType(final Class<?> clazz) throws ODataJPAModelException {
     final String namespace = clazz.getPackage().getName();
     if (!namespace.equalsIgnoreCase(getInternalName())) {
       throw new ODataJPAModelException(MessageKeys.GENERAL);
     }
 
-    IntermediateTypeDTO dtoType = getDTOType(clazz);
+    IntermediateEnityTypeDTO dtoType = getDTOType(clazz);
     if (dtoType == null) {
-      dtoType = new IntermediateTypeDTO(getNameBuilder(), clazz, serviceDocument);
+      dtoType = new IntermediateEnityTypeDTO(getNameBuilder(), clazz, serviceDocument);
       dtoTypes.put(dtoType.getExternalName(), dtoType);
       // build actions for DTO
       final IntermediateActionFactory factory = new IntermediateActionFactory();
@@ -151,8 +169,12 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  public CsdlSchema getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  public CsdlSchema getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmSchema;
   }
 
@@ -162,15 +184,11 @@ class IntermediateCustomSchema extends AbstractJPASchema {
       if (!entry.getValue().getExternalName().equals(edmAction.getName())) {
         continue;
       }
-      try {
-        if (entry.getValue().isBound() && !entry.getValue().getEdmItem().getParameters().get(0).getTypeFQN().equals(
-            edmAction
-                .getBindingParameterTypeFqn())) {
-          // for bound actions the 'entity' parameter (parameter[0]) must the same type as from request call
-          continue;
-        }
-      } catch (final ODataJPAModelException e) {
-        throw new IllegalStateException(e);
+      if (entry.getValue().isBound() && !entry.getValue().getEdmItem().getParameters().get(0).getTypeFQN().equals(
+          edmAction
+          .getBindingParameterTypeFqn())) {
+        // for bound actions the 'entity' parameter (parameter[0]) must the same type as from request call
+        continue;
       }
 
       if (!entry.getValue().ignore()) {
@@ -186,17 +204,13 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  JPAEntityType getEntityType(final String externalName) {
-    return dtoTypes.get(externalName);
+  JPAEntityType getEntityType(final Class<?> targetClass) {
+    return getEntityType(getNameBuilder().buildDTOTypeName(targetClass));
   }
 
   @Override
-  JPAStructuredType getStructuredType(final Class<?> typeClass) {
-    final JPAEntityType eType = getEntityType(typeClass);
-    if (eType != null) {
-      return eType;
-    }
-    return getComplexType(typeClass);
+  JPAEntityType getEntityType(final String externalName) {
+    return dtoTypes.get(externalName);
   }
 
   @Override

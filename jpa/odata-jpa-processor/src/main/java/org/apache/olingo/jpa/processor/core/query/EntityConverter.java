@@ -1,5 +1,8 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +35,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.DynamicJPADescribedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.Pair;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
@@ -275,7 +279,7 @@ public class EntityConverter extends AbstractEntityConverter {
         mapId2Instance.put(id.toASCIIString(), new Pair<Entity, Object>(entity, targetJPAInstance));
       }
 
-      for (final JPAAttribute<?> jpaAttribute : jpaEntityType.getAttributes()) {
+      for (final JPAAttribute<?> jpaAttribute : jpaEntityType.getAttributes(false)) {
         transferOData2JPAProperty(targetJPAInstance, jpaAttribute, entity.getProperties());
       }
       for (final JPAAssociationAttribute association : jpaEntityType.getAssociations()) {
@@ -332,7 +336,7 @@ public class EntityConverter extends AbstractEntityConverter {
         // transfer nested key attribute values to owning oadata entity
         final JPAStructuredType keyType = jpaAttribute.getStructuredType();
         final Object keyObject = jpaAttribute.getAttributeAccessor().getPropertyValue(jpaEntity);
-        for (final JPAMemberAttribute nestedAttribute : keyType.getAttributes()) {
+        for (final JPAMemberAttribute nestedAttribute : keyType.getAttributes(false)) {
           final Object value = nestedAttribute.getAttributeAccessor().getPropertyValue(keyObject);
           convertJPAAttribute2OData(nestedAttribute, value, keyType, complexValueBuffer, properties, processingContext);
         }
@@ -357,7 +361,7 @@ public class EntityConverter extends AbstractEntityConverter {
     processingContext.processedEntities.add(jpaEntity);
 
     // 2. convert other simple attributes, complex types and relationships
-    for (final JPAMemberAttribute jpaAttribute : jpaType.getAttributes()) {
+    for (final JPAMemberAttribute jpaAttribute : jpaType.getAttributes(false)) {
       if (jpaAttribute.isKey()) {
         // already processed
         continue;
@@ -482,7 +486,7 @@ public class EntityConverter extends AbstractEntityConverter {
         final ComplexValue complexValue = new ComplexValue();
         convertedValues.add(complexValue);
         final List<Property> cvProperties = complexValue.getValue();
-        convertComplexTypeValue2OData(attributeType, cValue, cvProperties, processingContext);
+        convertComplexTypeValue2OData(jpaAttribute, cValue, cvProperties, processingContext);
         complexValue.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(attributeType, cValue,
             processingContext));
       }
@@ -491,7 +495,7 @@ public class EntityConverter extends AbstractEntityConverter {
     } else {
       final ComplexValue complexValue = new ComplexValue();
       final List<Property> cvProperties = complexValue.getValue();
-      convertComplexTypeValue2OData(attributeType, value, cvProperties, processingContext);
+      convertComplexTypeValue2OData(jpaAttribute, value, cvProperties, processingContext);
       complexValue.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(attributeType, value,
           processingContext));
       return new Property(attributeType.getExternalFQN().getFullQualifiedNameAsString(),
@@ -499,28 +503,65 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private void convertComplexTypeValue2OData(final JPAStructuredType attributeType, final Object cValue,
+  private void convertComplexTypeValue2OData(final JPAMemberAttribute jpaAttribute, final Object cValue,
       final List<Property> cvProperties, final JPA2ODataProcessingContext processingContext)
           throws ODataJPAModelException, ODataJPAConversionException {
     if (cValue == null) {
       return;
     }
-
+    final JPAStructuredType attributeType = jpaAttribute.getStructuredType();
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
-    for (final JPAMemberAttribute jpaAttribute : attributeType.getAttributes()) {
-      final Object value = jpaAttribute.getAttributeAccessor().getPropertyValue(cValue);
-      if (jpaAttribute.isComplex()) {
-        final Property complexTypeProperty = convertJPAComplexAttribute2OData(jpaAttribute, value, processingContext);
+    for (final JPAMemberAttribute jpaTargetTypeAttribute : attributeType.getAttributes(false)) {
+      final Object value = jpaTargetTypeAttribute.getAttributeAccessor().getPropertyValue(cValue);
+      if (jpaTargetTypeAttribute.isComplex()) {
+        final Property complexTypeProperty = convertJPAComplexAttribute2OData(jpaTargetTypeAttribute, value,
+            processingContext);
         if (complexTypeProperty != null) {
           cvProperties.add(complexTypeProperty);
         }
       } else {
         // simple attribute (or collection)
-        final String alias = jpaAttribute.getExternalName();
+        final String alias = jpaTargetTypeAttribute.getExternalName();
         convertJPAValue2ODataAttribute(value, alias, "", attributeType, complexValueBuffer, 0,
             cvProperties);
       }
     }
-
+    if(attributeType.isOpenType()) {
+      if(Map.class.isInstance(cValue)) {
+        //handle dynamic properties of open type
+        @SuppressWarnings("unchecked")
+        final Map<String,?> mapValue = (Map<String, ?>) cValue;
+        for(final Map.Entry<String, ?> entry: mapValue.entrySet()) {
+          final Class<?> oadataType = detectValueType((Field) jpaAttribute.getAnnotatedElement(), entry.getValue());
+          final boolean isCollection = Collection.class.isInstance(entry.getValue());
+          final DynamicJPADescribedElement attr = new DynamicJPADescribedElement().setType(oadataType);
+          // be aware: there is no property name adaption based on naming strategy, because while de-serializing of
+          // dynamic properties we cannot reverse detect the correct map key
+          convertJPA2ODataProperty(attr, isCollection, entry
+              .getKey(), entry.getValue(), cvProperties);
+        }
+      }
+    }
   }
+
+  private Class<?> detectValueType(final Field field, final Object value) throws ODataJPAModelException {
+    if (field != null) {
+      final Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+      final Type valueType = typeArguments[1];// value type
+      if (ParameterizedType.class.isInstance(valueType)) {
+        final java.lang.reflect.Type[] typeTypes = ((ParameterizedType) valueType).getActualTypeArguments();
+        if (typeTypes.length == 1) {
+          return Class.class.cast(typeTypes[0]);
+        } else {
+          throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
+              "Only one type parameter acceptable");
+        }
+      } else if (Class.class.isInstance(valueType)) {
+        return Class.class.cast(valueType);
+      }
+    }
+    // fallback
+    return detectValueType(value);
+  }
+
 }

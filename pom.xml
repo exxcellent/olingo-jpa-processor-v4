@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.48.2</version>
+	<version>0.49.0</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>

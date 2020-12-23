@@ -14,6 +14,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
@@ -28,7 +29,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-public class IntermediateAction extends IntermediateModelElement implements JPAAction {
+public class IntermediateAction extends IntermediateModelElement<CsdlAction> implements JPAAction {
 
   private CsdlAction edmAction = null;
   private final IntermediateServiceDocument isd;
@@ -105,8 +106,12 @@ public class IntermediateAction extends IntermediateModelElement implements JPAA
   }
 
   @Override
-  CsdlAction getEdmItem() throws ODataJPAModelException {
-    lazyBuildEdmItem();
+  CsdlAction getEdmItem() throws ODataRuntimeException {
+    try {
+      lazyBuildEdmItem();
+    } catch (final ODataJPAModelException e) {
+      throw new ODataRuntimeException(e);
+    }
     return edmAction;
   }
 

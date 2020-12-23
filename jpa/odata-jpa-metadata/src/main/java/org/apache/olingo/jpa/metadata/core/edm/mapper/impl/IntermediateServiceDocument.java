@@ -181,6 +181,9 @@ public class IntermediateServiceDocument {
    * @see AbstractJPASchema#getStructuredType(Class)
    */
   JPAStructuredType getStructuredType(final Class<?> targetClass) {
+    if (targetClass.isPrimitive()) {
+      return null;
+    }
     synchronized (lock) {
       // do not resolve the on-demand schemas here; we have to avoid recursion
       // problems and want to optimize performance
@@ -189,6 +192,17 @@ public class IntermediateServiceDocument {
         if (structuredType != null) {
           return structuredType;
         }
+      }
+    }
+    return null;
+  }
+
+  public JPAStructuredType getStructuredType(final FullQualifiedName typeName) {
+    synchronized (lock) {
+      resolveSchemas();
+      final AbstractJPASchema schema = schemaListInternalKey.get(typeName.getNamespace());
+      if (schema != null) {
+        return schema.getStructuredType(typeName.getName());
       }
     }
     return null;
@@ -277,7 +291,23 @@ public class IntermediateServiceDocument {
     }
   }
 
-  public IntermediateTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+  /**
+   * Helper method to create an {@link java.util.Map} map type as complex type.
+   *
+   * @see IntermediateCustomSchema#createDynamicMapType(Class, Class, boolean)
+   */
+  AbstractIntermediateComplexTypeDTO createDynamicJavaUtilMapType(final Class<?> mapKeyType,
+      final Class<?> mapValueType, final boolean valueIsCollection) throws ODataJPAModelException {
+    final String namespace = Map.class.getPackage().getName();
+    AbstractJPASchema schema = schemaListInternalKey.get(namespace);
+    if (schema == null) {
+      schema = createCustomSchema(namespace);
+    }
+    // Map type is created on-demand while creating other DTO types, so we have to avoid to reset the container
+    return ((IntermediateCustomSchema) schema).createDynamicMapType(mapKeyType, mapValueType, valueIsCollection);
+  }
+
+  public IntermediateEnityTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
     synchronized (lock) {
       if (clazz == null) {
         throw new ODataJPAModelException(MessageKeys.GENERAL);
@@ -292,7 +322,7 @@ public class IntermediateServiceDocument {
       }
       // this will affect the number of entity set's so we have to refresh the container
       intermediateContainer.reset();
-      return ((IntermediateCustomSchema) schema).createDTOType(clazz);
+      return ((IntermediateCustomSchema) schema).findOrCreateDTOType(clazz);
     }
   }
 

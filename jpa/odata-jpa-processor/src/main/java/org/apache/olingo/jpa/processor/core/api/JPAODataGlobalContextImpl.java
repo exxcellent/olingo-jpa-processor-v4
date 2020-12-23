@@ -13,6 +13,7 @@ import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
 import org.apache.olingo.jpa.processor.ModifiableDependencyInjector;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
+import org.apache.olingo.server.ODataFactory;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.core.debug.ServerCoreDebugger;
@@ -31,7 +32,7 @@ class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataG
 
   public JPAODataGlobalContextImpl(final JPAAdapter mappingAdapter) throws ODataException {
     super();
-    this.odata = OData.newInstance();
+    this.odata = ODataFactory.createCustomODataInstance();
     this.mappingAdapter = mappingAdapter;
     this.di = new DependencyInjectorImpl();
 

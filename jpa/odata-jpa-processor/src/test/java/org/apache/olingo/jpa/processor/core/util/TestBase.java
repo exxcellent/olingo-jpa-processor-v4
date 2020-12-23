@@ -27,6 +27,7 @@ import org.apache.olingo.jpa.processor.core.query.NavigationRoot;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
+import org.apache.olingo.server.ODataFactory;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriInfoKind;
@@ -65,7 +66,7 @@ public abstract class TestBase {
     persistenceAdapter = createPersistenceAdapter();
     helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);
     jpaEdmProvider = helper.getEdmProvider();
-    odata = OData.newInstance();
+    odata = ODataFactory.createCustomODataInstance();
     serviceMetaData = odata.createServiceMetadata(jpaEdmProvider, Collections.emptyList());
   }
 
