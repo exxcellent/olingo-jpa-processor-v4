@@ -418,14 +418,26 @@ public class TestJPAActions extends TestBase {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
 
-    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("fillDTOWithNestedComplexType");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    final URIBuilder uriBuilderFillAction = newUriBuilder().appendActionCallSegment("fillDTOWithNestedComplexType");
+    final ServerCallSimulator helperFillAction = new ServerCallSimulator(persistenceAdapter, uriBuilderFillAction, null, HttpMethod.POST);
 
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode results = helper.getJsonObjectValues();
+    helperFillAction.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode results = helperFillAction.getJsonObjectValues();
     assertTrue(results.size() == 2);
     assertTrue(((ObjectNode) results.get(0)).get("SystemRequirements").size() == 3);
-    assertTrue(((ObjectNode) results.get(0)).get("MapOfNumberCollections").size() == 2);
+
+    final ObjectNode jsonMapNode = (ObjectNode) ((ObjectNode) results.get(0)).get("MapOfNumberCollections");
+    assertTrue(jsonMapNode.size() == 2);
+
+    // second part of test: use map as action parameter
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("  \"mapParameter\": " + jsonMapNode.toString());
+    requestBody.append("}");
+
+    final URIBuilder uriBuilderParameterAction = newUriBuilder().appendActionCallSegment("actionWithMapParameter");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilderParameterAction,
+        requestBody.toString(), HttpMethod.POST);
+    helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
   }
 
   @Test

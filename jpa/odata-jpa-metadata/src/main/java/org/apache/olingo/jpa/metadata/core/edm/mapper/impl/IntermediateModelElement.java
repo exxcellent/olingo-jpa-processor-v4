@@ -3,6 +3,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -131,6 +132,42 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
       }
     }
     throw new UnsupportedOperationException(type.getTypeName());
+  }
+
+  static Triple<Class<?>, Class<?>, Boolean> checkMapTypeArgumentsMustBeSimple(final Type theType,
+      final String elementNameForErrorMessages)
+          throws ODataJPAModelException {
+    if (!ParameterizedType.class.isInstance(theType)) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE, theType
+          .getTypeName() + " [must be generic]", elementNameForErrorMessages);
+    }
+    final java.lang.reflect.Type[] typeArguments = ParameterizedType.class.cast(theType).getActualTypeArguments();
+    if (typeArguments.length != 2) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
+          elementNameForErrorMessages,
+          "Map<x,y>, having two type arguments expected");
+    }
+    final Type keyType = extractTypeOfGenericType(typeArguments[0]);
+    final Type valueType = extractTypeOfGenericType(typeArguments[1]);
+    final boolean isCollection = Class.class.isInstance(typeArguments[1]) && Collection.class.isAssignableFrom(
+        Class.class.cast(typeArguments[1])) || ParameterizedType.class.isInstance(typeArguments[1]) && Collection.class
+            .isAssignableFrom((Class<?>) ParameterizedType.class.cast(typeArguments[1]).getRawType());
+    return new Triple<Class<?>, Class<?>, Boolean>(Class.class.cast(keyType), Class.class.cast(valueType), Boolean
+        .valueOf(isCollection));
+  }
+
+  private static Class<?> extractTypeOfGenericType(final Type type) throws ODataJPAModelException {
+    if (ParameterizedType.class.isInstance(type)) {
+      final java.lang.reflect.Type[] types = ((ParameterizedType) type)
+          .getActualTypeArguments();
+      if (types.length == 1) {
+        return (Class<?>) types[0];
+      } else {
+        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
+            "Only one type parameter acceptable");
+      }
+    }
+    return (Class<?>) type;
   }
 
   /**

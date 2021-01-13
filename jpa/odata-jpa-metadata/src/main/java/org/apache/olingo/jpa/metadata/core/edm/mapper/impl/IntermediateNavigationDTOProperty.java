@@ -151,7 +151,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
       try {
         initStateEdm = InitializationState.InProgress;
 
-        if (!TypeMapping.isFieldTargetingDTO(field)) {
+        if (!TypeMapping.isTargetingDTO(field)) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
               "Java type not supported");
         }

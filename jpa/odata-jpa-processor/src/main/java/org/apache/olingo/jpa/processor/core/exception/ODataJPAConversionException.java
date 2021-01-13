@@ -36,7 +36,8 @@ public class ODataJPAConversionException extends ODataJPAProcessException {
     this(HttpStatusCode.INTERNAL_SERVER_ERROR, cause, messageKey, params);
   }
 
-  protected ODataJPAConversionException(final HttpStatusCode statusCode, final Throwable cause, final MessageKeys messageKey,
+  public ODataJPAConversionException(final HttpStatusCode statusCode, final Throwable cause,
+      final MessageKeys messageKey,
       final String... params) {
     super(messageKey.getKey(), statusCode, cause, params);
   }
