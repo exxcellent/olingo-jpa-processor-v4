@@ -16,6 +16,7 @@ import javax.persistence.Id;
 
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.security.ODataOperationAccess;
@@ -139,6 +140,13 @@ public class EnvironmentInfo {
   @EdmAction
   public static Collection<Integer> actionWithPrimitiveCollectionResult() {
     return Arrays.asList(Integer.valueOf(1), Integer.valueOf(2));
+  }
+
+  @EdmAction
+  public static void actionWithMapParameter(
+      @EdmActionParameter(name = "mapParameter") final Map<String, Collection<Integer>> mapParameter) {
+    assert mapParameter != null;
+    assert !mapParameter.isEmpty();
   }
 
 }

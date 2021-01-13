@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.sql.Blob;
@@ -376,7 +377,7 @@ public final class TypeMapping {
    */
   static Class<?> extractElementTypeOfCollection(final Field field) throws ODataJPAModelException {
     if (ParameterizedType.class.isInstance(field.getGenericType())) {
-      final java.lang.reflect.Type[] types = ((ParameterizedType) field.getGenericType())
+      final java.lang.reflect.Type[] types = ParameterizedType.class.cast(field.getGenericType())
           .getActualTypeArguments();
       if (types.length == 1) {
         return (Class<?>) types[0];
@@ -386,10 +387,21 @@ public final class TypeMapping {
         field.getGenericType().getTypeName(), field.getName());
   }
 
-  static boolean isFieldTargetingDTO(final Field field) throws ODataJPAModelException {
-    Class<?> javaType;
+  private static Class<?> extractElementTypeOfCollection(final Parameter parameter) throws ODataJPAModelException {
+    if (ParameterizedType.class.isInstance(parameter.getParameterizedType())) {
+      final java.lang.reflect.Type[] types = ParameterizedType.class.cast(parameter.getParameterizedType())
+          .getActualTypeArguments();
+      if (types.length == 1) {
+        return (Class<?>) types[0];
+      }
+    }
+    throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
+        parameter.getParameterizedType().getTypeName(), parameter.getName());
+  }
+
+  static boolean isTargetingDTO(final Field field) throws ODataJPAModelException {
+    final Class<?> javaType;
     if (Collection.class.isAssignableFrom(field.getType())) {
-      // javaType = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
       javaType = TypeMapping.extractElementTypeOfCollection(field);
     } else {
       javaType = field.getType();
@@ -401,4 +413,17 @@ public final class TypeMapping {
     return javaType.getAnnotation(ODataDTO.class) != null;
   }
 
+  static boolean isTargetingDTO(final Parameter parameter) throws ODataJPAModelException {
+    final Class<?> javaType;
+    if (Collection.class.isAssignableFrom(parameter.getType())) {
+      javaType = TypeMapping.extractElementTypeOfCollection(parameter);
+    } else {
+      javaType = parameter.getType();
+    }
+    if (javaType == null) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+          "Java type not available");
+    }
+    return javaType.getAnnotation(ODataDTO.class) != null;
+  }
 }

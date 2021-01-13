@@ -2,8 +2,6 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +65,7 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
       return propertyTypeName;
     }
     final Class<?> attributeType = getType();
-    if (TypeMapping.isFieldTargetingDTO(field)) {
+    if (TypeMapping.isTargetingDTO(field)) {
       final JPAStructuredType dtoType = serviceDocument.getStructuredType(attributeType);
       if (dtoType == null) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
@@ -76,7 +74,8 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
       propertyTypeName = dtoType.getExternalFQN();
     } else if (Map.class.isAssignableFrom(field.getType())) {
       // special handling for java.util.Map
-      final Triple<Class<?>, Class<?>, Boolean> typeInfo = checkTypeArgumentsMustBeSimple(field);
+      final Triple<Class<?>, Class<?>, Boolean> typeInfo = checkMapTypeArgumentsMustBeSimple(field.getGenericType(),
+          field.getName());
       final AbstractIntermediateComplexTypeDTO jpaMapType = serviceDocument.createDynamicJavaUtilMapType(typeInfo
           .getLeft(), typeInfo.getMiddle(), typeInfo.getRight().booleanValue());
       propertyTypeName = jpaMapType.getExternalFQN();
@@ -91,41 +90,6 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
       propertyTypeName = TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
     }
     return propertyTypeName;
-  }
-
-  private static Triple<Class<?>, Class<?>, Boolean> checkTypeArgumentsMustBeSimple(final Field field)
-      throws ODataJPAModelException {
-    if (!ParameterizedType.class.isInstance(field.getGenericType())) {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE,
-          field.getGenericType().getTypeName() + " [must be generic]", field.getName());
-    }
-    final java.lang.reflect.Type[] typeArguments = ((ParameterizedType) field.getGenericType())
-        .getActualTypeArguments();
-    if (typeArguments.length != 2) {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_ATTRIBUTE_TYPE, field.getName(),
-          "Map<x,y>, having two type arguments expected");
-    }
-    final Type keyType = extractTypeOfGenericType(typeArguments[0]);
-    final Type valueType = extractTypeOfGenericType(typeArguments[1]);
-    final boolean isCollection = Class.class.isInstance(typeArguments[1]) && Collection.class.isAssignableFrom(
-        Class.class.cast(typeArguments[1])) || ParameterizedType.class.isInstance(typeArguments[1]) && Collection.class
-        .isAssignableFrom((Class<?>) ParameterizedType.class.cast(typeArguments[1]).getRawType());
-    return new Triple<Class<?>, Class<?>, Boolean>(Class.class.cast(keyType), Class.class.cast(valueType), Boolean
-        .valueOf(isCollection));
-  }
-
-  private static Class<?> extractTypeOfGenericType(final Type type) throws ODataJPAModelException {
-    if (ParameterizedType.class.isInstance(type)) {
-      final java.lang.reflect.Type[] types = ((ParameterizedType) type)
-          .getActualTypeArguments();
-      if (types.length == 1) {
-        return (Class<?>) types[0];
-      } else {
-        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
-            "Only one type parameter acceptable");
-      }
-    }
-    return (Class<?>) type;
   }
 
   @Override

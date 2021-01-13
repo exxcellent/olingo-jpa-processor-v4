@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,9 +13,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.metamodel.Metamodel;
 
+import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Parameter;
+import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
@@ -166,6 +169,18 @@ public class JPAEntityHelper {
         final EntityCollection odataEntities = (EntityCollection) p.getValue();
         args[i] = entityConverter.convertOData2JPAEntity(odataEntities, jpaTypeCE);
         break;
+      case COMPLEX:
+        final JPAStructuredType jpaTypeST = sd.getStructuredType(jpaParameter.getTypeFQN());
+        if (jpaTypeST.isOpenType() && Map.class.isAssignableFrom(jpaTypeST.getTypeClass())) {
+          // support java.util.Map as special complex type
+          final Map<?, ?> map = new HashMap<>();
+          args[i] = map;
+          final ComplexValue cv = p.asComplex();
+          final List<Property> listEmbeddedProperties = cv.getValue();
+          entityConverter.transferODataSingleComplexValue2JPAProperty(jpaTypeST, map, listEmbeddedProperties);
+          break;
+        }
+        // fall through
       default:
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED, p.getValueType().toString(),
             p.getName());

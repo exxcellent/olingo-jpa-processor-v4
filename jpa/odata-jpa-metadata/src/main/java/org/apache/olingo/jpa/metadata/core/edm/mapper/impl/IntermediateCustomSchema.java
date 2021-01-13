@@ -32,6 +32,8 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
   final private static Logger LOGGER = Logger.getLogger(IntermediateCustomSchema.class.getName());
 
+  private static boolean mapWarningAlreadyLogged = false;
+
   final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
   final private Map<String, IntermediateEnityTypeDTO> dtoTypes = new HashMap<>();
   final private Map<String, AbstractIntermediateComplexTypeDTO> complexTypes = new HashMap<>();
@@ -133,13 +135,16 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     AbstractIntermediateComplexTypeDTO mapType = complexTypes.get(simpleName);
     if (mapType != null)
     {
-      return mapType;
+      throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
     }
     // define a Map DTO type... the map will have no attributes (mostly EdmUntyped), because all attributes are dynamic.
     mapType = new IntermediateMapComplexTypeDTO(getNameBuilder(), simpleName, mapKeyType, mapValueType,
         valueIsCollection);
-    LOGGER.info("The type " + Map.class.getCanonicalName()
-        + " was created as complex open type. Open types are not supported by Olingo's (de)serializer, so a custom (de)serializer by OData-JPA-Adapter must be used. There is only JSON supported!");
+    if (!mapWarningAlreadyLogged) {
+      mapWarningAlreadyLogged = true;
+      LOGGER.info("The type " + Map.class.getCanonicalName()
+          + " was created as complex open type. Open types are not supported by Olingo's (de)serializer, so a custom (de)serializer by OData-JPA-Adapter must be used. There is only JSON supported!");
+    }
     complexTypes.put(mapType.getExternalName(), mapType);
     // force rebuild
     edmSchema = null;

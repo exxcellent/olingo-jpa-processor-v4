@@ -99,7 +99,7 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
         continue;
       } else if (field.isAnnotationPresent(EdmIgnore.class)) {
         continue;
-      } else if (TypeMapping.isFieldTargetingDTO(field)) {
+      } else if (TypeMapping.isTargetingDTO(field)) {
         final IntermediateNavigationDTOProperty property = new IntermediateNavigationDTOProperty(getNameBuilder(),
             field,
             serviceDocument);
