@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/exxcellent/olingo-jpa-processor-v4.svg?branch=eXXcellent_adaptions)](https://travis-ci.org/exxcellent/olingo-jpa-processor-v4)
+[![Build Status](https://travis-ci.com/exxcellent/olingo-jpa-processor-v4.svg?branch=eXXcellent_adaptions)](https://travis-ci.com/exxcellent/olingo-jpa-processor-v4)
 [![codecov](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4/branch/eXXcellent_adaptions/graph/badge.svg)](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4)
 
 # First words...
