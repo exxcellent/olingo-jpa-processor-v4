@@ -43,4 +43,33 @@ public class ConfigurationTest extends TestBase {
     assertEquals(2, map.size());
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidFormatDate() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.setFormatDate("");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidFormatDecimal() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.setFormatDecimal("");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidFormatInteger() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.setFormatInteger("");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidFormatTime() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.setFormatTime("");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidFormatDateTime() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.setFormatDateTime("");
+  }
 }

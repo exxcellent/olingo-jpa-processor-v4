@@ -24,17 +24,20 @@ import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
+import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
+import org.apache.olingo.jpa.processor.transformation.impl.ODataResponseContent;
 import org.apache.olingo.jpa.test.util.AbstractTest;
 import org.apache.olingo.jpa.test.util.AbstractTest.EntityManagerProperty;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.serializer.RepresentationType;
+import org.apache.olingo.server.api.serializer.SerializerException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -204,6 +207,23 @@ public class ExcelTransformationTest extends TestBase {
     System.out.println("Duration: data creation(" + numberdata + ")=" + (beforeQuery - beforeData) / 1000
         + "sec, query=" + (afterQuery - beforeQuery) / 1000 + "sec, streaming=" + (afterPOI - afterQuery)
         + "ms, file write=" + (afterFileWrite - afterPOI) + "ms");
+  }
+
+  @Test
+  public void testCapabilities() throws IOException, ODataException {
+    final QueryEntityResult2ExcelODataResponseContentTransformation transformation =
+        new QueryEntityResult2ExcelODataResponseContentTransformation();
+    assertTrue(transformation.getInputType() == QueryEntityResult.class);
+    assertTrue(transformation.getOutputType() == ODataResponseContent.class);
+    // identical transformation
+    assertTrue(transformation.createSubTransformation(QueryEntityResult.class) == transformation);
+  }
+
+  @Test(expected = SerializerException.class)
+  public void testUnsupportedTransfromation() throws IOException, ODataException {
+    final QueryEntityResult2ExcelODataResponseContentTransformation transformation =
+        new QueryEntityResult2ExcelODataResponseContentTransformation();
+    transformation.createSubTransformation(Class.class);
   }
 
   private void createData(final int number) {
