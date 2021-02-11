@@ -45,10 +45,6 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
     if (annotation == null) {
       throw new ODataJPAModelException(MessageKeys.TYPE_NOT_SUPPORTED, dtoType.getName(), null);
     }
-    // super class not allowed for DTO
-    if (dtoType.getSuperclass() != null && Object.class != dtoType.getSuperclass()) {
-      throw new ODataJPAModelException(MessageKeys.TYPE_NOT_SUPPORTED, dtoType.getName(), null);
-    }
 
     this.dtoType = dtoType;
     this.serviceDocument = serviceDocument;

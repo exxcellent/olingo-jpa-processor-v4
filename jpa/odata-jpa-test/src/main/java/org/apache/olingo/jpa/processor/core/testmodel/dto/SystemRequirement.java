@@ -21,7 +21,7 @@ public class SystemRequirement {
     this(null, null);
   }
 
-  SystemRequirement(final String requirementName, final String requirementDescription) {
+  public SystemRequirement(final String requirementName, final String requirementDescription) {
     this.requirementName = requirementName;
     this.requirementDescription = requirementDescription;
   }

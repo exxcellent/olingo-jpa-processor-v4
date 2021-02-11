@@ -248,7 +248,7 @@ implements JPAStructuredType {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INHERITANCE_NOT_ALLOWED,
           this.getInternalName(), baseEntity.getInternalName());
     }
-    return baseEntity != null ? getNameBuilder().buildFQN(baseEntity.getExternalName()) : null;
+    return baseEntity != null ? baseEntity.getExternalFQN() : null;
   }
 
   abstract protected JPAStructuredType getBaseType() throws ODataJPAModelException;

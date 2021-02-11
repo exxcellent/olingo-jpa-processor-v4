@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.dto;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
@@ -24,6 +26,8 @@ import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class TestDTOs extends TestBase {
 
   @ODataDTO
@@ -32,6 +36,29 @@ public class TestDTOs extends TestBase {
     // schema...
     @SuppressWarnings("unused")
     private StandardProtocolFamily family;
+  }
+
+  /**
+   * DTO inherit from another
+   *
+   */
+  @ODataDTO
+  public static class InheritanceDto extends SystemRequirement {
+    // because of default naming strategy this attribute will be named 'Any' in OData part, all attributes from super
+    // class are named 'as is' (lower case)
+    @SuppressWarnings("unused")
+    private String any;
+
+    public InheritanceDto() {
+      super("req", "desc");
+    }
+
+    @EdmAction
+    public static InheritanceDto produceOne() {
+      final InheritanceDto instance = new InheritanceDto();
+      instance.any = "any";
+      return instance;
+    }
   }
 
   @Before
@@ -108,9 +135,21 @@ public class TestDTOs extends TestBase {
     persistenceAdapter.registerDTO(EnumDto.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
-        null, HttpMethod.GET);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
     helper.setRequestedResponseContentType(ContentType.APPLICATION_XML.toContentTypeString());
     helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
+
+  @Test
+  public void testDTOWithInheritance() throws IOException, ODataException, SQLException {
+    persistenceAdapter.registerDTO(InheritanceDto.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("produceOne");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertNotNull(result.get("Any").asText());// starting upper case
+    assertNotNull(result.get("requirementName").asText()); // starting lower case
+    assertNotNull(result);
   }
 }
