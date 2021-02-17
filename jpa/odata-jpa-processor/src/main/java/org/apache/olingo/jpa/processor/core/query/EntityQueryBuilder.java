@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -54,7 +55,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
 public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQuery<Tuple>, Tuple> {
 
-  protected static final String SELECT_ITEM_SEPERATOR = ",";
+  protected static final String SELECT_ITEM_SEPARATOR = ",";
   protected static final String SELECT_ALL = "*";
 
   private final ServiceMetadata serviceMetadata;
@@ -107,11 +108,11 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
   public final <O> O execute(final boolean processExpandOption,
       final Transformation<QueryEntityResult, O> transformer) throws ODataApplicationException,
   ODataJPAModelException, SerializerException {
-    final QueryEntityResult queryResult = executeInternal(processExpandOption);
+    final QueryEntityResult queryResult = executeInternal(processExpandOption, null, null);
     return transformer.transform(queryResult);
   }
 
-  protected final QueryEntityResult executeInternal(final boolean processExpandOption)
+  protected final QueryEntityResult executeInternal(final boolean processExpandOption, String parentIdAttributeName, List<Object> parentIds)
       throws ODataApplicationException, ODataJPAModelException {
     final UriInfoResource uriResource = getNavigation().getLastStep();
     // Pre-process URI parameter, so they can be used at different places
@@ -134,6 +135,11 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       cq.where(whereClause);
     }
 
+    if (parentIds != null) {
+      CriteriaBuilder.In<Boolean> inClause = getCriteriaBuilder().in(getQueryStartFrom().get(parentIdAttributeName).in(parentIds));
+      cq.where(combineAND(inClause.getExpression(), whereClause));
+    }
+
     // TODO force orderBy if 'hasLimits'
     cq.orderBy(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
 
@@ -153,8 +159,10 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
 
     if (processExpandOption && !intermediateResult.isEmpty()) {
+      String idAttributeName = getQueryResultType().getKeyAttributes(false).get(0).getInternalName();
+      List<Object> ids = intermediateResult.stream().map(it -> it.get(idAttributeName)).collect(Collectors.toList());
       // generate expand queries only for non empty entity result list
-      queryResult.putExpandResults(readExpandEntities(null));
+      queryResult.putExpandResults(readExpandEntities(null, idAttributeName, ids));
     }
     return queryResult;
   }
@@ -177,14 +185,16 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    *
    * @param headers
    * @param naviStartEdmEntitySet
-   * @param parentHops
    * @param uriInfo
+   * @param parentHops
+   * @param idAttributeName
+   * @param parentIds
    * @return
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
   private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities(
-      final List<JPANavigationPropertyInfo> parentHops)
+          final List<JPANavigationPropertyInfo> parentHops, String idAttributeName, List<Object> parentIds)
           throws ODataApplicationException, ODataJPAModelException {
 
     final Map<JPAAssociationPath, ExpandQueryEntityResult> allExpResults =
@@ -204,7 +214,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       final EntityQueryBuilder expandQuery = new EntityQueryBuilder(context, itemExpand.getKey(), em, serviceMetadata);
       LOG.log(Level.FINE, "Process $expand for: " + getQueryResultNavigationKeyBuilder().getNavigationLabel() + "#"
           + itemExpand.getValue().getAlias());
-      final QueryEntityResult expandResult = expandQuery.executeInternal(true);
+      final QueryEntityResult expandResult = expandQuery.executeInternal(true, idAttributeName, parentIds);
       // convert result list to expand entity navigation key mapping structure
       allExpResults.put(itemExpand.getValue(), new ExpandQueryEntityResult(itemExpand.getValue(), expandResult,
           expandQuery
@@ -317,7 +327,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
   private List<JPASelector> buildPathList(final JPAEntityType jpaEntity, final String select)
       throws ODataApplicationException {
 
-    final String[] selectList = select.split(SELECT_ITEM_SEPERATOR); // OData separator for $select
+    final String[] selectList = select.split(SELECT_ITEM_SEPARATOR); // OData separator for $select
     return buildPathList(jpaEntity, selectList);
   }
 
