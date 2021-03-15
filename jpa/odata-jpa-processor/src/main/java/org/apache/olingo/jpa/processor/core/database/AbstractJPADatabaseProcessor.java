@@ -2,6 +2,9 @@ package org.apache.olingo.jpa.processor.core.database;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -51,6 +54,10 @@ import org.apache.olingo.server.api.uri.queryoption.search.SearchTerm;
 public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabaseProcessor {
 
   protected final static Logger LOG = Logger.getLogger(JPAODataDatabaseProcessor.class.getName());
+  protected final static Character[] LIKE_RESERVED_CHARACTERS = new Character[] { Character.valueOf('%'), Character
+      .valueOf('_'), Character.valueOf('*'), Character.valueOf('?'), Character.valueOf('#'), Character.valueOf('['),
+      Character.valueOf(']') };
+  protected final static char ESCAPE_CHARACTER = '\\';
 
   private static final String SELECT_BASE_PATTERN = "SELECT * FROM $FUNCTIONNAME$($PARAMETER$)";
   private static final String FUNC_NAME_PLACEHOLDER = "$FUNCTIONNAME$";
@@ -314,11 +321,39 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 
   protected Expression<Boolean> contains(final Expression<String> operand, final String literal)
       throws ODataApplicationException {
+    final Collection<Character> reserved = findReservedCharacters(literal);
     final StringBuffer contains = new StringBuffer();
     contains.append('%');
-    contains.append(literal);
+    contains.append(escapeCharacters(literal, reserved));
     contains.append('%');
-    return cb.like(operand, contains.toString());
+    if (reserved.isEmpty()) {
+      return cb.like(operand, contains.toString());
+    } else {
+      return cb.like(operand, contains.toString(), ESCAPE_CHARACTER);
+    }
+  }
+
+  private String escapeCharacters(final String literal, final Collection<Character> chars) {
+    String result = literal;
+    for (final Character c : chars) {
+      final String cS = c.toString();
+      result = result.replace(cS, String.valueOf(ESCAPE_CHARACTER).concat(cS));
+    }
+    return result;
+  }
+
+  protected Collection<Character> findReservedCharacters(final String literal) {
+    if (literal == null || literal.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final List<Character> foundCharacters = new LinkedList<>();
+    for (final Character c : LIKE_RESERVED_CHARACTERS) {
+      if (literal.indexOf(c.charValue()) < 0) {
+        continue;
+      }
+      foundCharacters.add(c);
+    }
+    return foundCharacters;
   }
 
   protected Expression<?> concat(final Expression<String> operand1, final Expression<String> operand2)

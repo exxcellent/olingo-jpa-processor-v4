@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.olingo.commons.api.edm.EdmAnnotation;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
+import org.apache.olingo.commons.api.edm.EdmOnDelete;
 import org.apache.olingo.commons.api.edm.EdmReferentialConstraint;
 import org.apache.olingo.commons.api.edm.EdmTerm;
 
@@ -77,4 +78,9 @@ public class EdmNavigationPropertyDouble implements EdmNavigationProperty {
     return null;
   }
 
+  @Override
+  public EdmOnDelete getOnDelete() {
+    fail();
+    return null;
+  }
 }

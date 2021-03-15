@@ -38,7 +38,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
 
 public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements FilterContextQueryBuilderIfc {
 
-  private final JPAEntityFilterProcessor filter;
+  private final JPAEntityFilterProcessor<Boolean> filter;
   private final List<UriParameter> keyPredicates;
   private final JPANavigationPath navigationPath;
   private final JPAEntityType entityType;
@@ -62,7 +62,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
     final IntermediateServiceDocument sd = parent.getContext().getEdmProvider().getServiceDocument();
     if (expression != null) {
       // the target of the navigation is the type context for the filter processor
-      this.filter = new JPAEntityFilterProcessor(odata, sd,
+      this.filter = new JPAEntityFilterProcessor<Boolean>(odata, sd,
           getEntityManager(),
           association.getLeaf().getStructuredType(), parent.getContext().getDatabaseProcessor(), allUriResourceParts,
           expression, this);

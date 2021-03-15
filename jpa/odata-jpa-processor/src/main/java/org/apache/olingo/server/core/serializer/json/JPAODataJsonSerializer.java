@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.olingo.commons.api.IConstants;
 import org.apache.olingo.commons.api.data.Linked;
 import org.apache.olingo.commons.api.data.Property;
@@ -29,7 +30,8 @@ public class JPAODataJsonSerializer extends ODataJsonSerializer {
       final List<Property> properties,
       final Set<List<String>> selectedPaths, final JsonGenerator json, final Set<List<String>> expandedPaths,
       final Linked linked,
-      final ExpandOption expand, final String complexPropName) throws IOException, SerializerException {
+      final ExpandOption expand, final String complexPropName) throws IOException, SerializerException,
+      DecoderException {
     super.writeComplexValue(metadata, type, properties, selectedPaths, json, expandedPaths, linked, expand,
         complexPropName);
     if (type.isOpenType()) {

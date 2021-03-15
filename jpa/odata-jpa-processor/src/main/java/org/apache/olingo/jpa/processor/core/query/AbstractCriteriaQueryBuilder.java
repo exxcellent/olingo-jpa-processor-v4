@@ -27,8 +27,8 @@ import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
@@ -388,7 +388,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
       return null;
     }
 
-    final JPAEntityFilterProcessor filter = new JPAEntityFilterProcessor(getContext().getOdata(), getContext()
+    final JPAEntityFilterProcessor<Boolean> filter = new JPAEntityFilterProcessor<Boolean>(getContext().getOdata(),
+        getContext()
         .getEdmProvider().getServiceDocument(), getEntityManager(),
         filterContext.getQueryResultType(), getContext().getDatabaseProcessor(), navPath, filterExpression,
         filterContext);

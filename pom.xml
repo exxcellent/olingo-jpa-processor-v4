@@ -20,14 +20,14 @@
 
 		<slf4j.version>1.7.30</slf4j.version>
 		<logback.version>1.2.3</logback.version>
-		<olingo.version>4.7.1</olingo.version>
+		<olingo.version>4.8.0</olingo.version>
 		<jetty.version>9.4.24.v20191120</jetty.version>
         <jersey.version>2.31</jersey.version>
-		<jackson.version>2.11.2</jackson.version>
+		<jackson.version>2.12.2</jackson.version>
 		<javax.servlet.version>4.0.1</javax.servlet.version>
-		<eclipselink.version>2.7.7</eclipselink.version>
+		<eclipselink.version>2.7.8</eclipselink.version>
 		<openjpa.version>3.1.2</openjpa.version>
-		<hibernate.version>5.4.23.Final</hibernate.version>
+		<hibernate.version>5.4.29.Final</hibernate.version>
 	</properties>
 
 	<modules>
@@ -42,7 +42,7 @@
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.12</version>
+				<version>4.13.2</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>

@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
+import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -832,6 +833,65 @@ public class TestJPAQueryWhereClause extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
+  }
+
+  @Test
+  public void testFilterWithWildcardEscape() throws IOException, ODataException {
+    assumeTrue("Hibernate cannot handle the not insertable property 'aDouble' while inserting, so we ignore test",
+        getJPAProvider() != JPAProvider.Hibernate);
+
+    // create entities with reserved characters
+    final URIBuilder uriBuilderCreate = TestBase.newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities");
+
+    final StringBuffer requestBody1 = new StringBuffer("{");
+    requestBody1.append("\"AUrl\": \"http://my_underscore_test\"").append(", ");
+    requestBody1.append("\"AIntBoolean\": true");
+    requestBody1.append("}");
+    final ServerCallSimulator servercallCreate1 = new ServerCallSimulator(persistenceAdapter, uriBuilderCreate,
+        requestBody1.toString(), HttpMethod.POST);
+    servercallCreate1.execute(HttpStatusCode.CREATED.getStatusCode());
+
+    final StringBuffer requestBody2 = new StringBuffer("{");
+    requestBody2.append("\"AUrl\": \"http://my*underscore_variation1\"").append(", ");
+    requestBody2.append("\"AIntBoolean\": true");
+    requestBody2.append("}");
+    final ServerCallSimulator servercallCreate2 = new ServerCallSimulator(persistenceAdapter, uriBuilderCreate,
+        requestBody2.toString(), HttpMethod.POST);
+    servercallCreate2.execute(HttpStatusCode.CREATED.getStatusCode());
+
+    final StringBuffer requestBody3 = new StringBuffer("{");
+    requestBody3.append("\"AUrl\": \"http://my*?nderscore_variation2\"").append(", ");
+    requestBody3.append("\"AIntBoolean\": true");
+    requestBody3.append("}");
+    final ServerCallSimulator servercallCreate3 = new ServerCallSimulator(persistenceAdapter, uriBuilderCreate,
+        requestBody3.toString(), HttpMethod.POST);
+    servercallCreate3.execute(HttpStatusCode.CREATED.getStatusCode());
+
+    // query entity '_' having 1 valid result
+    ArrayNode entities;
+    final URIBuilder uriBuilderQuery1 = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "contains(AUrl, 'my_underscore')");
+    final ServerCallSimulator servercallQuery1 = new ServerCallSimulator(persistenceAdapter, uriBuilderQuery1);
+    servercallQuery1.execute(HttpStatusCode.OK.getStatusCode());
+    entities = servercallQuery1.getJsonObjectValues();
+    assertEquals("With escaping only one result expected", 1, entities.size());
+    assertTrue(entities.get(0).get("AUrl").asText().contains("my_underscore"));
+
+    // query entity '?' having 0 valid result
+    final URIBuilder uriBuilderQuery2 = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "contains(AUrl, 'my_?underscore')");
+    final ServerCallSimulator servercallQuery2 = new ServerCallSimulator(persistenceAdapter, uriBuilderQuery2);
+    servercallQuery2.execute(HttpStatusCode.OK.getStatusCode());
+    entities = servercallQuery2.getJsonObjectValues();
+    assertEquals("With escaping only one result expected", 0, entities.size());
+
+    // query entity '*' having 0 valid result
+    final URIBuilder uriBuilderQuery3 = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "contains(AUrl, 'my*')");
+    final ServerCallSimulator servercallQuery3 = new ServerCallSimulator(persistenceAdapter, uriBuilderQuery3);
+    servercallQuery3.execute(HttpStatusCode.OK.getStatusCode());
+    entities = servercallQuery3.getJsonObjectValues();
+    assertEquals("With escaping only one result expected", 2, entities.size());
   }
 
 }

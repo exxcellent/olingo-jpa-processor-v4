@@ -89,6 +89,11 @@ public class DynamicEdmProperty implements EdmProperty {
   }
 
   @Override
+  public String getScaleAsString() {
+    // no value available
+    return null;
+  }
+  @Override
   public SRID getSrid() {
     throw new UnsupportedOperationException();
   }
