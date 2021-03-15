@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.core.database;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -54,11 +55,10 @@ import org.apache.olingo.server.api.uri.queryoption.search.SearchTerm;
 public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabaseProcessor {
 
   protected final static Logger LOG = Logger.getLogger(JPAODataDatabaseProcessor.class.getName());
-  protected final static Character[] LIKE_RESERVED_CHARACTERS = new Character[] { Character.valueOf('%'), Character
-      .valueOf('_'), Character.valueOf('*'), Character.valueOf('?'), Character.valueOf('#'), Character.valueOf('['),
-      Character.valueOf(']') };
   protected final static char ESCAPE_CHARACTER = '\\';
 
+  private final static Character[] LIKE_RESERVED_CHARACTERS = new Character[] { Character.valueOf('%'), Character
+      .valueOf('_') };
   private static final String SELECT_BASE_PATTERN = "SELECT * FROM $FUNCTIONNAME$($PARAMETER$)";
   private static final String FUNC_NAME_PLACEHOLDER = "$FUNCTIONNAME$";
   private static final String PARAMETER_PLACEHOLDER = "$PARAMETER$";
@@ -342,18 +342,27 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
     return result;
   }
 
-  protected Collection<Character> findReservedCharacters(final String literal) {
+  private Collection<Character> findReservedCharacters(final String literal) {
     if (literal == null || literal.isEmpty()) {
       return Collections.emptyList();
     }
     final List<Character> foundCharacters = new LinkedList<>();
-    for (final Character c : LIKE_RESERVED_CHARACTERS) {
+    for (final Character c : reservedLIKECharacters()) {
       if (literal.indexOf(c.charValue()) < 0) {
         continue;
       }
       foundCharacters.add(c);
     }
     return foundCharacters;
+  }
+
+  /**
+   *
+   * @return The collection of all reserved characters that have to be escaped in a query using LIKE. These are '_' and
+   * '%' for standard SQL.
+   */
+  protected Collection<Character> reservedLIKECharacters() {
+    return Arrays.asList(LIKE_RESERVED_CHARACTERS);
   }
 
   protected Expression<?> concat(final Expression<String> operand1, final Expression<String> operand2)
