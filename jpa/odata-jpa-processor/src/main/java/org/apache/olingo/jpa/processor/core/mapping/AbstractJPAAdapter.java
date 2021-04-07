@@ -1,10 +1,6 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -27,7 +23,7 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
   private final String namespace;
   private final AbstractJPADatabaseProcessor dbAccessor;
   private final EntityManagerFactory emf;
-  private final Set<Class<?>> dtos = new HashSet<>();
+  private final Set<Class<?>> dtos = new LinkedHashSet<>();
 
   /**
    *

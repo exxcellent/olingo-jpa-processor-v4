@@ -1,10 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -34,11 +30,11 @@ class IntermediateCustomSchema extends AbstractJPASchema {
 
   private static boolean mapWarningAlreadyLogged = false;
 
-  final private Map<String, IntermediateEnumType> enumTypes = new HashMap<>();
-  final private Map<String, IntermediateEnityTypeDTO> dtoTypes = new HashMap<>();
-  final private Map<String, AbstractIntermediateComplexTypeDTO> complexTypes = new HashMap<>();
-  final private Map<String, IntermediateAction> actions = new HashMap<>();
-  final private Map<String, JPAEntitySet> entitySets = new HashMap<>();
+  final private Map<String, IntermediateEnumType> enumTypes = new TreeMap<>();
+  final private Map<String, IntermediateEnityTypeDTO> dtoTypes = new TreeMap<>();
+  final private Map<String, AbstractIntermediateComplexTypeDTO> complexTypes = new TreeMap<>();
+  final private Map<String, IntermediateAction> actions = new TreeMap<>();
+  final private Map<String, JPAEntitySet> entitySets = new TreeMap<>();
   final private IntermediateServiceDocument serviceDocument;
   private CsdlSchema edmSchema = null;
   private int dtCount = 0;
