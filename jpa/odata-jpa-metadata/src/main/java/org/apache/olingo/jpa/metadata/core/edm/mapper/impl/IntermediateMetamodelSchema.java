@@ -1,11 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -167,7 +162,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   private Map<String, IntermediateComplexTypeJPA> buildComplexTypeList() throws ODataJPAModelException {
-    final HashMap<String, IntermediateComplexTypeJPA> ctList = new HashMap<String, IntermediateComplexTypeJPA>();
+    final Map<String, IntermediateComplexTypeJPA> ctList = new TreeMap<>();
 
     for (final EmbeddableType<?> embeddable : this.jpaMetamodel.getEmbeddables()) {
       final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(getNameBuilder(), embeddable,
@@ -179,7 +174,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
   private Map<String, JPAEntitySet> buildEntitySetList(final Collection<IntermediateEntityTypeJPA> entities)
       throws ODataJPAModelException {
-    final HashMap<String, JPAEntitySet> esList = new HashMap<>();
+    final Map<String, JPAEntitySet> esList = new TreeMap<>();
 
     for (final IntermediateEntityTypeJPA entity : entities) {
       if (esList.containsKey(entity.getEntitySetName())) {
@@ -193,7 +188,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   private Map<String, IntermediateEntityTypeJPA> buildEntityTypeList() throws ODataJPAModelException {
-    final HashMap<String, IntermediateEntityTypeJPA> etMap = new HashMap<String, IntermediateEntityTypeJPA>();
+    final Map<String, IntermediateEntityTypeJPA> etMap = new TreeMap<>();
 
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
       final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(getNameBuilder(), entity, serviceDocument);
@@ -203,7 +198,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   private Map<String, IntermediateFunction> buildFunctionList() throws ODataJPAModelException {
-    final HashMap<String, IntermediateFunction> funcList = new HashMap<String, IntermediateFunction>();
+    final Map<String, IntermediateFunction> funcList = new TreeMap<>();
     // 1. Option: Create Function from Entity Annotations
     final IntermediateFunctionFactory factory = new IntermediateFunctionFactory();
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
@@ -214,7 +209,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
   }
 
   private List<IntermediateAction> buildActionList() throws ODataJPAModelException {
-    final Map<String, IntermediateAction> actionList = new HashMap<String, IntermediateAction>();
+    final Map<String, IntermediateAction> actionList = new TreeMap<>();
     // 1. Option: Create Action from Entity Annotations
     final IntermediateActionFactory factory = new IntermediateActionFactory();
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
