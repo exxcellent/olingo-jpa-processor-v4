@@ -15,6 +15,7 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
+import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributeAccessor;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
@@ -79,17 +80,34 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
       final AbstractIntermediateComplexTypeDTO jpaMapType = serviceDocument.createDynamicJavaUtilMapType(typeInfo
           .getLeft(), typeInfo.getMiddle(), typeInfo.getRight().booleanValue());
       propertyTypeName = jpaMapType.getExternalFQN();
-    } else if (field.getType().isEnum()) {
+    } else if (attributeType.isEnum()) {
       @SuppressWarnings("unchecked")
-      final IntermediateEnumType jpaEnumType = serviceDocument.findOrCreateEnumType((Class<? extends Enum<?>>) field
-          .getType());
+      final IntermediateEnumType jpaEnumType = serviceDocument.findOrCreateEnumType(
+          (Class<? extends Enum<?>>) attributeType);
       propertyTypeName = jpaEnumType.getExternalFQN();
+    } else if (isTargetingComplexType(field)) {
+      final AbstractIntermediateComplexTypeDTO ct = serviceDocument.findOrCreateDTOComplexType(attributeType);
+      propertyTypeName = ct.getExternalFQN();
     } else {
       // assume primitive
       // trigger exception if not possible
       propertyTypeName = TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
     }
     return propertyTypeName;
+  }
+
+  static boolean isTargetingComplexType(final Field field) throws ODataJPAModelException {
+    final Class<?> javaType;
+    if (Collection.class.isAssignableFrom(field.getType())) {
+      javaType = TypeMapping.extractElementTypeOfCollection(field);
+    } else {
+      javaType = field.getType();
+    }
+    if (javaType == null) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
+          "Java type not available");
+    }
+    return javaType.getAnnotation(ODataComplexType.class) != null;
   }
 
   @Override
@@ -166,7 +184,14 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
 
   @Override
   public boolean isComplex() {
-    // only the map is handled as complex
+    try {
+      if (isTargetingComplexType(field)) {
+        return true;
+      }
+    } catch (final ODataJPAModelException e) {
+      throw new IllegalStateException(e);
+    }
+    // otherwise only the map is handled as complex
     return (CollectionType.MAP == getCollectionType());
   }
 

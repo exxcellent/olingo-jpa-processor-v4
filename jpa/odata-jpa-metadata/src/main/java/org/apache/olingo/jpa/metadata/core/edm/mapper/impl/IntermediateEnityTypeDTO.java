@@ -2,17 +2,13 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import javax.persistence.Transient;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
-import org.apache.olingo.jpa.cdi.Inject;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
@@ -29,16 +25,14 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  */
 class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType> implements JPAEntityType {
 
-  private final static Logger LOG = Logger.getLogger(IntermediateEnityTypeDTO.class.getName());
-
   private final Class<?> dtoType;
-  private final IntermediateServiceDocument serviceDocument;
   private final String entitySetName;
   private CsdlEntityType edmEntityType = null;
 
   public IntermediateEnityTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<?> dtoType,
       final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
-    super(determineDTONameBuilder(nameBuilder, dtoType), dtoType.getName(), determineAbstract(dtoType), false);
+    super(determineDTONameBuilder(nameBuilder, dtoType), dtoType.getName(), determineAbstract(dtoType), false,
+        serviceDocument);
 
     // DTO must have marker annotation
     final ODataDTO annotation = dtoType.getAnnotation(ODataDTO.class);
@@ -47,7 +41,6 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
     }
 
     this.dtoType = dtoType;
-    this.serviceDocument = serviceDocument;
     this.setExternalName(getNameBuilder().buildDTOTypeName(dtoType));
     entitySetName = determineEntitySetName(dtoType);
   }
@@ -85,38 +78,6 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
   }
 
   @Override
-  protected void buildPropertyList() throws ODataJPAModelException {
-
-    for (final Field field : dtoType.getDeclaredFields()) {
-      if (field.isAnnotationPresent(Transient.class)) {
-        continue;
-      }
-      if (field.isAnnotationPresent(Inject.class)) {
-        continue;
-      } else if (field.isAnnotationPresent(EdmIgnore.class)) {
-        continue;
-      } else if (TypeMapping.isTargetingDTO(field)) {
-        final IntermediateNavigationDTOProperty property = new IntermediateNavigationDTOProperty(getNameBuilder(),
-            field,
-            serviceDocument);
-        addNavigationProperty(property);
-        continue;
-      } else if (field.isSynthetic()) {
-        // JaCoCo will create synthetic member '$jacocoData' while class file instrumentation for coverage report
-        // so we ignore synthetic members always...
-        LOG.log(Level.FINE, "Synthetic member '" + dtoType.getSimpleName() + "#" + field.getName() + "' is ignored");
-        continue;
-      } else {
-        // assume to be primitive
-        final IntermediatePropertyDTOField property = new IntermediatePropertyDTOField(getNameBuilder(), field,
-            serviceDocument);
-        addSimpleProperty(property);
-        continue;
-      }
-    }
-  }
-
-  @Override
   protected void lazyBuildEdmItem() throws ODataJPAModelException {
     initializeType();
     if (edmEntityType != null) {
@@ -141,13 +102,14 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
     if (baseType == null) {
       return null;
     }
-    return (AbstractStructuredType<?>) serviceDocument.getEntityType(baseType);
+    return (AbstractStructuredType<?>) getServiceDocument().getEntityType(baseType);
   }
 
   @Override
   public Class<?> getTypeClass() {
     return dtoType;
   }
+
 
   @Override
   public final DataAccessConditioner<?> getDataAccessConditioner() {
@@ -202,5 +164,10 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
       throw new ODataRuntimeException(e);
     }
     return edmEntityType;
+  }
+
+  @Override
+  protected Collection<Field> getPropertyFields() {
+    return Arrays.asList(dtoType.getDeclaredFields());
   }
 }

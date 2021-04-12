@@ -283,10 +283,7 @@ public class IntermediateServiceDocument {
   IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException {
     synchronized (lock) {
       final String namespace = clazz.getPackage().getName();
-      AbstractJPASchema schema = schemaListInternalKey.get(namespace);
-      if(schema == null) {
-        schema = createCustomSchema(namespace);
-      }
+      final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);
       return schema.findOrCreateEnumType(clazz);
     }
   }
@@ -299,12 +296,18 @@ public class IntermediateServiceDocument {
   AbstractIntermediateComplexTypeDTO createDynamicJavaUtilMapType(final Class<?> mapKeyType,
       final Class<?> mapValueType, final boolean valueIsCollection) throws ODataJPAModelException {
     final String namespace = Map.class.getPackage().getName();
-    AbstractJPASchema schema = schemaListInternalKey.get(namespace);
-    if (schema == null) {
-      schema = createCustomSchema(namespace);
-    }
+    final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);
     // Map type is created on-demand while creating other DTO types, so we have to avoid to reset the container
     return ((IntermediateCustomSchema) schema).createDynamicMapType(mapKeyType, mapValueType, valueIsCollection);
+  }
+
+  AbstractIntermediateComplexTypeDTO findOrCreateDTOComplexType(final Class<?> clazz) throws ODataJPAModelException {
+    // the same class could be register as @Embeddable via JPA in another namespace... we accept that currently
+    synchronized (lock) {
+      final String namespace = clazz.getPackage().getName();
+      final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);
+      return ((IntermediateCustomSchema) schema).findOrCreateDTOComplexType(clazz);
+    }
   }
 
   public IntermediateEnityTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
@@ -313,10 +316,8 @@ public class IntermediateServiceDocument {
         throw new ODataJPAModelException(MessageKeys.GENERAL);
       }
       final String namespace = clazz.getPackage().getName();
-      AbstractJPASchema schema = schemaListInternalKey.get(namespace);
-      if (schema == null) {
-        schema = createCustomSchema(namespace);
-      } else if (!IntermediateCustomSchema.class.isInstance(schema)) {
+      final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);
+      if (!IntermediateCustomSchema.class.isInstance(schema)) {
         // DTO's can be defined only in custom schemas
         throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
       }
@@ -339,4 +340,11 @@ public class IntermediateServiceDocument {
     return null;
   }
 
+  private final AbstractJPASchema findOrCreateCustomSchema(final String namespace) throws ODataJPAModelException {
+    final AbstractJPASchema schema = schemaListInternalKey.get(namespace);
+    if (schema != null) {
+      return schema;
+    }
+    return createCustomSchema(namespace);
+  }
 }

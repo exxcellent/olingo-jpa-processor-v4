@@ -1,19 +1,25 @@
 package org.apache.olingo.jpa.processor.core.dto;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.StandardProtocolFamily;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.LinkedList;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
@@ -58,6 +64,39 @@ public class TestDTOs extends TestBase {
       final InheritanceDto instance = new InheritanceDto();
       instance.any = "any";
       return instance;
+    }
+  }
+
+  @ODataComplexType(attributeNaming = NamingStrategy.AsIs)
+  public static class NestedComplexType {
+    private String attribute1;
+    private String attribute2;
+  }
+
+  @ODataDTO(attributeNaming = NamingStrategy.AsIs)
+  public static class DtoWithNestedComplexType {
+    private final Collection<NestedComplexType> cts = new LinkedList<>();
+
+    @EdmAction
+    public static DtoWithNestedComplexType createDtoWithNestedComplexType() {
+      final DtoWithNestedComplexType instance = new DtoWithNestedComplexType();
+      final NestedComplexType ct = new NestedComplexType();
+      ct.attribute1 = "a1";
+      ct.attribute2 = "a2";
+      instance.cts.add(ct);
+      return instance;
+    }
+
+    @EdmAction
+    public static int countCompleteCTs(@EdmActionParameter(name = "dto") final DtoWithNestedComplexType dto) {
+      int c = 0;
+      for (final NestedComplexType ct : dto.cts) {
+        if (ct.attribute1 == null || ct.attribute2 == null) {
+          continue;
+        }
+        c++;
+      }
+      return c;
     }
   }
 
@@ -151,5 +190,43 @@ public class TestDTOs extends TestBase {
     assertNotNull(result.get("Any").asText());// starting upper case
     assertNotNull(result.get("requirementName").asText()); // starting lower case
     assertNotNull(result);
+  }
+
+  @Test
+  public void testDTOWithNestedComplexType() throws IOException, ODataException, SQLException {
+    persistenceAdapter.registerDTO(DtoWithNestedComplexType.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createDtoWithNestedComplexType");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertFalse(result.withArray("cts").isEmpty());
+    assertEquals("a1", result.withArray("cts").get(0).get("attribute1").asText());
+    assertEquals("a2", result.withArray("cts").get(0).get("attribute2").asText());
+
+    // send same structure as input for action
+    final URIBuilder uriBuilderSend = newUriBuilder().appendActionCallSegment("countCompleteCTs");
+
+    final StringBuffer requestBody1 = new StringBuffer("{");
+    requestBody1.append("\"dto\": {");
+    requestBody1.append("  \"cts\": [{\"attribute1\": \"p1\"}]");
+    requestBody1.append("  }");
+    requestBody1.append("}");
+    final ServerCallSimulator helperSend1 = new ServerCallSimulator(persistenceAdapter, uriBuilderSend, requestBody1
+        .toString(), HttpMethod.POST);
+    helperSend1.execute(HttpStatusCode.OK.getStatusCode());
+    assertEquals(0, helperSend1.getJsonObjectValue().get("value").asInt());
+
+    final StringBuffer requestBody2 = new StringBuffer("{");
+    requestBody2.append("\"dto\": {");
+    requestBody2.append(
+        "  \"cts\": [{\"attribute1\": \"p1\", \"attribute2\": \"p2\"}, {\"attribute1\": \"p3\", \"attribute2\": \"p4\"}]");
+    requestBody2.append("  }");
+    requestBody2.append("}");
+
+    final ServerCallSimulator helperSend2 = new ServerCallSimulator(persistenceAdapter, uriBuilderSend, requestBody2
+        .toString(), HttpMethod.POST);
+    helperSend2.execute(HttpStatusCode.OK.getStatusCode());
+    assertEquals(2, helperSend2.getJsonObjectValue().get("value").asInt());
   }
 }

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
 import org.apache.olingo.commons.api.edm.provider.CsdlStructuralType;
+import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -42,6 +43,17 @@ implements JPAStructuredType {
     this.complexAttributePathMap = new HashMap<String, JPAPathImpl>();
     this.declaredNaviPropertiesList = new HashMap<String, JPAAssociationAttribute>();
     this.associationPathMap = new HashMap<String, JPAAssociationPathImpl>();
+  }
+
+  static JPAEdmNameBuilder determineComplexTypeNameBuilder(final JPAEdmNameBuilder nameBuilderDefault,
+      final Class<?> ctClass) {
+    final ODataComplexType ctAnnotation = ctClass.getAnnotation(ODataComplexType.class);
+    if (ctAnnotation == null || ctAnnotation.attributeNaming() == null) {
+      // nothing to change
+      return nameBuilderDefault;
+    }
+    // prepare a custom name builder
+    return new JPAEdmNameBuilder(nameBuilderDefault.getNamespace(), ctAnnotation.attributeNaming());
   }
 
   /**

@@ -173,8 +173,6 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
   /**
    * @deprecated Use more specialized methods...
    */
-  // FIXME remove checked exception ,because method is called at runtime and not at startup, so we have to avoid checked
-  // exception for that late calls
   @Deprecated
   abstract CDSLType getEdmItem() throws ODataRuntimeException;
 }

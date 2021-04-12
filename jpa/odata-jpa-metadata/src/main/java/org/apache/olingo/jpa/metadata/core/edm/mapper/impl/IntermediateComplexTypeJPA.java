@@ -6,7 +6,6 @@ import javax.persistence.metamodel.EmbeddableType;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
-import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -44,17 +43,6 @@ JPAComplexType {
     super(determineComplexTypeNameBuilder(nameBuilder, jpaEmbeddable.getJavaType()), jpaEmbeddable, serviceDocument);
     this.setExternalName(getNameBuilder().buildComplexTypeName(jpaEmbeddable.getJavaType()));
 
-  }
-
-  private static JPAEdmNameBuilder determineComplexTypeNameBuilder(final JPAEdmNameBuilder nameBuilderDefault,
-      final Class<?> ctClass) {
-    final ODataComplexType ctAnnotation = ctClass.getAnnotation(ODataComplexType.class);
-    if (ctAnnotation == null || ctAnnotation.attributeNaming() == null) {
-      // nothing to change
-      return nameBuilderDefault;
-    }
-    // prepare a custom name builder
-    return new JPAEdmNameBuilder(nameBuilderDefault.getNamespace(), ctAnnotation.attributeNaming());
   }
 
   @Override

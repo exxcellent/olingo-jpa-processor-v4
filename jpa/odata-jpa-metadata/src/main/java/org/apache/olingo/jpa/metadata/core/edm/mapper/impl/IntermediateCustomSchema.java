@@ -1,7 +1,11 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -135,7 +139,7 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     }
     // define a Map DTO type... the map will have no attributes (mostly EdmUntyped), because all attributes are dynamic.
     mapType = new IntermediateMapComplexTypeDTO(getNameBuilder(), simpleName, mapKeyType, mapValueType,
-        valueIsCollection);
+        valueIsCollection, serviceDocument);
     if (!mapWarningAlreadyLogged) {
       mapWarningAlreadyLogged = true;
       LOGGER.info("The type " + Map.class.getCanonicalName()
@@ -145,6 +149,22 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     // force rebuild
     edmSchema = null;
     return mapType;
+  }
+
+  AbstractIntermediateComplexTypeDTO findOrCreateDTOComplexType(final Class<?> clazz) throws ODataJPAModelException {
+    final String namespace = clazz.getPackage().getName();
+    if (!namespace.equalsIgnoreCase(getInternalName())) {
+      throw new ODataJPAModelException(MessageKeys.GENERAL);
+    }
+
+    AbstractIntermediateComplexTypeDTO complexType = (AbstractIntermediateComplexTypeDTO) getComplexType(clazz);
+    if (complexType == null) {
+      complexType = new IntermediateComplexTypeDTO(getNameBuilder(), clazz, serviceDocument);
+      complexTypes.put(complexType.getExternalName(), complexType);
+      // force rebuild
+      edmSchema = null;
+    }
+    return complexType;
   }
 
   IntermediateEnityTypeDTO findOrCreateDTOType(final Class<?> clazz) throws ODataJPAModelException {
