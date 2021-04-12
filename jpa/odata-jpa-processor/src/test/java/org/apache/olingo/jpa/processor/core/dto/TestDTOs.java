@@ -192,6 +192,15 @@ public class TestDTOs extends TestBase {
     assertNotNull(result);
   }
 
+  @Test(expected = ODataJPAModelException.class)
+  public void testInvalidRegisteredDTOComplexType() throws ODataException, IOException {
+    persistenceAdapter.registerDTO(NestedComplexType.class);
+    // trigger metamodel building and exception...
+    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
+
   @Test
   public void testDTOWithNestedComplexType() throws IOException, ODataException, SQLException {
     persistenceAdapter.registerDTO(DtoWithNestedComplexType.class);
