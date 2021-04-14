@@ -3,26 +3,19 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 import java.lang.reflect.AnnotatedElement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javax.persistence.IdClass;
 import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.IdentifiableType;
-import javax.persistence.metamodel.ManagedType;
-import javax.persistence.metamodel.Type;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
@@ -106,55 +99,6 @@ JPAEntityType {
   public String getContentType() throws ODataJPAModelException {
     final IntermediateProperty stream = (IntermediateProperty) getStreamProperty();
     return stream.getContentType();
-  }
-
-  @Override
-  public List<JPAAttributePath> getKeyPath() throws ODataJPAModelException {
-    initializeType();
-
-    final List<JPAAttributePath> result = new ArrayList<JPAAttributePath>();
-    // TODO getAttributes() does not resolve embedded id's?!
-    for (final JPAAttribute<?> attribute : getAttributes(false)) {
-      if (attribute.isComplex()) {
-        // FIXME thos process also complex attributes beeing not a key?!
-        if (!attribute.isKey()) {
-          throw new IllegalStateException("bad code");
-        }
-        // @EmbeddedId is always complex
-        result.add(getComplexAttributePathMap().get(attribute.getExternalName()));
-      } else if (attribute.isKey()) {
-        result.add(getSimpleAttributePathMap().get(attribute.getExternalName()));
-      }
-    }
-    final JPAStructuredType baseType = getBaseType();
-    if (baseType != null) {
-      result.addAll(((IntermediateEntityTypeJPA) baseType).getKeyPath());
-    }
-    return result;
-  }
-
-  @Override
-  public Class<?> getKeyType() {
-    final ManagedType<?> jpaManagedType = getManagedType();
-    if (jpaManagedType instanceof IdentifiableType<?>) {
-      final Type<?> idType = ((IdentifiableType<?>) jpaManagedType).getIdType();
-      // Hibernate doesn't really support @IdClass declarations with multiple key
-      // attributes
-      if (idType == null) {
-        final IdClass idClassAnnotation = jpaManagedType.getJavaType().getAnnotation(IdClass.class);
-        if (idClassAnnotation != null) {
-          if (jpaManagedType.getClass().getName().startsWith("org.hibernate")) {
-            LOG.log(Level.WARNING, "invalid metamodel of Hibernate detected for " + getInternalName()
-            + ", no idType or invalid... use workaround");
-          }
-          return idClassAnnotation.value();
-        }
-        // TODO @EmbeddedId also?
-        throw new IllegalStateException("no key/pk/id class defined");
-      }
-      return idType.getJavaType();
-    }
-    throw new IllegalStateException("no key/pk/id class defined");
   }
 
   @Override

@@ -302,7 +302,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       if (selectString.isEmpty()) {
         // Stream value
         jpaPathList.add(jpaEntity.getStreamAttributePath());
-        jpaPathList.addAll(jpaEntity.getKeyPath());
+        jpaPathList.addAll(Util.buildKeyPath(jpaEntity));
       } else {
         // Property value
         selectString = selectString.substring(0, selectString.length() - 1);

@@ -18,7 +18,6 @@ import javax.persistence.Query;
 import org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonImage;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.apache.olingo.jpa.test.util.DataSourceHelper.DatabaseType;
 
 public class ImageLoader {
 

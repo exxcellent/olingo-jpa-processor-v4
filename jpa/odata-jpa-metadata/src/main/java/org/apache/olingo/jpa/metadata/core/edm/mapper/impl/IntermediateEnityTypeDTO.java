@@ -127,16 +127,6 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
   }
 
   @Override
-  public final List<JPAAttributePath> getKeyPath() throws ODataJPAModelException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public final Class<?> getKeyType() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public final JPAAttributePath getStreamAttributePath() throws ODataJPAModelException {
     throw new UnsupportedOperationException();
   }
