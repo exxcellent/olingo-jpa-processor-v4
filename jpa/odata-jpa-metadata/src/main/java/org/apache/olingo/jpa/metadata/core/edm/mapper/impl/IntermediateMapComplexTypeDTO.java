@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,6 +46,10 @@ class IntermediateMapComplexTypeDTO extends AbstractIntermediateComplexTypeDTO i
       // the currently only supported collection type
       dynamicProperty.setCollectionType(CollectionType.COLLECTION);
     }
+  }
+
+  void setAnnotatedElement(final AnnotatedElement element) {
+    dynamicProperty.setAnnotatedElement(element);
   }
 
   @Override

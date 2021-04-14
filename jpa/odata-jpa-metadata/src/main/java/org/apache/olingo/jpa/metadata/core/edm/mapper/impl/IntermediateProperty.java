@@ -88,7 +88,8 @@ class IntermediateProperty extends AbstractProperty<CsdlProperty> implements JPA
     } else if (Collection.class.isAssignableFrom(jpaAttribute.getJavaType())) {
       // special case for collection of simple attribute declared without @ElementCollection, but handled via
       // @Convert(er) as collection
-      attributeClass = TypeMapping.extractElementTypeOfCollection((Field) javaMember);
+      attributeClass = TypeMapping.determineClassType(TypeMapping.unwrapCollection((Field) javaMember));// TypeMapping.extractElementTypeOfCollection((Field)
+      // javaMember);
       isCollection = true;
       isJoinCollection = false;
     } else {

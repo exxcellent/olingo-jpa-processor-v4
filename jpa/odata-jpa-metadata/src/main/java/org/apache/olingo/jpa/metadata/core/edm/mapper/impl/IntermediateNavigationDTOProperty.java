@@ -74,15 +74,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
   }
 
   public Class<?> getType() {
-    if (isCollection()) {
-      try {
-        return TypeMapping.extractElementTypeOfCollection(field);
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      return field.getType();
-    }
+    return TypeMapping.determineClassType(TypeMapping.unwrapCollection(field));
   }
 
   @Override
@@ -151,7 +143,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
       try {
         initStateEdm = InitializationState.InProgress;
 
-        if (!TypeMapping.isTargetingDTO(field)) {
+        if (!TypeMapping.isTargetingDTOEntity(field)) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
               "Java type not supported");
         }

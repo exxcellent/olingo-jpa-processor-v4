@@ -33,6 +33,7 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
   private final IntermediateServiceDocument serviceDocument;
   private final Field field;
   private final JPAAttributeAccessor accessor;
+  private final boolean isComplex;
   private CsdlProperty edmProperty = null;
   private FullQualifiedName propertyTypeName = null;
 
@@ -45,6 +46,8 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
     accessor = new FieldAttributeAccessor(field);
     // do not wait with setting this important property
     setIgnore(field.isAnnotationPresent(EdmIgnore.class));
+    isComplex = (TypeMapping.determineClassType(TypeMapping.unwrapCollection(field)).getAnnotation(
+        ODataComplexType.class) != null) || (CollectionType.MAP == getCollectionType());
   }
 
   @Override
@@ -65,49 +68,8 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
     if (propertyTypeName != null) {
       return propertyTypeName;
     }
-    final Class<?> attributeType = getType();
-    if (TypeMapping.isTargetingDTO(field)) {
-      final JPAStructuredType dtoType = serviceDocument.getStructuredType(attributeType);
-      if (dtoType == null) {
-        throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-            attributeType.getName() + " is not registered as Entity/DTO");
-      }
-      propertyTypeName = dtoType.getExternalFQN();
-    } else if (Map.class.isAssignableFrom(field.getType())) {
-      // special handling for java.util.Map
-      final Triple<Class<?>, Class<?>, Boolean> typeInfo = checkMapTypeArgumentsMustBeSimple(field.getGenericType(),
-          field.getName());
-      final AbstractIntermediateComplexTypeDTO jpaMapType = serviceDocument.createDynamicJavaUtilMapType(typeInfo
-          .getLeft(), typeInfo.getMiddle(), typeInfo.getRight().booleanValue());
-      propertyTypeName = jpaMapType.getExternalFQN();
-    } else if (attributeType.isEnum()) {
-      @SuppressWarnings("unchecked")
-      final IntermediateEnumType jpaEnumType = serviceDocument.findOrCreateEnumType(
-          (Class<? extends Enum<?>>) attributeType);
-      propertyTypeName = jpaEnumType.getExternalFQN();
-    } else if (isTargetingComplexType(field)) {
-      final AbstractIntermediateComplexTypeDTO ct = serviceDocument.findOrCreateDTOComplexType(attributeType);
-      propertyTypeName = ct.getExternalFQN();
-    } else {
-      // assume primitive
-      // trigger exception if not possible
-      propertyTypeName = TypeMapping.convertToEdmSimpleType(field).getFullQualifiedName();
-    }
+    propertyTypeName = findOrCreateType(serviceDocument, field);
     return propertyTypeName;
-  }
-
-  static boolean isTargetingComplexType(final Field field) throws ODataJPAModelException {
-    final Class<?> javaType;
-    if (Collection.class.isAssignableFrom(field.getType())) {
-      javaType = TypeMapping.extractElementTypeOfCollection(field);
-    } else {
-      javaType = field.getType();
-    }
-    if (javaType == null) {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
-          "Java type not available");
-    }
-    return javaType.getAnnotation(ODataComplexType.class) != null;
   }
 
   @Override
@@ -157,15 +119,7 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
 
   @Override
   public Class<?> getType() {
-    if (isCollection()) {
-      try {
-        return TypeMapping.extractElementTypeOfCollection(field);
-      } catch (final ODataJPAModelException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      return field.getType();
-    }
+    return TypeMapping.determineClassType(TypeMapping.unwrapCollection(field));
   }
 
   @Override
@@ -184,15 +138,7 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
 
   @Override
   public boolean isComplex() {
-    try {
-      if (isTargetingComplexType(field)) {
-        return true;
-      }
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
-    // otherwise only the map is handled as complex
-    return (CollectionType.MAP == getCollectionType());
+    return isComplex;
   }
 
   @Override

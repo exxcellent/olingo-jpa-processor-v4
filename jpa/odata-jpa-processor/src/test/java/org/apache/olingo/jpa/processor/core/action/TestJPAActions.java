@@ -10,9 +10,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -37,6 +40,7 @@ import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
@@ -59,6 +63,33 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestJPAActions extends TestBase {
+
+  @ODataComplexType(attributeNaming = NamingStrategy.AsIs)
+  public static class ActionComplexType {
+    @SuppressWarnings("unused")
+    private String attribute;
+  }
+
+  @ODataDTO(attributeNaming = NamingStrategy.AsIs)
+  public static class ActionWithComplexTypeResultDTO {
+    @EdmAction
+    public static ActionComplexType useComplexTypeAsActionSingleResult() {
+      final ActionComplexType ct = new ActionComplexType();
+      ct.attribute = "dummy";
+      return ct;
+    }
+
+    @EdmAction
+    public static Collection<ActionComplexType> useComplexTypeAsActionCollectionResult() {
+      final List<ActionComplexType> result = new LinkedList<>();
+      for (int i = 0; i < 3; i++) {
+        final ActionComplexType ct1 = new ActionComplexType();
+        ct1.attribute = "dummy" + Integer.toString(i + 1);
+        result.add(ct1);
+      }
+      return result;
+    }
+  }
 
   @ODataDTO(attributeNaming = NamingStrategy.AsIs)
   public static class ActionDTO {
@@ -120,7 +151,6 @@ public class TestJPAActions extends TestBase {
       }
       return org;
     }
-
   }
 
   @Test
@@ -914,6 +944,40 @@ public class TestJPAActions extends TestBase {
     assertEquals(1, childrenRoot.get(1).withArray("children").size());
     assertEquals(childrenRoot.get(0).withArray("children").get(0).get("name"), childrenRoot.get(1).withArray("children")
         .get(0).get("name"));
+  }
+
+  @Test
+  public void testActionWithSingleComplexTypeResult() throws IOException, ODataException, SQLException {
+    persistenceAdapter.registerDTO(ActionWithComplexTypeResultDTO.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("useComplexTypeAsActionSingleResult");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertEquals("dummy", result.get("attribute").asText());
+  }
+
+  @Test
+  public void testActionWithCollectionComplexTypeResult() throws IOException, ODataException, SQLException {
+    persistenceAdapter.registerDTO(ActionWithComplexTypeResultDTO.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("useComplexTypeAsActionCollectionResult");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode result = helper.getJsonObjectValues();
+    assertTrue(result.size() > 1);
+  }
+
+  @Test
+  public void testActionWithMapResult() throws IOException, ODataException {
+    persistenceAdapter.registerDTO(EnvironmentInfo.class);
+    persistenceAdapter.registerDTO(SystemRequirement.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithMapResult");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertTrue(result.size() > 1);
   }
 
 }

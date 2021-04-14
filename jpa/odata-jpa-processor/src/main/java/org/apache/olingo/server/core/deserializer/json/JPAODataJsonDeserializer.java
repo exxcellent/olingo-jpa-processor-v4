@@ -1,5 +1,7 @@
 package org.apache.olingo.server.core.deserializer.json;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -14,9 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.IConstants;
 import org.apache.olingo.commons.api.constants.Constantsv01;
+import org.apache.olingo.commons.api.data.Annotation;
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.DeletedEntity;
 import org.apache.olingo.commons.api.data.DeletedEntity.Reason;
@@ -105,6 +109,7 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
   private final boolean isIEEE754Compatible;
   private final ServiceMetadata serviceMetadata;
   private final IConstants constants;
+  private final ODataJsonInstanceAnnotationDeserializer instanceAnnotDeserializer;
 
   public JPAODataJsonDeserializer(final ContentType contentType, final ServiceMetadata serviceMetadata,
       final IConstants constants) {
@@ -112,6 +117,7 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
     isIEEE754Compatible = ContentTypeHelper.isODataIEEE754Compatible(contentType);
     this.serviceMetadata = serviceMetadata;
     this.constants = constants;
+    instanceAnnotDeserializer = new ODataJsonInstanceAnnotationDeserializer();
   }
 
   @Override
@@ -281,14 +287,23 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
   @Override
   public DeserializerResult actionParameters(final InputStream stream, final EdmAction edmAction)
       throws DeserializerException {
+    Map<String, Parameter> parameters = new HashMap<>();
+    final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    byte[] inputContent = null;
     try {
-      final ObjectNode tree = parseJsonTree(stream);
-      final Map<String, Parameter> parameters = consumeParameters(edmAction, tree);
+      IOUtils.copy(stream, byteArrayOutputStream);
+      // copy the content of input stream to reuse it
+      inputContent = byteArrayOutputStream.toByteArray();
+      if (inputContent.length > 0) {
+        final InputStream inputStream1 = new ByteArrayInputStream(inputContent);
+        final ObjectNode tree = parseJsonTree(inputStream1);
+        parameters = consumeParameters(edmAction, tree);
 
-      if (tree.isObject()) {
-        removeAnnotations(tree);
+        if (tree.isObject()) {
+          removeAnnotations(tree);
+        }
+        assertJsonNodeIsEmpty(tree);
       }
-      assertJsonNodeIsEmpty(tree);
       return DeserializerResultImpl.with().actionParameters(parameters).build();
 
     } catch (final IOException e) {
@@ -299,6 +314,7 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
   private ObjectNode parseJsonTree(final InputStream stream) throws IOException, DeserializerException {
     final ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, true);
+    objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
     final JsonParser parser = new JsonFactory(objectMapper).createParser(stream);
     final JsonNode tree = parser.getCodec().readTree(parser);
     if (tree == null || !tree.isObject()) {
@@ -415,6 +431,29 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
       if (field.getKey().contains(constants.getBind())) {
         final Link bindingLink = consumeBindingLink(field.getKey(), field.getValue(), edmEntityType);
         entity.getNavigationBindings().add(bindingLink);
+        toRemove.add(field.getKey());
+      } else if (!field.getKey().contains(ODATA_CONTROL_INFORMATION_PREFIX) &&
+          field.getKey().contains(ODATA_ANNOTATION_MARKER) &&
+          field.getKey().substring(field.getKey().indexOf(ODATA_ANNOTATION_MARKER))
+          .contains(".")) {
+        // Instance annotations start with @ sign followed by
+        // alias or namespace
+        // followed by a dot and then term name
+        final String[] keySplit = field.getKey().split(ODATA_ANNOTATION_MARKER);
+        final String termName = keySplit[1];
+        final Annotation annotation = instanceAnnotDeserializer.consumeInstanceAnnotation(termName, field.getValue());
+        // If keySplit has a value at zeroth index then instance annotation is specified like
+        // propertyName@Term
+        if (!keySplit[0].isEmpty()) {
+          if (edmEntityType.getPropertyNames().contains(keySplit[0])) {
+            entity.getProperty(keySplit[0]).getAnnotations().add(annotation);
+          } else if (edmEntityType.getNavigationPropertyNames().contains(keySplit[0])) {
+            final Link link = entity.getNavigationLink(keySplit[0]);
+            link.getAnnotations().add(annotation);
+          }
+        } else {
+          entity.getAnnotations().add(annotation);
+        }
         toRemove.add(field.getKey());
       }
     }
@@ -914,8 +953,8 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
     final EdmPrimitiveType edmPrimitiveType =
         type.getKind() == EdmTypeKind.ENUM ? ((EdmEnumType) type).getUnderlyingType() : type
             .getKind() == EdmTypeKind.DEFINITION ? ((EdmTypeDefinition) type).getUnderlyingType() : type;
-            return mapping == null || mapping.getMappedJavaClass() == null ? edmPrimitiveType.getDefaultType() : mapping
-                .getMappedJavaClass();
+    return mapping == null || mapping.getMappedJavaClass() == null ? edmPrimitiveType.getDefaultType() : mapping
+        .getMappedJavaClass();
   }
 
   /**
@@ -1125,12 +1164,12 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
         final EdmStructuredType currentEdmType = edmType.getKind() == EdmTypeKind.ENTITY ? serviceMetadata.getEdm()
             .getEntityType(new FullQualifiedName(odataType)) : serviceMetadata.getEdm().getComplexType(
                 new FullQualifiedName(odataType));
-            if (!isAssignable(edmType, currentEdmType)) {
-              throw new DeserializerException("Odata type " + odataType + " not allowed here",
-                  DeserializerException.MessageKeys.UNKNOWN_CONTENT);
-            }
+        if (!isAssignable(edmType, currentEdmType)) {
+          throw new DeserializerException("Odata type " + odataType + " not allowed here",
+              DeserializerException.MessageKeys.UNKNOWN_CONTENT);
+        }
 
-            return currentEdmType;
+        return currentEdmType;
       }
     }
     return edmType;

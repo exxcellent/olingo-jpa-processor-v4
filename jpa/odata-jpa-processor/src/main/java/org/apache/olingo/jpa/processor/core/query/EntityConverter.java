@@ -31,6 +31,8 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPADynamicPropertyContainer;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -116,18 +118,18 @@ public class EntityConverter extends AbstractEntityConverter {
       // for otherwise not existing base uri
       final String bindingId = odataOwnerEntity.getBaseURI() == null && bindingUri.startsWith("/") ? bindingUri
           .substring(1) : bindingUri;
-          final Pair<?, Object> pair = mapId2Instance.get(bindingId);
-          final Object target = pair != null ? pair.getRight() : null;
-          if(target == null) {
-            throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.BINDING_LINK_NOT_RESOLVED,
-                bindingId, association.getExternalName());
-          }
-          if (association.isCollection()) {
-            list.add(target);
-          } else {
-            // singleton list, safe assignment
-            result = target;
-          }
+      final Pair<?, Object> pair = mapId2Instance.get(bindingId);
+      final Object target = pair != null ? pair.getRight() : null;
+      if(target == null) {
+        throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.BINDING_LINK_NOT_RESOLVED,
+            bindingId, association.getExternalName());
+      }
+      if (association.isCollection()) {
+        list.add(target);
+      } else {
+        // singleton list, safe assignment
+        result = target;
+      }
     }
     if (result == null) {
       return null;
@@ -386,6 +388,15 @@ public class EntityConverter extends AbstractEntityConverter {
     return convertJPA2ODataEntityInternal(jpaType, jpaEntity, new JPA2ODataProcessingContext());
   }
 
+  public ComplexValue convertJPA2ODataComplexType(final JPAComplexType jpaType, final Object jpaInstance)
+      throws ODataJPAModelException, ODataJPAConversionException {
+    final JPA2ODataProcessingContext processingContext = new JPA2ODataProcessingContext();
+    final ComplexValue complexValue = new ComplexValue();
+    final List<Property> properties = complexValue.getValue();
+    convertComplexTypeValue2OData(jpaType, jpaInstance, properties, processingContext);
+    return complexValue;
+  }
+
   /**
    *
    * @return TRUE if <i>processingContext.currentRelationship</i> is a relationship with the opposite direction
@@ -486,7 +497,7 @@ public class EntityConverter extends AbstractEntityConverter {
         final ComplexValue complexValue = new ComplexValue();
         convertedValues.add(complexValue);
         final List<Property> cvProperties = complexValue.getValue();
-        convertComplexTypeValue2OData(jpaAttribute, cValue, cvProperties, processingContext);
+        convertComplexTypeValue2OData(attributeType, cValue, cvProperties, processingContext);
         complexValue.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(attributeType, cValue,
             processingContext));
       }
@@ -495,7 +506,7 @@ public class EntityConverter extends AbstractEntityConverter {
     } else {
       final ComplexValue complexValue = new ComplexValue();
       final List<Property> cvProperties = complexValue.getValue();
-      convertComplexTypeValue2OData(jpaAttribute, value, cvProperties, processingContext);
+      convertComplexTypeValue2OData(attributeType, value, cvProperties, processingContext);
       complexValue.getNavigationLinks().addAll(convertJPAAssociations2ODataLinks(attributeType, value,
           processingContext));
       return new Property(attributeType.getExternalFQN().getFullQualifiedNameAsString(),
@@ -503,15 +514,14 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private void convertComplexTypeValue2OData(final JPAMemberAttribute jpaAttribute, final Object cValue,
+  private void convertComplexTypeValue2OData(final JPAStructuredType valueType, final Object cValue,
       final List<Property> cvProperties, final JPA2ODataProcessingContext processingContext)
           throws ODataJPAModelException, ODataJPAConversionException {
     if (cValue == null) {
       return;
     }
-    final JPAStructuredType attributeType = jpaAttribute.getStructuredType();
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
-    for (final JPAMemberAttribute jpaTargetTypeAttribute : attributeType.getAttributes(false)) {
+    for (final JPAMemberAttribute jpaTargetTypeAttribute : valueType.getAttributes(false)) {
       final Object value = jpaTargetTypeAttribute.getAttributeAccessor().getPropertyValue(cValue);
       if (jpaTargetTypeAttribute.isComplex()) {
         final Property complexTypeProperty = convertJPAComplexAttribute2OData(jpaTargetTypeAttribute, value,
@@ -522,17 +532,19 @@ public class EntityConverter extends AbstractEntityConverter {
       } else {
         // simple attribute (or collection)
         final String alias = jpaTargetTypeAttribute.getExternalName();
-        convertJPAValue2ODataAttribute(value, alias, "", attributeType, complexValueBuffer, 0,
+        convertJPAValue2ODataAttribute(value, alias, "", valueType, complexValueBuffer, 0,
             cvProperties);
       }
     }
-    if(attributeType.isOpenType()) {
+    if(valueType.isOpenType()) {
       if(Map.class.isInstance(cValue)) {
         //handle dynamic properties of open type
+        final JPADynamicPropertyContainer ctMap = (JPADynamicPropertyContainer) valueType;
         @SuppressWarnings("unchecked")
         final Map<String,?> mapValue = (Map<String, ?>) cValue;
         for(final Map.Entry<String, ?> entry: mapValue.entrySet()) {
-          final Class<?> oadataType = detectValueType((Field) jpaAttribute.getAnnotatedElement(), entry.getValue());
+          final Class<?> oadataType = detectValueType((Field) ctMap.getDynamicPropertyDescription()
+              .getAnnotatedElement(), entry.getValue());
           final boolean isCollection = Collection.class.isInstance(entry.getValue());
           final DynamicJPADescribedElement attr = new DynamicJPADescribedElement().setType(oadataType);
           // be aware: there is no property name adaption based on naming strategy, because while de-serializing of

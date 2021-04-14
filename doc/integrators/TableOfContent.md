@@ -4,7 +4,8 @@
     * [Servlet security](ServletSecurity.md)
     * [Dependency Injection](DependencyInjection.md)
 1. Extend the OData-JPA-Adapter  
-    * Use [DTO's](DTOConcept.md) instead of JPA mapped entities      
+    * Use [DTO's](DTOConcept.md) instead of JPA mapped entities  
+    ** OpenTypes and [Map]'s(DTOConcept.md#OpenTypes)
     * Call Java methods as OData [action](Actions.md)  
     * Upload files via [Multipart/form-data](Actions.md#UploadFilesViaMultipartFormData)  
 1. Detailed informations  

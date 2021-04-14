@@ -83,17 +83,17 @@ abstract class AbstractStructuredTypeDTO<CsdlType extends CsdlStructuralType> ex
         continue;
       } else if (field.isAnnotationPresent(EdmIgnore.class)) {
         continue;
-      } else if (TypeMapping.isTargetingDTO(field)) {
-        final IntermediateNavigationDTOProperty property = new IntermediateNavigationDTOProperty(getNameBuilder(),
-            field,
-            serviceDocument);
-        addNavigationProperty(property);
-        continue;
       } else if (field.isSynthetic()) {
         // JaCoCo will create synthetic member '$jacocoData' while class file instrumentation for coverage report
         // so we ignore synthetic members always...
         LOG.log(Level.FINE, "Synthetic member '" + field.getDeclaringClass().getSimpleName() + "#" + field.getName()
-        + "' is ignored");
+            + "' is ignored");
+        continue;
+      } else if (TypeMapping.isTargetingDTOEntity(field)) {
+        final IntermediateNavigationDTOProperty property = new IntermediateNavigationDTOProperty(getNameBuilder(),
+            field,
+            serviceDocument);
+        addNavigationProperty(property);
         continue;
       } else {
         // assume to be primitive or complex

@@ -293,7 +293,7 @@ public class IntermediateServiceDocument {
    *
    * @see IntermediateCustomSchema#createDynamicMapType(Class, Class, boolean)
    */
-  AbstractIntermediateComplexTypeDTO createDynamicJavaUtilMapType(final Class<?> mapKeyType,
+  IntermediateMapComplexTypeDTO createDynamicJavaUtilMapType(final Class<?> mapKeyType,
       final Class<?> mapValueType, final boolean valueIsCollection) throws ODataJPAModelException {
     final String namespace = Map.class.getPackage().getName();
     final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);

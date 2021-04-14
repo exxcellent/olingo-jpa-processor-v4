@@ -128,7 +128,8 @@ class ActionResultParameter implements JPAOperationResultParameter {
       return;
     }
     final Method javaMethod = owner.getJavaMethod();
-    final FullQualifiedName fqn = owner.extractGenericTypeQualifiedName(javaMethod.getGenericReturnType(), "return");
+    final FullQualifiedName fqn = IntermediateModelElement.findOrCreateType(owner.getIntermediateServiceDocument(),
+        javaMethod.getGenericReturnType());
 
     returnType = new CsdlReturnType();
     returnType.setType(fqn);

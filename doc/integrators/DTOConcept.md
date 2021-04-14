@@ -72,5 +72,11 @@ public static class MyAddressFactory implements ODataDTOHandler<Address> {
 	}
 
 }
-
 ```
+
+# 3. <a id="OpenTypes"></a>OpenTypes and Map's
+Open types, or in other words types with dynamic properties are currently not supported by Olingo. So the OData-JPA-Adapter has a proprietary and limited support to handle `java.util.Map` as Open Type. Limitations are:
+* Because Olingo isn't supporting Open Types, the serializing and deserializing must be overwritten with own implementation. That is realized only for JSON. The (de)serializer implementation of Olingo is touched in every update so there is a risk for side effects...  
+So you should have automatic tests in your software project to avoid regression effects!
+* Only `java.util.Map` is supported as Open Type. The map must have the signature `Map<String, VT>` where  _VT_  is any supported primitive value type or an collection of such primitive value type.
+* A map can be used as field in an DTO, as action parameter and as action result type.

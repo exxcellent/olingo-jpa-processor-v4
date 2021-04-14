@@ -5,9 +5,9 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 import org.apache.olingo.commons.api.edm.EdmAnnotation;
-import org.apache.olingo.commons.api.edm.EdmComplexType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.EdmProperty;
+import org.apache.olingo.commons.api.edm.EdmStructuredType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.server.api.OData;
@@ -39,13 +39,13 @@ public class ODataFactory {
    *
    * @return The EDM representation of an dynamic property.
    */
-  public static EdmProperty createDynamicEdmProperty(final EdmComplexType openComplexType, final String propertyName)
+  public static EdmProperty createDynamicEdmProperty(final EdmStructuredType openType, final String propertyName)
       throws ODataRuntimeException {
-    if (openComplexType.getAnnotations() != null) {
-      final String namespaceType = openComplexType.getFullQualifiedName().getFullQualifiedNameAsString();
-      final Optional<EdmAnnotation> optionalAnnotationType = openComplexType.getAnnotations().stream().filter(a -> a
+    if (openType.getAnnotations() != null) {
+      final String namespaceType = openType.getFullQualifiedName().getFullQualifiedNameAsString();
+      final Optional<EdmAnnotation> optionalAnnotationType = openType.getAnnotations().stream().filter(a -> a
           .getTerm().getFullQualifiedName().getFullQualifiedNameAsString().equals(namespaceType+"."+JPAComplexType.OPEN_TYPE_ANNOTATION_NAME_VALUE_TYPE)).findFirst();
-      final Optional<EdmAnnotation> optionalAnnotationCollectionFlag = openComplexType.getAnnotations().stream().filter(
+      final Optional<EdmAnnotation> optionalAnnotationCollectionFlag = openType.getAnnotations().stream().filter(
           a -> a.getTerm().getFullQualifiedName().getFullQualifiedNameAsString().equals(namespaceType + "."
               + JPAComplexType.OPEN_TYPE_ANNOTATION_NAME_VALUE_COLLECTION_FLAG)).findFirst();
       if (optionalAnnotationType.isPresent() && optionalAnnotationCollectionFlag.isPresent()) {

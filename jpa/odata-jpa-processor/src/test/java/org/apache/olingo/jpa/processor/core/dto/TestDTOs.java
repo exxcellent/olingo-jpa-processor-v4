@@ -10,6 +10,7 @@ import java.net.StandardProtocolFamily;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.zip.Deflater;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -71,6 +72,12 @@ public class TestDTOs extends TestBase {
   public static class NestedComplexType {
     private String attribute1;
     private String attribute2;
+  }
+
+  @ODataDTO
+  public static class DtoWithInvalidComplexType {
+    @SuppressWarnings("unused")
+    private Deflater invalidComplexType;
   }
 
   @ODataDTO(attributeNaming = NamingStrategy.AsIs)
@@ -194,11 +201,22 @@ public class TestDTOs extends TestBase {
 
   @Test(expected = ODataJPAModelException.class)
   public void testInvalidRegisteredDTOComplexType() throws ODataException, IOException {
+    // a DTO must have the @ODataDTO annotation
     persistenceAdapter.registerDTO(NestedComplexType.class);
     // trigger metamodel building and exception...
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
     helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
+
+  @Test
+  public void testInvalidDTOComplexType() throws ODataException, IOException {
+    // a complex type must have the @ODataComplexType annotation
+    persistenceAdapter.registerDTO(DtoWithInvalidComplexType.class);
+    // trigger metamodel building and exception...
+    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
+    helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
   }
 
   @Test

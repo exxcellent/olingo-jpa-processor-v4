@@ -129,16 +129,16 @@ class IntermediateCustomSchema extends AbstractJPASchema {
    * The map may be part of an schema (namespace), but as representation for {@link java.util.Map} the related namespace
    * should be used.
    */
-  AbstractIntermediateComplexTypeDTO createDynamicMapType(final Class<?> mapKeyType, final Class<?> mapValueType,
+  IntermediateMapComplexTypeDTO createDynamicMapType(final Class<?> mapKeyType, final Class<?> mapValueType,
       final boolean valueIsCollection) throws ODataJPAModelException {
     final String simpleName = Map.class.getSimpleName() + "{" + Integer.toString(++dtCount) + "}";
-    AbstractIntermediateComplexTypeDTO mapType = complexTypes.get(simpleName);
-    if (mapType != null)
+    if (complexTypes.containsKey(simpleName))
     {
       throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
     }
     // define a Map DTO type... the map will have no attributes (mostly EdmUntyped), because all attributes are dynamic.
-    mapType = new IntermediateMapComplexTypeDTO(getNameBuilder(), simpleName, mapKeyType, mapValueType,
+    final IntermediateMapComplexTypeDTO mapType = new IntermediateMapComplexTypeDTO(getNameBuilder(), simpleName,
+        mapKeyType, mapValueType,
         valueIsCollection, serviceDocument);
     if (!mapWarningAlreadyLogged) {
       mapWarningAlreadyLogged = true;

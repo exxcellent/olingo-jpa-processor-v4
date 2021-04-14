@@ -149,4 +149,11 @@ public class EnvironmentInfo {
     assert !mapParameter.isEmpty();
   }
 
+  @EdmAction
+  public static Map<String, Collection<Integer>> actionWithMapResult() {
+    final Map<String, Collection<Integer>> mapResult = new HashMap<>();
+    mapResult.put("first", Collections.singletonList(Integer.valueOf(1)));
+    mapResult.put("second", Arrays.asList(Integer.valueOf(1), Integer.valueOf(2)));
+    return mapResult;
+  }
 }

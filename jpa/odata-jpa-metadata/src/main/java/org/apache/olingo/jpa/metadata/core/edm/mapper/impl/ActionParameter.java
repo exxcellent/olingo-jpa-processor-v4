@@ -88,8 +88,9 @@ class ActionParameter implements JPAOperationParameter {
     if (parameterKind == ParameterKind.Inject) {
       return null;
     }
-    final FullQualifiedName fqn = owner.extractGenericTypeQualifiedName(javaParameter.getParameterizedType(),
-        javaParameter.getName());
+    final FullQualifiedName fqn = IntermediateModelElement.findOrCreateType(owner.getIntermediateServiceDocument(),
+        javaParameter);
+
     final CsdlParameter parameter = new CsdlParameter();
     parameter.setName(name);
     parameter.setNullable(isNullable());
