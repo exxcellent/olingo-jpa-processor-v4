@@ -50,7 +50,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructureWithId;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.NestedStructureWithoutId;
-import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;

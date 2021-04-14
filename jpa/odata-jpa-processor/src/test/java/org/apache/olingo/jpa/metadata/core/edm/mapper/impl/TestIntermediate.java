@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.Country;
-import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.Test;
 

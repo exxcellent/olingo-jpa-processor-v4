@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.processor.core.testmodel.dto;
+package org.apache.olingo.jpa.processor.core.testmodel.dto.sub;
 
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;

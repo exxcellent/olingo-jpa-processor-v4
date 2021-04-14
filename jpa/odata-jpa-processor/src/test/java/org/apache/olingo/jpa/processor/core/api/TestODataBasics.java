@@ -12,7 +12,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
-import org.apache.olingo.jpa.processor.core.testmodel.dto.SystemRequirement;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -60,7 +60,6 @@ public class TestODataBasics extends TestBase {
 
   @Test
   public void testService() throws IOException, ODataException {
-
     final URIBuilder uriBuilder = newUriBuilder();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -72,23 +71,22 @@ public class TestODataBasics extends TestBase {
 
   @Test
   public void testAll() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$all");
+    final URIBuilder uriBuilder = newUriBuilder().appendAllSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
   }
 
   @Test
   public void testCrossjoin() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "$crossjoin(Persons,PersonImages)");
+    final URIBuilder uriBuilder = newUriBuilder().appendCrossjoinSegment("Persons", "PersonImages");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
   }
 
   @Test
   public void testEntityId() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "$entity?$id=Persons('99')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntityIdSegment("Persons('99')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode person = helper.getJsonObjectValue();
     assertNotNull(person);

@@ -155,7 +155,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
         }
         edmNaviProperty = new CsdlNavigationProperty();
         edmNaviProperty.setName(getExternalName());
-        edmNaviProperty.setType(getNameBuilder().buildFQN(targetType.getExternalName()));
+        edmNaviProperty.setType(targetType.getExternalFQN());
         edmNaviProperty.setCollection(isCollection());
         edmNaviProperty.setNullable(Boolean.TRUE);
       } finally {

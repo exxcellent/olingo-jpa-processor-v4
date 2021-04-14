@@ -233,7 +233,7 @@ IntermediateNavigationPropertyAccess {
       edmNaviProperty = new CsdlNavigationProperty();
       edmNaviProperty.setName(getExternalName());
       if (targetType != null) {
-        edmNaviProperty.setType(getNameBuilder().buildFQN(targetType.getExternalName()));
+        edmNaviProperty.setType(targetType.getExternalFQN());
       }
       edmNaviProperty.setCollection(jpaAttribute.isCollection());
 
