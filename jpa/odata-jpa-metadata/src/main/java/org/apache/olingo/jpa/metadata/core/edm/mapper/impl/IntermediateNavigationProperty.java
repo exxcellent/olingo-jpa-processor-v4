@@ -39,6 +39,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.extention.IntermediateNavigationPropertyAccess;
+import org.apache.olingo.jpa.util.Pair;
 
 /**
  * A navigation property describes a relation of one entity type to another entity type and allows to navigate to it.

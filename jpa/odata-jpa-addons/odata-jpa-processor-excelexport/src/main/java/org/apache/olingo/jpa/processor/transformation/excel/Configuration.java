@@ -144,8 +144,8 @@ public class Configuration {
    * enough as for key columns always selected and included in result set.
    *
    * @param dbColumnNames The name of column in Excel sheet to suppress. The name is normally identically with the DB
-   * path
-   * name of attribute (see {@link org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType#getPathList()
+   * path name of attribute (see
+   * {@link org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType#getPathList()
    * JPAStructuredType.getPathList()}).
    */
   public final void addSuppressedColumns(final String entityTypeName, final String... dbColumnNames) {

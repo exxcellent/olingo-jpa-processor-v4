@@ -1,4 +1,4 @@
-package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
+package org.apache.olingo.jpa.util;
 
 import java.util.Objects;
 

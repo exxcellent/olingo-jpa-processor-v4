@@ -3,6 +3,7 @@ package org.apache.olingo.jpa.processor.core.dto;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -23,6 +24,8 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
+import org.apache.olingo.jpa.processor.core.testmodel.Phone;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
@@ -105,6 +108,12 @@ public class TestDTOs extends TestBase {
       }
       return c;
     }
+  }
+
+  @ODataDTO(attributeNaming = NamingStrategy.AsIs)
+  public static class DtoUsingMixedEmbeddableComplexType {
+    @SuppressWarnings("unused")
+    private Phone phone;
   }
 
   @Before
@@ -256,4 +265,29 @@ public class TestDTOs extends TestBase {
     helperSend2.execute(HttpStatusCode.OK.getStatusCode());
     assertEquals(2, helperSend2.getJsonObjectValue().get("value").asInt());
   }
+
+  @Test
+  public void testMixedEmbeddableComplexType() throws ODataException, IOException {
+    persistenceAdapter.registerDTO(DtoUsingMixedEmbeddableComplexType.class);
+
+    // trigger metamodel building...
+    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode metamodel = helper.getJsonObjectValue();
+    // 'Phone' must be existing only once in metamodel: as JPA @Embeddable, because that is the leading part
+    // 1. check the type name of Phone referenced by the DTO
+    assertEquals(Constant.PUNIT_NAME + "." + Phone.class.getSimpleName(), metamodel.get(
+        DtoUsingMixedEmbeddableComplexType.class.getPackage().getName()).get(
+            DtoUsingMixedEmbeddableComplexType.class.getSimpleName()).get("phone").get("$Type").asText());
+    // 2. check the type name of Phone referenced by an JPA entity
+    assertEquals(Constant.PUNIT_NAME + "." + Phone.class.getSimpleName(), metamodel.get(Constant.PUNIT_NAME).get(
+        BusinessPartner.class.getSimpleName()).get("PhoneNumbers").get("$Type").asText());
+    // Phone must not create a new custom schema with it's package, because is only registered via JPA's 'persistence
+    // unit' name
+    assertNull(metamodel.get(Phone.class.getPackage().getName()));
+    // but Phone must be registered as type in 'persistence unit' name space
+    assertNotNull(metamodel.get(Constant.PUNIT_NAME).get(Phone.class.getSimpleName()));
+  }
+
 }

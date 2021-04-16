@@ -39,7 +39,7 @@ public class TestIntermediateAction extends TestMappingRoot {
           + " annotation for testing");
     }
     new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME), Person.class, notAnnotatedMethod,
-        helper.serviceDocument);
+        helper.getServiceDocument());
     org.junit.Assert.fail("Action constructor has not thrown an exception");
   }
 
@@ -48,7 +48,7 @@ public class TestIntermediateAction extends TestMappingRoot {
     final Method method = helper.getActionMethod(helper.getEntityType("Person"), "ClearPersonsCustomStrings");
     assertNotNull(method);
     final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-        Person.class, method, helper.serviceDocument);
+        Person.class, method, helper.getServiceDocument());
     assertNotNull(action);
     // a bound action must have different parameters in CSDL and on JPA side
     assertEquals(0, action.getParameters().size());
@@ -62,7 +62,7 @@ public class TestIntermediateAction extends TestMappingRoot {
     final Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction1");
     assertNotNull(method);
     final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-        Person.class, method, helper.serviceDocument);
+        Person.class, method, helper.getServiceDocument());
     assertFalse(action.getEdmItem().getReturnType().isNullable());
   }
 
@@ -71,7 +71,7 @@ public class TestIntermediateAction extends TestMappingRoot {
     final Method method = helper.getActionMethod(helper.getEntityType("Person"), "DoNothingAction2");
     assertNotNull(method);
     final IntermediateAction action = new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME),
-        Person.class, method, helper.serviceDocument);
+        Person.class, method, helper.getServiceDocument());
     assertNotNull(action);
     assertEquals(1, action.getParameters().size());
     // the CSDL has the entity as additional parameter for bound action

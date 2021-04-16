@@ -39,8 +39,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.DynamicJPADescribedElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.Pair;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
+import org.apache.olingo.jpa.util.Pair;
 import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriHelper;
 

@@ -166,7 +166,8 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
       jpaMapType.setAnnotatedElement(typeOwner);
       return jpaMapType.getExternalFQN();
     } else if (typeClass.getAnnotation(ODataDTO.class) != null || isTargetingJPA(serviceDocument, typeClass)) {
-      // is targeting a class to use as @ODataDTO or as JPA element
+      // is targeting a class to use as (already registered) @ODataDTO or as JPA element (entity, @Embeddable and maybe
+      // including @ODataComplexType)
       final JPAStructuredType predefinedType = serviceDocument.getStructuredType(typeClass);
       if (predefinedType == null) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
@@ -179,7 +180,7 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
           (Class<? extends Enum<?>>) typeClass);
       return jpaEnumType.getExternalFQN();
     } else if (typeClass.getAnnotation(ODataComplexType.class) != null) {
-      // is targeting a class to use as @ODataComplexType nad is no JPA metamodel element
+      // is targeting a class to use as @ODataComplexType and is here no JPA metamodel element
       final AbstractIntermediateComplexTypeDTO ct = serviceDocument.findOrCreateDTOComplexType(typeClass);
       return ct.getExternalFQN();
     }

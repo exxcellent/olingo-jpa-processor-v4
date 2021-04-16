@@ -178,6 +178,8 @@ public final class TypeMapping {
           return mapping;
         }
       }
+      // use default (identity) mapping behaviour
+      return new ODataMapping(jpaType, temporalKind, jpaType);
     }
 
     // normal lookup
@@ -264,8 +266,7 @@ public final class TypeMapping {
     return convertToEdmSimpleType(attribute.getType(), attribute.getAnnotatedElement());
   }
 
-  private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final String memberName)
-      throws ODataJPAModelException {
+  private static EdmPrimitiveTypeKind convertGeography(final Class<?> jpaType, final String memberName) {
     if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.Point.class)) {
       return EdmPrimitiveTypeKind.GeographyPoint;
     } else if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.MultiPoint.class)) {
@@ -281,13 +282,10 @@ public final class TypeMapping {
     } else if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.GeospatialCollection.class)) {
       return EdmPrimitiveTypeKind.GeographyCollection;
     }
-    // Type (%1$s) of attribute (%2$s) is not supported. Mapping not possible
-    throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-        jpaType.getName(), memberName);
+    return null;
   }
 
-  private static EdmPrimitiveTypeKind convertGeometry(final Class<?> jpaType, final String memberName)
-      throws ODataJPAModelException {
+  private static EdmPrimitiveTypeKind convertGeometry(final Class<?> jpaType, final String memberName) {
     if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.Point.class)) {
       return EdmPrimitiveTypeKind.GeometryPoint;
     } else if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.MultiPoint.class)) {
@@ -303,9 +301,7 @@ public final class TypeMapping {
     } else if (jpaType.equals(org.apache.olingo.commons.api.edm.geo.GeospatialCollection.class)) {
       return EdmPrimitiveTypeKind.GeometryCollection;
     }
-    // Type (%1$s) of attribute (%2$s) is not supported. Mapping not possible
-    throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.TYPE_NOT_SUPPORTED,
-        jpaType.getName(), memberName);
+    return null;
   }
 
   private static EdmPrimitiveTypeKind mapTemporalType(final AnnotatedElement javaMember) {

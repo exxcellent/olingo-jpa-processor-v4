@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.annotation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -16,14 +17,10 @@ import org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner.Gene
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.function.ThrowingRunnable;
 
 public class TestAnnotations extends TestBase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testDefaultConverterPresence() throws NoSuchFieldException, SecurityException, InstantiationException,
@@ -34,8 +31,8 @@ public class TestAnnotations extends TestBase {
     assertEquals(EdmPrimitiveTypeKind.TimeOfDay, anno.odataType());
     assertEquals(EdmAttributeConversion.DEFAULT.class, anno.converter());
 
-    thrown.expect(UnsupportedOperationException.class);
-    anno.converter().newInstance().convertToJPA(null);
+    final ThrowingRunnable throwingRunnable = () -> anno.converter().newInstance().convertToJPA(null);
+    assertThrows(UnsupportedOperationException.class, throwingRunnable);
 
   }
 

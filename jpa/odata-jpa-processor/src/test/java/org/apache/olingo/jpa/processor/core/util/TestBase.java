@@ -1,11 +1,7 @@
 package org.apache.olingo.jpa.processor.core.util;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.olingo.client.api.domain.ClientComplexValue;
@@ -101,15 +97,6 @@ public abstract class TestBase {
       return JPAProvider.EclipseLink;
     }
     throw new UnsupportedOperationException("Current JPA provider not known");
-  }
-
-  @Deprecated
-  protected Map<String, List<String>> createHeaders() {
-    final Map<String, List<String>> headers = new HashMap<String, List<String>>();
-    final List<String> languageHeaders = new ArrayList<String>();
-    languageHeaders.add("de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4");
-    headers.put("accept-language", languageHeaders);
-    return headers;
   }
 
   public static URIBuilder newUriBuilder() {

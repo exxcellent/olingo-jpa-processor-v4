@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.transformation.excel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.io.IOException;
 import java.util.Map;
@@ -11,24 +12,19 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.function.ThrowingRunnable;
 
 public class ConfigurationTest extends TestBase {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none(); // initially, expect no exception
-
   @Test
   public void testDuplicateColumnIndex() throws IOException, ODataException {
-
     final Configuration configuration = new Configuration();
     configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C1", 2);
 
-    thrown.expect(IllegalArgumentException.class);
-
-    configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C2", 2);
+    final ThrowingRunnable throwingRunnable = () -> configuration.assignColumnIndex(DatatypeConversionEntity.class
+        .getAnnotation(Entity.class).name(), "C2", 2);
+    assertThrows(IllegalArgumentException.class, throwingRunnable);
   }
 
   @Test
@@ -71,5 +67,19 @@ public class ConfigurationTest extends TestBase {
   public void testInvalidFormatDateTime() throws IOException, ODataException {
     final Configuration configuration = new Configuration();
     configuration.setFormatDateTime("");
+  }
+
+  @Test
+  public void testSuppressedColumns() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+
+    ThrowingRunnable throwingRunnable = () -> configuration.addSuppressedColumns(DatatypeConversionEntity.class
+        .getAnnotation(Entity.class).name(), new String[0]);
+    assertThrows(IllegalArgumentException.class, throwingRunnable);
+
+    configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C1", 2);
+    throwingRunnable = () -> configuration.addSuppressedColumns(DatatypeConversionEntity.class.getAnnotation(
+        Entity.class).name(), "C1");
+    assertThrows(IllegalArgumentException.class, throwingRunnable);
   }
 }
