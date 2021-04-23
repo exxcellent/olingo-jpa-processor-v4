@@ -53,6 +53,29 @@ class TestInspector {
   }
 
   /**
+   *
+   * @return TRUE if any header cell has an empty name
+   */
+  public boolean hasHeaderColumnWithoutName(final String sheetName) {
+    if (!usedConfiguration.isCreateHeaderRow()) {
+      throw new IllegalStateException("without header row no column can be identified");
+    }
+    final Sheet sheet = workbook.getSheet(sheetName);
+    if (sheet == null) {
+      throw new IllegalStateException("Sheet with name " + sheetName + " not present");
+    }
+    final Row row = sheet.getRow(0);
+    final Iterator<Cell> it = row.cellIterator();
+    while (it.hasNext()) {
+      final Cell cell = it.next();
+      if (cell.getStringCellValue() == null || cell.getStringCellValue().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * This can only be used if the header row is not suppressed in configuration.
    * @param excelColumnName The name of column in sheet to look for.
    *

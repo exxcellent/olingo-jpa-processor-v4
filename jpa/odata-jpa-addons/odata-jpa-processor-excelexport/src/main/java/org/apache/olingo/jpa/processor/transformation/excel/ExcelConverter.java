@@ -278,24 +278,30 @@ public class ExcelConverter {
     // determine minimum column index for unassigned columns
     int startingIndexForColumns = 0;
     for (final Integer i : mapConfigured.values()) {
-      if (i.intValue() > startingIndexForColumns) {
+      if (i.intValue() >= startingIndexForColumns) {
         startingIndexForColumns = i.intValue() + 1;
       }
     }
     final Map<String, Integer> mapResult = new HashMap<>();
+    int noIgnoredColumns = 0;
     for (final TupleElement<?> dbCell : unsortedList) {
-      final Integer cI = mapConfigured.remove(dbCell.getAlias());
+      final String dbAlias = dbCell.getAlias();
+      if (configuration.isSuppressedColumn(jpaType, dbAlias)) {
+        noIgnoredColumns++;
+        continue;
+      }
+      final Integer cI = mapConfigured.remove(dbAlias);
       if (cI != null) {
-        mapResult.put(dbCell.getAlias(), cI);
+        mapResult.put(dbAlias, cI);
       } else {
-        mapResult.put(dbCell.getAlias(), Integer.valueOf(startingIndexForColumns++));
+        mapResult.put(dbAlias, Integer.valueOf(startingIndexForColumns++));
       }
     }
     if (!mapConfigured.isEmpty()) {
       LOG.warning("Assignments for column indexes contains unprocessed definitions: " + String.join(", ",
           mapConfigured.values().toArray(new String[mapConfigured.size()])));
     }
-    if (mapResult.size() != unsortedList.size()) {
+    if (mapResult.size() != (unsortedList.size() - noIgnoredColumns)) {
       throw new IllegalStateException("Column index map is not affecting the correct number of columns");
     }
     return mapResult;
@@ -374,7 +380,7 @@ public class ExcelConverter {
     case Date:
       length = configuration.getFormatDate() != null && configuration.getFormatDate().length() > 1 ? configuration
           .getFormatDate().length() : 8;
-          break;
+      break;
     case DateTimeOffset:
       length = configuration.getFormatDateTime() != null && configuration.getFormatDateTime().length() > 1
       ? configuration.getFormatDateTime().length() : 18;
@@ -382,7 +388,7 @@ public class ExcelConverter {
     case TimeOfDay:
       length = configuration.getFormatTime() != null && configuration.getFormatTime().length() > 1 ? configuration
           .getFormatTime().length() : 8;
-          break;
+      break;
     default:
       throw new IllegalArgumentException("not a time related value");
     }

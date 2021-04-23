@@ -18,12 +18,32 @@ import org.junit.function.ThrowingRunnable;
 public class ConfigurationTest extends TestBase {
 
   @Test
-  public void testDuplicateColumnIndex() throws IOException, ODataException {
+  public void testDuplicateColumnIndex1() throws IOException, ODataException {
     final Configuration configuration = new Configuration();
     configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C1", 2);
 
     final ThrowingRunnable throwingRunnable = () -> configuration.assignColumnIndex(DatatypeConversionEntity.class
         .getAnnotation(Entity.class).name(), "C2", 2);
+    assertThrows(IllegalArgumentException.class, throwingRunnable);
+  }
+
+  @Test
+  public void testDuplicateColumnIndex2() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C1", 2);
+
+    final ThrowingRunnable throwingRunnable = () -> configuration.assignColumnOrder(DatatypeConversionEntity.class
+        .getAnnotation(Entity.class).name(), "C2", "C3", "C4");
+    assertThrows(IllegalArgumentException.class, throwingRunnable);
+  }
+
+  @Test
+  public void testColumnIndexForSuppressedColumn() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.addSuppressedColumns(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C2");
+
+    final ThrowingRunnable throwingRunnable = () -> configuration.assignColumnOrder(DatatypeConversionEntity.class
+        .getAnnotation(Entity.class).name(), "C1", "C2");
     assertThrows(IllegalArgumentException.class, throwingRunnable);
   }
 

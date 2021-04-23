@@ -130,9 +130,8 @@ public class Configuration {
     return cc;
   }
 
-  private ColumnConfiguration findColumnConfiguration(final JPAEntityType entity, final String dbColumnName) {
-    final Map<String, ColumnConfiguration> configs = mapEntityType2ColumnConfiguration.get(determineSheetKeyName(
-        entity));
+  private ColumnConfiguration findColumnConfiguration(final String entityTypeName, final String dbColumnName) {
+    final Map<String, ColumnConfiguration> configs = mapEntityType2ColumnConfiguration.get(entityTypeName);
     if (configs == null) {
       return null;
     }
@@ -166,7 +165,11 @@ public class Configuration {
   }
 
   boolean isSuppressedColumn(final JPAEntityType entity, final String dbColumnName) {
-    final ColumnConfiguration cc = findColumnConfiguration(entity, dbColumnName);
+    return isSuppressedColumn(determineSheetKeyName(entity), dbColumnName);
+  }
+
+  private boolean isSuppressedColumn(final String entityTypeName, final String dbColumnName) {
+    final ColumnConfiguration cc = findColumnConfiguration(entityTypeName, dbColumnName);
     if (cc == null) {
       return false;
     }
@@ -194,7 +197,7 @@ public class Configuration {
 
   /**
    * This is convenience method to define a column order at once. Internally a call to this method is mapped to separate
-   * calls to {@link #assignColumnIndex(String, String, int)}. The first column will get the index 0.
+   * calls to {@link #assignColumnIndex(String, String, int)}.
    */
   public final void assignColumnOrder(final String entityTypeName, final String... dbColumnNames) {
     if (dbColumnNames == null) {
@@ -206,17 +209,20 @@ public class Configuration {
   }
 
   /**
-   * Be aware: if only one column get's an index: all other columns will be arranged <b>after</b> that column, because
-   * the only (aka minimum) column index defines the first column.
+   * Be aware: if only a subset of columns get an index: all other columns will be arranged <b>after</b> that columns,
+   * because the only (aka minimum) column index defines the first column.
    *
    * @param entityTypeName The entity determine the sheet to affect.
    * @param dbColumnName The attribute/column to rename in Excel sheet.
-   * @param excelColumnIndex The column index of the affected DB column in final Excel sheet.
+   * @param excelColumnIndex The column index of the affected DB column in final Excel sheet. The minimal index is 0.
    */
   public final void assignColumnIndex(final String entityTypeName, final String dbColumnName,
       final int excelColumnIndex) {
     if (excelColumnIndex < 0) {
       throw new IllegalArgumentException("Inconsistent configuration: Column index must be > -1");
+    }
+    if (isSuppressedColumn(entityTypeName, dbColumnName)) {
+      throw new IllegalArgumentException("Inconsistent configuration: Column is suppressed");
     }
 
     // validate
@@ -243,7 +249,7 @@ public class Configuration {
    * @return The custom name or <code>null</code>
    */
   String getCustomColumnName(final JPAEntityType entity, final String dbColumnName) {
-    final ColumnConfiguration cc = findColumnConfiguration(entity, dbColumnName);
+    final ColumnConfiguration cc = findColumnConfiguration(determineSheetKeyName(entity), dbColumnName);
     if (cc == null) {
       return null;
     }

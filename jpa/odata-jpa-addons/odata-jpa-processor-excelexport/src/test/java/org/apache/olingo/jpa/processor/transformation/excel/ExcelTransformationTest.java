@@ -93,6 +93,35 @@ public class ExcelTransformationTest extends TestBase {
   }
 
   @Test
+  public void testExportWithCustomColumns() throws IOException, ODataException {
+    final Configuration configuration = new Configuration();
+    configuration.assignSheetName(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "Demo");
+    configuration.setCreateHeaderRow(true);
+    // suppress always present @Id column
+    configuration.addSuppressedColumns(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "ID");
+    // keep the first 2 columns empty
+    configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "AIntegerYear",
+        2);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities");
+    final ServerCallSimulator helper = prepareServerCallHelper(uriBuilder, configuration);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final byte[] data = helper.getBinaryResult();
+
+    //    final FileOutputStream file = new FileOutputStream("target/test-custom-columns.xlsx");
+    //    file.write(data);
+    //    file.flush();
+    //    file.close();
+
+    final TestInspector validator = new TestInspector(configuration, data);
+    assertEquals(19, validator.determineNumberOfColumns("Demo"));
+    assertEquals(2, validator.determineColumnIndex("Demo", "AIntegerYear"));
+    assertFalse(validator.hasColumnOfName("Demo", "ID"));
+    assertTrue(validator.hasColumnOfName("Demo", "AIntegerYear"));
+    assertFalse(validator.hasHeaderColumnWithoutName("Demo"));
+  }
+
+  @Test
   public void testSuccessfulFewerColumnsExport() throws IOException, ODataException {
 
     final Configuration configuration = new Configuration();
@@ -126,6 +155,7 @@ public class ExcelTransformationTest extends TestBase {
     assertFalse(validator.hasColumnOfName("Organization", "Name2"));
     assertFalse(validator.hasColumnOfName("Organization", "ID"));
     assertEquals(9, validator.determineNumberOfColumns("Organization"));
+    assertFalse(validator.hasHeaderColumnWithoutName("Organization"));
   }
 
   @Test
