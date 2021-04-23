@@ -151,11 +151,22 @@ public class JPAODataServletHandler {
 
   /**
    * Client hook method to add custom resources (like dependencies for dependency
-   * injection support or transformations).
+   * injection support or transformations) before anything is done with the request context.
    *
    * @param requestContext The context of current request where processing will starting.
    */
   protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
+    // do nothing in default implementation
+  }
+
+  /**
+   * Client hook method to change custom resources (like dependencies for dependency injection support) after
+   * initialization of request handling (also after security checks), but before processing of request. A transaction
+   * maybe in progress...
+   *
+   * @param requestContext The context of current request where processing will starting.
+   */
+  protected void modifyRequestContext(final ModifiableJPAODataRequestContext requestContext) {
     // do nothing in default implementation
   }
 

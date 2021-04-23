@@ -172,9 +172,9 @@ public class ServerCallSimulator {
       }
 
       @Override
-      protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
-        super.prepareRequestContext(requestContext);
-        ServerCallSimulator.this.prepareRequestContext(requestContext);
+      protected void modifyRequestContext(final ModifiableJPAODataRequestContext requestContext) {
+        super.modifyRequestContext(requestContext);
+        ServerCallSimulator.this.modifyRequestContext(requestContext);
       }
     };
   }
@@ -182,7 +182,7 @@ public class ServerCallSimulator {
   /**
    * Test class hook to modify request context
    */
-  protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
+  protected void modifyRequestContext(final ModifiableJPAODataRequestContext requestContext) {
     // do nothing as default
   }
 

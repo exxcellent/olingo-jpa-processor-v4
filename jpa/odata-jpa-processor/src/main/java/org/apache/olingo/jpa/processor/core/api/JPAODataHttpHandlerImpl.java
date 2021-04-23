@@ -94,6 +94,8 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     try {
       mappingAdapter.beginTransaction(em);
 
+      servletHandler.modifyRequestContext(requestContext);
+
       // call super.... to avoid DPI overlay
       odataResponse = super.process(request);
 

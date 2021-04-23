@@ -294,8 +294,7 @@ public class ExcelTransformationTest extends TestBase {
       }
 
       @Override
-      protected void prepareRequestContext(final ModifiableJPAODataRequestContext requestContext) {
-        super.prepareRequestContext(requestContext);
+      protected void modifyRequestContext(final ModifiableJPAODataRequestContext requestContext) {
         requestContext.getDependencyInjector().registerDependencyMapping(Configuration.class, configuration);
       }
 
