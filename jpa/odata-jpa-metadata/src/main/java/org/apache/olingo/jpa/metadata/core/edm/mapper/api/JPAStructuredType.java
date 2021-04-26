@@ -86,7 +86,7 @@ public interface JPAStructuredType extends JPAElement {
   public JPASelector getPath(String externalName) throws ODataJPAModelException;
 
   /**
-   * List of all attributes that are available for this type via the OData
+   * List of all simple (and not complex) attributes that are available for this type via the OData
    * service. That is:
    * <ul>
    * <li>All not ignored properties of the type.
@@ -113,7 +113,7 @@ public interface JPAStructuredType extends JPAElement {
   public List<JPAMemberAttribute> getKeyAttributes(boolean exploded) throws ODataJPAModelException;
 
   /**
-   *
+   * All searchable attributes from {@link #getPathList()}.
    * @throws ODataJPAModelException
    */
   public List<JPASelector> getSearchablePath() throws ODataJPAModelException;

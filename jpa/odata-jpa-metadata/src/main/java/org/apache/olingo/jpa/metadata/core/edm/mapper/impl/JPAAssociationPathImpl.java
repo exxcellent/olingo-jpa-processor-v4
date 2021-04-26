@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import javax.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
@@ -168,7 +171,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
   private JPASelector findJoinConditionPath(final AbstractStructuredType<?> type,
       final String joinColumnName)
           throws ODataJPAModelException {
-    final JPASelector selector = type.getPathByDBField(joinColumnName);
+    final JPASelector selector = getPathByDBField(type, joinColumnName);
     if (selector != null) {
       return selector;
     }
@@ -199,6 +202,37 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
             + sourceType.getInternalName() + " and " + targetType.getInternalName());
   }
 
+  /**
+   * This does not resolve associations! It's only for simple attributes.
+   *
+   * @param dbFieldName
+   * The path to find based on db field name.
+   * @return The path or <code>null</code>
+   * @throws ODataJPAModelException
+   * @Deprecated Multiple attribute may use the same DB field, so the DB column
+   * name is not always unique. Use {@link #getPath(String)} if you a
+   * attribute in context.
+   */
+  @Deprecated
+  static private JPAAttributePath getPathByDBField(final AbstractStructuredType<?> targetType, final String dbFieldName)
+      throws ODataJPAModelException {
+    final Map<String, JPAPathImpl> simpleAttributePathMap = targetType.getSimpleAttributePathMap();
+
+    // find any db field names
+    JPAPathImpl found = null;
+    for (final JPAPathImpl path : simpleAttributePathMap.values()) {
+      if (path.getDBFieldName().equals(dbFieldName)) {
+        if (found != null) {
+          AbstractStructuredType.LOG.log(Level.WARNING, "Ambiguous DB column name '" + dbFieldName
+              + "' used to find attribute");
+          return null;
+        }
+        found = path;
+      }
+    }
+    return found;
+  }
+
   private List<JPASelector> determineTargetSelectorBehindJoinTable() throws ODataJPAModelException {
     // the target join columns are ALL required columns, so we can take all without
     // further logic
@@ -206,7 +240,7 @@ public class JPAAssociationPathImpl implements JPAAssociationPath {
     JPASelector selector;
     for (final IntermediateJoinColumn jc : targetJoinColumns) {
       fillMissingName(cardinality, sourceType, targetType, jc);
-      selector = targetType.getPathByDBField(jc.getSourceEntityColumnName());
+      selector = getPathByDBField(targetType, jc.getSourceEntityColumnName());
       if (selector == null) {
         throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM,
             "Invalid relationship declaration: between " + sourceType.getInternalName() + " and "

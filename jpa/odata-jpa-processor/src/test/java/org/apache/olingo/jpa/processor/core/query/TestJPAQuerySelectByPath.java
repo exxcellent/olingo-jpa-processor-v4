@@ -122,7 +122,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals("../../$metadata#Organizations/Address/Region", org.get("@odata.context").asText());
   }
 
-  @Ignore
+  @Ignore("MediaEntityProcessor required")
   @Test
   public void testNavigationToStreamValue() throws IOException, ODataException {
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");

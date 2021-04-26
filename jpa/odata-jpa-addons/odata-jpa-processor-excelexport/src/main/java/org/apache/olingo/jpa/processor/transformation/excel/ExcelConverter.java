@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +128,8 @@ public class ExcelConverter {
     return sheetState;
   }
 
-  private void createHeaderRow(final SheetState sheetState, final int rowNumber, final Tuple dbRow) {
+  private void createHeaderRow(final SheetState sheetState, final int rowNumber, final Tuple dbRow,
+      final Collection<String> requestedResultAttributes) {
     final Row headerRow = sheetState.sheet.createRow(rowNumber);
     final CellStyle cellStyle = sheetState.sheet.getWorkbook().createCellStyle();
     final org.apache.poi.ss.usermodel.Font font = sheetState.workbookState.workbook.createFont();
@@ -141,7 +143,7 @@ public class ExcelConverter {
     cellStyle.setFont(font);
     for (final TupleElement<?> dbCell : dbRow.getElements()) {
       final String dbAlias = dbCell.getAlias();
-      if (configuration.isSuppressedColumn(sheetState.jpaType, dbAlias)) {
+      if (isSuppressedColumn(sheetState.jpaType, requestedResultAttributes, dbAlias)) {
         continue;
       }
       final String customName = configuration.getCustomColumnName(sheetState.jpaType, dbAlias);
@@ -219,6 +221,7 @@ public class ExcelConverter {
       final RepresentationType representationType)
           throws IOException, ODataJPAModelException, ODataJPAConversionException {
 
+    final Collection<String> requestedResultAttributes = input.getRequestedResultAttributes();
     final WorkbookState state = createWorkbook();
     final Workbook workbook = state.workbook;
     final SheetState sheetState = findOrCreateSheet(state, input.getEntityType());
@@ -237,10 +240,11 @@ public class ExcelConverter {
     for (final Tuple dbRow : input.getQueryResult()) {
       if (firstRow) {
         // build column order
-        sheetState.mapAlias2ColumnIndex = buildColumnOrder(sheetState.jpaType, dbRow.getElements());
+        sheetState.mapAlias2ColumnIndex = buildColumnOrder(sheetState.jpaType, requestedResultAttributes, dbRow
+            .getElements());
         // header
         if (configuration.isCreateHeaderRow()) {
-          createHeaderRow(sheetState, rowNumber++, dbRow);
+          createHeaderRow(sheetState, rowNumber++, dbRow, requestedResultAttributes);
         }
         firstRow = false;
       }
@@ -248,7 +252,7 @@ public class ExcelConverter {
       final Row row = sheetState.sheet.createRow(rowNumber++);
       for (final TupleElement<?> dbCell : dbRow.getElements()) {
         final String dbAlias = dbCell.getAlias();
-        if (configuration.isSuppressedColumn(sheetState.jpaType, dbAlias)) {
+        if (isSuppressedColumn(sheetState.jpaType, requestedResultAttributes, dbAlias)) {
           continue;
         }
         final Object value = dbRow.get(dbAlias);
@@ -272,7 +276,8 @@ public class ExcelConverter {
     return new ODataResponseContent(contentState, isResult);
   }
 
-  private Map<String, Integer> buildColumnOrder(final JPAEntityType jpaType, final List<TupleElement<?>> unsortedList) {
+  private Map<String, Integer> buildColumnOrder(final JPAEntityType jpaType,
+      final Collection<String> requestedResultAttributes, final List<TupleElement<?>> unsortedList) {
     // use copy constructor to modify map
     final Map<String, Integer> mapConfigured = new HashMap<>(configuration.getCustomColumnIndexes(jpaType));
     // determine minimum column index for unassigned columns
@@ -286,7 +291,7 @@ public class ExcelConverter {
     int noIgnoredColumns = 0;
     for (final TupleElement<?> dbCell : unsortedList) {
       final String dbAlias = dbCell.getAlias();
-      if (configuration.isSuppressedColumn(jpaType, dbAlias)) {
+      if (isSuppressedColumn(jpaType, requestedResultAttributes, dbAlias)) {
         noIgnoredColumns++;
         continue;
       }
@@ -305,6 +310,19 @@ public class ExcelConverter {
       throw new IllegalStateException("Column index map is not affecting the correct number of columns");
     }
     return mapResult;
+  }
+
+  private boolean isSuppressedColumn(final JPAEntityType jpaType, final Collection<String> requestedResultAttributes,
+      final String dbAlias) {
+    // static config exlusion?
+    if (configuration.isSuppressedColumn(jpaType, dbAlias)) {
+      return true;
+    }
+    // runtime override from query?
+    if (requestedResultAttributes == null || requestedResultAttributes.isEmpty()) {
+      return false;
+    }
+    return !requestedResultAttributes.contains(dbAlias);
   }
 
   private void processCell(final SheetState sheetState, final Row row, final int columnIndex,

@@ -72,9 +72,13 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandOneEntityCompoundKey() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Parent");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE25");
+    mapKeys.put("CodeID", "NUTS2");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expand("Parent");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode divsion = helper.getJsonObjectValue();
@@ -85,9 +89,13 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandOneEntityCompoundKeyCollection() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Children($orderby=DivisionCode asc)");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE25");
+    mapKeys.put("CodeID", "NUTS2");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expandWithOptions("Children", Collections.singletonMap(QueryOption.ORDERBY, "DivisionCode asc"));
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode divsion = helper.getJsonObjectValue();

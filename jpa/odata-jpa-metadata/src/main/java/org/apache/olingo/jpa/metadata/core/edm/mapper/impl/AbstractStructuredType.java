@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -283,36 +282,6 @@ implements JPAStructuredType {
   }
 
   /**
-   * This does not resolve associations! It's only for simple attributes.
-   *
-   * @param dbFieldName
-   *            The path to find based on db field name.
-   * @return The path or <code>null</code>
-   * @throws ODataJPAModelException
-   * @Deprecated Multiple attribute may use the same DB field, so the DB column
-   *             name is not always unique. Use {@link #getPath(String)} if you a
-   *             attribute in context.
-   */
-  @Deprecated
-  final JPAAttributePath getPathByDBField(final String dbFieldName)
-      throws ODataJPAModelException {
-    lazyBuildCompletePathMap();
-
-    // find any db field names
-    JPAPathImpl found = null;
-    for (final JPAPathImpl path : simpleAttributePathMap.values()) {
-      if (path.getDBFieldName().equals(dbFieldName)) {
-        if (found != null) {
-          LOG.log(Level.WARNING, "Ambiguous DB column name '" + dbFieldName + "' used to find attribute");
-          return null;
-        }
-        found = path;
-      }
-    }
-    return found;
-  }
-
-  /**
    * Internal method to access also {@link IntermediateProperty#ignore() ignored}
    * properties.
    */
@@ -349,7 +318,6 @@ implements JPAStructuredType {
   private void lazyBuildCompleteAssociationPathMap() throws ODataJPAModelException {
     JPAAssociationPathImpl associationPath;
     lazyBuildCompletePathMap();
-    // TODO check if ignore has to be handled
     if (associationPathMap.size() == 0) {
       for (final JPAAssociationAttribute navProperty : getAssociations()) {
         associationPath = new JPAAssociationPathImpl((AbstractNavigationProperty) navProperty, this);

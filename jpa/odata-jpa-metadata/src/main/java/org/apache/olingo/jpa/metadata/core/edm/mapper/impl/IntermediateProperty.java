@@ -423,6 +423,10 @@ class IntermediateProperty extends AbstractProperty<CsdlProperty> implements JPA
     return streamInfo.contentType();
   }
 
+  /**
+   *
+   * @return The (JPA/Java internal) name of the attribute containing the stream property content type.
+   */
   String getContentTypeProperty() {
     return streamInfo.contentTypeAttribute();
   }

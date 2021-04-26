@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -53,6 +55,40 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
 public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQuery<Tuple>, Tuple> {
+
+  /**
+   * Helper class to separate explicit requested attributes from automatic added/required attributes.
+   *
+   */
+  protected final static class PathSelectors {
+    /**
+     * Paths from $select and other explicit query parts.
+     */
+    private final List<JPASelector> requestedPaths = new LinkedList<JPASelector>();
+    /**
+     * Additional path like key attributes, not already selected via {@link #requestedPaths}.
+     */
+    private final List<JPASelector> additionalPaths = new LinkedList<JPASelector>();
+
+    public List<JPASelector> getAdditionalPaths() {
+      return additionalPaths;
+    }
+
+    public List<JPASelector> getRequestedPaths() {
+      return requestedPaths;
+    }
+
+    /**
+     *
+     * @return Union of {@link #requestedPaths} and {@link #additionalPaths}.
+     */
+    public List<JPASelector> determineAllPaths() {
+      final List<JPASelector> allSelectionPaths = new LinkedList<>();
+      allSelectionPaths.addAll(requestedPaths);
+      allSelectionPaths.addAll(additionalPaths);
+      return allSelectionPaths;
+    }
+  }
 
   protected static final String SELECT_ITEM_SEPERATOR = ",";
   protected static final String SELECT_ALL = "*";
@@ -120,12 +156,13 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
     final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(orderByNaviAttributes);
 
-    final List<JPASelector> selectionPathDirectMappings = buildSelectionPathList(uriResource);
+    final PathSelectors paths = buildSelectionPathList(uriResource);
+    final List<JPASelector> allSelectionPaths = paths.determineAllPaths();
     final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = separateElementCollectionPaths(
-        selectionPathDirectMappings);
+        allSelectionPaths);
 
     // use selection for reduced list
-    final List<Selection<?>> joinSelections = createSelectClause(selectionPathDirectMappings);
+    final List<Selection<?>> joinSelections = createSelectClause(allSelectionPaths);
 
     cq.multiselect(joinSelections);
 
@@ -138,7 +175,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     cq.orderBy(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
 
     if (!orderByNaviAttributes.isEmpty()) {
-      cq.groupBy(createGroupBy(selectionPathDirectMappings));
+      cq.groupBy(createGroupBy(allSelectionPaths));
     }
 
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
@@ -147,7 +184,10 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     }
 
     final List<Tuple> intermediateResult = tq.getResultList();
-    final QueryEntityResult queryResult = new QueryEntityResult(intermediateResult, getQueryResultType());
+    final Collection<String> requestedAttributes = paths.requestedPaths.stream().map(s -> s.getAlias()).collect(
+        Collectors.toList());
+    final QueryEntityResult queryResult = new QueryEntityResult(intermediateResult, requestedAttributes,
+        getQueryResultType());
 
     // load not yet processed @ElementCollection attribute content
     queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
@@ -230,20 +270,21 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     return groupBy;
   }
 
-  private final List<JPASelector> buildEntityPathList(final JPAEntityType jpaEntity)
+  private final PathSelectors buildEntityPathList(final JPAEntityType jpaEntity)
       throws ODataApplicationException {
 
     try {
-      return jpaEntity.getPathList();
+      final PathSelectors paths = new PathSelectors();
+      paths.requestedPaths.addAll(jpaEntity.getPathList());
+      return paths;
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
     }
   }
 
-  protected final List<JPASelector> buildSelectionPathList(final UriInfoResource uriResource)
+  protected final PathSelectors buildSelectionPathList(final UriInfoResource uriResource)
       throws ODataApplicationException {
     final JPAEntityType jpaEntityType = getQueryResultType();
-    List<JPASelector> jpaPathList = null;
     // TODO It is also possible to request all actions or functions available for each returned entity:
     // http://host/service/Products?$select=DemoService.*
 
@@ -260,19 +301,20 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       }
     }
 
+    final PathSelectors jpaSelectionPaths;
     if (selectionText != null && selectionText.contains(Util.VALUE_RESOURCE)) {
-      jpaPathList = buildPathValue(jpaEntityType, selectionText);
+      jpaSelectionPaths = buildPathValue(jpaEntityType, selectionText);
     } else if (selectionText != null && !selectionText.equals(SELECT_ALL) && !selectionText.isEmpty()) {
-      jpaPathList = buildPathList(jpaEntityType, selectionText);
+      jpaSelectionPaths = buildPathList(jpaEntityType, selectionText);
     } else {
-      jpaPathList = buildEntityPathList(jpaEntityType);
+      jpaSelectionPaths = buildEntityPathList(jpaEntityType);
     }
     // filter ignored columns here, because we may add later ignored columns to
     // select columns required to $expand
-    for (int i = jpaPathList.size(); i > 0; i--) {
-      final JPASelector selector = jpaPathList.get(i - 1);
+    for (int i = jpaSelectionPaths.requestedPaths.size(); i > 0; i--) {
+      final JPASelector selector = jpaSelectionPaths.requestedPaths.get(i - 1);
       if (selector.getLeaf().ignore()) {
-        jpaPathList.remove(i - 1);
+        jpaSelectionPaths.requestedPaths.remove(i - 1);
       }
     }
 
@@ -280,7 +322,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       if (jpaEntityType.hasStream()) {
         final JPASelector mimeTypeAttribute = jpaEntityType.getContentTypeAttributePath();
         if (mimeTypeAttribute != null) {
-          jpaPathList.add(mimeTypeAttribute);
+          jpaSelectionPaths.additionalPaths.add(mimeTypeAttribute);
         }
       }
     } catch (final ODataJPAModelException e1) {
@@ -288,66 +330,71 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
           HttpStatusCode.INTERNAL_SERVER_ERROR, e1);
     }
 
-    return jpaPathList;
+    return jpaSelectionPaths;
 
   }
 
-  private List<JPASelector> buildPathValue(final JPAEntityType jpaEntity, final String select)
+  private PathSelectors buildPathValue(final JPAEntityType jpaEntity, final String select)
       throws ODataApplicationException {
 
-    List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
     String selectString;
     try {
       selectString = select.replace(Util.VALUE_RESOURCE, "");
       if (selectString.isEmpty()) {
         // Stream value
-        jpaPathList.add(jpaEntity.getStreamAttributePath());
-        jpaPathList.addAll(Util.buildKeyPath(jpaEntity));
+        final PathSelectors paths = new PathSelectors();
+        paths.requestedPaths.add(jpaEntity.getStreamAttributePath());
+        paths.additionalPaths.addAll(Util.buildKeyPath(jpaEntity));
+        return paths;
       } else {
         // Property value
         selectString = selectString.substring(0, selectString.length() - 1);
-        jpaPathList = buildPathList(jpaEntity, selectString);
+        return buildPathList(jpaEntity, selectString);
       }
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
     }
-    return jpaPathList;
   }
 
-  private List<JPASelector> buildPathList(final JPAEntityType jpaEntity, final String select)
+  private PathSelectors buildPathList(final JPAEntityType jpaEntity, final String select)
       throws ODataApplicationException {
 
     final String[] selectList = select.split(SELECT_ITEM_SEPERATOR); // OData separator for $select
     return buildPathList(jpaEntity, selectList);
   }
 
-  private List<JPASelector> buildPathList(final JPAEntityType jpaEntity, final String[] selectList)
+  private PathSelectors buildPathList(final JPAEntityType jpaEntity, final String[] selectList)
       throws ODataApplicationException {
 
-    final List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
+    final PathSelectors paths = new PathSelectors();
     try {
       for (final String selectItem : selectList) {
         final JPASelector selectItemPath = jpaEntity.getPath(selectItem);
+        if (selectItemPath == null) {
+          throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+              HttpStatusCode.BAD_REQUEST, selectItem + " not reachable as attribute from " + jpaEntity
+              .getInternalName());
+        }
         if (selectItemPath.getLeaf().isComplex()) {
           // Complex Type
           final List<JPASelector> c = jpaEntity.searchChildPath(selectItemPath);
-          jpaPathList.addAll(c);
+          paths.requestedPaths.addAll(c);
         } else {
           // Primitive Type
-          jpaPathList.add(selectItemPath);
+          paths.requestedPaths.add(selectItemPath);
         }
       }
       // add key attributes
       final List<JPASelector> keyPaths = Util.buildKeyPath(jpaEntity);
       for (final JPASelector keyPath : keyPaths) {
-        if (!jpaPathList.contains(keyPath)) {
-          jpaPathList.add(keyPath);
+        if (!paths.requestedPaths.contains(keyPath)) {
+          paths.additionalPaths.add(keyPath);
         }
       }
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
     }
-    return jpaPathList;
+    return paths;
   }
 
   /**

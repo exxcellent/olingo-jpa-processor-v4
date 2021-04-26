@@ -112,8 +112,8 @@ JPAEntityType {
     if (propertyInternalName == null || propertyInternalName.isEmpty()) {
       return null;
     }
-    // Ensure that Ignore is ignored
-    return getPathByDBField(getAttribute(propertyInternalName).getDBFieldName());
+    // Ensure that @Ignore is ignored, because we have to find/select that path independent from business requirements
+    return getPath(getAttribute(propertyInternalName).getExternalName());
   }
 
   @Override
@@ -150,9 +150,9 @@ JPAEntityType {
       // Skip Streams ... why?
       csdlEntityType.setProperties(getAttributes(true).stream().filter(attribute -> !IntermediateProperty.class
           .isInstance(
-          attribute) || !IntermediateProperty.class.cast(attribute).isStream()).map(attribute -> attribute
-              .getProperty()).collect(Collectors
-                  .toList()));
+              attribute) || !IntermediateProperty.class.cast(attribute).isStream()).map(attribute -> attribute
+                  .getProperty()).collect(Collectors
+                      .toList()));
       csdlEntityType.setNavigationProperties(getAssociations().stream().map(association -> association.getProperty())
           .collect(Collectors.toList()));
       csdlEntityType.setKey(extractEdmKeyElements());
