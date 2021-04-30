@@ -14,6 +14,7 @@ import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionResult;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
@@ -22,9 +23,20 @@ class ActionResultParameter implements JPAOperationResultParameter {
   private final IntermediateAction owner;
 
   private CsdlReturnType returnType = null;
+  private final Integer precision;
+  private final Integer scale;
 
   public ActionResultParameter(final IntermediateAction owner) {
     this.owner = owner;
+    final EdmActionResult edmResultAnnotation = owner.getJavaMethod().getAnnotation(EdmActionResult.class);
+    if (edmResultAnnotation != null) {
+      scale = edmResultAnnotation.scale() > -1 ? Integer.valueOf(edmResultAnnotation.scale()) : null;
+      precision = edmResultAnnotation.precision() > -1 ? Integer.valueOf(edmResultAnnotation.precision()) : null;
+
+    } else {
+      precision = null;
+      scale = null;
+    }
   }
 
   @Override
@@ -65,12 +77,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
 
   @Override
   public Integer getPrecision() {
-    try {
-      lazyBuildEdmItem();
-      return returnType.getPrecision();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return precision;
   }
 
   @Override
@@ -95,12 +102,7 @@ class ActionResultParameter implements JPAOperationResultParameter {
 
   @Override
   public Integer getScale() {
-    try {
-      lazyBuildEdmItem();
-      return returnType.getScale();
-    } catch (final ODataJPAModelException e) {
-      throw new IllegalStateException(e);
-    }
+    return scale;
   }
 
   @Override
@@ -135,7 +137,8 @@ class ActionResultParameter implements JPAOperationResultParameter {
     returnType.setType(fqn);
     returnType.setCollection(isCollection());
     returnType.setNullable(!owner.getJavaMethod().isAnnotationPresent(NotNull.class));
-    // TODO length, precision, scale
+    returnType.setPrecision(precision);
+    returnType.setScale(scale);
   }
 
 }

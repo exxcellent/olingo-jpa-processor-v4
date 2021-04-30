@@ -8,6 +8,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
@@ -36,10 +37,14 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.commons.core.edm.primitivetype.EdmDecimal;
+import org.apache.olingo.commons.core.edm.primitivetype.EdmDouble;
+import org.apache.olingo.commons.core.edm.primitivetype.EdmSingle;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionResult;
 import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.mapping.JPAAdapter;
@@ -106,6 +111,21 @@ public class TestJPAActions extends TestBase {
         throw new IllegalStateException("Params not given");
       }
       return params.size();
+    }
+
+    static final String PARAM1_NAME = "bg123Dot456";
+    static final String PARAM2_NAME = "d44Dot55";
+    static final String PARAM3_NAME = "f0Dot1";
+    @EdmAction
+    public static @EdmActionResult(precision = 9, scale = 5) BigDecimal actionWithFloatingPointParameters(
+        @EdmActionParameter(
+            name = PARAM1_NAME, precision = 6, scale = 3) final BigDecimal bd, @EdmActionParameter(
+                name = PARAM2_NAME, precision = 4, scale = 2) final Double d, @EdmActionParameter(
+                    name = PARAM3_NAME, precision = 2, scale = 1) final Float f) {
+      assert bd.doubleValue() == 123.456d;
+      assert d.doubleValue() == 44.55d;
+      assert f.floatValue() == 0.1f;
+      return BigDecimal.valueOf(8.97654);
     }
 
     /**
@@ -980,4 +1000,65 @@ public class TestJPAActions extends TestBase {
     assertTrue(result.size() > 1);
   }
 
+  @Test
+  public void testActionWithFloatinPointParamsMetadata() throws IOException, ODataException {
+    persistenceAdapter.registerDTO(ActionDTO.class);
+
+    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.setRequestedResponseContentType(ContentType.APPLICATION_JSON.toContentTypeString());
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ObjectNode result = helper.getJsonObjectValue();
+    final ObjectNode actionMeta = (ObjectNode) result.get(ActionDTO.class.getPackage().getName()).get(
+        "actionWithFloatingPointParameters").get(0);
+
+    assertEquals(EdmDecimal.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.withArray(
+        "$Parameter").get(0).get("$Type").asText());
+    assertEquals(6, actionMeta.withArray(
+        "$Parameter").get(0).get("$Precision").asInt());
+    assertEquals(3, actionMeta.withArray(
+        "$Parameter").get(0).get("$Scale").asInt());
+    assertEquals(ActionDTO.PARAM1_NAME, actionMeta.withArray("$Parameter").get(0).get("$Name").asText());
+
+    assertEquals(EdmDouble.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.withArray(
+        "$Parameter").get(1).get("$Type").asText());
+    assertEquals(4, actionMeta.withArray(
+        "$Parameter").get(1).get("$Precision").asInt());
+    assertEquals(2, actionMeta.withArray(
+        "$Parameter").get(1).get("$Scale").asInt());
+    assertEquals(ActionDTO.PARAM2_NAME, actionMeta.withArray("$Parameter").get(1).get("$Name").asText());
+
+    assertEquals(EdmSingle.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.withArray(
+        "$Parameter").get(2).get("$Type").asText());
+    assertEquals(2, actionMeta.withArray(
+        "$Parameter").get(2).get("$Precision").asInt());
+    assertEquals(1, actionMeta.withArray(
+        "$Parameter").get(2).get("$Scale").asInt());
+    assertEquals(ActionDTO.PARAM3_NAME, actionMeta.withArray("$Parameter").get(2).get("$Name").asText());
+
+    assertEquals(EdmDecimal.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.get(
+        "$ReturnType").get("$Type").asText());
+    assertEquals(9, actionMeta.get("$ReturnType").get("$Precision").asInt());
+    assertEquals(5, actionMeta.get("$ReturnType").get("$Scale").asInt());
+  }
+
+  @Test
+  public void testActionWithFloatinPointParams() throws IOException, ODataException {
+    persistenceAdapter.registerDTO(ActionDTO.class);
+
+    final StringBuffer requestBody = new StringBuffer("{");
+    requestBody.append("\"" + ActionDTO.PARAM1_NAME + "\": 123.456,");
+    requestBody.append("\"" + ActionDTO.PARAM2_NAME + "\": 44.55,");
+    requestBody.append("\"" + ActionDTO.PARAM3_NAME + "\": 0.1");
+    requestBody.append("}");
+
+    final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithFloatingPointParameters");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, requestBody.toString(),
+        HttpMethod.POST);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertTrue(result.get("value").asDouble() > 8.9d);
+  }
 }

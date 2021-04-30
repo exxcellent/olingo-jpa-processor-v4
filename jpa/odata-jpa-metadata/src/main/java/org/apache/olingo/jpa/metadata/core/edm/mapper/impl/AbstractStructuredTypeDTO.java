@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
@@ -87,7 +88,11 @@ abstract class AbstractStructuredTypeDTO<CsdlType extends CsdlStructuralType> ex
         // JaCoCo will create synthetic member '$jacocoData' while class file instrumentation for coverage report
         // so we ignore synthetic members always...
         LOG.log(Level.FINE, "Synthetic member '" + field.getDeclaringClass().getSimpleName() + "#" + field.getName()
-            + "' is ignored");
+        + "' is ignored");
+        continue;
+      } else if (Modifier.isStatic(field.getModifiers())) {
+        LOG.log(Level.FINE, "Static member '" + field.getDeclaringClass().getSimpleName() + "#" + field.getName()
+        + "' is ignored");
         continue;
       } else if (TypeMapping.isTargetingDTOEntity(field)) {
         final IntermediateNavigationDTOProperty property = new IntermediateNavigationDTOProperty(getNameBuilder(),

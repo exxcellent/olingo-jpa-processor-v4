@@ -22,6 +22,8 @@ class ActionParameter implements JPAOperationParameter {
   private final IntermediateAction owner;
   private final Parameter javaParameter;
   private final String name;
+  private final Integer precision;
+  private final Integer scale;
   private CsdlParameter csdlParameter = null;
   private final ParameterKind parameterKind;
 
@@ -34,12 +36,18 @@ class ActionParameter implements JPAOperationParameter {
         && javaParameter.isAnnotationPresent(EdmActionParameter.class)) {
       parameterKind = ParameterKind.Invalid;
       name = null;
+      scale = null;
+      precision = null;
     } else if (javaParameter.isAnnotationPresent(Inject.class)) {
       parameterKind = ParameterKind.Inject;
       name = "arg".concat(Integer.toString(parameterIndex));
+      scale = null;
+      precision = null;
     } else if (javaParameter.isAnnotationPresent(EdmActionParameter.class)) {
       parameterKind = ParameterKind.OData;
       final EdmActionParameter edmParameterAnnotation = javaParameter.getAnnotation(EdmActionParameter.class);
+      scale = edmParameterAnnotation.scale() > -1 ? Integer.valueOf(edmParameterAnnotation.scale()) : null;
+      precision = edmParameterAnnotation.precision() > -1 ? Integer.valueOf(edmParameterAnnotation.precision()) : null;
       if (edmParameterAnnotation.name() == null || edmParameterAnnotation.name().isEmpty()) {
         if (!javaParameter.isNamePresent()) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.FUNC_PARAM_OUT_MISSING,
@@ -52,6 +60,8 @@ class ActionParameter implements JPAOperationParameter {
     } else {
       parameterKind = ParameterKind.Invalid;
       name = null;
+      scale = null;
+      precision = null;
     }
 
     if (parameterKind == ParameterKind.Invalid) {
@@ -96,6 +106,8 @@ class ActionParameter implements JPAOperationParameter {
     parameter.setNullable(isNullable());
     parameter.setCollection(isCollection());
     parameter.setType(fqn);
+    parameter.setPrecision(precision);
+    parameter.setScale(scale);
     return parameter;
   }
 

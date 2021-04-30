@@ -26,6 +26,7 @@ import org.apache.olingo.commons.api.edm.EdmComplexType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
+import org.apache.olingo.commons.api.edm.EdmReturnType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
@@ -93,7 +94,7 @@ import org.apache.olingo.server.core.uri.queryoption.LevelsOptionImpl;
  */
 public class JPAODataActionProcessor extends AbstractProcessor
 implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionPrimitiveCollectionProcessor,
-    ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, ActionComplexCollectionProcessor {
+ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, ActionComplexCollectionProcessor {
 
   private static class ActionCallResult<E extends JPAStructuredType> {
 
@@ -217,10 +218,14 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionPrimitiveCollect
       final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
       // the action must (currently) be the last
       final UriResourceAction uriResourceAction = (UriResourceAction) resourceParts.get(resourceParts.size() - 1);
-      final EdmPrimitiveType type = (EdmPrimitiveType) uriResourceAction.getAction().getReturnType().getType();
+      final EdmReturnType actionReturn = uriResourceAction.getAction().getReturnType();
+      final EdmPrimitiveType type = (EdmPrimitiveType) actionReturn.getType();
       final Property property = convert2Primitive(type, resultIsCollection, acr);
       final ContextURL contextUrl = ContextURL.with().type(type).build();
-      final PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();
+      final PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).nullable(
+          Boolean.valueOf(actionReturn.isNullable())).precision(actionReturn.getPrecision()).scale(actionReturn
+              .getScale()).maxLength(
+              actionReturn.getMaxLength()).build();
       final ODataSerializer serializer = getOData().createSerializer(responseFormat);
 
       final SerializerResult serializerResult;
@@ -255,7 +260,7 @@ implements ActionVoidProcessor, ActionPrimitiveProcessor, ActionPrimitiveCollect
   public void processActionComplexCollection(final ODataRequest request, final ODataResponse response,
       final UriInfo uriInfo,
       final ContentType requestFormat, final ContentType responseFormat) throws ODataApplicationException,
-      ODataLibraryException {
+  ODataLibraryException {
     processActionComplexWithResult(request, response, uriInfo, requestFormat, responseFormat, true);
   }
 
