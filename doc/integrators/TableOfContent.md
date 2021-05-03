@@ -13,6 +13,7 @@
     * Use [Excel export](MoreHints.md#ExcelExport)  
     * [EclipseLink, Hibernate](MoreHints.md#Weaving) and weaving (byte code enhancement)  
     * [Migration guide](MigrationGuide.md)  
+    * [Annotation overview](Annotations.md)
 
 ---
 # Known issues
