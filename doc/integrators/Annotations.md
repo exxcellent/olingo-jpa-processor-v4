@@ -3,7 +3,7 @@
 ---
 # Annotations overview for Java modelling
 Annotation | Usage
----------- | -----
+---------- | --------------------
 org.apache.olingo.jpa.cdi.Inject, javax.inject.Inject | Mark an field or action parameter as injected by OData-JPA-Adapter runtime (see [Dependency Injection](DependencyInjection.md))
 org.apache.olingo.jpa.security.AccessDefinition, org.apache.olingo.jpa.security.ODataEntityAccess, org.apache.olingo.jpa.security.ODataOperationAccess | Used to configure the annotation based security (see [Servlet security](ServletSecurity.md))
 org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity | Optional entity to configure a JPA entity
