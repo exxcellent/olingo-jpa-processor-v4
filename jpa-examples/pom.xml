@@ -28,6 +28,7 @@
 		<module>ui5-client-example</module>
 		<module>java-client-api-generator-example</module>
 		<module>tutorial-servlet-example</module>
+		<module>springboot-servlet-example</module>
 	</modules>
 
 	<build>

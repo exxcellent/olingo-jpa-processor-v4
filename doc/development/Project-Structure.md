@@ -25,4 +25,5 @@
     + /java-client-api-generator-example       Demo module to consume the code generator for client side java code
     + /olingo-generic-servlet-example          Demo servlet using the OData-JPA-Adapter and having a few integration tests, the built-in jetty will also provide the ui5-client-example
     + /ui5-client-example                      Demo UI5 app using OData 
+    + /springboot-servlet-example          Demo servlet using the OData-JPA-Adapter and having a few integration tests, the built-in jetty will also provide the ui5-client-example
 ```
