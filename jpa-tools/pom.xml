@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.exxcellent.olingo-generic-processor</groupId>
 		<artifactId>olingo-generic-processor-root-pom</artifactId>
-		<version>0.57.0</version>
+		<version>0.58.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 
