@@ -44,7 +44,7 @@ CREATE TABLE "org.apache.olingo.jpa::BusinessPartner" (
 );
      
 -- organizations
-insert into "org.apache.olingo.jpa::BusinessPartner" values ('1', 0, '2', '','',6000.5,null,'First Org.','',null,'Test Road', '23','', 'Test City','94321','ISO', '3166-2','US-CA', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'USA');
+insert into "org.apache.olingo.jpa::BusinessPartner" values ('1', 0, '2', '','',6000.5,null,'First Org.','',null,'Test Road', '23','', 'Test City','94321','ISO', '3166-2','US-CA', 'USA', '', '','+49/1234/6666-99','', '99','2016-01-20 09:21:23', '', null, 'USA');
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('2', 0, '2', '','',null,null,'Second Org.','',null,'Test Road', '45','', 'Test City','76321','ISO', '3166-2','US-TX', 'USA', '', '','','', '97','2016-01-20 09:21:23', '', null, 'USA');
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('3', 0, '2', '','',null,null,'Third Org.','',null,'Test Road', '223','', 'Test City','94322','ISO', '3166-2','US-CA', 'USA', '', '','','', '99','2016-01-20 09:21:23', '', null, 'USA');
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('4', 0, '2', '','',null,null,'Fourth Org.','',null,'Test Road', '56','', 'Test City','84321','ISO', '3166-2','US-UT', 'USA', '', '','','', '98','2016-01-20 09:21:23', '', null, 'USA');
@@ -60,9 +60,20 @@ insert into "org.apache.olingo.jpa::BusinessPartner" values ('98', 5, '1', '',''
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('97', 4, '1', '','',null,null,'Urs','Müller',null,'Test Straße', '23','', 'Test Dorf','4123','ISO', '3166-2','CH-BL', 'CHE', '', '','','Urs@email.ch', '99','2016-07-20 09:21:23', null, null, 'CHE'); 
 insert into "org.apache.olingo.jpa::BusinessPartner" values ('96', 3, '1', '','',null,null,'Person','without phone', '2000-12-12','Road', '66', 'PF 12345', 'Test Dorf','4123','ISO', '3166-2','DE-BE', 'DEU', '', '','','', '1', '2016-07-20 09:21:23', null, null, 'DEU'); 
 
+-- organizations can have persons as members
+CREATE TABLE "org.apache.olingo.jpa::OrganizationMember" (
+	"organizationID" VARCHAR(32) NOT NULL,
+	"memberID" VARCHAR(32) NOT NULL
+);
+
+insert into "org.apache.olingo.jpa::OrganizationMember" values ('3', '97'); 	
+insert into "org.apache.olingo.jpa::OrganizationMember" values ('2', '98'); 	
+insert into "org.apache.olingo.jpa::OrganizationMember" values ('1', '99'); 	
+insert into "org.apache.olingo.jpa::OrganizationMember" values ('2', '99'); 	
+
 -- used for @ElementCollection test
 CREATE TABLE "org.apache.olingo.jpa::Phone" (
-	"PartnerID" VARCHAR(32) NOT NULL ,
+	"PartnerID" VARCHAR(32) NOT NULL,
 	"InternationalAreaCode" VARCHAR(32),
 	"PhoneNumber" VARCHAR(128)
 );

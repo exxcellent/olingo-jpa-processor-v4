@@ -14,13 +14,13 @@ import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKin
  * @param <ET> The result expression type
  */
 @SuppressWarnings("rawtypes")
-abstract class JPAAbstractBinaryOperatorImp<OT, ET> implements JPAExpressionOperator<BinaryOperatorKind, ET> {
+abstract class JPAAbstractBinaryOperationImpl<OT, ET> implements JPAExpressionOperation<BinaryOperatorKind, ET> {
 
   private final BinaryOperatorKind operator;
   private final JPAExpressionElement<OT> left;
   private final JPAExpressionElement<OT> right;
 
-  public JPAAbstractBinaryOperatorImp(final BinaryOperatorKind operator,
+  public JPAAbstractBinaryOperationImpl(final BinaryOperatorKind operator,
       final JPAExpressionElement<OT> left,
       final JPAExpressionElement<OT> right) {
     super();
@@ -54,8 +54,8 @@ abstract class JPAAbstractBinaryOperatorImp<OT, ET> implements JPAExpressionOper
   @SuppressWarnings("unchecked")
   private Expression<OT> determineLiteralExpression(final JPALiteralOperand literalOperand,
       final JPAExpressionElement operandContext) throws ODataApplicationException {
-    if (operandContext instanceof JPAMemberOperator) {
-      final JPAMemberOperator rMemberOperand = (JPAMemberOperator) operandContext;
+    if (operandContext instanceof JPAMemberOperand) {
+      final JPAMemberOperand rMemberOperand = (JPAMemberOperand) operandContext;
       return (Expression<OT>) literalOperand.getLiteralExpression(rMemberOperand.determineAttribute());
     } else if (operandContext instanceof ODataBuiltinFunctionCall) {
       final ODataBuiltinFunctionCall functionOperand = (ODataBuiltinFunctionCall) operandContext;

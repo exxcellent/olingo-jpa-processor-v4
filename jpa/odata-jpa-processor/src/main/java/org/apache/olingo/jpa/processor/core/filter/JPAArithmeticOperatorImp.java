@@ -6,8 +6,8 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
-class JPAArithmeticOperatorImp extends JPAAbstractBinaryOperatorImp<Number, Number> implements
-JPAArithmeticOperator {
+class JPAArithmeticOperatorImp extends JPAAbstractBinaryOperationImpl<Number, Number> implements
+JPAArithmeticOperation {
   private final JPAODataDatabaseProcessor converter;
 
   public JPAArithmeticOperatorImp(final JPAODataDatabaseProcessor converter, final BinaryOperatorKind operator,

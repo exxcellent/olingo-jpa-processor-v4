@@ -9,9 +9,9 @@ import javax.persistence.criteria.Path;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.processor.core.filter.JPAAggregationOperation;
-import org.apache.olingo.jpa.processor.core.filter.JPABooleanOperator;
+import org.apache.olingo.jpa.processor.core.filter.JPABooleanOperation;
 import org.apache.olingo.jpa.processor.core.filter.JPAExpressionElement;
-import org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperator;
+import org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperation;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
@@ -36,7 +36,7 @@ public interface JPAODataDatabaseProcessor {
   public <Y extends Number> Expression<Number> createCalculation(BinaryOperatorKind operator, Expression<Y> operand1,
       Expression<Y> operand2) throws ODataApplicationException;
 
-  public Expression<Boolean> convert(final JPABooleanOperator jpaOperator) throws ODataApplicationException;
+  public Expression<Boolean> convert(final JPABooleanOperation jpaOperator) throws ODataApplicationException;
 
   /**
    *
@@ -57,7 +57,7 @@ public interface JPAODataDatabaseProcessor {
   public Expression<?> convertBuiltinFunction(final MethodKind methodCall,
       final List<JPAExpressionElement<?>> parameters) throws ODataApplicationException;
 
-  public Expression<Boolean> convert(final JPAUnaryBooleanOperator jpaOperator) throws ODataApplicationException;
+  public Expression<Boolean> convert(final JPAUnaryBooleanOperation jpaOperator) throws ODataApplicationException;
 
   public Expression<Long> convert(final JPAAggregationOperation jpaOperator) throws ODataApplicationException;
 

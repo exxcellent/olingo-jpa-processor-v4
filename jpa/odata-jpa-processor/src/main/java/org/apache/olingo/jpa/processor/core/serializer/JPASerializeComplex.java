@@ -47,7 +47,7 @@ public class JPASerializeComplex implements JPASerializer {
 
     final ContextURL contextUrl = ContextURL.with()
         .entitySet(targetEdmEntitySet)
-        .navOrPropertyPath(Util.determinePropertyNavigationPath(uriInfo.getUriResourceParts()))
+        .navOrPropertyPath(Util.determinePropertyPath(uriInfo.getUriResourceParts()))
         .selectList(selectList)
         .build();
     final ComplexSerializerOptions options = ComplexSerializerOptions.with()

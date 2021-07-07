@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -21,7 +20,6 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -325,7 +323,6 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(3, orgWithMostRoles.get("Roles@odata.count").asInt());// must be present
   }
 
-  @Ignore("TODO")
   @Test
   public void testExpandWithOrderByDescTopSkipAndExternalOrderBy() throws IOException, ODataException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -344,7 +341,7 @@ public class TestJPAProcessorExpand extends TestBase {
   }
 
   @Test
-  public void testExpandWithFilter() throws IOException, ODataException {
+  public void testExpandWithNestedFilter() throws IOException, ODataException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Children($filter=DivisionCode eq 'BE252')");
 
@@ -378,7 +375,8 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testExpandWithNavigationFilter() throws IOException, ODataException {
 
     // skip test with EclipseLink
-    assumeTrue("EclipseLink will produce an invalid query", getJPAProvider() != JPAProvider.EclipseLink);
+    // TODO
+    // assumeTrue("EclipseLink will produce an invalid query", getJPAProvider() != JPAProvider.EclipseLink);
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").filter(
         "targets/any(d:contains(d/Name, 'rel'))")
@@ -457,7 +455,6 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(7, children.size());
   }
 
-  @Ignore
   @Test
   public void testExpandLevel1() throws IOException, ODataException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -468,23 +465,19 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
-    final ArrayNode children = (ArrayNode) org.get("Children");
-    assertEquals(7, children.size());
+    assertNull(org.get("Children"));
   }
 
-  @Ignore
   @Test
   public void testExpandLevelMax() throws IOException, ODataException {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "/AdministrativeDivisions(DivisionCode='BE241',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($levels=max)");
+        "AdministrativeDivisions(DivisionCode='BE241',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($levels=max)");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
     assertNotNull(org.get("Parent"));
     final ObjectNode parent = (ObjectNode) org.get("Parent");
     assertNotNull(parent.get("DivisionCode"));
-    final ArrayNode children = (ArrayNode) org.get("Children");
-    assertEquals(7, children.size());
   }
 
   @Test
@@ -691,5 +684,63 @@ public class TestJPAProcessorExpand extends TestBase {
         .getProperty("ID").getPrimitiveValue().toCastValue(String.class));
     // all other must not have an OrganizationImage
     assertNull(set.getEntities().get(3).getNavigationLink("ImageUnidirectional"));
+  }
+
+  @Ignore("TODO fix implementation")
+  @Test
+  public void testExpandWithRootFilterTo1Negative() throws IOException, ODataException {
+    // see example:
+    // https://services.odata.org/V4/Northwind/Northwind.svc/Orders?$expand=Customer&$filter=contains(Customer/City,%20%27Berlin%27))
+
+    // FIXME the generated query for that expression is wrong
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipTargetEntities").filter(
+        "contains(SOURCE/Name, 'rel')").expand("SOURCE");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode ewp = helper.getJsonObjectValues();
+    assertEquals(0, ewp.size()); // 0 of 5 entities have a source with 'rel' in name, because source have 'source' in
+    // name
+  }
+
+  @Ignore("TODO fix implementation")
+  @Test
+  public void testNavigationUsingNavigationFilter() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment(
+        "99").appendNavigationSegment("MemberOfOrganizations").filter("Creator/Image1/OwningPerson/FirstName ne 'WAT'")
+        .select("ID", "Name1");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertEquals(2, orgs.size());
+  }
+
+  @Ignore("TODO fix implementation")
+  @Test
+  public void testExpandWithRootFilterTo1Positive() throws IOException, ODataException {
+    // see example:
+    // https://services.odata.org/V4/Northwind/Northwind.svc/Orders?$expand=Customer&$filter=contains(Customer/City,%20%27Berlin%27))
+    // https://services.odata.org/TripPinRESTierService/Airports?$expand=*&$filter=contains(Location/Address,'Francisco')
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").filter(
+        "contains(OwningPerson/FirstName, 'rs')").expand("OwningPerson");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode ewp = helper.getJsonObjectValues();
+    assertEquals(0, ewp.size());
+  }
+
+  @Test
+  public void testExpandWithRootFilterToN() throws IOException, ODataException {
+    // see example:
+    // https://services.odata.org/V4/Northwind/Northwind.svc/Customers?$expand=Orders&$filter=Orders/any(d:contains(d/ShipCity,%20%27Berlin%27))
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").expand("Locations").filter(
+        "Locations/any(d:contains(d/Language,'de'))");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertEquals(9, orgs.size()); // 9 of 10 organizations
   }
 }

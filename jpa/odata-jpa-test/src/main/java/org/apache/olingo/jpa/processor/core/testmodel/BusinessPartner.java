@@ -24,6 +24,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
@@ -147,6 +148,10 @@ public abstract class BusinessPartner {
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
   private final Set<Phone> phoneNumbers = new HashSet<>();
+
+  @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+  @JoinColumn(name = "\"CreatedBy\"", insertable = false, updatable = false, nullable = true)
+  private Person creator;
 
   public void addPhone(final Phone phone) {
     phoneNumbers.add(phone);

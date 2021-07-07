@@ -6,13 +6,13 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
 
-class JPAUnaryBooleanOperatorImp implements JPAUnaryBooleanOperator {
+class JPAUnaryBooleanOperationImpl implements JPAUnaryBooleanOperation {
 
   private final JPAODataDatabaseProcessor converter;
   private final UnaryOperatorKind operator;
   private final JPAExpression<Boolean> operand;
 
-  public JPAUnaryBooleanOperatorImp(final JPAODataDatabaseProcessor converter, final UnaryOperatorKind operator,
+  public JPAUnaryBooleanOperationImpl(final JPAODataDatabaseProcessor converter, final UnaryOperatorKind operator,
       final JPAExpression<Boolean> operand) {
     super();
     this.converter = converter;

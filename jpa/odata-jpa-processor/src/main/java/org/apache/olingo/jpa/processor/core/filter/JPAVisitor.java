@@ -66,7 +66,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       return new JPAComparisonOperatorImp(this.jpaComplier.getConverter(), operator,
           (JPAExpressionElement<Comparable<?>>) left, (JPAExpressionElement<Comparable<?>>) right);
     } else if (operator == BinaryOperatorKind.AND || operator == BinaryOperatorKind.OR) {
-      return new JPABooleanOperatorImp(this.jpaComplier.getConverter(), operator,
+      return new JPABooleanOperationImpl(this.jpaComplier.getConverter(), operator,
           checkBooleanExpressionOperand(left), checkBooleanExpressionOperand(right));
     } else if (operator == BinaryOperatorKind.ADD
         || operator == BinaryOperatorKind.SUB
@@ -97,8 +97,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
   @SuppressWarnings("unchecked")
   private JPAExpression<Boolean> checkBooleanExpressionOperand(final JPAExpressionElement<?> operator)
       throws ODataJPAFilterException {
-    if (JPAExpressionOperator.class.isInstance(operator)) {
-      return JPAExpressionOperator.class.cast(operator);
+    if (JPAExpressionOperation.class.isInstance(operator)) {
+      return JPAExpressionOperation.class.cast(operator);
     } else if (ODataBuiltinFunctionCall.class.isInstance(operator)) {
       // only a few builtin functions are of result type 'boolean'
       switch (ODataBuiltinFunctionCall.class.cast(operator).getFunctionKind()) {
@@ -166,30 +166,28 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     } else if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAll) {
       return new JPALambdaAllOperation(this.jpaComplier, member);
     } else if (isAggregation(member.getResourcePath())) {
-      return new JPAAggregationOperationCountImp(jpaComplier.getParent(), jpaComplier.getConverter());
+      return new JPAAggregationOperationCountImpl(jpaComplier.getParent(), jpaComplier.getConverter());
     } else if (isCustomFunction(member.getResourcePath())) {
       final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
       final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource)
           .getFunction());
       final List<UriParameter> odataParams = ((UriResourceFunction) resource).getParameters();
       return new JPAFunctionOperator(this, odataParams, jpaFunction);
-      // , this.jpaComplier.getParent().getRoot(), jpaComplier.getConverter().cb);
     }
-    return new JPAMemberOperator(this.jpaComplier.getJpaEntityType(), this.jpaComplier.getParent().getQueryResultFrom(),
-        member);
+    return new JPAMemberOperand(this.jpaComplier, member);
   }
 
   @Override
   public JPAExpressionElement<?> visitMethodCall(final MethodKind methodCall,
       final List<JPAExpressionElement<?>> parameters)
           throws ExpressionVisitException, ODataApplicationException {
-    return new ODataBuiltinFunctionCallImp(this.jpaComplier.getConverter(), methodCall, parameters);
+    return new ODataBuiltinFunctionCallImpl(this.jpaComplier.getConverter(), methodCall, parameters);
   }
 
   @Override
   public JPAExpressionElement<?> visitTypeLiteral(final EdmType type)
       throws ExpressionVisitException, ODataApplicationException {
-    return new JPALiteralTypeOperator(type);
+    return new JPALiteralTypeOperand(type);
   }
 
   @Override
@@ -197,7 +195,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       final JPAExpressionElement<?> operand)
           throws ExpressionVisitException, ODataApplicationException {
     if (operator == UnaryOperatorKind.NOT) {
-      return new JPAUnaryBooleanOperatorImp(this.jpaComplier.getConverter(), operator,
+      return new JPAUnaryBooleanOperationImpl(this.jpaComplier.getConverter(), operator,
           checkBooleanExpressionOperand(operand));
     } else {
       throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
@@ -216,8 +214,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
   }
 
   boolean hasNavigation(final JPAExpressionElement<?> operand) {
-    if (operand instanceof JPAMemberOperator) {
-      final List<UriResource> uriResourceParts = ((JPAMemberOperator<?>) operand).getMember().getResourcePath()
+    if (operand instanceof JPAMemberOperand) {
+      final List<UriResource> uriResourceParts = ((JPAMemberOperand<?>) operand).getMember().getResourcePath()
           .getUriResourceParts();
       for (int i = uriResourceParts.size() - 1; i >= 0; i--) {
         if (uriResourceParts.get(i) instanceof UriResourceNavigation) {

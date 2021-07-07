@@ -292,7 +292,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     String selectionText = null;
     final List<UriResource> resources = uriResource.getUriResourceParts();
 
-    selectionText = Util.determinePropertyNavigationPath(resources);
+    selectionText = Util.determinePropertyPath(resources);
     // TODO Combine path selection and $select e.g. Organizations('4')/Address?$select=Country,Region
     if (selectionText == null || selectionText.isEmpty()) {
       final SelectOption select = uriResource.getSelectOption();

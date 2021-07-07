@@ -5,7 +5,7 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
-public interface JPABooleanOperator extends JPAExpressionOperator<BinaryOperatorKind, Boolean> {
+public interface JPABooleanOperation extends JPAExpressionOperation<BinaryOperatorKind, Boolean> {
 
   Expression<Boolean> getLeft() throws ODataApplicationException;
 

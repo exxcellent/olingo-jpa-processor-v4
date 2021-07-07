@@ -141,8 +141,6 @@ public class TestJPAQueryNavigation extends TestBase {
         .appendNavigationSegment(
             "User").appendNavigationSegment("Address").appendNavigationSegment("AdministrativeDivision");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-//    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-    //        "Organizations('3')/AdministrativeInformation/Created/User/Address/AdministrativeDivision");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -159,8 +157,6 @@ public class TestJPAQueryNavigation extends TestBase {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
         keysAD).appendNavigationSegment("Parent");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    //    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-    //        "AdministrativeDivisions(DivisionCode='BE352',CodeID='NUTS3',CodePublisher='Eurostat')/Parent");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();

@@ -24,7 +24,7 @@ import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.filter.JPAFilterExpression;
-import org.apache.olingo.jpa.processor.core.filter.JPAMemberOperator;
+import org.apache.olingo.jpa.processor.core.filter.JPAMemberOperand;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -212,10 +212,10 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
   private UriResourceKind getAggregationType(final VisitableExpression expression) {
     UriInfoResource member = null;
     if (expression != null && expression instanceof Binary) {
-      if (((Binary) expression).getLeftOperand() instanceof JPAMemberOperator) {
-        member = ((JPAMemberOperator) ((Binary) expression).getLeftOperand()).getMember().getResourcePath();
-      } else if (((Binary) expression).getRightOperand() instanceof JPAMemberOperator) {
-        member = ((JPAMemberOperator) ((Binary) expression).getRightOperand()).getMember().getResourcePath();
+      if (((Binary) expression).getLeftOperand() instanceof JPAMemberOperand) {
+        member = ((JPAMemberOperand) ((Binary) expression).getLeftOperand()).getMember().getResourcePath();
+      } else if (((Binary) expression).getRightOperand() instanceof JPAMemberOperand) {
+        member = ((JPAMemberOperand) ((Binary) expression).getRightOperand()).getMember().getResourcePath();
       }
     } else if (expression != null && expression instanceof JPAFilterExpression) {
       member = ((JPAFilterExpression) expression).getMember();

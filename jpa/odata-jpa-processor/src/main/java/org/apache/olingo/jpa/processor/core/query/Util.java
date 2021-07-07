@@ -156,7 +156,11 @@ public class Util {
     return property;
   }
 
-  public static String determinePropertyNavigationPath(final List<UriResource> resources) {
+  /**
+   * Extract the path ignoring real navigations, so only simple and complex attributes can be reached (attributes known
+   * to root entity without relationship/association).
+   */
+  public static String determinePropertyPath(final List<UriResource> resources) {
     final StringBuffer pathName = new StringBuffer();
     if (resources != null) {
       for (int i = resources.size() - 1; i >= 0; i--) {

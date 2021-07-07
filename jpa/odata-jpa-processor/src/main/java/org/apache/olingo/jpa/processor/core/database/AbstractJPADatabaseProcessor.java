@@ -32,12 +32,12 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
 import org.apache.olingo.jpa.processor.core.filter.JPAAggregationOperation;
-import org.apache.olingo.jpa.processor.core.filter.JPAArithmeticOperator;
-import org.apache.olingo.jpa.processor.core.filter.JPABooleanOperator;
+import org.apache.olingo.jpa.processor.core.filter.JPAArithmeticOperation;
+import org.apache.olingo.jpa.processor.core.filter.JPABooleanOperation;
 import org.apache.olingo.jpa.processor.core.filter.JPAExpressionElement;
 import org.apache.olingo.jpa.processor.core.filter.JPALiteralOperand;
-import org.apache.olingo.jpa.processor.core.filter.JPALiteralTypeOperator;
-import org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperator;
+import org.apache.olingo.jpa.processor.core.filter.JPALiteralTypeOperand;
+import org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperation;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
@@ -115,7 +115,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   }
 
   @Override
-  public Expression<Boolean> convert(final JPABooleanOperator jpaOperator) throws ODataApplicationException {
+  public Expression<Boolean> convert(final JPABooleanOperation jpaOperator) throws ODataApplicationException {
     switch (jpaOperator.getOperator()) {
     case AND:
       return cb.and(jpaOperator.getLeft(), jpaOperator.getRight());
@@ -243,7 +243,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
             HttpStatusCode.BAD_REQUEST, methodCall.name());
       }
       final Expression<?> valueOperand = (Expression<?>) parameters.get(0).get();
-      final JPALiteralTypeOperator typeOperand = (JPALiteralTypeOperator) parameters.get(1);
+      final JPALiteralTypeOperand typeOperand = (JPALiteralTypeOperand) parameters.get(1);
       return cast(valueOperand, typeOperand.get());
       // Second Date-Time functions
     case NOW:
@@ -378,7 +378,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   }
 
   @Override
-  public Expression<Boolean> convert(final JPAUnaryBooleanOperator jpaOperator) throws ODataApplicationException {
+  public Expression<Boolean> convert(final JPAUnaryBooleanOperation jpaOperator) throws ODataApplicationException {
     switch (jpaOperator.getOperator()) {
     case NOT:
       return cb.not(jpaOperator.getOperand());
@@ -407,7 +407,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   @SuppressWarnings("unchecked")
   private Expression<Integer> convertLiteralToExpression(final JPAExpressionElement<?> parameter, final int offset)
       throws ODataApplicationException {
-    if (parameter instanceof JPAArithmeticOperator) {
+    if (parameter instanceof JPAArithmeticOperation) {
       if (offset != 0) {
         return cb.sum((Expression<Integer>) parameter.get(), Integer.valueOf(offset));
       } else {

@@ -122,7 +122,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
     final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
         "BusinessPartner"),
         serviceDocument);
-    assertEquals("Wrong number of navigation entities", 2, et.getEdmItem().getNavigationProperties().size());
+    assertEquals("Wrong number of navigation entities", 3, et.getEdmItem().getNavigationProperties().size());
   }
 
   @Test

@@ -78,4 +78,28 @@ public class TestJPAQueryNavigationFilter extends TestBase {
     assertEquals(8, orgs.size());
   }
 
+  @Test
+  public void testNavigationUsingFilter() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartners").appendKeySegment(
+        "3").appendNavigationSegment("Roles").filter("RoleCategory ne 'B'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode roles = helper.getJsonObjectValues();
+    assertEquals(2, roles.size());
+  }
+
+  @Test
+  public void testNavigation2StepsUsingFilter() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("PersonImages").appendKeySegment(
+        "97").appendNavigationSegment("OwningPerson").appendNavigationSegment("Locations").filter("Name ne 'unknown'")
+        .select("Name");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode locations = helper.getJsonObjectValues();
+    assertEquals(1, locations.size());
+    assertEquals("Basel-Landschaft", locations.get(0).get("Name").asText());
+  }
+
 }

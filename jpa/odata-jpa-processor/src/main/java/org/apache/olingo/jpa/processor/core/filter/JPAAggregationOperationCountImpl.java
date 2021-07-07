@@ -7,12 +7,12 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.ODataApplicationException;
 
-class JPAAggregationOperationCountImp implements JPAAggregationOperation {
+class JPAAggregationOperationCountImpl implements JPAAggregationOperation {
 
   private final FilterContextQueryBuilderIfc parent;
   private final JPAODataDatabaseProcessor converter;
 
-  public JPAAggregationOperationCountImp(final FilterContextQueryBuilderIfc parent,
+  public JPAAggregationOperationCountImpl(final FilterContextQueryBuilderIfc parent,
       final JPAODataDatabaseProcessor converter) {
     this.parent = parent;
     this.converter = converter;

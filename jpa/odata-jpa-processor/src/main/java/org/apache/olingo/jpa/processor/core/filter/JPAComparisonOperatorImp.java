@@ -6,7 +6,7 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
-public final class JPAComparisonOperatorImp extends JPAAbstractBinaryOperatorImp<Comparable<?>, Boolean> {
+public final class JPAComparisonOperatorImp extends JPAAbstractBinaryOperationImpl<Comparable<?>, Boolean> {
 
   private final JPAODataDatabaseProcessor converter;
 

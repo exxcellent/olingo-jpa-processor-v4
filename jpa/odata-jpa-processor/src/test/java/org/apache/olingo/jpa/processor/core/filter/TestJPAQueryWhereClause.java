@@ -663,9 +663,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testEmptyFilterResultNavigationPropertyToOneValueViaComplexType() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter(
+        "AdministrativeInformation/Created/By eq 'NonExistingUserId'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$filter=AdministrativeInformation/Created/By eq 'NonExistingUserId'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode values = helper.getJsonObjectValues();
 

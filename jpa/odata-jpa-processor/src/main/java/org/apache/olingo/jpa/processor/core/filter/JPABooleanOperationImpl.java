@@ -6,14 +6,14 @@ import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
 
-class JPABooleanOperatorImp implements JPABooleanOperator {
+class JPABooleanOperationImpl implements JPABooleanOperation {
 
   private final JPAODataDatabaseProcessor converter;
   private final BinaryOperatorKind operator;
   private final JPAExpression<Boolean> left;
   private final JPAExpression<Boolean> right;
 
-  public JPABooleanOperatorImp(final JPAODataDatabaseProcessor converter, final BinaryOperatorKind operator,
+  public JPABooleanOperationImpl(final JPAODataDatabaseProcessor converter, final BinaryOperatorKind operator,
       final JPAExpression<Boolean> left, final JPAExpression<Boolean> right) {
     super();
     this.converter = converter;

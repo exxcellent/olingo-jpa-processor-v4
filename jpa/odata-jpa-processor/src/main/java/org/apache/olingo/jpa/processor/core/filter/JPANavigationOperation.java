@@ -44,10 +44,10 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
  * @author Oliver Grande
  *
  */
-class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperator<BinaryOperatorKind, Boolean> {
+class JPANavigationOperation extends JPAExistsOperation implements JPAExpressionOperation<BinaryOperatorKind, Boolean> {
 
   final BinaryOperatorKind operator;
-  final JPAMemberOperator<?> jpaMember;
+  final JPAMemberOperand<?> jpaMember;
   final JPALiteralOperand operand;
 
   JPANavigationOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final BinaryOperatorKind operator,
@@ -55,11 +55,11 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
 
     super(jpaComplier);
     this.operator = operator;
-    if (left instanceof JPAMemberOperator) {
-      jpaMember = (JPAMemberOperator<?>) left;
+    if (left instanceof JPAMemberOperand) {
+      jpaMember = (JPAMemberOperand<?>) left;
       operand = (JPALiteralOperand) right;
     } else {
-      jpaMember = (JPAMemberOperator<?>) right;
+      jpaMember = (JPAMemberOperand<?>) right;
       operand = (JPALiteralOperand) left;
     }
   }
@@ -118,16 +118,16 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
   }
 
   private class SubMember implements Member {
-    final private JPAMemberOperator<?> parentMember;
+    final private JPAMemberOperand<?> parentMember;
 
-    public SubMember(final JPAMemberOperator<?> parentMember) {
+    public SubMember(final JPAMemberOperand<?> parentMember) {
       super();
       this.parentMember = parentMember;
     }
 
     @Override
     public <T> T accept(final ExpressionVisitor<T> visitor) throws ExpressionVisitException, ODataApplicationException {
-      return null;
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -138,27 +138,30 @@ class JPANavigationOperation extends JPAExistsOperation implements JPAExpression
     @Override
     public EdmType getType() {
       // TODO Auto-generated method stub
-      return null;
+      throw new UnsupportedOperationException();
+      //      return null;
     }
 
     @Override
     public EdmType getStartTypeFilter() {
       // TODO Auto-generated method stub
-      return null;
+      throw new UnsupportedOperationException();
+      //      return null;
     }
 
     @Override
     public boolean isCollection() {
       // TODO Auto-generated method stub
-      return false;
+      throw new UnsupportedOperationException();
+      //      return false;
     }
 
   }
 
   private class SubResource implements UriInfoResource {
-    final private JPAMemberOperator<?> parentMember;
+    final private JPAMemberOperand<?> parentMember;
 
-    public SubResource(final JPAMemberOperator<?> member) {
+    public SubResource(final JPAMemberOperand<?> member) {
       super();
       this.parentMember = member;
     }

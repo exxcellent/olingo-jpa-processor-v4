@@ -13,7 +13,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.test.util.TestDataConstants;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIntermediateContainer extends TestMappingRoot {
@@ -85,7 +84,7 @@ public class TestIntermediateContainer extends TestMappingRoot {
     final List<CsdlEntitySet> entitySets = container.getEdmItem().getEntitySets();
     for (final CsdlEntitySet entitySet : entitySets) {
       if (entitySet.getName().equals("BusinessPartners")) {
-        assertEquals(3, entitySet.getNavigationPropertyBindings().size());
+        assertEquals(4, entitySet.getNavigationPropertyBindings().size());
         return;
       }
     }

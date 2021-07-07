@@ -15,7 +15,10 @@ import javax.persistence.Convert;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
@@ -66,6 +69,11 @@ public class Person extends BusinessPartner {
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\"", referencedColumnName = "\"ID\"", updatable = false, insertable = false))
   private final Collection<Phone> partnerTelephoneConnections = new LinkedList<>();
 
+  @OneToMany(fetch = FetchType.EAGER, orphanRemoval = false, cascade = { CascadeType.REFRESH })
+  @JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::OrganizationMember\"", joinColumns = { @JoinColumn(
+      referencedColumnName = "\"ID\"", name = "\"memberID\"") }, inverseJoinColumns = { @JoinColumn(
+          referencedColumnName = "\"ID\"", name = "\"organizationID\"") })
+  private Collection<Organization> memberOfOrganizations;
 
   /**
    * Bound oData action.
