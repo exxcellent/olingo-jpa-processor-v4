@@ -204,4 +204,9 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
   public Literal getODataLiteral() {
     return literal;
   }
+
+  @Override
+  public org.apache.olingo.server.api.uri.queryoption.expression.Expression getQueryExpressionElement() {
+    return literal;
+  }
 }

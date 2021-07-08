@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.Expression;
 
@@ -8,6 +9,7 @@ import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.MethodKind;
+import org.apache.olingo.server.core.uri.queryoption.expression.MethodImpl;
 
 class ODataBuiltinFunctionCallImpl implements ODataBuiltinFunctionCall {
   private final MethodKind methodCall;
@@ -20,6 +22,13 @@ class ODataBuiltinFunctionCallImpl implements ODataBuiltinFunctionCall {
     this.methodCall = methodCall;
     this.parameters = parameters;
     this.converter = converter;
+  }
+
+  @Override
+  public org.apache.olingo.server.api.uri.queryoption.expression.Expression getQueryExpressionElement() {
+    final List<org.apache.olingo.server.api.uri.queryoption.expression.Expression> unwrappedParameters = parameters
+        .stream().map(e -> e.getQueryExpressionElement()).collect(Collectors.toList());
+    return new MethodImpl(methodCall, unwrappedParameters);
   }
 
   @SuppressWarnings("unchecked")

@@ -23,7 +23,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDo
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
-import org.apache.olingo.jpa.processor.core.filter.JPAFilterExpression;
 import org.apache.olingo.jpa.processor.core.filter.JPAMemberOperand;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -34,6 +33,7 @@ import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.UriResourcePartTyped;
 import org.apache.olingo.server.api.uri.queryoption.expression.Binary;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
+import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
 
 public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements FilterContextQueryBuilderIfc {
@@ -210,22 +210,29 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
 
   @SuppressWarnings("rawtypes")
   private UriResourceKind getAggregationType(final VisitableExpression expression) {
-    UriInfoResource member = null;
-    if (expression != null && expression instanceof Binary) {
-      if (((Binary) expression).getLeftOperand() instanceof JPAMemberOperand) {
-        member = ((JPAMemberOperand) ((Binary) expression).getLeftOperand()).getMember().getResourcePath();
-      } else if (((Binary) expression).getRightOperand() instanceof JPAMemberOperand) {
-        member = ((JPAMemberOperand) ((Binary) expression).getRightOperand()).getMember().getResourcePath();
+    if (expression == null) {
+      return null;
+    }
+    UriInfoResource memberPath = null;
+    if (expression instanceof Binary) {
+      final Binary bExpression = (Binary) expression;
+      if (bExpression.getLeftOperand() instanceof JPAMemberOperand) {
+        memberPath = ((JPAMemberOperand) bExpression.getLeftOperand()).getMember().getResourcePath();
+      } else if (bExpression.getRightOperand() instanceof JPAMemberOperand) {
+        memberPath = ((JPAMemberOperand) bExpression.getRightOperand()).getMember().getResourcePath();
+      } else if (bExpression.getLeftOperand() instanceof Member) {
+        memberPath = ((Member) bExpression.getLeftOperand()).getResourcePath();
+      } else if (bExpression.getRightOperand() instanceof Member) {
+        memberPath = ((Member) bExpression.getRightOperand()).getResourcePath();
       }
-    } else if (expression != null && expression instanceof JPAFilterExpression) {
-      member = ((JPAFilterExpression) expression).getMember();
     }
 
-    if (member != null) {
-      for (final UriResource r : member.getUriResourceParts()) {
-        if (r.getKind() == UriResourceKind.count) {
-          return r.getKind();
-        }
+    if (memberPath == null) {
+      return null;
+    }
+    for (final UriResource r : memberPath.getUriResourceParts()) {
+      if (r.getKind() == UriResourceKind.count) {
+        return r.getKind();
       }
     }
     return null;

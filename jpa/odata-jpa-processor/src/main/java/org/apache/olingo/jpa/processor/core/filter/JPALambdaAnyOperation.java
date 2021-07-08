@@ -4,7 +4,7 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
 class JPALambdaAnyOperation extends JPALambdaOperation {
 
-  public JPALambdaAnyOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final Member member) {
+  public JPALambdaAnyOperation(final JPAEntityFilterProcessor<?> jpaComplier, final Member member) {
     super(jpaComplier, member);
   }
 

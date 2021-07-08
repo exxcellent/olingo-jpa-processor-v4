@@ -5,6 +5,7 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
+import org.apache.olingo.server.core.uri.queryoption.expression.BinaryImpl;
 
 class JPABooleanOperationImpl implements JPABooleanOperation {
 
@@ -20,6 +21,11 @@ class JPABooleanOperationImpl implements JPABooleanOperation {
     this.operator = operator;
     this.left = left;
     this.right = right;
+  }
+
+  @Override
+  public org.apache.olingo.server.api.uri.queryoption.expression.Expression getQueryExpressionElement() {
+    return new BinaryImpl(left.getQueryExpressionElement(), operator, right.getQueryExpressionElement(), null);
   }
 
   @Override

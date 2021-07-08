@@ -15,7 +15,6 @@ import org.apache.olingo.jpa.processor.core.query.JPANavigationPropertyInfo;
 import org.apache.olingo.jpa.processor.core.query.Util;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceKind;
 import org.apache.olingo.server.api.uri.UriResourceLambdaAll;
@@ -25,32 +24,33 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
 abstract class JPALambdaOperation extends JPAExistsOperation {
 
-  protected final UriInfoResource member;
+  private final Member member;
 
-  JPALambdaOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final UriInfoResource member) {
+  public JPALambdaOperation(final JPAEntityFilterProcessor<?> jpaComplier, final Member member) {
     super(jpaComplier);
     this.member = member;
   }
 
-  public JPALambdaOperation(final JPAAbstractFilterProcessor<?> jpaComplier, final Member member) {
-    super(jpaComplier);
-    this.member = member.getResourcePath();
+  @Override
+  public Expression getQueryExpressionElement() {
+    return member;
   }
 
   @Override
   protected Subquery<?> buildFilterSubQueries() throws ODataApplicationException {
     try {
-      return buildFilterSubQueries(determineExpression());
+      return buildFilterSubQueries(determineLambdaExpression());
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_INVALID_VALUE,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e);
     }
   }
 
+  // TODO merge with logic as in JPAMemberOperationNavigation
   protected final Subquery<?> buildFilterSubQueries(final Expression expression) throws ODataApplicationException,
   ODataJPAModelException {
     final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(getUriResourceParts());
-    allUriResourceParts.addAll(member.getUriResourceParts());
+    allUriResourceParts.addAll(member.getResourcePath().getUriResourceParts());
 
     final IntermediateServiceDocument sd = getIntermediateServiceDocument();
     // 1. Determine all relevant associations
@@ -81,8 +81,8 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
     return childQuery;
   }
 
-  protected Expression determineExpression() {
-    for (final UriResource uriResource : member.getUriResourceParts()) {
+  protected Expression determineLambdaExpression() {
+    for (final UriResource uriResource : member.getResourcePath().getUriResourceParts()) {
       if (uriResource.getKind() == UriResourceKind.lambdaAny) {
         return ((UriResourceLambdaAny) uriResource).getExpression();
       } else if (uriResource.getKind() == UriResourceKind.lambdaAll) {

@@ -686,13 +686,11 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNull(set.getEntities().get(3).getNavigationLink("ImageUnidirectional"));
   }
 
-  @Ignore("TODO fix implementation")
   @Test
   public void testExpandWithRootFilterTo1Negative() throws IOException, ODataException {
     // see example:
     // https://services.odata.org/V4/Northwind/Northwind.svc/Orders?$expand=Customer&$filter=contains(Customer/City,%20%27Berlin%27))
 
-    // FIXME the generated query for that expression is wrong
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipTargetEntities").filter(
         "contains(SOURCE/Name, 'rel')").expand("SOURCE");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
@@ -703,7 +701,6 @@ public class TestJPAProcessorExpand extends TestBase {
     // name
   }
 
-  @Ignore("TODO fix implementation")
   @Test
   public void testNavigationUsingNavigationFilter() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment(
@@ -716,7 +713,6 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(2, orgs.size());
   }
 
-  @Ignore("TODO fix implementation")
   @Test
   public void testExpandWithRootFilterTo1Positive() throws IOException, ODataException {
     // see example:
@@ -728,7 +724,10 @@ public class TestJPAProcessorExpand extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode ewp = helper.getJsonObjectValues();
-    assertEquals(0, ewp.size());
+    assertEquals(1, ewp.size());
+    final ObjectNode op = (ObjectNode) ewp.get(0).get("OwningPerson");
+    assertNotNull(op);
+    assertEquals("97", op.get("ID").asText());// owning person must be Urs Müller
   }
 
   @Test

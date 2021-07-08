@@ -8,14 +8,10 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.commons.api.edm.EdmEnumType;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
-import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceKind;
@@ -32,13 +28,13 @@ import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
 
 class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
 
-  private final JPAAbstractFilterProcessor<?> jpaComplier;
+  private final JPAEntityFilterProcessor<?> filterProcessor;
 
   /**
    * @param jpaFilterCrossComplier
    */
-  JPAVisitor(final JPAAbstractFilterProcessor<?> jpaFilterCrossComplier) {
-    this.jpaComplier = jpaFilterCrossComplier;
+  JPAVisitor(final JPAEntityFilterProcessor<?> jpaFilterCrossComplier) {
+    this.filterProcessor = jpaFilterCrossComplier;
   }
 
   @Override
@@ -54,8 +50,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       final JPAExpressionElement<?> left, final JPAExpressionElement<?> right)
           throws ExpressionVisitException, ODataApplicationException {
 
-    if (hasNavigation(left) || hasNavigation(right)) {
-      return new JPANavigationOperation(this.jpaComplier, operator, left, right);
+    if (hasMemberNavigation(left) || hasMemberNavigation(right)) {
+      return new JPAMemberOperationNavigation(this.filterProcessor, operator, left, right);
     }
     if (operator == BinaryOperatorKind.EQ
         || operator == BinaryOperatorKind.NE
@@ -63,17 +59,17 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
         || operator == BinaryOperatorKind.GT
         || operator == BinaryOperatorKind.LT
         || operator == BinaryOperatorKind.LE) {
-      return new JPAComparisonOperatorImp(this.jpaComplier.getConverter(), operator,
+      return new JPAComparisonOperatorImp(this.filterProcessor.getConverter(), operator,
           (JPAExpressionElement<Comparable<?>>) left, (JPAExpressionElement<Comparable<?>>) right);
     } else if (operator == BinaryOperatorKind.AND || operator == BinaryOperatorKind.OR) {
-      return new JPABooleanOperationImpl(this.jpaComplier.getConverter(), operator,
+      return new JPABooleanOperationImpl(this.filterProcessor.getConverter(), operator,
           checkBooleanExpressionOperand(left), checkBooleanExpressionOperand(right));
     } else if (operator == BinaryOperatorKind.ADD
         || operator == BinaryOperatorKind.SUB
         || operator == BinaryOperatorKind.MUL
         || operator == BinaryOperatorKind.DIV
         || operator == BinaryOperatorKind.MOD) {
-      return new JPAArithmeticOperatorImp(this.jpaComplier.getConverter(), operator,
+      return new JPAArithmeticOperatorImp(this.filterProcessor.getConverter(), operator,
           (JPAExpressionElement<Number>) left,
           (JPAExpressionElement<Number>) right);
     }
@@ -162,26 +158,29 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       throws ExpressionVisitException, ODataApplicationException {
 
     if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAny) {
-      return new JPALambdaAnyOperation(this.jpaComplier, member);
+      return new JPALambdaAnyOperation(filterProcessor, member);
     } else if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAll) {
-      return new JPALambdaAllOperation(this.jpaComplier, member);
+      return new JPALambdaAllOperation(filterProcessor, member);
     } else if (isAggregation(member.getResourcePath())) {
-      return new JPAAggregationOperationCountImpl(jpaComplier.getParent(), jpaComplier.getConverter());
+      return new JPAAggregationOperationCountImpl(filterProcessor.getParent(), filterProcessor.getConverter(), member);
     } else if (isCustomFunction(member.getResourcePath())) {
-      final UriResource resource = member.getResourcePath().getUriResourceParts().get(0);
-      final JPAFunction jpaFunction = this.jpaComplier.getSd().getFunction(((UriResourceFunction) resource)
-          .getFunction());
-      final List<UriParameter> odataParams = ((UriResourceFunction) resource).getParameters();
-      return new JPAFunctionOperator(this, odataParams, jpaFunction);
+      return new JPADatabaseFunctionCall(filterProcessor, member);
     }
-    return new JPAMemberOperand(this.jpaComplier, member);
+    return new JPAMemberOperand(filterProcessor.getJpaEntityType(), this.filterProcessor.getParent()
+        .getQueryResultFrom(),
+        member);
   }
 
   @Override
   public JPAExpressionElement<?> visitMethodCall(final MethodKind methodCall,
       final List<JPAExpressionElement<?>> parameters)
           throws ExpressionVisitException, ODataApplicationException {
-    return new ODataBuiltinFunctionCallImpl(this.jpaComplier.getConverter(), methodCall, parameters);
+    for (final JPAExpressionElement<?> p : parameters) {
+      if (hasMemberNavigation(p)) {
+        return new JPAMemberFunctionCallNavigation(this.filterProcessor, methodCall, parameters);
+      }
+    }
+    return new ODataBuiltinFunctionCallImpl(this.filterProcessor.getConverter(), methodCall, parameters);
   }
 
   @Override
@@ -195,7 +194,7 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
       final JPAExpressionElement<?> operand)
           throws ExpressionVisitException, ODataApplicationException {
     if (operator == UnaryOperatorKind.NOT) {
-      return new JPAUnaryBooleanOperationImpl(this.jpaComplier.getConverter(), operator,
+      return new JPAUnaryBooleanOperationImpl(this.filterProcessor.getConverter(), operator,
           checkBooleanExpressionOperand(operand));
     } else {
       throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
@@ -213,7 +212,11 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     return null;
   }
 
-  boolean hasNavigation(final JPAExpressionElement<?> operand) {
+  /**
+   * Inspect several expression types for nested resource paths...
+   * @return These are navigations then the method will return TRUE.
+   */
+  boolean hasMemberNavigation(final JPAExpressionElement<?> operand) {
     if (operand instanceof JPAMemberOperand) {
       final List<UriResource> uriResourceParts = ((JPAMemberOperand<?>) operand).getMember().getResourcePath()
           .getUriResourceParts();
@@ -246,19 +249,11 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     return false;
   }
 
-  CriteriaBuilder getCriteriaBuilder() {
-    return jpaComplier.getEntityManager().getCriteriaBuilder();
+  private CriteriaBuilder getCriteriaBuilder() {
+    return filterProcessor.getEntityManager().getCriteriaBuilder();
   }
 
-  IntermediateServiceDocument getSd() {
-    return jpaComplier.getSd();
-  }
-
-  public FilterContextQueryBuilderIfc getParent() {
-    return jpaComplier.getParent();
-  }
-
-  public OData getOdata() {
-    return jpaComplier.getOdata();
+  private OData getOdata() {
+    return filterProcessor.getOdata();
   }
 }

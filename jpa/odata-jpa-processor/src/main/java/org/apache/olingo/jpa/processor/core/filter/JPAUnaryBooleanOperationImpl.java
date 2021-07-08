@@ -5,6 +5,7 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.UnaryOperatorKind;
+import org.apache.olingo.server.core.uri.queryoption.expression.UnaryImpl;
 
 class JPAUnaryBooleanOperationImpl implements JPAUnaryBooleanOperation {
 
@@ -35,4 +36,8 @@ class JPAUnaryBooleanOperationImpl implements JPAUnaryBooleanOperation {
     return operator;
   }
 
+  @Override
+  public org.apache.olingo.server.api.uri.queryoption.expression.Expression getQueryExpressionElement() {
+    return new UnaryImpl(operator, operand.getQueryExpressionElement(), null);
+  }
 }

@@ -388,13 +388,13 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
       return null;
     }
 
-    final JPAEntityFilterProcessor<Boolean> filter = new JPAEntityFilterProcessor<Boolean>(getContext().getOdata(),
+    final JPAEntityFilterProcessor<Boolean> filterProcessor = new JPAEntityFilterProcessor<Boolean>(getContext().getOdata(),
         getContext()
         .getEdmProvider().getServiceDocument(), getEntityManager(),
         filterContext.getQueryResultType(), getContext().getDatabaseProcessor(), navPath, filterExpression,
         filterContext);
 
-    return filter.compile();
+    return filterProcessor.compile();
   }
 
   protected javax.persistence.criteria.Expression<Boolean> createWhere() throws ODataApplicationException,

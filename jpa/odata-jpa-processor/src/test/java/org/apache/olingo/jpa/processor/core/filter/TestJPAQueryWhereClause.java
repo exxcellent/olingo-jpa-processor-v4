@@ -405,9 +405,9 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterSubstringStartEndIndex() throws IOException, ODataException {
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisionDescriptions?$filter=Language eq 'de' and substring(Name,0,5) eq 'North'");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisionDescriptions").filter(
+        "Language eq 'de' and substring(Name,0,5) eq 'North'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -574,11 +574,11 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterNavigationPropertyToManyValueAnyMultiParameter() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$select=ID&$filter=Roles/any(d:d/RoleCategory eq 'A' and d/BusinessPartnerID eq '1')");
-
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").select("ID").filter(
+        "Roles/any(d:d/RoleCategory eq 'A' and d/BusinessPartnerID eq '1')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
+
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
   }

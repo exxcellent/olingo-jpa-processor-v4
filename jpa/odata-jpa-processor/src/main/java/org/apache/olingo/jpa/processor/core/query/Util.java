@@ -286,6 +286,23 @@ public class Util {
   }
 
   /**
+   * Extract the navigation parts of resource parts. Primitive or complex propeties are not handled as navigation,
+   * because {@link JPAEntityType#getPath(String)} can handle such remaining paths.
+   */
+  public static List<UriResourceNavigation> determineNavigations(final List<UriResource> resourceParts) {
+    final List<UriResourceNavigation> pathList = new ArrayList<UriResourceNavigation>(resourceParts.size());
+    for (final UriResource resourcePart : resourceParts) {
+      if (resourcePart instanceof UriResourceNavigation) {
+        pathList.add((UriResourceNavigation) resourcePart);
+      } else {
+        // give up at first non navigation entry
+        break;
+      }
+    }
+    return pathList;
+  }
+
+  /**
    * Determine required navigations for associations and collections of complex
    * types (always located in another database table requiring a JOIN)
    */

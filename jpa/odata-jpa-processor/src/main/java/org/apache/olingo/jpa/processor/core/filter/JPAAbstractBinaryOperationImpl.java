@@ -5,6 +5,7 @@ import javax.persistence.criteria.Expression;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.BinaryOperatorKind;
+import org.apache.olingo.server.core.uri.queryoption.expression.BinaryImpl;
 
 /**
  *
@@ -27,6 +28,11 @@ abstract class JPAAbstractBinaryOperationImpl<OT, ET> implements JPAExpressionOp
     this.operator = operator;
     this.left = left;
     this.right = right;
+  }
+
+  @Override
+  public org.apache.olingo.server.api.uri.queryoption.expression.Expression getQueryExpressionElement() {
+    return new BinaryImpl(left.getQueryExpressionElement(), operator, right.getQueryExpressionElement(), null);
   }
 
   @SuppressWarnings("unchecked")
@@ -61,8 +67,8 @@ abstract class JPAAbstractBinaryOperationImpl<OT, ET> implements JPAExpressionOp
       final ODataBuiltinFunctionCall functionOperand = (ODataBuiltinFunctionCall) operandContext;
       final EdmPrimitiveTypeKind type = functionOperand.getResultType();
       return (Expression<OT>) literalOperand.getLiteralExpression(type);
-    } else if (operandContext instanceof JPAFunctionOperator) {
-      final JPAFunctionOperator functionOperand = (JPAFunctionOperator) operandContext;
+    } else if (operandContext instanceof JPADatabaseFunctionCall) {
+      final JPADatabaseFunctionCall functionOperand = (JPADatabaseFunctionCall) operandContext;
       return (Expression<OT>) literalOperand.getLiteralExpression(functionOperand.getReturnType());
     }
     // default behaviour

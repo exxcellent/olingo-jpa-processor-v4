@@ -11,9 +11,13 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAFilterException;
+import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
+import org.apache.olingo.server.api.uri.UriResource;
+import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
+import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
 
 /**
@@ -23,23 +27,32 @@ import org.apache.olingo.server.core.uri.queryoption.expression.LiteralImpl;
  * @author Oliver Grande
  *
  */
-public class JPAFunctionOperator implements JPAExpression<Object> {
+public class JPADatabaseFunctionCall implements JPAExpression<Object> {
+  private final JPAEntityFilterProcessor<?> filterProcessor;
+  private final Member memberFunction;
   private final JPAFunction jpaFunction;
-  private final JPAVisitor visitor;
   private final List<UriParameter> uriParams;
 
-  public JPAFunctionOperator(final JPAVisitor jpaVisitor, final List<UriParameter> uriParams, final JPAFunction jpaFunction) {
-
+  public JPADatabaseFunctionCall(final JPAEntityFilterProcessor<?> filterProcessor, final Member member) {
     super();
-    this.uriParams = uriParams;
-    this.visitor = jpaVisitor;
-    this.jpaFunction = jpaFunction;
+    this.filterProcessor = filterProcessor;
+    this.memberFunction = member;
+
+    final UriResource resource = memberFunction.getResourcePath().getUriResourceParts().get(0);
+    jpaFunction = filterProcessor.getSd().getFunction(((UriResourceFunction) resource).getFunction());
+    uriParams = ((UriResourceFunction) resource).getParameters();
+  }
+
+  @Override
+  public org.apache.olingo.server.api.uri.queryoption.expression.Expression getQueryExpressionElement() {
+    return memberFunction;
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public Expression<Object> get() throws ODataApplicationException {
-    final CriteriaBuilder cb = visitor.getCriteriaBuilder();
+    final CriteriaBuilder cb = filterProcessor.getEntityManager().getCriteriaBuilder();
+    final OData odata = filterProcessor.getOdata();
     final List<JPAOperationParameter> parameters = jpaFunction.getParameter();
     final Expression<?>[] jpaParameter = new Expression<?>[parameters.size()];
 
@@ -54,18 +67,18 @@ public class JPAFunctionOperator implements JPAExpression<Object> {
       throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_FUNCTION_NOT_SCALAR,
           HttpStatusCode.NOT_IMPLEMENTED);
     }
+
     for (int i = 0; i < parameters.size(); i++) {
       final JPAOperationParameter parameter = parameters.get(i);
       // a. $it/Area b. Area c. 10000
       final UriParameter p = findUriParameter(parameter);
 
       if (p.getText() != null) {
-        final JPALiteralOperand lOperand = new JPALiteralOperand(visitor.getOdata(),
-            visitor.getCriteriaBuilder(), new LiteralImpl(p.getText(), null));
+        final JPALiteralOperand lOperand = new JPALiteralOperand(odata, cb, new LiteralImpl(p.getText(), null));
         jpaParameter[i] = lOperand.getLiteralExpression(parameter);
       } else {
         try {
-          jpaParameter[i] = (Expression<?>) p.getExpression().accept(visitor).get();
+          jpaParameter[i] = (Expression<?>) p.getExpression().accept(filterProcessor.getVisitor()).get();
         } catch (final ExpressionVisitException e) {
           throw new ODataJPAFilterException(e, HttpStatusCode.NOT_IMPLEMENTED);
         }

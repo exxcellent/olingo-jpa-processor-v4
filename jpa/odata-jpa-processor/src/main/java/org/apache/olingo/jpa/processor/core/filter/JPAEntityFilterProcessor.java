@@ -33,23 +33,24 @@ import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpressi
  *
  */
 //TODO handle $it ...
-public class JPAEntityFilterProcessor<O> extends JPAAbstractFilterProcessor<O> {
+public class JPAEntityFilterProcessor<O> {
   private final JPAODataDatabaseProcessor converter;
   // TODO Check if it is allowed to select via navigation
   // ...Organizations?$select=Roles/RoleCategory eq 'C'
   // see also https://issues.apache.org/jira/browse/OLINGO-414
-  final EntityManager em;
-  final OData odata;
-  final IntermediateServiceDocument sd;
-  final List<UriResource> uriResourceParts;
-  final FilterContextQueryBuilderIfc parent;
+  private final EntityManager em;
+  private final OData odata;
+  private final IntermediateServiceDocument sd;
+  private final List<UriResource> uriResourceParts;
+  private final FilterContextQueryBuilderIfc parent;
+  private final JPAStructuredType jpaEntityType;
+  private final VisitableExpression expression;
+  private final ExpressionVisitor<JPAExpressionElement<?>> visitor;
 
   public JPAEntityFilterProcessor(final OData odata, final IntermediateServiceDocument sd, final EntityManager em,
       final JPAStructuredType jpaEntityType, final JPAODataDatabaseProcessor converter,
       final List<UriResource> resourcePath,
       final VisitableExpression expression, final FilterContextQueryBuilderIfc parent) {
-
-    super(jpaEntityType, expression);
 
     this.uriResourceParts = resourcePath;
     this.converter = converter;
@@ -57,47 +58,60 @@ public class JPAEntityFilterProcessor<O> extends JPAAbstractFilterProcessor<O> {
     this.odata = odata;
     this.sd = sd;
     this.parent = parent;
+    this.jpaEntityType = jpaEntityType;
+    this.expression = expression;
+    visitor = new JPAVisitor(this);
   }
 
-  @Override
+  public ExpressionVisitor<JPAExpressionElement<?>> getVisitor() {
+    return visitor;
+  }
+
+  public VisitableExpression getExpression() {
+    return expression;
+  }
+
+  public JPAStructuredType getJpaEntityType() {
+    return jpaEntityType;
+  }
+
+  /**
+   * Parse the filter query into a JPA criteria API expression.
+   *
+   * @return A composite expression representing the filter query part (WHERE
+   * clause).
+   */
   @SuppressWarnings("unchecked")
   public Expression<O> compile() throws ExpressionVisitException, ODataApplicationException {
 
     if (getExpression() == null) {
       return null;
     }
-    final ExpressionVisitor<JPAExpressionElement<?>> visitor = new JPAVisitor(this);
     final Expression<O> finalExpression = (Expression<O>) getExpression().accept(visitor).get();
 
     return finalExpression;
   }
 
-  @Override
   public JPAODataDatabaseProcessor getConverter() {
     return converter;
   }
 
-  @Override
   public EntityManager getEntityManager() {
     return em;
   }
 
-  @Override
   public OData getOdata() {
     return odata;
   }
 
-  @Override
   public IntermediateServiceDocument getSd() {
     return sd;
   }
 
-  @Override
   public List<UriResource> getUriResourceParts() {
     return uriResourceParts;
   }
 
-  @Override
   public FilterContextQueryBuilderIfc getParent() {
     return parent;
   }
