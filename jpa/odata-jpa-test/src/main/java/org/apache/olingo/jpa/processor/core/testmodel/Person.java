@@ -69,7 +69,7 @@ public class Person extends BusinessPartner {
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\"", referencedColumnName = "\"ID\"", updatable = false, insertable = false))
   private final Collection<Phone> partnerTelephoneConnections = new LinkedList<>();
 
-  @OneToMany(fetch = FetchType.EAGER, orphanRemoval = false, cascade = { CascadeType.REFRESH })
+  @OneToMany(fetch = FetchType.LAZY, orphanRemoval = false, cascade = { CascadeType.REFRESH })
   @JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::OrganizationMember\"", joinColumns = { @JoinColumn(
       referencedColumnName = "\"ID\"", name = "\"memberID\"") }, inverseJoinColumns = { @JoinColumn(
           referencedColumnName = "\"ID\"", name = "\"organizationID\"") })

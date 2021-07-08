@@ -286,14 +286,17 @@ public class Util {
   }
 
   /**
-   * Extract the navigation parts of resource parts. Primitive or complex propeties are not handled as navigation,
-   * because {@link JPAEntityType#getPath(String)} can handle such remaining paths.
+   * Extract the navigation parts of resource parts. Primitive or complex properties are not handled as navigation,
+   * because {@link JPAEntityType#getPath(String)} can handle such remaining paths, but collections of primitive or
+   * complex properties, because these need sub selects.
    */
-  public static List<UriResourceNavigation> determineNavigations(final List<UriResource> resourceParts) {
-    final List<UriResourceNavigation> pathList = new ArrayList<UriResourceNavigation>(resourceParts.size());
+  public static List<UriResourcePartTyped> determineNavigations(final List<UriResource> resourceParts) {
+    final List<UriResourcePartTyped> pathList = new ArrayList<UriResourcePartTyped>(resourceParts.size());
     for (final UriResource resourcePart : resourceParts) {
       if (resourcePart instanceof UriResourceNavigation) {
         pathList.add((UriResourceNavigation) resourcePart);
+      } else if (resourcePart instanceof UriResourceProperty && ((UriResourceProperty) resourcePart).isCollection()) {
+        pathList.add((UriResourceProperty) resourcePart);
       } else {
         // give up at first non navigation entry
         break;

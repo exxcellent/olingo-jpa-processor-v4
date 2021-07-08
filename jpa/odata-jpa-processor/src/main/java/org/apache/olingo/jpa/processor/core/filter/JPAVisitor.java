@@ -156,7 +156,8 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
   @Override
   public JPAExpressionElement<?> visitMember(final Member member)
       throws ExpressionVisitException, ODataApplicationException {
-
+    // the member may contain navigation elements... we ignore that here, because the member will be part of something
+    // other (like operator, lambda, method call, ... where we check for required navigation)
     if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAny) {
       return new JPALambdaAnyOperation(filterProcessor, member);
     } else if (getLambdaType(member.getResourcePath()) == UriResourceKind.lambdaAll) {

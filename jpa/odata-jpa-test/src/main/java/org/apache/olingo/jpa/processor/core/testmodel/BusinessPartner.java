@@ -145,11 +145,11 @@ public abstract class BusinessPartner {
    * Additional mapping for an {@link ElementCollection @ElementCollection} using
    * {@link Embeddable @Embeddable}.
    */
-  @ElementCollection(fetch = FetchType.EAGER)
+  @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
   private final Set<Phone> phoneNumbers = new HashSet<>();
 
-  @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
   @JoinColumn(name = "\"CreatedBy\"", insertable = false, updatable = false, nullable = true)
   private Person creator;
 
