@@ -6,8 +6,7 @@ language: java
 # for an overview see https://docs.travis-ci.com/user/reference/overview/
 os:
   - linux
-sudo: required
-dist: xenial
+dist: bionic
 jdk:
 #  - oraclejdk8
 #  - oraclejdk9
@@ -20,9 +19,10 @@ install: true
 
 # define the stage ordering for job building
 stages:
-  - build_with_hibernate
-  - build_with_eclipselink + coverage upload
-  - deploy
+  - name: build_with_hibernate
+  - name: build_with_eclipselink + coverage upload
+  - name: deploy
+    if: branch = eXXcellent_adaptions
 
 # define the jobs self for all the stages
 jobs:
@@ -35,8 +35,5 @@ jobs:
         bash <(curl -s https://codecov.io/bash) -X gcov -Z -F unittests -f code-coverage-report/target/jacoco-aggregate-ut/jacoco.xml
     - stage: deploy
       script: "cp .travis.settings.xml $HOME/.m2/settings.xml && sh -c 'mvn clean package deploy:deploy -DskipTests -Djetty.skip'"
-      skip_cleanup: false
-      on:
-        branch: eXXcellent_adaptions
 
 
