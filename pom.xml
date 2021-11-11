@@ -4,7 +4,7 @@
 
 	<groupId>de.exxcellent.olingo-generic-processor</groupId>
 	<artifactId>olingo-generic-processor-root-pom</artifactId>
-	<version>0.59.0</version>
+	<version>0.60.0</version>
 	<packaging>pom</packaging>
 
 	<name>OData-JPA-Adapter Root POM</name>
@@ -18,16 +18,16 @@
 		<java.source.version>1.8</java.source.version>
 		<java.target.version>1.8</java.target.version>
 
-		<slf4j.version>1.7.30</slf4j.version>
-		<logback.version>1.2.3</logback.version>
+		<slf4j.version>1.7.32</slf4j.version>
+		<logback.version>1.2.6</logback.version>
 		<olingo.version>4.8.0</olingo.version>
 		<jetty.version>9.4.43.v20210629</jetty.version>
-        <jersey.version>2.33</jersey.version>
-		<jackson.version>2.12.2</jackson.version>
+        <jersey.version>2.35</jersey.version>
+		<jackson.version>2.13.0</jackson.version>
 		<javax.servlet.version>4.0.1</javax.servlet.version>
 		<eclipselink.version>2.7.9</eclipselink.version>
-		<openjpa.version>3.1.2</openjpa.version>
-		<hibernate.version>5.5.3.Final</hibernate.version>
+		<openjpa.version>3.2.0</openjpa.version>
+		<hibernate.version>5.6.1.Final</hibernate.version>
 	</properties>
 
 	<modules>
