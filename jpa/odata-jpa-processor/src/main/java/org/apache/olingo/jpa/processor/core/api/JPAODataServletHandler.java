@@ -160,6 +160,20 @@ public class JPAODataServletHandler {
   }
 
   /**
+   * Client hook method to change custom resources (like dependencies for dependency injection support) before an
+   * transaction ({@link JPAAdapter#beginTransaction(javax.persistence.EntityManager)}) is started and after possible
+   * security checks.
+   *
+   * @param requestContext The context of current request where processing will starting..
+   * @param jpaAdapter The adapter for persistence control from constructor
+   * ({@link JPAODataServletHandler#JPAODataServletHandler(JPAAdapter)})
+   */
+  protected void prepareTransaction(final ModifiableJPAODataRequestContext requestContext,
+      final JPAAdapter jpaAdapter) {
+    // do nothing in default implementation
+  }
+
+  /**
    * Client hook method to change custom resources (like dependencies for dependency injection support) after
    * initialization of request handling (also after security checks), but before processing of request. A transaction
    * maybe in progress...

@@ -47,7 +47,7 @@ public interface JPAODataRequestContext extends JPAODataContext {
    * <ul>
    * <li>A fresh instance of {@link #getDependencyInjector() dependency injector} is used that can have separate
    * dependency values. A possible registered {@link DependencyInjectorImpl#getDependencyValue(Class) dependency value}
-   * for {@link JPAODataRequestContext} will be replaced the the new derived one.</li>
+   * for {@link JPAODataRequestContext} will be replaced by the new derived one.</li>
    * </ul>
    * @return A new derived instance of request context.
    * @throws ODataException
