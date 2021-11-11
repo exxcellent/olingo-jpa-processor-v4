@@ -89,8 +89,9 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
 
     final boolean isReadingRequest = request.getMethod() == HttpMethod.GET;
 
-    final JPAAdapter mappingAdapter = requestContext.refreshMappingAdapter();
+    final JPAAdapter mappingAdapter = requestContext.getPersistenceAdapter();
     servletHandler.prepareTransaction(requestContext, mappingAdapter);
+    requestContext.refreshMappingAdapter();
 
     ODataResponse odataResponse;
     try {
