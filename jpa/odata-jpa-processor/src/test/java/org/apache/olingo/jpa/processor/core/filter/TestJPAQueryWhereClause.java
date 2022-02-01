@@ -20,6 +20,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class TestJPAQueryWhereClause extends TestBase {
 
+  //  @Override
+  //  protected TestGenericJPAPersistenceAdapter createPersistenceAdapter() {
+  //    // H2 has problems with java.time.LocalDate
+  //    // HSLQDB has problem with substring queries
+  //    // DERBY has problems with boolean as int queries (default of Eclipselink)
+  //    return new TestGenericJPAPersistenceAdapter(Constant.PUNIT_NAME,
+  //        DataSourceHelper.DatabaseType.DERBY);
+  //  }
+
   @Test
   public void testFilterLeftEqualsNullValue() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
@@ -158,9 +167,10 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterOneGreaterThanString() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter(
+        "ID gt '5'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$filter=ID gt '5'");
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -771,26 +781,6 @@ public class TestJPAQueryWhereClause extends TestBase {
   }
 
   @Test
-  public void testFilterDayOfTime2LocalTime() throws IOException, ODataException {
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
-        "ATime1 eq 22:21:20");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getJsonObjectValues();
-    assertEquals(1, entities.size());
-  }
-
-  @Test
-  public void testFilterDate2LocalDate() throws IOException, ODataException {
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
-        "ADate2 eq 1600-12-01");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getJsonObjectValues();
-    assertEquals(1, entities.size());
-  }
-
-  @Test
   public void testFilterTimestamp2SqlTimestampWithContainsAndCast() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
         "contains(cast(ATimestamp1SqlTimestamp, Edm.String), '09:21:00')");
@@ -798,22 +788,6 @@ public class TestJPAQueryWhereClause extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode entities = helper.getJsonObjectValues();
     assertEquals(1, entities.size());
-  }
-
-  @Test
-  public void testFilterTimestamp2SqlTimestampWithDateConversion() throws IOException, ODataException {
-    // FIXME
-    // skip test...
-    assumeTrue("This test fails on Travis", false);
-
-    // '2010-01-01' will be expanded to '2010-01-01 00:00:00.0' (a complete
-    // timestamp)
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
-        "date(ATimestamp1SqlTimestamp) ge 2010-01-01");
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-    final ArrayNode entities = helper.getJsonObjectValues();
-    assertEquals(2, entities.size());
   }
 
   @Test

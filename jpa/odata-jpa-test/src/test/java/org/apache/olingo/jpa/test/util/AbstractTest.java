@@ -48,7 +48,7 @@ public abstract class AbstractTest implements Constant {
     case DERBY:
       ds = DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.DERBY);
       properties.put("eclipselink.target-database", "org.eclipse.persistence.platform.database.DerbyPlatform");
-      properties.put("hibernate.dialect", "org.hibernate.dialect.DerbyDialect");
+      properties.put("hibernate.dialect", "org.hibernate.dialect.DerbyTenSevenDialect");
       properties.put("openjpa.jdbc.DBDictionary", "derby");
       break;
     case HSQLDB:

@@ -27,6 +27,7 @@
 	<logger name="org.hibernate" level="WARN"/>
 	<!-- required to get SQL params in Hibernate -->
 	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+	<logger name="org.flywaydb" level="INFO"/>
 
 	<root level="DEBUG">
 		<!-- this definition will work only for true slf4j loggers, JUL will log directly to the appender -->

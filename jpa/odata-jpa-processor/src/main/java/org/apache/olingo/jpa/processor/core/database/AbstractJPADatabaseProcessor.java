@@ -417,7 +417,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
       return cb.literal(Integer
           .valueOf(Integer.parseInt(((JPALiteralOperand) parameter).getODataLiteral().getText()) + offset));
     } else {
-      // should never habppen?
+      // should never happen?
       return cb.literal(Integer.valueOf(Integer.parseInt(parameter.get().toString()) + offset));
     }
   }

@@ -2,11 +2,12 @@ package org.apache.olingo.jpa.test.util;
 
 import javax.sql.DataSource;
 
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.internal.jdbc.DriverDataSource;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.googlecode.flyway.core.Flyway;
-import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
 
 public class DataSourceHelper {
 
@@ -65,16 +66,19 @@ public class DataSourceHelper {
     DriverDataSource ds = null;
     switch (database) {
     case H2:
-      ds = new DriverDataSource(H2_DRIVER_CLASS_NAME, build_H2_Url(), null, null, new String[0]);
+      ds = new DriverDataSource(Thread.currentThread().getContextClassLoader(), H2_DRIVER_CLASS_NAME, build_H2_Url(),
+          null, null);
       break;
 
     case HSQLDB:
       // HSQLDB does call LogManager.reset() and this will destroy our logging configuration
       System.setProperty("hsqldb.reconfig_logging", "false");
-      ds = new DriverDataSource(HSQLDB_DRIVER_CLASS_NAME, HSQLDB_URL, null, null, new String[0]);
+      ds = new DriverDataSource(Thread.currentThread().getContextClassLoader(), HSQLDB_DRIVER_CLASS_NAME, HSQLDB_URL,
+          null, null);
       break;
     case DERBY:
-      ds = new DriverDataSource(DERBY_DRIVER_CLASS_NAME, DERBY_URL, null, null, new String[0]);
+      ds = new DriverDataSource(Thread.currentThread().getContextClassLoader(), DERBY_DRIVER_CLASS_NAME, DERBY_URL,
+          null, null);
       break;
 
     case REMOTE:
@@ -91,8 +95,9 @@ public class DataSourceHelper {
       url = url.replace("$Port$", hanaInfo.get("port").asText());
       url = url.replace("$DBNAME$", hanaInfo.get("dbname").asText());
       final String driver = hanaInfo.get("driver").asText();
-      ds = new DriverDataSource(driver, url, hanaInfo.get("username").asText(), hanaInfo.get(
-          "password").asText(), new String[0]);
+      ds = new DriverDataSource(Thread.currentThread().getContextClassLoader(), driver, url, hanaInfo.get("username")
+          .asText(), hanaInfo.get(
+              "password").asText());
       return ds;
     default:
       return null;
@@ -103,10 +108,8 @@ public class DataSourceHelper {
   }
 
   public static void initializeDatabase(final DataSource ds) {
-    final Flyway flyway = new Flyway();
-    flyway.setDataSource(ds);
-    flyway.setInitOnMigrate(true);
-    flyway.setSchemas(DB_SCHEMA);
+    final Flyway flyway = Flyway.configure().dataSource(ds).schemas(DB_SCHEMA).baselineOnMigrate(true).load();
+    flyway.clean();
     flyway.migrate();
   }
 }
