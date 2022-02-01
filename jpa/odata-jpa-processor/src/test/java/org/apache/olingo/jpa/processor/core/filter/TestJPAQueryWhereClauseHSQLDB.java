@@ -50,12 +50,7 @@ public class TestJPAQueryWhereClauseHSQLDB extends TestBase {
 
   @Test
   public void testFilterTimestamp2SqlTimestampWithDateConversion() throws IOException, ODataException {
-    //    // FIXME
-    //    // skip test...
-    //    assumeTrue("This test fails on Travis", false);
-
-    // '2010-01-01' will be expanded to '2010-01-01 00:00:00.0' (a complete
-    // timestamp)
+    // '2010-01-01' will be expanded to '2010-01-01 00:00:00.0' (a complete timestamp)
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
         "date(ATimestamp1SqlTimestamp) ge 2010-01-01");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
