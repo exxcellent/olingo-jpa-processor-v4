@@ -373,11 +373,6 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithNavigationFilter() throws IOException, ODataException {
-
-    // skip test with EclipseLink
-    // TODO
-    // assumeTrue("EclipseLink will produce an invalid query", getJPAProvider() != JPAProvider.EclipseLink);
-
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").filter(
         "targets/any(d:contains(d/Name, 'rel'))")
         .expand("targets").top(3);
