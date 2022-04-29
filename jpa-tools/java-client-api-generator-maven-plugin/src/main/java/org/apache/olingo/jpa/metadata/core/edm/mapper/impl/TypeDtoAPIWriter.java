@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -15,8 +16,6 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 class TypeDtoAPIWriter extends AbstractWriter {
 
@@ -166,7 +165,6 @@ class TypeDtoAPIWriter extends AbstractWriter {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void processAttribute(final JPAAttribute<?> attribute) throws IOException, ODataJPAModelException {
     List<JPAAttribute<?>> listProcessAttributes;
     if (attribute.getAttributeMapping() == AttributeMapping.EMBEDDED_ID) {

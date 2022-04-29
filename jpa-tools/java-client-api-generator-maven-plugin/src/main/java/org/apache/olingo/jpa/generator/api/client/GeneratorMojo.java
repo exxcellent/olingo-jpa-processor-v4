@@ -19,10 +19,10 @@ import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingRequest;
-import org.apache.maven.shared.artifact.resolve.ArtifactResult;
-import org.apache.maven.shared.dependencies.DefaultDependableCoordinate;
-import org.apache.maven.shared.dependencies.resolve.DependencyResolver;
-import org.apache.maven.shared.dependencies.resolve.DependencyResolverException;
+import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResult;
+import org.apache.maven.shared.transfer.dependencies.DefaultDependableCoordinate;
+import org.apache.maven.shared.transfer.dependencies.resolve.DependencyResolver;
+import org.apache.maven.shared.transfer.dependencies.resolve.DependencyResolverException;
 
 @Mojo(name = "client-api-generation", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class GeneratorMojo extends AbstractMojo {
@@ -60,7 +60,7 @@ public class GeneratorMojo extends AbstractMojo {
   @Component
   private DependencyResolver dependencyResolver;
 
-  @Component
+  @Parameter(defaultValue = "${plugin}", readonly = true)
   private PluginDescriptor pluginDescriptor;
 
   @Override
