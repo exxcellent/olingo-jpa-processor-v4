@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlStructuralType;
 import org.apache.olingo.jpa.cdi.Inject;

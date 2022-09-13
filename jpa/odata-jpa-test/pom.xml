@@ -39,8 +39,8 @@
 			<artifactId>odata-server-api</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>javax.persistence</groupId>
-		    <artifactId>javax.persistence-api</artifactId>
+		    <groupId>jakarta.persistence</groupId>
+		    <artifactId>jakarta.persistence-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

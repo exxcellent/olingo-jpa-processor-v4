@@ -2,7 +2,7 @@ package org.apache.olingo.jpa.metadata.test.util;
 
 import java.util.logging.Level;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.BeforeClass;

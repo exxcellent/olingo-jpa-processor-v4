@@ -8,10 +8,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;

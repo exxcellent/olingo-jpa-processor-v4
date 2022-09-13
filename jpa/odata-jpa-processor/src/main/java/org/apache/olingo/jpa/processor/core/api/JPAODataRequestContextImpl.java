@@ -2,10 +2,7 @@ package org.apache.olingo.jpa.processor.core.api;
 
 import java.util.Locale;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.olingo.JakartaJavaxAdapter;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAException;
@@ -22,6 +19,10 @@ import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.debug.DebugSupport;
 import org.apache.olingo.server.api.debug.DefaultDebugSupport;
 import org.apache.olingo.server.core.debug.ServerCoreDebugger;
+
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 class JPAODataRequestContextImpl extends AbstractContextImpl implements ModifiableJPAODataRequestContext {
 
@@ -80,7 +81,9 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements Modifiab
     if (disposed) {
       throw new IllegalStateException("Already disposed");
     }
-    parentContext.getServerDebugger().resolveDebugMode(request);
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(request,
+        javax.servlet.http.HttpServletRequest.class);
+    parentContext.getServerDebugger().resolveDebugMode(javaxReq);
     if (parentContext.getServerDebugger().isDebugMode()) {
       serviceDebugger = new JPACoreDebugger();
     } else {

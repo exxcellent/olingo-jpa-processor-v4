@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaBuilder;
 
 import org.apache.olingo.commons.api.edm.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;

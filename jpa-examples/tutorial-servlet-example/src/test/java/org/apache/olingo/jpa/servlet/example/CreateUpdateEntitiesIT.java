@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.logging.Logger;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import org.apache.olingo.client.api.communication.response.ODataEntityCreateResponse;
 import org.apache.olingo.client.api.communication.response.ODataEntityUpdateResponse;

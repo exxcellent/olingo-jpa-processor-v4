@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
 import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.commons.api.data.ValueType;

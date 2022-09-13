@@ -2,7 +2,7 @@ package org.apache.olingo.jpa.processor.core.util;
 
 import java.util.Map;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;

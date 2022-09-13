@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
-import javax.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
 
 public interface JPAParameterizedElement extends JPADescribedElement {
 

@@ -6,7 +6,7 @@ import static org.junit.Assert.assertThrows;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;

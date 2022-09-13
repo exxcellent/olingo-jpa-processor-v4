@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.data.ComplexValue;

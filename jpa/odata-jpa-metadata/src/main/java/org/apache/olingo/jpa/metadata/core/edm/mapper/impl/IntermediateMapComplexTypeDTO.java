@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.provider.CsdlAnnotation;

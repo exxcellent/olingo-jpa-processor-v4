@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.ODataClientBuilder;

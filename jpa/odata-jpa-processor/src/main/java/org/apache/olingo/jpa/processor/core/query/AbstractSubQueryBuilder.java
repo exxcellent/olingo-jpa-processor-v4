@@ -1,13 +1,13 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import javax.persistence.criteria.CollectionJoin;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.ListJoin;
-import javax.persistence.criteria.MapJoin;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.SetJoin;
-import javax.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.CollectionJoin;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.ListJoin;
+import jakarta.persistence.criteria.MapJoin;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.SetJoin;
+import jakarta.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.server.api.ODataApplicationException;
@@ -34,8 +34,8 @@ abstract class AbstractSubQueryBuilder extends AbstractQueryBuilder {
 
   /**
    *
-   * @return The {@link javax.persistence.criteria.Root Root} or
-   * {@link javax.persistence.criteria.Join Join} used as primary
+   * @return The {@link jakarta.persistence.criteria.Root Root} or
+   * {@link jakarta.persistence.criteria.Join Join} used as primary
    * selection type scope (FROM) of subquery.
    */
   @SuppressWarnings("unchecked")

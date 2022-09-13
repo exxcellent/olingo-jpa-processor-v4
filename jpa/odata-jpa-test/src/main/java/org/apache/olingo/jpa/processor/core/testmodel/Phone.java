@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import javax.validation.constraints.Size;
 
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;

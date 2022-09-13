@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.spi.PersistenceProvider;
-import javax.persistence.spi.PersistenceProviderResolver;
-import javax.persistence.spi.PersistenceProviderResolverHolder;
+import jakarta.persistence.spi.PersistenceProvider;
+import jakarta.persistence.spi.PersistenceProviderResolver;
+import jakarta.persistence.spi.PersistenceProviderResolverHolder;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
@@ -68,11 +68,11 @@ public class Generator {
 
   private static Map<String, Object> buildEntityManagerFactoryProperties() {
     final Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put("javax.persistence.jdbc.url", "jdbc:h2:mem:test" + Long.toString(System.currentTimeMillis())
+    properties.put("jakarta.persistence.jdbc.url", "jdbc:h2:mem:test" + Long.toString(System.currentTimeMillis())
     + ";DB_CLOSE_DELAY=-1");
-    properties.put("javax.persistence.jdbc.user", "sa");
-    properties.put("javax.persistence.jdbc.password", "");
-    properties.put("javax.persistence.jdbc.driver", "org.h2.Driver");
+    properties.put("jakarta.persistence.jdbc.user", "sa");
+    properties.put("jakarta.persistence.jdbc.password", "");
+    properties.put("jakarta.persistence.jdbc.driver", "org.h2.Driver");
     return properties;
   }
 

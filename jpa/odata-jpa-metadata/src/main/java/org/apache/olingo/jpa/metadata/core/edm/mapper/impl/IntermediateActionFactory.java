@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;

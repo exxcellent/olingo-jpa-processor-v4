@@ -423,7 +423,7 @@ public class Util {
    *
    * @return TRUE if list of resource parts contains a navigation to an collection
    *         of embedded complex type
-   * @see javax.persistence.ElementCollection
+   * @see jakarta.persistence.ElementCollection
    */
   private static boolean hasComplexPropertyCollectionNavigation(final List<UriResource> uriResourceParts) {
     if (uriResourceParts == null) {
@@ -444,7 +444,7 @@ public class Util {
    *
    * @return TRUE if list of resource parts contains a navigation to an collection
    * of embedded primitive type
-   * @see javax.persistence.ElementCollection
+   * @see jakarta.persistence.ElementCollection
    */
   private static boolean hasPrimitivePropertyCollectionNavigation(final List<UriResource> uriResourceParts) {
     if (uriResourceParts == null) {

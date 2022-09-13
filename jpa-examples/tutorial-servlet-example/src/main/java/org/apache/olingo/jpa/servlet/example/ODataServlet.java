@@ -9,15 +9,9 @@ import java.util.stream.Collectors;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.HttpMethodConstraint;
-import javax.servlet.annotation.ServletSecurity;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.olingo.JakartaJavaxAdapter;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
@@ -37,6 +31,14 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.ODataResponse;
 import org.apache.olingo.server.api.processor.Processor;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.HttpMethodConstraint;
+import jakarta.servlet.annotation.ServletSecurity;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Example call: http://localhost:8080/odata/$metadata
@@ -77,13 +79,17 @@ public class ODataServlet extends HttpServlet {
   @Override
   protected void service(final HttpServletRequest req, final HttpServletResponse resp)
       throws ServletException, IOException {
-    requestHandler.process(req, resp);
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(req,
+        javax.servlet.http.HttpServletRequest.class);
+    final javax.servlet.http.HttpServletResponse javaxResp = JakartaJavaxAdapter.adapt(resp,
+        javax.servlet.http.HttpServletResponse.class);
+    requestHandler.process(javaxReq, javaxResp);
   }
 
   private JPAODataServletHandler createHandler() throws ODataException, ServletException {
 
     final Map<Object, Object> elProperties = new HashMap<>();
-    elProperties.put("javax.persistence.nonJtaDataSource", JNDI_DATASOURCE);
+    elProperties.put("jakarta.persistence.nonJtaDataSource", JNDI_DATASOURCE);
 
     final AbstractJPAAdapter mappingAdapter = new ResourceLocalPersistenceAdapter(
         org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME,

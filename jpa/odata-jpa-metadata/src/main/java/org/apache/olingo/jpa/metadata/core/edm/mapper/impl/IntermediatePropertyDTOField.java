@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
 import javax.validation.constraints.Size;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
@@ -57,11 +57,11 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
 
   /**
    *
-   * @return TRUE if field has the {@link javax.persistence.Id @Id} annotation.
+   * @return TRUE if field has the {@link jakarta.persistence.Id @Id} annotation.
    */
   @Override
   public boolean isKey() {
-    return field.getAnnotation(javax.persistence.Id.class) != null;
+    return field.getAnnotation(jakarta.persistence.Id.class) != null;
   }
 
   private FullQualifiedName initializePropertyType() throws ODataJPAModelException {

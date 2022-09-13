@@ -2,8 +2,8 @@ package org.apache.olingo.jpa.processor.core.testmodel.converter.jpa;
 
 import java.time.DayOfWeek;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter(autoApply = false)
 public class JPADayOfWeekConverter implements AttributeConverter<DayOfWeek, Integer> {

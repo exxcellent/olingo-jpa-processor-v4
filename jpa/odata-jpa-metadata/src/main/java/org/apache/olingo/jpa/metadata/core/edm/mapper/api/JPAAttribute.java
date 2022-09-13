@@ -50,7 +50,7 @@ public interface JPAAttribute<CDSLType extends CsdlAbstractEdmItem> extends JPAE
   /**
    *
    * @return TRUE if {@link #isCollection()} and is not mapped as single column in a table (and only transformed into a
-   * collection by an {@link javax.persistence.AttributeConverter @AttributeConverter}), means this is a
+   * collection by an {@link jakarta.persistence.AttributeConverter @AttributeConverter}), means this is a
    * relationship/association or an @ElementCollection.
    */
   public boolean isJoinCollection();

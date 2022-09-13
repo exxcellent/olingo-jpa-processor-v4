@@ -2,8 +2,8 @@ package org.apache.olingo.jpa.processor.core.mapping;
 
 import java.util.Collection;
 
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 
@@ -75,7 +75,7 @@ public interface JPAAdapter {
 
   /**
    * Called at end of lifecycle of adapter to release any allocated resources
-   * (close {@link javax.persistence.EntityManagerFactory#close()
+   * (close {@link jakarta.persistence.EntityManagerFactory#close()
    * EntityManagerFactory} etc.).
    */
   public void dispose();

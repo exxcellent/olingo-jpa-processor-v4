@@ -2,8 +2,8 @@ package org.apache.olingo.jpa.processor.core.filter;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.Expression;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.Expression;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;

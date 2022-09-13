@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest; // using our bridge javax-jakarta-bridge
+import javax.servlet.http.HttpServletResponse; // using our bridge javax-jakarta-bridge
 
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpMethod;

@@ -13,7 +13,7 @@ public interface JPAExpressionElement<T> {
 
   /**
    *
-   * @return Normally a {@link javax.persistence.criteria.Expression}
+   * @return Normally a {@link jakarta.persistence.criteria.Expression}
    */
   public T get() throws ODataApplicationException;
 

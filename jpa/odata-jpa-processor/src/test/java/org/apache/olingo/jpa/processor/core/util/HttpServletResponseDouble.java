@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse; // using our bridge javax-jakarta-bridge
 
 import org.apache.olingo.commons.api.http.HttpHeader;
 

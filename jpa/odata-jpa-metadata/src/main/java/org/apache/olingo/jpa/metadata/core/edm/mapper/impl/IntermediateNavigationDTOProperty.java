@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlNavigationProperty;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
@@ -120,7 +120,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
 
   @Override
   public boolean isKey() {
-    return field.getAnnotation(javax.persistence.Id.class) != null;
+    return field.getAnnotation(jakarta.persistence.Id.class) != null;
   }
 
   @Override

@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
 
 import org.apache.olingo.jpa.processor.core.testmodel.OrganizationImage;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonImage;
@@ -25,7 +25,7 @@ public class ImageLoader {
 	private static final String SELECT_ORGANIZATION_IMAGE = "SELECT * FROM \"OLINGO\".\"org.apache.olingo.jpa::OrganizationImage\" WHERE ID = '$&1'";
 	private static final String PATH = "images/";
 	private static final String TEST_IMAGE = "test.png";
-	private static final String ENTITY_MANAGER_DATA_SOURCE = "javax.persistence.nonJtaDataSource";
+	private static final String ENTITY_MANAGER_DATA_SOURCE = "jakarta.persistence.nonJtaDataSource";
 	private static final String PUNIT_NAME = "org.apache.olingo.jpa";
 
 	public static void main(final String[] args) throws Exception {

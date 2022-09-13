@@ -2,7 +2,7 @@ package org.apache.olingo.jpa.processor;
 
 import java.util.Locale;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.processor.core.api.JPAServiceDebugger;

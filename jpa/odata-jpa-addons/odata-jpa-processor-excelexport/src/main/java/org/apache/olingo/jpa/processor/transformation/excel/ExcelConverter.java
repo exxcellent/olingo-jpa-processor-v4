@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.Tuple;
-import javax.persistence.TupleElement;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -418,7 +418,7 @@ public class ExcelConverter {
    * @param attributePath The database alias often representing a path through nested complex attributes to the
    * <i>targetAttribute</i>.
    * @param targetAttribute The meta model attribute the <i>value</i> is related to.
-   * @param value The value from data base (after {@link javax.persistence.AttributeConverter attribute converter}) that
+   * @param value The value from data base (after {@link jakarta.persistence.AttributeConverter attribute converter}) that
    * must be prepared for Excel sheet output.
    *
    * @return The combination of resulting value for Excel sheet (after any conversion) and data type assignment.

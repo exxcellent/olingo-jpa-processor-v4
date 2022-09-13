@@ -2,8 +2,8 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 
 import java.sql.Timestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 

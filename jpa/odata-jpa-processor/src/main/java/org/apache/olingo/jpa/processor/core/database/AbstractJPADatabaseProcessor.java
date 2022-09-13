@@ -11,11 +11,11 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
 
 import org.apache.olingo.commons.api.edm.EdmFunction;
 import org.apache.olingo.commons.api.edm.EdmParameter;
@@ -512,9 +512,9 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
     return null;
   }
 
-  private javax.persistence.criteria.Expression<Boolean> combineOR(
-      javax.persistence.criteria.Expression<Boolean> whereCondition,
-      final javax.persistence.criteria.Expression<Boolean> additionalExpression) {
+  private jakarta.persistence.criteria.Expression<Boolean> combineOR(
+      jakarta.persistence.criteria.Expression<Boolean> whereCondition,
+      final jakarta.persistence.criteria.Expression<Boolean> additionalExpression) {
 
     if (additionalExpression != null) {
       if (whereCondition == null) {
@@ -529,8 +529,8 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   @Override
   public Expression<Boolean> createSearchExpression(final SearchTerm search, final List<Path<?>> searchColumns)
       throws ODataApplicationException {
-    javax.persistence.criteria.Expression<Boolean> whereCondition = null;
-    javax.persistence.criteria.Expression<Boolean> condition;
+    jakarta.persistence.criteria.Expression<Boolean> whereCondition = null;
+    jakarta.persistence.criteria.Expression<Boolean> condition;
     for (final Path<?> path : searchColumns) {
       condition = buildColumnCondition(path, search);
       whereCondition = combineOR(whereCondition, condition);

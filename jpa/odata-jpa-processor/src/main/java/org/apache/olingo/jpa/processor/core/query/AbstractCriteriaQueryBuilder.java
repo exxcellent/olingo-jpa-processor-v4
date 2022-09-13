@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Selection;
-import javax.persistence.criteria.Subquery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmType;
@@ -367,7 +367,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   }
 
   @SuppressWarnings("unchecked")
-  private javax.persistence.criteria.Expression<Boolean> createWhereFromAccessConditioner()
+  private jakarta.persistence.criteria.Expression<Boolean> createWhereFromAccessConditioner()
       throws ODataApplicationException {
     final DataAccessConditioner<Object> dac = (DataAccessConditioner<Object>) getQueryResultType()
         .getDataAccessConditioner();
@@ -378,7 +378,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return dac.buildSelectCondition(getEntityManager(), (From<Object, Object>) getQueryResultFrom());
   }
 
-  private final javax.persistence.criteria.Expression<Boolean> createWhereFromFilter(
+  private final jakarta.persistence.criteria.Expression<Boolean> createWhereFromFilter(
       final FilterContextQueryBuilderIfc filterContext, final List<UriResource> navPath, final FilterOption filterOption)
           throws ExpressionVisitException, ODataApplicationException {
 
@@ -397,11 +397,11 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return filterProcessor.compile();
   }
 
-  protected javax.persistence.criteria.Expression<Boolean> createWhere() throws ODataApplicationException,
+  protected jakarta.persistence.criteria.Expression<Boolean> createWhere() throws ODataApplicationException,
   ODataJPAModelException {
 
-    javax.persistence.criteria.Expression<Boolean> whereCondition = createWhereFromKeyPredicates();
-    final javax.persistence.criteria.Expression<Boolean> accessConditionerClause =
+    jakarta.persistence.criteria.Expression<Boolean> whereCondition = createWhereFromKeyPredicates();
+    final jakarta.persistence.criteria.Expression<Boolean> accessConditionerClause =
         createWhereFromAccessConditioner();
     whereCondition = combineAND(whereCondition, accessConditionerClause);
 
@@ -418,7 +418,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
             uriNavigation.getFirstStep().getUriResourceParts());
         final FilterQueryBuilderContext filterContext = new FilterQueryBuilderContext(jpaStartEntityType,
             getQueryStartFrom());
-        final javax.persistence.criteria.Expression<Boolean> filterCondition = createWhereFromFilter(filterContext,
+        final jakarta.persistence.criteria.Expression<Boolean> filterCondition = createWhereFromFilter(filterContext,
             navPath,
             filterOption);
         whereCondition = combineAND(whereCondition, filterCondition);
@@ -447,7 +447,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
         final List<UriResource> navFilterPath = extractNavigableResourcePath(context.getEdmProvider()
             .getServiceDocument(), navResourcePath);
 
-        final javax.persistence.criteria.Expression<Boolean> navFilterCondition = createWhereFromFilter(
+        final jakarta.persistence.criteria.Expression<Boolean> navFilterCondition = createWhereFromFilter(
             navFilterContext, navFilterPath, navFilterOption);
         whereCondition = combineAND(whereCondition, navFilterCondition);
       }
@@ -456,7 +456,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
           HttpStatusCode.BAD_REQUEST, e);
     }
 
-    final javax.persistence.criteria.Expression<Boolean> existsSubQuery = buildNavigationWhereClause();
+    final jakarta.persistence.criteria.Expression<Boolean> existsSubQuery = buildNavigationWhereClause();
     whereCondition = combineAND(whereCondition, existsSubQuery);
     whereCondition = combineAND(whereCondition, createWhereFromSearchOption(uriNavigation.getLastStep()
         .getSearchOption()));
@@ -472,9 +472,9 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return keyPredicates;
   }
 
-  private final javax.persistence.criteria.Expression<Boolean> createWhereFromKeyPredicates()
+  private final jakarta.persistence.criteria.Expression<Boolean> createWhereFromKeyPredicates()
       throws ODataApplicationException {
-    // javax.persistence.criteria.Expression<Boolean> whereCondition = null;
+    // jakarta.persistence.criteria.Expression<Boolean> whereCondition = null;
 
     // final List<UriResource> resources = uriResource.getUriResourceParts();
     final List<UriParameter> keyPredicates = getKeyPredicates();
@@ -499,16 +499,16 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    * This is solved by a three steps approach
    * @throws ODataJPAModelException
    */
-  private javax.persistence.criteria.Expression<Boolean> buildNavigationWhereClause()
+  private jakarta.persistence.criteria.Expression<Boolean> buildNavigationWhereClause()
       throws ODataApplicationException, ODataJPAModelException {
 
     // 3. Create select statements
-    javax.persistence.criteria.Expression<Boolean> whereCondition = null;
+    jakarta.persistence.criteria.Expression<Boolean> whereCondition = null;
     for (final NavigationBuilder navQuery : navigationQueryList) {
       if (!navQuery.isWorking()) {
         continue;
       }
-      final javax.persistence.criteria.Expression<Boolean> where = navQuery.buildJoinWhere();
+      final jakarta.persistence.criteria.Expression<Boolean> where = navQuery.buildJoinWhere();
       whereCondition = combineAND(whereCondition, where);
     }
     return whereCondition;
@@ -529,7 +529,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  private javax.persistence.criteria.Expression<Boolean> createWhereFromSearchOption(final SearchOption searchOption)
+  private jakarta.persistence.criteria.Expression<Boolean> createWhereFromSearchOption(final SearchOption searchOption)
       throws ODataApplicationException,
       ODataJPAModelException {
     final FilterQueryBuilderContext filterHelper = new FilterQueryBuilderContext(getQueryResultType(),

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.apache.olingo.jpa</groupId>
+		<artifactId>odata-jpa</artifactId>
+		<version>0.61.0</version>
+		<relativePath>..</relativePath>
+	</parent>
+	
+	<artifactId>javax-jakarta-bridge</artifactId>
+	<description>Module providing some fake classes to workaround the dependency of Olingo to javax...</description>
+  
+	<properties>
+	</properties>
+  
+	<dependencies>
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+  
+  
+  <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>   
+            </plugin>
+        </plugins>
+  </build>
+</project>

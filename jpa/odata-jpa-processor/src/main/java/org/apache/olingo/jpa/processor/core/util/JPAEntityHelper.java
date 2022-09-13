@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.metamodel.Metamodel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
@@ -198,7 +198,7 @@ public class JPAEntityHelper {
    * @return A instance of one of the {@link Metamodel#getEntities() managed types}, loaded based on the given OData
    * entity.
    * @throws ODataJPAModelException For any nested exception
-   * @see javax.persistence.EntityManager#find(Class, Object)
+   * @see jakarta.persistence.EntityManager#find(Class, Object)
    */
   @SuppressWarnings("unchecked")
   public final <O> O lookupJPAEntity(final JPAStructuredType jpaType, final Entity oDataEntity)

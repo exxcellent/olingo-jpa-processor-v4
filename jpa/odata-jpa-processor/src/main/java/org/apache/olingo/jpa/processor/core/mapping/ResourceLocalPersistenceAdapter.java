@@ -3,8 +3,8 @@ package org.apache.olingo.jpa.processor.core.mapping;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 

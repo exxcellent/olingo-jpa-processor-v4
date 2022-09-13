@@ -2,7 +2,7 @@ package org.apache.olingo.jpa.generator.api.client.generatorclassloader;
 
 import java.util.Map;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;

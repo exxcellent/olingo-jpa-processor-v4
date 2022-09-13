@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 
 @Embeddable
 public class AdministrativeInformation {

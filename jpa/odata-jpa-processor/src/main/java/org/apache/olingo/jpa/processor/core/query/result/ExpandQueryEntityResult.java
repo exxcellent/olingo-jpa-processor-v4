@@ -3,7 +3,7 @@ package org.apache.olingo.jpa.processor.core.query.result;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Tuple;
+import jakarta.persistence.Tuple;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;

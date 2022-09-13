@@ -6,5 +6,5 @@ public interface Constant {
 	 */
 	public static final String PUNIT_NAME = System.getProperty("persistence-unit", "org.apache.olingo.jpa");
 
-	public static final String ENTITY_MANAGER_DATA_SOURCE = "javax.persistence.nonJtaDataSource";
+	public static final String ENTITY_MANAGER_DATA_SOURCE = "jakarta.persistence.nonJtaDataSource";
 }

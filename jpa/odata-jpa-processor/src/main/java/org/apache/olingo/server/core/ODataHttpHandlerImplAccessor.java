@@ -1,29 +1,38 @@
 package org.apache.olingo.server.core;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.olingo.JakartaJavaxAdapter;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.server.api.ODataLibraryException;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.ODataResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 public abstract class ODataHttpHandlerImplAccessor {
 
-	public static void convertToHttp(final HttpServletResponse response, final ODataResponse odResponse) {
-		ODataHttpHandlerImpl.convertToHttp(response, odResponse);
-	}
+  public static void convertToHttp(final HttpServletResponse response, final ODataResponse odResponse) {
+    final javax.servlet.http.HttpServletResponse javaxResp = JakartaJavaxAdapter.adapt(response,
+        javax.servlet.http.HttpServletResponse.class);
+    ODataHttpHandlerImpl.convertToHttp(javaxResp, odResponse);
+  }
 
-	public static void copyHeaders(final ODataRequest odRequest, final HttpServletRequest req) {
-		ODataHttpHandlerImpl.copyHeaders(odRequest, req);
-	}
+  public static void copyHeaders(final ODataRequest odRequest, final HttpServletRequest req) {
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(req,
+        javax.servlet.http.HttpServletRequest.class);
+    ODataHttpHandlerImpl.copyHeaders(odRequest, javaxReq);
+  }
 
-	public static HttpMethod extractMethod(final HttpServletRequest httpRequest) throws ODataLibraryException {
-		return ODataHttpHandlerImpl.extractMethod(httpRequest);
-	}
+  public static HttpMethod extractMethod(final HttpServletRequest httpRequest) throws ODataLibraryException {
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(httpRequest,
+        javax.servlet.http.HttpServletRequest.class);
+    return ODataHttpHandlerImpl.extractMethod(javaxReq);
+  }
 
-	public static void fillUriInformation(final ODataRequest odRequest,
-	        final HttpServletRequest httpRequest, final int split) {
-		ODataHttpHandlerImpl.fillUriInformation(odRequest, httpRequest, split);
-	}
+  public static void fillUriInformation(final ODataRequest odRequest,
+      final HttpServletRequest httpRequest, final int split) {
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(httpRequest,
+        javax.servlet.http.HttpServletRequest.class);
+    ODataHttpHandlerImpl.fillUriInformation(odRequest, javaxReq, split);
+  }
 }

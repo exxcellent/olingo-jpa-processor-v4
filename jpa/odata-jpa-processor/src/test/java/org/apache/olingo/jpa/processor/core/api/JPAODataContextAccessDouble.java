@@ -4,7 +4,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Locale;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;

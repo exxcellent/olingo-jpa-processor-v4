@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import javax.persistence.JoinColumn;
+import jakarta.persistence.JoinColumn;
 
 /**
  * The mapping is always defined as navigate 'from' ([source] entity column)

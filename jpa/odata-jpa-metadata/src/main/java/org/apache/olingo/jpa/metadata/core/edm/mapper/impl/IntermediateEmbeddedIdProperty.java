@@ -1,12 +1,12 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import javax.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.Attribute;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
 /**
- * {@link javax.persistence.EmbeddedId @EmbeddedId's} are handled as special
+ * {@link jakarta.persistence.EmbeddedId @EmbeddedId's} are handled as special
  * attributes, because all the id fields in the embedded id are threat as
  * properties of the owning entity.
  *

@@ -3,7 +3,7 @@ package org.apache.olingo.jpa.processor.core.filter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Expression;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;

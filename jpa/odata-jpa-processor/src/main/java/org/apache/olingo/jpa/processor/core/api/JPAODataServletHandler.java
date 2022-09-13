@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
@@ -161,7 +161,7 @@ public class JPAODataServletHandler {
 
   /**
    * Client hook method to change custom resources (like dependencies for dependency injection support) before an
-   * transaction ({@link JPAAdapter#beginTransaction(javax.persistence.EntityManager)}) is started and after possible
+   * transaction ({@link JPAAdapter#beginTransaction(jakarta.persistence.EntityManager)}) is started and after possible
    * security checks.
    *
    * @param requestContext The context of current request where processing will starting..

@@ -2,8 +2,8 @@ package org.apache.olingo.jpa.processor.core.testmodel.converter.jpa;
 
 import java.util.UUID;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 // Do not change the 'autoApply = true', it's required to match a test scenario
 @Converter(autoApply = true)

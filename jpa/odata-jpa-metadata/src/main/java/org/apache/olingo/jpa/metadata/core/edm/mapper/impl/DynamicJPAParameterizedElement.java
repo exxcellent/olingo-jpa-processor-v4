@@ -2,7 +2,7 @@ package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.AnnotatedElement;
 
-import javax.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElement;
 

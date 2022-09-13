@@ -14,22 +14,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
 
-		<!-- test and metadata module are using java.time.LocalDate from JRE 1.8 -->
-		<java.source.version>1.8</java.source.version>
-		<java.target.version>1.8</java.target.version>
-
 		<slf4j.version>1.7.36</slf4j.version>
 		<logback.version>1.2.11</logback.version>
 		<olingo.version>4.9.0</olingo.version>
 		<jetty.version>9.4.43.v20210629</jetty.version>
         <jersey.version>2.35</jersey.version>
 		<jackson.version>2.13.2</jackson.version>
-		<javax.servlet.version>4.0.1</javax.servlet.version>
-		<eclipselink.version>2.7.10</eclipselink.version>
+		<eclipselink.version>3.0.2</eclipselink.version>
 		<openjpa.version>3.2.2</openjpa.version>
 		<hibernate.version>5.6.8.Final</hibernate.version>
 		<maven.plugin.version>3.8.5</maven.plugin.version>
-		<derby.version>10.14.2.0</derby.version><!-- latest version for Java 8 -->
+		<derby.version>10.15.2.0</derby.version>
 	</properties>
 
 	<modules>
@@ -132,9 +127,9 @@
 				<version>${eclipselink.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>javax.persistence</groupId>
-			    <artifactId>javax.persistence-api</artifactId>
-			    <version>2.2</version>
+			    <groupId>jakarta.persistence</groupId>
+			    <artifactId>jakarta.persistence-api</artifactId>
+			    <version>3.1.0</version>
 			</dependency>
 			<dependency>
 			    <groupId>org.hibernate</groupId>
@@ -178,9 +173,9 @@
 				<version>2.0.1.Final</version>
 			</dependency>
 			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>javax.servlet-api</artifactId>
-				<version>${javax.servlet.version}</version>
+			    <groupId>jakarta.servlet</groupId>
+			    <artifactId>jakarta.servlet-api</artifactId>
+			    <version>5.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -365,8 +360,7 @@
 						<showWarnings>true</showWarnings>
 						<showDeprecation>true</showDeprecation>
 						<compilerArgument>-Xlint:unchecked</compilerArgument>
-						<source>${java.source.version}</source>
-						<target>${java.target.version}</target>
+						<release>11</release>
 						<encoding>${project.build.sourceEncoding}</encoding>
 					</configuration>
 				</plugin>

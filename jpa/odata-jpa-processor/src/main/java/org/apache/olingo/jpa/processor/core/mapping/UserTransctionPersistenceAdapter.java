@@ -4,8 +4,8 @@ import java.util.Map;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -68,7 +68,7 @@ public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 	 *            The helper to access database with proper SQL dialect.
 	 * @param entityManagerFactory
 	 *            The entity manager factory from outside; normally injected via
-	 *            {@link javax.persistence.PersistenceUnit @PersistenceUnit}.
+	 *            {@link jakarta.persistence.PersistenceUnit @PersistenceUnit}.
 	 * @param jndiUserTxName
 	 *            The JNDI name used to lookup for user transaction.
 	 */

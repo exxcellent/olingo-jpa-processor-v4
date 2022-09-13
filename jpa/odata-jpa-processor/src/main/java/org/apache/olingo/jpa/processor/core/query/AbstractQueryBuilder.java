@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.EntityManager;
-import javax.persistence.SecondaryTable;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.SecondaryTable;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
 
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
@@ -51,9 +51,9 @@ abstract class AbstractQueryBuilder {
     return cb;
   }
 
-  protected final javax.persistence.criteria.Expression<Boolean> combineAND(
-      javax.persistence.criteria.Expression<Boolean> whereCondition,
-      final javax.persistence.criteria.Expression<Boolean> additionalExpression) {
+  protected final jakarta.persistence.criteria.Expression<Boolean> combineAND(
+      jakarta.persistence.criteria.Expression<Boolean> whereCondition,
+      final jakarta.persistence.criteria.Expression<Boolean> additionalExpression) {
 
     if (additionalExpression != null) {
       if (whereCondition == null) {
@@ -82,7 +82,7 @@ abstract class AbstractQueryBuilder {
    *
    * @return A condition for existing key predicates or <code>null</code>.
    */
-  protected final javax.persistence.criteria.Expression<Boolean> extendWhereByKey(final From<?, ?> root,
+  protected final jakarta.persistence.criteria.Expression<Boolean> extendWhereByKey(final From<?, ?> root,
       final JPAStructuredType entity, final List<UriParameter> keyPredicates)
           throws ODataApplicationException {
     // .../Organizations('3')
@@ -90,7 +90,7 @@ abstract class AbstractQueryBuilder {
     if (keyPredicates == null || keyPredicates.isEmpty()) {
       return null;
     }
-    javax.persistence.criteria.Expression<Boolean> compoundCondition = null;
+    jakarta.persistence.criteria.Expression<Boolean> compoundCondition = null;
 
     for (final UriParameter keyPredicate : keyPredicates) {
       if (keyPredicate.getText() == null) {
@@ -99,7 +99,7 @@ abstract class AbstractQueryBuilder {
       }
       try {
         final Path<?> path = buildPath(root, entity, keyPredicate);
-        final javax.persistence.criteria.Expression<Boolean> equalCondition = cb.equal(path, eliminateApostrophe(
+        final jakarta.persistence.criteria.Expression<Boolean> equalCondition = cb.equal(path, eliminateApostrophe(
             keyPredicate.getText()));
         compoundCondition = combineAND(compoundCondition, equalCondition);
       } catch (final ODataJPAModelException e) {

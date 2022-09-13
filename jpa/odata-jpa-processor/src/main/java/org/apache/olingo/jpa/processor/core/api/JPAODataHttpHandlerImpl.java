@@ -6,10 +6,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.olingo.JakartaJavaxAdapter;
 import org.apache.olingo.commons.api.ex.ODataError;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
@@ -42,6 +39,10 @@ import org.apache.olingo.server.core.uri.parser.UriParserSemanticException;
 import org.apache.olingo.server.core.uri.parser.UriParserSyntaxException;
 import org.apache.olingo.server.core.uri.validator.UriValidationException;
 
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * @see org.apache.olingo.server.core.ODataHttpHandlerImpl
  */
@@ -56,8 +57,8 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
   private int split = 0;
 
   public JPAODataHttpHandlerImpl(final JPAODataServletHandler servletHandler,
-      final JPAODataGlobalContextImpl globalContext, final HttpServletRequest request,
-      final HttpServletResponse response) throws ODataException {
+      final JPAODataGlobalContextImpl globalContext, final jakarta.servlet.http.HttpServletRequest request,
+      final jakarta.servlet.http.HttpServletResponse response) throws ODataException {
     super(servletHandler.getJPAODataContext().getOdata(),
         globalContext.getServiceMetaData(), globalContext.getServerDebugger());
     this.servletHandler = servletHandler;
@@ -137,8 +138,26 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     }
   }
 
-  @Override
+  /**
+   * Convenience method to bridge from <i>jakarta</i> to <i>javax</i> namespace for request and response.
+   *
+   * @see #process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+   */
   public void process(final HttpServletRequest request, final HttpServletResponse response) {
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(request,
+        javax.servlet.http.HttpServletRequest.class);
+    final javax.servlet.http.HttpServletResponse javaxResp = JakartaJavaxAdapter.adapt(response,
+        javax.servlet.http.HttpServletResponse.class);
+    this.process(javaxReq, javaxResp);
+  }
+
+  /**
+   * @deprecated Use <i>jakarta</i> based <i>process()</i> method
+   */
+  @Deprecated
+  @Override
+  public void process(final javax.servlet.http.HttpServletRequest request,
+      final javax.servlet.http.HttpServletResponse response) {
     final ODataRequest odRequest = new ODataRequest();
     Exception exception = null;
     ODataResponse odResponse;

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation is used to limit the access to an OData entity (JPA entity
- * with annotation {@link javax.persistence.Entity @Entity}) in combination with
+ * with annotation {@link jakarta.persistence.Entity @Entity}) in combination with
  * {@link org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor
  * AnnotationBasedSecurityInceptor}. Default is: reject access to the secured
  * entity for all (unconfigured)

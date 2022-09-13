@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import javax.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Expression;
 
 /**
  *
@@ -10,5 +10,5 @@ import javax.persistence.criteria.Expression;
  */
 public interface JPAExpression<T> extends JPAExpressionElement<Expression<T>> {
   // marker interface for expression element producing a
-  // javax.persistence.criteria.Expression
+  // jakarta.persistence.criteria.Expression
 }

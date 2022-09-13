@@ -2,8 +2,8 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 
 public class CountryKey implements Serializable {
 	private static final long serialVersionUID = 229175464207091262L;

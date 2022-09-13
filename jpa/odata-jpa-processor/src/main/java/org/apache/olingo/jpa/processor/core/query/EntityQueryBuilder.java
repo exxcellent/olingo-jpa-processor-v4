@@ -11,17 +11,17 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
-import javax.persistence.criteria.Subquery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.criteria.Subquery;
 
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmProperty;
@@ -166,7 +166,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     cq.multiselect(joinSelections);
 
-    final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
+    final jakarta.persistence.criteria.Expression<Boolean> whereClause = createWhere();
     if (whereClause != null) {
       cq.where(whereClause);
     }
@@ -254,10 +254,10 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     return allExpResults;
   }
 
-  private List<javax.persistence.criteria.Expression<?>> createGroupBy(final List<JPASelector> selectionPathList)
+  private List<jakarta.persistence.criteria.Expression<?>> createGroupBy(final List<JPASelector> selectionPathList)
       throws ODataApplicationException {
 
-    final List<javax.persistence.criteria.Expression<?>> groupBy = new ArrayList<javax.persistence.criteria.Expression<?>>();
+    final List<jakarta.persistence.criteria.Expression<?>> groupBy = new ArrayList<jakarta.persistence.criteria.Expression<?>>();
 
     for (final JPASelector jpaPath : selectionPathList) {
       final Path<?> path = convertToCriteriaAliasPath(getQueryResultFrom(), jpaPath, null);
@@ -495,7 +495,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * remove elements from it)
    * @return The elements removed from <i>completeSelectorList</i>, because are
    * for attributes being a
-   * {@link javax.persistence.ElementCollection @ElementCollection}. The
+   * {@link jakarta.persistence.ElementCollection @ElementCollection}. The
    * selector elements are sorted into a map for all selectors starting
    * from the same attribute (first element in path list).
    */

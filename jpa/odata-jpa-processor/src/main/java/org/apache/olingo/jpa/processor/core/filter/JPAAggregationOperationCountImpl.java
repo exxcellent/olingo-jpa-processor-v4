@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
 
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.query.FilterContextQueryBuilderIfc;

@@ -7,9 +7,9 @@ import static org.junit.Assume.assumeTrue;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.persistence.metamodel.Attribute.PersistentAttributeType;
-import javax.persistence.metamodel.EmbeddableType;
-import javax.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.EmbeddableType;
+import jakarta.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressData;

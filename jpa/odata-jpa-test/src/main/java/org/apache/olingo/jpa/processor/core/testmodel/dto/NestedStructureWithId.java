@@ -3,7 +3,7 @@ package org.apache.olingo.jpa.processor.core.testmodel.dto;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;

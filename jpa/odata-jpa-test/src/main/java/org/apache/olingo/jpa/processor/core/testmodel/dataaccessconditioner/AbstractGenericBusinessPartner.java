@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner;
 
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.MappedSuperclass;
 
 import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
 
