@@ -1,5 +1,9 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -11,10 +15,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmMediaStream;
 
 @Entity(name = "PersonImage")
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::PersonImage\"")
@@ -33,7 +33,7 @@ public class PersonImage implements BPImageIfc {
     @AttributeOverride(name = "created.at", column = @Column(name = "\"CreatedAt\"", insertable = false)),
     @AttributeOverride(name = "updated.by", column = @Column(name = "\"UpdatedBy\"")),
     @AttributeOverride(name = "updated.at", column = @Column(name = "\"UpdatedAt\"")) })
-  private final AdministrativeInformation administrativeInformation = new AdministrativeInformation();
+  private AdministrativeInformation administrativeInformation = new AdministrativeInformation();
 
   @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
   @JoinColumn(name = "\"PID\"", insertable = false, updatable = false, nullable = true)

@@ -8,6 +8,13 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.validation.constraints.NotNull;
+
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -21,12 +28,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
-import javax.validation.constraints.NotNull;
-
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter;
-import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 
 @Entity(name = "Person")
 @DiscriminatorValue(value = "1")
@@ -67,7 +68,7 @@ public class Person extends BusinessPartner {
   // with persons having no Phone entry
   @ElementCollection
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\"", referencedColumnName = "\"ID\"", updatable = false, insertable = false))
-  private final Collection<Phone> partnerTelephoneConnections = new LinkedList<>();
+  private Collection<Phone> partnerTelephoneConnections = new LinkedList<>();
 
   @OneToMany(fetch = FetchType.LAZY, orphanRemoval = false, cascade = { CascadeType.REFRESH })
   @JoinTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::OrganizationMember\"", joinColumns = { @JoinColumn(

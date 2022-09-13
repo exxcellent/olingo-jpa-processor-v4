@@ -13,8 +13,6 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest; // using our bridge javax-jakarta-bridge
-
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.commons.core.Decoder;
@@ -28,6 +26,7 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpUpgradeHandler;
 import jakarta.servlet.http.Part;
@@ -513,7 +512,7 @@ public class HttpServletRequestDouble implements HttpServletRequest {
 
   @Override
   public boolean authenticate(final jakarta.servlet.http.HttpServletResponse response) throws IOException,
-      ServletException {
+  ServletException {
     // authenticate the request, because test case has assigned a principal to use
     // as present
     if (principal == null) {

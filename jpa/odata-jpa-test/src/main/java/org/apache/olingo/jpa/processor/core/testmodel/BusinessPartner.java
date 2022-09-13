@@ -7,6 +7,14 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.olingo.jpa.cdi.Inject;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -27,14 +35,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
-import org.apache.olingo.jpa.cdi.Inject;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;;
 
 @Inheritance
 @DiscriminatorColumn(name = "\"Type\"")
@@ -139,7 +139,7 @@ public abstract class BusinessPartner {
   @ElementCollection
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
   @Column(name = "\"PhoneNumber\"", length = 128, insertable = false, updatable = false)
-  private final Set<String> phoneNumbersAsString = new HashSet<>();
+  private Set<String> phoneNumbersAsString = new HashSet<>();
 
   /**
    * Additional mapping for an {@link ElementCollection @ElementCollection} using
@@ -147,7 +147,7 @@ public abstract class BusinessPartner {
    */
   @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::Phone\"", joinColumns = @JoinColumn(name = "\"PartnerID\""))
-  private final Set<Phone> phoneNumbers = new HashSet<>();
+  private Set<Phone> phoneNumbers = new HashSet<>();
 
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
   @JoinColumn(name = "\"CreatedBy\"", insertable = false, updatable = false, nullable = true)

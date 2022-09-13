@@ -11,7 +11,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.apache.olingo.JakartaJavaxAdapter;
+import org.apache.olingo.JakartaJavaxAdapterFactory;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlFunction;
@@ -79,9 +79,9 @@ public class ODataServlet extends HttpServlet {
   @Override
   protected void service(final HttpServletRequest req, final HttpServletResponse resp)
       throws ServletException, IOException {
-    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(req,
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapterFactory.adapt(req,
         javax.servlet.http.HttpServletRequest.class);
-    final javax.servlet.http.HttpServletResponse javaxResp = JakartaJavaxAdapter.adapt(resp,
+    final javax.servlet.http.HttpServletResponse javaxResp = JakartaJavaxAdapterFactory.adapt(resp,
         javax.servlet.http.HttpServletResponse.class);
     requestHandler.process(javaxReq, javaxResp);
   }

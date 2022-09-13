@@ -2,7 +2,7 @@ package org.apache.olingo.jpa.processor.core.api;
 
 import java.util.Locale;
 
-import org.apache.olingo.JakartaJavaxAdapter;
+import org.apache.olingo.JakartaJavaxAdapterFactory;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.metadata.api.JPAEdmProvider;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAException;
@@ -81,7 +81,7 @@ class JPAODataRequestContextImpl extends AbstractContextImpl implements Modifiab
     if (disposed) {
       throw new IllegalStateException("Already disposed");
     }
-    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapter.adapt(request,
+    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapterFactory.adapt(request,
         javax.servlet.http.HttpServletRequest.class);
     parentContext.getServerDebugger().resolveDebugMode(javaxReq);
     if (parentContext.getServerDebugger().isDebugMode()) {

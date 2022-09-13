@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.logging.Logger;
 
-import jakarta.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest; // using our bridge javax-jakarta-bridge
-import javax.servlet.http.HttpServletResponse; // using our bridge javax-jakarta-bridge
-
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -26,6 +22,10 @@ import org.apache.olingo.server.api.uri.UriResourceAction;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePartTyped;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Generic inceptor configured via annotations on entity classes. This inceptor
