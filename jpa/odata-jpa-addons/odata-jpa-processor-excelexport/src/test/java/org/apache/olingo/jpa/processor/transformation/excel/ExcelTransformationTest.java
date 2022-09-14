@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -12,11 +13,6 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Query;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -40,6 +36,11 @@ import org.apache.olingo.server.api.serializer.RepresentationType;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.junit.Before;
 import org.junit.Test;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Query;
 
 public class ExcelTransformationTest extends TestBase {
 
@@ -80,6 +81,7 @@ public class ExcelTransformationTest extends TestBase {
 
     assertTrue(data.length > 1000);
 
+    new File("target").mkdirs();
     final FileOutputStream file = new FileOutputStream("target/test-full.xlsx");
     file.write(data);
     file.flush();
@@ -245,6 +247,7 @@ public class ExcelTransformationTest extends TestBase {
 
     assertTrue(data.length > 1000);
 
+    new File("target").mkdirs();
     final FileOutputStream file = new FileOutputStream("target/test-load.xlsx");
     file.write(data);
     file.flush();
