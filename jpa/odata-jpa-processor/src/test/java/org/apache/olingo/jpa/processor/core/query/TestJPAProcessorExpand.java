@@ -132,7 +132,6 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi2Hops() throws IOException, ODataException {
-
     final Map<String, Object> mapKeys = new HashMap<String, Object>();
     mapKeys.put("DivisionCode", "BE253");
     mapKeys.put("CodeID", "NUTS3");
@@ -185,8 +184,13 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testNestedExpandNestedExpand3LevelsSelf() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='33016',CodeID='LAU2',CodePublisher='Eurostat')?$expand=Parent($expand=Parent($expand=Parent))");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "33016");
+    mapKeys.put("CodeID", "LAU2");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expand("Parent($expand=Parent($expand=Parent))");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -410,7 +414,6 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandTwoNavigationPath() throws IOException, ODataException {
-
     final Map<String, Object> mapKeys = new HashMap<String, Object>();
     mapKeys.put("DivisionCode", "BE32");
     mapKeys.put("CodeID", "NUTS2");
@@ -452,8 +455,13 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandLevel1() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='38025',CodeID='LAU2',CodePublisher='Eurostat')?$expand=Parent($levels=1)");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "38025");
+    mapKeys.put("CodeID", "LAU2");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expand("Parent($levels=1)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
@@ -465,8 +473,13 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandLevelMax() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE241',CodeID='NUTS3',CodePublisher='Eurostat')?$expand=Parent($levels=max)");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE241");
+    mapKeys.put("CodeID", "NUTS3");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        mapKeys).expand("Parent($levels=max)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();

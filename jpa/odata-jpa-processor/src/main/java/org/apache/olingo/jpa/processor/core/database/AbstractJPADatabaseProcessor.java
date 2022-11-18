@@ -38,6 +38,7 @@ import org.apache.olingo.jpa.processor.core.filter.JPAExpressionElement;
 import org.apache.olingo.jpa.processor.core.filter.JPALiteralOperand;
 import org.apache.olingo.jpa.processor.core.filter.JPALiteralTypeOperand;
 import org.apache.olingo.jpa.processor.core.filter.JPAUnaryBooleanOperation;
+import org.apache.olingo.jpa.processor.core.filter.ODataBuiltinFunctionCall;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
@@ -195,11 +196,9 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
       // http://docs.oasis-open.org/odata/odata/v4.0/os/part2-url-conventions/odata-v4.0-os-part2-url-conventions.html#_Toc372793820)
       // SQL databases respectively use 1 as start position of a string
 
-      final Expression<Integer> start = convertLiteralToExpression(parameters.get(1), 1);
-      // final Integer start = new Integer(((JPALiteralOperator)
-      // jpaFunction.getParameter(1)).get().toString()) + 1;
+      final Expression<Integer> start = convertSubstringParameterToExpression(parameters.get(1), 1);
       if (parameters.size() == 3) {
-        final Expression<Integer> length = convertLiteralToExpression(parameters.get(2), 0);
+        final Expression<Integer> length = convertSubstringParameterToExpression(parameters.get(2), 0);
         return cb.substring((Expression<String>) (parameters.get(0).get()), start, length);
       } else {
         return cb.substring((Expression<String>) (parameters.get(0).get()), start);
@@ -297,14 +296,27 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   }
 
   /**
+   *
+   * @param value
+   * The expression to cast into a DATE value.
+   * @return the criteria API expression casting/converting the given expression
+   * value into a INTEGER.
+   * @throws ODataApplicationException
+   */
+  protected Expression<?> cast2Integer(final Expression<?> value) throws ODataApplicationException {
+    // hopefully JPA will do the right things
+    return value.as(Integer.class);
+  }
+
+  /**
    * Cast a value into another one with database SQL terms.
    *
    * @param value
-   *            The expression or literal to cast.
+   * The expression or literal to cast.
    * @param type
-   *            The target type to cast to.
+   * The target type to cast to.
    * @return The criteria API expression to cast the given <i>value</i> into the
-   *         requested type.
+   * requested type.
    * @throws ODataApplicationException
    * @see {@link MethodKind#CAST}
    */
@@ -315,6 +327,11 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
     if (EdmPrimitiveTypeKind.Date.getFullQualifiedName().equals(type.getFullQualifiedName())) {
       return cast2Date(value);
     }
+    if (EdmPrimitiveTypeKind.Int16.getFullQualifiedName().equals(type.getFullQualifiedName())
+        || EdmPrimitiveTypeKind.Int32.getFullQualifiedName().equals(type.getFullQualifiedName())) {
+      return cast2Integer(value);
+    }
+
     throw new ODataJPAFilterException(ODataJPAFilterException.MessageKeys.NOT_SUPPORTED_OPERATOR,
         HttpStatusCode.NOT_IMPLEMENTED, MethodKind.CAST.name());
   }
@@ -405,21 +422,26 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
   }
 
   @SuppressWarnings("unchecked")
-  private Expression<Integer> convertLiteralToExpression(final JPAExpressionElement<?> parameter, final int offset)
-      throws ODataApplicationException {
+  private Expression<Integer> convertSubstringParameterToExpression(final JPAExpressionElement<?> parameter,
+      final int offset)
+          throws ODataApplicationException {
+    Expression<Integer> rawResult;
     if (parameter instanceof JPAArithmeticOperation) {
-      if (offset != 0) {
-        return cb.sum((Expression<Integer>) parameter.get(), Integer.valueOf(offset));
-      } else {
-        return (Expression<Integer>) parameter.get();
-      }
+      rawResult = (Expression<Integer>) parameter.get();
     } else if (parameter instanceof JPALiteralOperand) {
-      return cb.literal(Integer
-          .valueOf(Integer.parseInt(((JPALiteralOperand) parameter).getODataLiteral().getText()) + offset));
+      rawResult = cb.literal(Integer
+          .valueOf(Integer.parseInt(((JPALiteralOperand) parameter).getODataLiteral().getText())));
+    } else if (parameter instanceof ODataBuiltinFunctionCall) {
+      // type checking should be done, so we can safe cast?!
+      rawResult = (Expression<Integer>) (Expression<?>) ((ODataBuiltinFunctionCall) parameter).get();
     } else {
       // should never happen?
-      return cb.literal(Integer.valueOf(Integer.parseInt(parameter.get().toString()) + offset));
+      //      rawResult = cb.literal(Integer.valueOf(Integer.parseInt(parameter.get().toString())));
+      throw new ODataJPADBAdaptorException(ODataJPADBAdaptorException.MessageKeys.PARAMETER_CONVERSION_ERROR,
+          HttpStatusCode.NOT_IMPLEMENTED, parameter.getClass().getSimpleName(), "substring-parameter");
     }
+    // wrap into sum() for given offset
+    return (offset == 0) ? rawResult : cb.sum(rawResult, Integer.valueOf(offset));
   }
 
   private UriParameter findParameterByExternalName(final JPAOperationParameter parameter,
