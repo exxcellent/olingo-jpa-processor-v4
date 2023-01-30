@@ -16,14 +16,6 @@ public class ODataErrorException extends ODataApplicationException {
 
 	private final ODataError error;
 
-	/**
-	 * @deprecated Use {@link #ODataErrorException(ODataError, Locale)}
-	 */
-	@Deprecated
-	public ODataErrorException(final ODataError error) {
-		this(error, null);
-	}
-
 	public ODataErrorException(final ODataError error, final Locale locale) {
 		super(error.getMessage(), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), locale);
 		this.error = error;
