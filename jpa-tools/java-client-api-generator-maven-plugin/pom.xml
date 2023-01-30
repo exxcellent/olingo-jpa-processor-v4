@@ -82,18 +82,27 @@
 	</dependencies>
   
   
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-descriptor</id>
-            <phase>process-classes</phase>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>  
-  </build>
+	<build>
+	  <plugins>
+	    <plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-plugin-plugin</artifactId>
+	      <executions>
+	        <execution>
+	          <id>default-descriptor</id>
+	          <phase>process-classes</phase>
+	        </execution>
+	      </executions>
+	    </plugin>
+	  </plugins>  
+	</build>
+	
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+	
 </project>

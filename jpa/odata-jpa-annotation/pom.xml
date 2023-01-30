@@ -1,44 +1,53 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.apache.olingo.jpa</groupId>
-    <artifactId>odata-jpa</artifactId>
-    <version>0.61.1</version>
-  </parent>
-  <artifactId>odata-jpa-annotation</artifactId>
-  <name>OData-JPA-Adapter data model configuration API</name>
-  <url>http://maven.apache.org</url>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.apache.olingo.jpa</groupId>
+		<artifactId>odata-jpa</artifactId>
+		<version>0.61.1</version>
+	</parent>
+	<artifactId>odata-jpa-annotation</artifactId>
+	<name>OData-JPA-Adapter data model configuration API</name>
+	<url>http://maven.apache.org</url>
+	
+	<properties>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- Required for security annotations -->
+		   	<groupId>org.apache.olingo</groupId>
+		   	<artifactId>odata-commons-api</artifactId>
+		  	<scope>provided</scope>
+		   </dependency>
+		<dependency>
+			<!-- Required for DTO implementation -->
+			<groupId>org.apache.olingo</groupId>
+			<artifactId>odata-server-api</artifactId>
+		  	<scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>javax.persistence</groupId>
+		    <artifactId>javax.persistence-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
   
-  <properties>
-  </properties>
-  
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-		<!-- Required for security annotations -->
-    	<groupId>org.apache.olingo</groupId>
-    	<artifactId>odata-commons-api</artifactId>
-	  	<scope>provided</scope>
-    </dependency>
-	<dependency>
-		<!-- Required for DTO implementation -->
-		<groupId>org.apache.olingo</groupId>
-		<artifactId>odata-server-api</artifactId>
-	  	<scope>provided</scope>
-	</dependency>
-	<dependency>
-	    <groupId>javax.persistence</groupId>
-	    <artifactId>javax.persistence-api</artifactId>
-		<scope>provided</scope>
-	</dependency>
-  </dependencies>
-  
-  <build>
-  </build>
+	<build>
+	</build>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
 </project>
