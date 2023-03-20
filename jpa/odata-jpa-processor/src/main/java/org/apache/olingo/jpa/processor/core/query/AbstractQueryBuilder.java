@@ -65,6 +65,20 @@ abstract class AbstractQueryBuilder {
     return whereCondition;
   }
 
+  protected final javax.persistence.criteria.Expression<Boolean> combineOR(
+      javax.persistence.criteria.Expression<Boolean> whereCondition,
+      final javax.persistence.criteria.Expression<Boolean> additionalExpression) {
+
+    if (additionalExpression != null) {
+      if (whereCondition == null) {
+        whereCondition = additionalExpression;
+      } else {
+        whereCondition = getCriteriaBuilder().or(whereCondition, additionalExpression);
+      }
+    }
+    return whereCondition;
+  }
+
   private Path<?> buildPath(final From<?, ?> from, final JPAStructuredType entity, final UriParameter keyPredicate)
       throws ODataJPAModelException {
     Path<?> path = from;

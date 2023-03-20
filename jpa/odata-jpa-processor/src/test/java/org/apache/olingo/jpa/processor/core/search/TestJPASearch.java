@@ -77,15 +77,54 @@ public class TestJPASearch extends TestBase {
   }
 
   @Test
-  public void testMultipleAttributesSearchWithComplexExpression() throws IOException, ODataException {
+  public void testMultipleAttributesSearchWithComplexExpressionOR() throws IOException, ODataException {
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
-        "anywhere OR \"888\"");
+        "anywhere OR 12345");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
         uriBuilder);
-    // not supported -> TODO
-    helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode ents = helper.getJsonObjectValues();
+    assertEquals(3, ents.size());
+  }
 
+  @Test
+  public void testMultipleAttributesSearchWithSpacePhrase() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").search(
+        "\"Test Road\" AND NOT \"Seventh Org\"");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode ents = helper.getJsonObjectValues();
+    // the 'Tenth Org.' as a NULL value for "Adress.Region", so the NOT-Condition will exclude it from "...AND NOT(...)"
+    // condition
+    // so the result is -1 as expected
+    assertEquals(8, ents.size());
+  }
+
+  @Test
+  public void testMultipleAttributesSearchWithComplexExpressionANDNOT() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
+        "anywhere AND NOT 2000");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode ents = helper.getJsonObjectValues();
+    assertEquals(1, ents.size());
+  }
+
+  @Test
+  public void testMultipleAttributesSearchWithComplexExpressionAND() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
+        "anywhere AND 2000");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode ents = helper.getJsonObjectValues();
+    assertEquals(1, ents.size());
   }
 
   @Test
