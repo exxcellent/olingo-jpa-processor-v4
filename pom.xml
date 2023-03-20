@@ -25,9 +25,9 @@
         <jersey.version>2.35</jersey.version>
 		<jackson.version>2.14.0</jackson.version>
 		<javax.servlet.version>4.0.1</javax.servlet.version>
-		<eclipselink.version>2.7.10</eclipselink.version>
+		<eclipselink.version>2.7.12</eclipselink.version>
 		<openjpa.version>3.2.2</openjpa.version>
-		<hibernate.version>5.6.8.Final</hibernate.version>
+		<hibernate.version>5.6.15.Final</hibernate.version>
 		<maven.plugin.version>3.8.5</maven.plugin.version>
 		<derby.version>10.14.2.0</derby.version><!-- latest version for Java 8 -->
 	</properties>
