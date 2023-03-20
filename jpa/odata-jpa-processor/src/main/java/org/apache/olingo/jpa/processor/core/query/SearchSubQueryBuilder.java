@@ -20,7 +20,10 @@ import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPADBAdaptorException;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.SearchOption;
+import org.apache.olingo.server.api.uri.queryoption.search.SearchBinary;
+import org.apache.olingo.server.api.uri.queryoption.search.SearchExpression;
 import org.apache.olingo.server.api.uri.queryoption.search.SearchTerm;
+import org.apache.olingo.server.api.uri.queryoption.search.SearchUnary;
 import org.apache.olingo.server.core.uri.parser.search.SearchTermImpl;
 
 /**
@@ -51,9 +54,6 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
     if (searchOption == null || searchOption.getSearchExpression() == null) {
       return null;
     }
-    if (!searchOption.getSearchExpression().isSearchTerm()) {
-      throw new UnsupportedOperationException("$search expression type not supported");
-    }
     try {
       boolean attributesWithSearchableAnnotationFound = true;
       final JPAStructuredType jpaEntityType = getOwningQueryBuilder().getQueryResultType();
@@ -79,13 +79,6 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
         joinDummyFromCorrelation = getCriteriaBuilder().equal(subqueryResultFrom, dummyFrom);
       }
 
-      SearchTerm term = searchOption.getSearchExpression().asSearchTerm();
-
-      // use double decoding to workaround OLINGO-1239
-      String sTerm = term.getSearchTerm();
-      sTerm = Decoder.decode(sTerm);
-      term = new SearchTermImpl(sTerm);
-
       final List<Path<?>> columnList = new ArrayList<Path<?>>(searchableAttributes.size());
       for (final JPASelector searchableAttribute : searchableAttributes) {
         if (containsNavigationToOtherTable(searchableAttribute)) {
@@ -102,19 +95,54 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
       // EXISTS subselect needs only a marker select for existence
       subQuery.select(getCriteriaBuilder().literal(Integer.valueOf(1)));
 
-      final Expression<Boolean> searchCondition = context.getDatabaseProcessor().createSearchExpression(term,
-          columnList);
-      if (searchCondition == null) {
-        throw new ODataJPADBAdaptorException(ODataJPADBAdaptorException.MessageKeys.NOT_SUPPORTED_SEARCH,
-            HttpStatusCode.INTERNAL_SERVER_ERROR);
-      }
-
+      final Expression<Boolean> searchCondition = buildSearchCondition(searchOption.getSearchExpression(), columnList);
       final Expression<Boolean> whereCondition = combineAND(joinDummyFromCorrelation, searchCondition);
       subQuery.where(whereCondition);
       return subQuery;
     } catch (final ODataJPAModelException e) {
       throw new ODataJPADBAdaptorException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  private Expression<Boolean> buildSearchCondition(final SearchExpression expression, final List<Path<?>> columnList)
+      throws ODataApplicationException {
+    if (expression.isSearchTerm()) {
+      final SearchTerm term = expression.asSearchTerm();
+      return buildSearchTermCondition(term, columnList);
+    } else if (expression.isSearchBinary()) {
+      final SearchBinary binExpression = expression.asSearchBinary();
+      final Expression<Boolean> left = buildSearchCondition(binExpression.getLeftOperand(), columnList);
+      final Expression<Boolean> right = buildSearchCondition(binExpression.getRightOperand(), columnList);
+      switch (binExpression.getOperator()) {
+      case AND:
+        return combineAND(left, right);
+      case OR:
+        return combineOR(left, right);
+      }
+    } else if (expression.isSearchUnary()) {
+      final SearchUnary unaryExpression = expression.asSearchUnary();
+      switch (unaryExpression.getOperator()) {
+      case NOT:
+        return getCriteriaBuilder().not(buildSearchTermCondition(unaryExpression.getOperand(), columnList));
+      }
+    }
+    throw new UnsupportedOperationException("$search expression type not supported");
+  }
+
+  private Expression<Boolean> buildSearchTermCondition(SearchTerm term, final List<Path<?>> columnList)
+      throws ODataApplicationException {
+    // use double decoding to workaround OLINGO-1239
+    String sTerm = term.getSearchTerm();
+    sTerm = Decoder.decode(sTerm);
+    term = new SearchTermImpl(sTerm);
+
+    final Expression<Boolean> searchCondition = context.getDatabaseProcessor().createSearchExpression(term,
+        columnList);
+    if (searchCondition == null) {
+      throw new ODataJPADBAdaptorException(ODataJPADBAdaptorException.MessageKeys.NOT_SUPPORTED_SEARCH,
+          HttpStatusCode.INTERNAL_SERVER_ERROR);
+    }
+    return searchCondition;
   }
 
   /**
