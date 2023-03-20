@@ -20,7 +20,7 @@
 		<jetty.version>11.0.15</jetty.version>
         <jersey.version>3.1.2</jersey.version>
 		<jackson.version>2.15.2</jackson.version>
-		<eclipselink.version>3.0.2</eclipselink.version>
+		<eclipselink.version>4.0.2</eclipselink.version>
 		<openjpa.version>3.2.2</openjpa.version>
 		<hibernate.version>5.6.8.Final</hibernate.version>
 		<maven.plugin.version>3.9.2</maven.plugin.version>
@@ -567,11 +567,11 @@
 	<distributionManagement>
 		<repository>
 			<id>packagecloud</id>
-			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jpa-processor-v4</url>
+			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jakarta-tmp</url>
 		</repository>
 		<snapshotRepository>
 			<id>packagecloud</id>
-			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jpa-processor-v4</url>
+			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jakarta-tmp</url>
 		</snapshotRepository>
 	</distributionManagement>
 	
