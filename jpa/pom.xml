@@ -17,7 +17,6 @@
 	<url>http://maven.apache.org</url>
 
 	<modules>
-		<module>javax-jakarta-bridge</module>
 		<module>odata-jpa-annotation</module>
 		<module>odata-jpa-test</module>
 		<!-- metadata depends on test :-( -->

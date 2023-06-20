@@ -33,6 +33,9 @@ import jakarta.servlet.http.Part;
 
 public class HttpServletRequestDouble implements HttpServletRequest {
 
+  private static int REQUEST_SEQUENCE = 0;
+
+  private final String requestId = Integer.toString(++REQUEST_SEQUENCE);
   private final HttpRequestHeaderDouble reqHeader;
   private final String queryString;
   private final StringBuffer url;

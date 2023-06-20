@@ -7,12 +7,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import javax.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Id;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
@@ -28,6 +22,12 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.junit.Before;
 import org.junit.Test;
+
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class TestDependencyInjection extends TestBase {
 

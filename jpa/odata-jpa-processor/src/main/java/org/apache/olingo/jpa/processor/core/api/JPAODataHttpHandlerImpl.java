@@ -6,7 +6,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
-import org.apache.olingo.JakartaJavaxAdapterFactory;
 import org.apache.olingo.commons.api.ex.ODataError;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpMethod;
@@ -138,26 +137,8 @@ class JPAODataHttpHandlerImpl extends ODataHandlerImpl implements ODataHttpHandl
     }
   }
 
-  /**
-   * Convenience method to bridge from <i>jakarta</i> to <i>javax</i> namespace for request and response.
-   *
-   * @see #process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-   */
-  public void process(final HttpServletRequest request, final HttpServletResponse response) {
-    final javax.servlet.http.HttpServletRequest javaxReq = JakartaJavaxAdapterFactory.adapt(request,
-        javax.servlet.http.HttpServletRequest.class);
-    final javax.servlet.http.HttpServletResponse javaxResp = JakartaJavaxAdapterFactory.adapt(response,
-        javax.servlet.http.HttpServletResponse.class);
-    this.process(javaxReq, javaxResp);
-  }
-
-  /**
-   * @deprecated Use <i>jakarta</i> based <i>process()</i> method
-   */
-  @Deprecated
   @Override
-  public void process(final javax.servlet.http.HttpServletRequest request,
-      final javax.servlet.http.HttpServletResponse response) {
+  public void process(final HttpServletRequest request, final HttpServletResponse response) {
     final ODataRequest odRequest = new ODataRequest();
     Exception exception = null;
     ODataResponse odResponse;

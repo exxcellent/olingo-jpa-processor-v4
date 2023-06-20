@@ -14,17 +14,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
 
-		<slf4j.version>1.7.36</slf4j.version>
-		<logback.version>1.2.11</logback.version>
-		<olingo.version>4.9.0</olingo.version>
-		<jetty.version>9.4.43.v20210629</jetty.version>
-        <jersey.version>2.35</jersey.version>
-		<jackson.version>2.13.2</jackson.version>
+		<slf4j.version>2.0.7</slf4j.version>
+		<logback.version>1.4.8</logback.version>
+		<olingo.version>4.10.0-JAKARTA-SNAPSHOT</olingo.version>
+		<jetty.version>11.0.15</jetty.version>
+        <jersey.version>3.1.2</jersey.version>
+		<jackson.version>2.15.2</jackson.version>
 		<eclipselink.version>3.0.2</eclipselink.version>
 		<openjpa.version>3.2.2</openjpa.version>
 		<hibernate.version>5.6.8.Final</hibernate.version>
-		<maven.plugin.version>3.8.5</maven.plugin.version>
-		<derby.version>10.15.2.0</derby.version>
+		<maven.plugin.version>3.9.2</maven.plugin.version>
+		<derby.version>10.16.1.1</derby.version>
 	</properties>
 
 	<modules>
@@ -55,14 +55,14 @@
 			    </exclusions>
 			</dependency>
 			<dependency>
-				<groupId>javax.xml.ws</groupId>
-				<artifactId>jaxws-api</artifactId>
-				<version>2.3.1</version>
+				<groupId>jakarta.xml.ws</groupId>
+				<artifactId>jakarta.xml.ws-api</artifactId>
+				<version>4.0.0</version>
 			</dependency>
 		    <dependency>
-		    	<groupId>javax.ws.rs</groupId>
-		    	<artifactId>javax.ws.rs-api</artifactId>
-			    <version>2.1.1</version>
+		    	<groupId>jakarta.ws.rs</groupId>
+		    	<artifactId>jakarta.ws.rs-api</artifactId>
+			    <version>3.1.0</version>
 		    </dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -116,10 +116,9 @@
 				<version>${olingo.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>javax.transaction</groupId>
-			    <artifactId>javax.transaction-api</artifactId>
-			    <!-- Do not set to 1.3 to run with Java 9 -->
-			    <version>1.2</version>
+			    <groupId>jakarta.transaction</groupId>
+			    <artifactId>jakarta.transaction-api</artifactId>
+			    <version>2.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.persistence</groupId>
@@ -168,9 +167,9 @@
 			    <version>2.1.210</version>
 			</dependency>			
 			<dependency>
-				<groupId>javax.validation</groupId>
-				<artifactId>validation-api</artifactId>
-				<version>2.0.1.Final</version>
+				<groupId>jakarta.validation</groupId>
+				<artifactId>jakarta.validation-api</artifactId>
+				<version>3.0.2</version>
 			</dependency>
 			<dependency>
 			    <groupId>jakarta.servlet</groupId>
@@ -207,17 +206,17 @@
 			<dependency>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-core</artifactId>
-				<version>8.5.9</version>
+				<version>9.19.4</version>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
-				<artifactId>mockito-all</artifactId>
-				<version>1.10.19</version>
+				<artifactId>mockito-core</artifactId>
+				<version>5.3.1</version>
 			</dependency>
 			<dependency>
-			    <groupId>javax.inject</groupId>
-			    <artifactId>javax.inject</artifactId>
-			    <version>1</version>
+			    <groupId>jakarta.inject</groupId>
+			    <artifactId>jakarta.inject-api</artifactId>
+			    <version>2.0.1</version>
 			</dependency>
 	        <dependency>
 	            <groupId>org.glassfish.jersey.core</groupId>
@@ -588,4 +587,18 @@
 			<url>http://nexus.exxcellent.de/repository/maven-snapshots/</url>
 		</snapshotRepository>		
 	</distributionManagement-->
+	
+    <repositories>
+        <repository>
+            <id>packagecloud</id>
+            <url>https://packagecloud.io/exxcellent/olingo-jakarta-tmp/maven2</url>
+		    <releases>
+		      <enabled>true</enabled>
+		    </releases>
+		    <snapshots>
+		      <enabled>true</enabled>
+		    </snapshots>
+        </repository>
+    </repositories>
+	
 </project>

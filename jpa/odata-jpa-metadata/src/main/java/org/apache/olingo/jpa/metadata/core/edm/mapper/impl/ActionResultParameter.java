@@ -7,9 +7,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
-import javax.validation.constraints.NotNull;
-
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
@@ -17,6 +14,9 @@ import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionResult;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationResultParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.validation.constraints.NotNull;
 
 class ActionResultParameter implements JPAOperationResultParameter {
 

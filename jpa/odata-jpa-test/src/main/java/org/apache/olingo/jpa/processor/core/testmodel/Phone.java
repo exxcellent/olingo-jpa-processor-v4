@@ -1,11 +1,11 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import javax.validation.constraints.Size;
-
 import org.apache.olingo.jpa.metadata.core.edm.NamingStrategy;
 import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.Size;
 
 @Embeddable
 @ODataComplexType(attributeNaming = NamingStrategy.AsIs)

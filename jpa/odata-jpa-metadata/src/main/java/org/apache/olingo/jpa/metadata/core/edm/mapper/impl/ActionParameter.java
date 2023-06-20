@@ -7,15 +7,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
-import javax.validation.constraints.NotNull;
-
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlParameter;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+
+import jakarta.persistence.metamodel.PluralAttribute.CollectionType;
+import jakarta.validation.constraints.NotNull;
 
 class ActionParameter implements JPAOperationParameter {
 

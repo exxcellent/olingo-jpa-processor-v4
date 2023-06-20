@@ -108,7 +108,8 @@ public class DataSourceHelper {
   }
 
   public static void initializeDatabase(final DataSource ds) {
-    final Flyway flyway = Flyway.configure().dataSource(ds).schemas(DB_SCHEMA).baselineOnMigrate(true).load();
+    final Flyway flyway = Flyway.configure().dataSource(ds).schemas(DB_SCHEMA).baselineOnMigrate(true).cleanDisabled(
+        false).load();
     flyway.clean();
     flyway.migrate();
   }

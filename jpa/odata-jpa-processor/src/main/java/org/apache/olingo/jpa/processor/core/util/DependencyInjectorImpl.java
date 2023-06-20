@@ -31,7 +31,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
 @SuppressWarnings("unchecked")
 public final class DependencyInjectorImpl implements ModifiableDependencyInjector {
 
-  private static final String JAVAX_INJECT_INJECT_CLASSNAME = "javax.inject.Inject";
+  private static final String JAVAX_INJECT_INJECT_CLASSNAME = "jakarta.inject.Inject";
   private static final Collection<Class<?>> FORBIDDEN_TYPES = new LinkedList<>();
   private static Class<? extends Annotation> injectAnnotation;
 
@@ -205,7 +205,7 @@ public final class DependencyInjectorImpl implements ModifiableDependencyInjecto
         // if no DI has an value then the field is affected multiple times from 'null' setting
         alreadyHandledFields.add(o.field);
       }
-      final boolean accessible = o.field.isAccessible();
+      final boolean accessible = o.field.canAccess(target);
       if (!accessible) {
         o.field.setAccessible(true);
       }
@@ -238,7 +238,7 @@ public final class DependencyInjectorImpl implements ModifiableDependencyInjecto
     if (field.isAnnotationPresent(Inject.class)) {
       return true;
     }
-    // support for javax.inject.Inject, avoiding direct dependencies
+    // support for jakarta.inject.Inject, avoiding direct dependencies
     if (injectAnnotation != null && field.isAnnotationPresent(injectAnnotation)) {
       return true;
     }

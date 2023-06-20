@@ -152,7 +152,7 @@ public class HttpServletResponseDouble implements HttpServletResponse {
     fail();
     return null;
   }
-
+  
   @Override
   public void sendError(final int sc, final String msg) throws IOException {
     // TODO do not ignore message?
@@ -218,7 +218,6 @@ public class HttpServletResponseDouble implements HttpServletResponse {
   @Override
   public void setStatus(final int sc, final String sm) {
     fail();
-
   }
 
   @Override

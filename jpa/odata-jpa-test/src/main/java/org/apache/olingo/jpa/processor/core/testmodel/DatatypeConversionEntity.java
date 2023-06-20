@@ -12,6 +12,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
+
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -23,18 +34,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter;
-import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
-import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * The ID is mapped in super class.

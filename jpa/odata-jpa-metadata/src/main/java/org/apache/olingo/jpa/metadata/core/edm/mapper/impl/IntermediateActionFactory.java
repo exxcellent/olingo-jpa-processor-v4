@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jakarta.persistence.Entity;
-import javax.validation.constraints.NotNull;
-
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmIgnore;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
+
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
 
 /**
  *
@@ -67,8 +67,8 @@ class IntermediateActionFactory {
     if (action.isBound() && Modifier.isAbstract(jpaEntityClass.getModifiers())) {
       LOGGER.log(Level.WARNING,
           "Calling the bound action '" + actionMethod.getName() + "' on the abstract entity " + jpaEntityClass
-              .getSimpleName()
-              + " is not recommended, because only a few JPA providers support loading of abstract entities from database");
+          .getSimpleName()
+          + " is not recommended, because only a few JPA providers support loading of abstract entities from database");
     }
 
     actionList.put(action.getInternalName(), action);

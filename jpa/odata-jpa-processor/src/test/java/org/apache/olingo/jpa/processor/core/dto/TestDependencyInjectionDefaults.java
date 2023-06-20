@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 
-import jakarta.persistence.EntityManager;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -27,53 +23,57 @@ import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.uri.UriInfo;
 import org.junit.Test;
 
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 public class TestDependencyInjectionDefaults extends TestBase {
 
   private class DPITestGenericJPAPersistenceAdapter extends TestGenericJPAPersistenceAdapter {
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     JPAAdapter adpterJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     JPAAdapter adpterOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     JPAEdmProvider edmProviderJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     JPAEdmProvider edmProviderOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     JPAODataGlobalContext contextGlobalJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     JPAODataGlobalContext contextGlobalOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     Principal prinicpalJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     Principal prinicpalOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     JPAODataRequestContext contextRequestJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     JPAODataRequestContext contextRequestOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     HttpServletRequest requestJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     HttpServletRequest requestServletOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     HttpServletResponse responseServletJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject
     HttpServletResponse responseServletOlingo;
 
-    @javax.inject.Inject
+    @jakarta.inject.Inject
     EntityManager emJavaX;
 
     @org.apache.olingo.jpa.cdi.Inject

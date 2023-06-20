@@ -5,15 +5,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.AttributeOverrides;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.SecondaryTable;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Path;
-
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
@@ -29,6 +20,15 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
+
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.SecondaryTable;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
 
 abstract class AbstractQueryBuilder {
 
@@ -65,9 +65,9 @@ abstract class AbstractQueryBuilder {
     return whereCondition;
   }
 
-  protected final javax.persistence.criteria.Expression<Boolean> combineOR(
-      javax.persistence.criteria.Expression<Boolean> whereCondition,
-      final javax.persistence.criteria.Expression<Boolean> additionalExpression) {
+  protected final jakarta.persistence.criteria.Expression<Boolean> combineOR(
+      jakarta.persistence.criteria.Expression<Boolean> whereCondition,
+      final jakarta.persistence.criteria.Expression<Boolean> additionalExpression) {
 
     if (additionalExpression != null) {
       if (whereCondition == null) {

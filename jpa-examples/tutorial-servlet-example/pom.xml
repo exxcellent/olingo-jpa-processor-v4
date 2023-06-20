@@ -21,12 +21,6 @@
 
   <dependencies>
 		<dependency>
-			<!-- Currently Olingo cannot run with Jakarta, so we need an adapter -->
-			<groupId>org.apache.olingo.jpa</groupId>
-			<artifactId>javax-jakarta-bridge</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>provided</scope>
@@ -34,17 +28,15 @@
 		<dependency>
 		    <groupId>jakarta.persistence</groupId>
 		    <artifactId>jakarta.persistence-api</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<!-- Using EclipseLink as JPA provider -->
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>org.eclipse.persistence.jpa</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -116,8 +108,8 @@
 	        <scope>runtime</scope>
 		</dependency>
 	    <dependency>
-	    	<groupId>javax.ws.rs</groupId>
-	    	<artifactId>javax.ws.rs-api</artifactId>
+	    	<groupId>jakarta.ws.rs</groupId>
+	    	<artifactId>jakarta.ws.rs-api </artifactId>
 			<scope>test</scope>
 	    </dependency>
         <dependency>
@@ -156,9 +148,8 @@
 			    <configuration>
 					<stopKey>stop</stopKey>
 					<stopPort>9199</stopPort>
-					<dumpOnStart>false</dumpOnStart>
 					<skip>${disable.jetty}</skip>
-					<scanIntervalSeconds>0</scanIntervalSeconds>
+					<scan>0</scan>
 			      	<httpConnector>
 						<port>8080</port>
 					</httpConnector>
@@ -171,7 +162,7 @@
 						</resourceBases>
 						<!-- descriptor>${project.basedir}/src/main/jetty/web.xml</descriptor-->						
 					</webApp>
-					<war>${project.build.directory}/${project.build.finalName}.war</war>
+					<!--war>${project.build.directory}/${project.build.finalName}.war</war-->
 					<loginServices>
 						<!-- see http://www.eclipse.org/jetty/documentation/current/jetty-maven-plugin.html#configuring-security-settings -->
 						<loginService implementation="org.eclipse.jetty.security.HashLoginService">

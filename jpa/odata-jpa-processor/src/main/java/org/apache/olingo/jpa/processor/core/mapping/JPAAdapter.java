@@ -2,10 +2,10 @@ package org.apache.olingo.jpa.processor.core.mapping;
 
 import java.util.Collection;
 
+import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.Metamodel;
-
-import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 
 /**
  * Implementations of this interface will cover the concrete transaction handling and database dialect.<br/>
@@ -32,21 +32,21 @@ public interface JPAAdapter {
 
   /**
    *
-   * @see javax.transaction.UserTransaction#begin()
+   * @see jakarta.transaction.UserTransaction#begin()
    */
   public void beginTransaction(EntityManager em) throws RuntimeException;
 
   /**
    * Finish usage of entity manager (transaction).
    *
-   * @see javax.transaction.UserTransaction#commit()
+   * @see jakarta.transaction.UserTransaction#commit()
    */
   public void commitTransaction(EntityManager em) throws RuntimeException;
 
   /**
    * Cancel usage of entity manager (transaction).
    *
-   * @see javax.transaction.UserTransaction#rollback()
+   * @see jakarta.transaction.UserTransaction#rollback()
    */
   public void cancelTransaction(EntityManager em) throws RuntimeException;
 
