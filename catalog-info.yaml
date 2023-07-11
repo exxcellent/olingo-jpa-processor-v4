@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: olingo-jpa-processor-v4
+  annotations:
+    github.com/project-slug: exxcellent/olingo-jpa-processor-v4
+spec:
+  type: other
+  lifecycle: unknown
+  owner: exxcellent
