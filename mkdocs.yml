@@ -1,6 +1,7 @@
 site_name: olingo-jpa-processor-docs
 docs_dir: 'doc'
 nav:
+  - "Home": index.md
   - Development: 
     - "Table of content": development/TableOfContent.md
     - "Project Structure": development/Project-Structure.md
