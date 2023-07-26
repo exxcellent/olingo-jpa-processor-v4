@@ -1,0 +1,22 @@
+site_name: olingo-jpa-processor-docs
+docs_dir: 'doc'
+nav:
+  - Development: 
+    - "Table of content": development/TableOfContent.md
+    - "Project Structure": development/Project-Structure.md
+    - Build: development/Build.md
+    - Explanation: development/Explaining1.md
+    - Conversions: development/Conversions.md
+  - Integration:
+    - "Table of content": integrators/TableOfContent.md
+    - GetStarted: integrators/GetStarted.md
+    - AsWar: integrators/AsWar.md
+    - ServletSecurity: integrators/ServletSecurity.md
+    - DependencyInjection: integrators/DependencyInjection.md
+    - DTOConcept: integrators/DTOConcept.md
+    - Actions: integrators/Actions.md
+    - MoreHints: integrators/MoreHints.md
+    - MigrationGuide: integrators/MigrationGuide.md
+    - Annotations: integrators/Annotations.md
+plugins:
+  - techdocs-core
