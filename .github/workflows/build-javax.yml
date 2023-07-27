@@ -1,0 +1,26 @@
+name: Build OData-JPA-Adapter
+on:
+  push:
+    branches:
+      - eXXcellent_adaptions
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 17, 8 ]
+    name: Build with Java ${{ matrix.java-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven
+        run: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
