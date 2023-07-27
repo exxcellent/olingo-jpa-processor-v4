@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -245,10 +246,13 @@ public class ExcelTransformationTest extends TestBase {
 
     assertTrue(data.length > 1000);
 
-    final FileOutputStream file = new FileOutputStream("target/test-load.xlsx");
-    file.write(data);
-    file.flush();
-    file.close();
+    final File dir = new File("target");
+    dir.mkdirs();
+    final File file = new File(dir, "test-load.xlsx");
+    final FileOutputStream fos = new FileOutputStream(file);
+    fos.write(data);
+    fos.flush();
+    fos.close();
 
     final long afterFileWrite = System.currentTimeMillis();
 
