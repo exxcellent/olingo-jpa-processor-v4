@@ -1,0 +1,18 @@
+name: Deploy OData-JPA-Adapter
+on:
+  workflow_dispatch:
+  
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 8
+          distribution: 'temurin'
+          architecture: x64
+          cache: maven
+      - name: Build with Maven
+        run: mvn clean package deploy:deploy -DskipTests -Djetty.skip
