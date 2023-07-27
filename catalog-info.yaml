@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: olingo-jpa-processor-v4
+  description: A library that automates the creation of a REST interface based on the odata protocol.
+  tags:
+    - "java"
+    - "odata"
+    - "jpa"
+    - "REST"
+  annotations:
+    github.com/project-slug: exxcellent/olingo-jpa-processor-v4
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: library
+  lifecycle: production
+  owner: exxcellent
