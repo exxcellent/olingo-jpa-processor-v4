@@ -81,10 +81,13 @@ public class ExcelTransformationTest extends TestBase {
 
     assertTrue(data.length > 1000);
 
-    final FileOutputStream file = new FileOutputStream("target/test-full.xlsx");
-    file.write(data);
-    file.flush();
-    file.close();
+    final File dir = new File("target");
+    dir.mkdirs();
+    final File file = new File(dir, "test-full.xlsx");
+    final FileOutputStream fos = new FileOutputStream(file);
+    fos.write(data);
+    fos.flush();
+    fos.close();
 
     final TestInspector validator = new TestInspector(configuration, data);
     assertEquals(20, validator.determineNumberOfColumns("Demo"));
