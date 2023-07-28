@@ -1,4 +1,4 @@
-![Build Status (javax)](https://github.com/exxcellent/olingo-jpa-processor-v4/actions/workflows/build-javax.yml/badge.png?branch=eXXcellent_adaptions&event=push)
+![Build Status (javax)](https://github.com/exxcellent/olingo-jpa-processor-v4/actions/workflows/build-javax.yml/badge.png?branch=eXXcellent_adaptions)
 [![Build Status](https://app.travis-ci.com/exxcellent/olingo-jpa-processor-v4.svg?branch=eXXcellent_adaptions)](https://app.travis-ci.com/exxcellent/olingo-jpa-processor-v4)
 [![codecov](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4/branch/eXXcellent_adaptions/graph/badge.svg)](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4)
 
