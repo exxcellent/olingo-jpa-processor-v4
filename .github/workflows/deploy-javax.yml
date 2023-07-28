@@ -1,9 +1,10 @@
-name: Deploy OData-JPA-Adapter
+name: Deploy OData-JPA-Adapter (javax)
 on:
   workflow_dispatch:
   
 jobs:
   deployment:
+    environment: production
     runs-on: ubuntu-latest
     name: Deploy
     steps:
