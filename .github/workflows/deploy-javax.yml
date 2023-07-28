@@ -1,4 +1,4 @@
-name: Deploy OData-JPA-Adapter (javax)
+name: Deploy OData-JPA-Adapter (javax) on packagecloud
 on:
   workflow_dispatch:
   
