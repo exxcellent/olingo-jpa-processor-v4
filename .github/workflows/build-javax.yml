@@ -49,4 +49,4 @@ jobs:
           cache: maven
       - name: Build with Maven
         # with forkCount=0 no coverage report is created, but it runs with all java versions
-        run: mvn --batch-mode clean verify -Duse-${{ matrix.jpa-provider }} -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip -DforkCount=0
+        run: MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn --batch-mode clean verify -Duse-${{ matrix.jpa-provider }} -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip -DforkCount=0
