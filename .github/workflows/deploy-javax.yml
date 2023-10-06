@@ -33,4 +33,4 @@ jobs:
       - name: Deploy with Maven
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
-        run: mvn --batch-mode clean package deploy:deploy -DskipTests -Djetty.skip
+        run: mvn --batch-mode -s settings.xml clean package deploy:deploy -DskipTests -Djetty.skip
