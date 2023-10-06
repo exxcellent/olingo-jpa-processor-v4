@@ -1,4 +1,4 @@
-name: Build OData-JPA-Adapter
+name: Build OData-JPA-Adapter (javax)
 on:
   push:
     branches:
@@ -35,7 +35,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        java-version: [ 11, 8 ]
+        java-version: [ 17, 11, 8 ]
         jpa-provider: ["eclipselink", "hibernate"]
     name: Build with Java ${{ matrix.java-version }} and ${{ matrix.jpa-provider }}
     steps:

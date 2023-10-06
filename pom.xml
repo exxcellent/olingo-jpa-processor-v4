@@ -216,8 +216,8 @@
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
-				<artifactId>mockito-all</artifactId>
-				<version>1.10.19</version>
+				<artifactId>mockito-core</artifactId>
+				<version>4.4.0</version>
 			</dependency>
 			<dependency>
 			    <groupId>javax.inject</groupId>
@@ -305,16 +305,12 @@
 					<configuration>
                         <argLine>${surefireArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
-						<systemProperties>
-							<property>
-								<name>derby.stream.error.file</name>
-								<value>target/derby.log</value>
-							</property>
-						</systemProperties>
+						<systemPropertyVariables>
+							<derby.stream.error.file>target/derby.log</derby.stream.error.file>
+						</systemPropertyVariables>
                         <excludes>
                             <exclude>**/*IT.java</exclude>
                         </excludes>
-                        <forkCount>0</forkCount>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -534,7 +530,7 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>3.4.0</version>
 				<configuration>
-					<additionalparam>-Xdoclint:none</additionalparam>
+					<doclint>none</doclint>
 					<show>protected</show>
 					<serialwarn>false</serialwarn>
 					<quiet>true</quiet>
