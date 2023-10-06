@@ -30,9 +30,7 @@ jobs:
           flags: unittests
           fail_ci_if_error: true
           verbose: false
-#      - name: Upload code coverage report
-#        uses: actions/github-script@v6
-#        with:
-#          script: bash <(curl -s https://codecov.io/bash) -X gcov -Z -F unittests -f code-coverage-report/target/jacoco-aggregate-ut/jacoco.xml
-#      - name: Build with Maven
-#        run: mvn -s .github/workflows/settings.xml clean package deploy:deploy -DskipTests -Djetty.skip
+      - name: Deploy with Maven
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+        run: mvn --batch-mode clean package deploy:deploy -DskipTests -Djetty.skip
