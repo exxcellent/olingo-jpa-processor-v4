@@ -39,6 +39,12 @@ jobs:
         jpa-provider: ["eclipselink", "hibernate"]
     name: Build with Java ${{ matrix.java-version }} and ${{ matrix.jpa-provider }}
     steps:
+      - uses: haya14busa/action-cond@v1
+        id: mavenopts
+        with:
+          cond: ${{ matrix.java-version == 8 }}
+          if_true: ""
+          if_false: "--add-opens=java.base/java.util=ALL-UNNAMED"
       - uses: actions/checkout@v3
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v3
@@ -49,4 +55,4 @@ jobs:
           cache: maven
       - name: Build with Maven
         # with forkCount=0 no coverage report is created, but it runs with all java versions
-        run: MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn --batch-mode clean verify -Duse-${{ matrix.jpa-provider }} -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip -DforkCount=0
+        run: MAVEN_OPTS=${{ steps.mavenopts.outputs.value }} mvn --batch-mode clean verify -Duse-${{ matrix.jpa-provider }} -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip -DforkCount=0
