@@ -93,20 +93,14 @@
 		    <scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>ch.qos.logback</groupId>
-		    <artifactId>logback-classic</artifactId>
-		    <scope>test</scope>
-		</dependency>
-		<dependency>
 		    <groupId>org.slf4j</groupId>
 		    <artifactId>jul-to-slf4j</artifactId>
 		    <scope>test</scope>
 		</dependency>
 		<dependency>
-			<!-- required by logback classic -->
-		   	<groupId>org.codehaus.janino</groupId>
-		   	<artifactId>janino</artifactId>
-	        <scope>test</scope>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-simple</artifactId>
+		    <scope>test</scope>
 		</dependency>
 		<dependency>
 		    <groupId>com.h2database</groupId>
