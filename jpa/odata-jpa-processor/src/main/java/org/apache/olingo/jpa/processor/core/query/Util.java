@@ -1,12 +1,10 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.olingo.commons.api.edm.EdmBindingTarget;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -46,8 +44,6 @@ import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 public class Util {
 
   public static final String VALUE_RESOURCE = "$VALUE";
-
-  private final static Logger LOG = Logger.getLogger(Util.class.getName());
 
   /**
    * Select the first {@link UriResourceEntitySet} in resource path.
@@ -310,27 +306,22 @@ public class Util {
    * types (always located in another database table requiring a JOIN)
    */
   public static List<JPANavigationPropertyInfo> determineNavigations(final IntermediateServiceDocument sd,
-      final List<UriResource> resourceParts) throws ODataApplicationException {
-
-    if (!hasNavigation(resourceParts)) {
-      return Collections.emptyList();
-    }
-    final List<JPANavigationPropertyInfo> pathList = new ArrayList<JPANavigationPropertyInfo>(resourceParts.size());
-
-    UriResourcePartTyped startType = null;
+      final JPAEntityType scope, final List<UriResource> resourceParts) throws ODataApplicationException {
+    final List<JPANavigationPropertyInfo> pathList = new LinkedList<>();
+    JPAStructuredType startType = scope;
     StringBuilder complexTypeNavigation = null;
-    for (final UriResource resourcePart : resourceParts) {
-      if (resourcePart instanceof UriResourceEntitySet) {
-        if (startType != null) {
-          throw new IllegalStateException("One more 'UriResourceEntitySet' found: "
-              + ((UriResourcePartTyped) resourcePart).getType().getName());
-        }
-        startType = (UriResourceEntitySet) resourcePart;
-        complexTypeNavigation = null;// reset
-      } else if (resourcePart instanceof UriResourceNavigation) {
-        final UriResourceNavigation navigation = (UriResourceNavigation) resourcePart;
-        if (startType != null) {
-          // startType is not given for association named in a $expand scenario
+    try {
+      for (final UriResource resourcePart : resourceParts) {
+        if (resourcePart instanceof UriResourceEntitySet) {
+          final UriResourceEntitySet entitySet = (UriResourceEntitySet) resourcePart;
+          // simply replace the start type (may be the same as given)
+          startType = sd.getEntityType(entitySet.getType());
+          complexTypeNavigation = null;// reset
+        } else if (resourcePart instanceof UriResourceNavigation) {
+          if (startType == null) {
+            throw new IllegalStateException("cannot process navigation path, because start type got lost");
+          }
+          final UriResourceNavigation navigation = (UriResourceNavigation) resourcePart;
           final String assoPathName;
           if (complexTypeNavigation != null) {
             // manage previously built path
@@ -339,51 +330,36 @@ public class Util {
           } else {
             assoPathName = navigation.getProperty().getName();
           }
-          final JPAAssociationPath association = determineAssoziationPath(sd, startType,
-              assoPathName);
-          if (association != null) {
-            pathList.add(new JPANavigationPropertyInfo((UriResourcePartTyped) resourcePart, association));
+          final JPAAssociationPath association = startType.getAssociationPath(assoPathName);
+          pathList.add(new JPANavigationPropertyInfo((UriResourceNavigation) resourcePart, association));
+          startType = association.getTargetType();
+          complexTypeNavigation = null;// reset
+        } else if (resourcePart instanceof UriResourceProperty) {
+          if (startType == null) {
+            throw new IllegalStateException("cannot process complex property path, because start type got lost");
           }
-        }
-        startType = navigation;
-        complexTypeNavigation = null;// reset
-      } else if (resourcePart instanceof UriResourceProperty) {
-        final UriResourceProperty property = (UriResourceProperty) resourcePart;
-        if (startType == null) {
-          throw new IllegalStateException(
-              "'UriResource(Complex/Primitive)Property' navigation found without start type "
-                  + property.getProperty().getName());
-        }
-        if (property.isCollection()) {
-          // handle @ElementCollection
-          final JPAEntityType et = sd.getEntityType(startType.getType());
-          if (et == null) {
-            LOG.log(Level.SEVERE,
-                "Resource path contains a (@ElementCollection?) navigation (" + property.getSegmentValue()
-                + ") to an simple type. This state should not reached... a bug?!");
-            break;
-          }
-          try {
-            final JPASelector selector = et.getPath(property.getProperty().getName());
+          final UriResourceProperty property = (UriResourceProperty) resourcePart;
+          if (property.isCollection()) {
+            // handle @ElementCollection
+            final JPASelector selector = startType.getPath(property.getProperty().getName());
             final JPANavigationPath association = new JPAElementCollectionPathImpl(selector);
             pathList.add(new JPANavigationPropertyInfo((UriResourcePartTyped) resourcePart, association));
-            startType = property;
+            startType = null;
             complexTypeNavigation = null;// reset
-          } catch (final ODataJPAModelException e) {
-            throw new ODataJPAUtilException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
+          } else {
+            if (complexTypeNavigation == null) {
+              complexTypeNavigation = new StringBuilder();
+            }
+            if (complexTypeNavigation.length() > 0) {
+              complexTypeNavigation.append(JPAAssociationPath.PATH_SEPERATOR);
+            }
+            complexTypeNavigation.append(property.getProperty().getName());
           }
-        } else {
-          if (complexTypeNavigation == null) {
-            complexTypeNavigation = new StringBuilder();
-          }
-          if (complexTypeNavigation.length() > 0) {
-            complexTypeNavigation.append(JPAAssociationPath.PATH_SEPERATOR);
-          }
-          complexTypeNavigation.append(property.getProperty().getName());
         }
       }
+    } catch (final ODataJPAModelException e) {
+      throw new ODataJPAUtilException(e, HttpStatusCode.INTERNAL_SERVER_ERROR);
     }
-
     return pathList;
   }
 

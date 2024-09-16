@@ -152,11 +152,12 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    * simple/complex properties at end of path.
    */
   private static List<UriResource> extractNavigableResourcePath(final IntermediateServiceDocument sd,
+      final JPAEntityType jpaStartEntityType,
       final List<UriResource> resourceParts) throws ODataApplicationException {
     if (!Util.hasNavigation(resourceParts)) {
       return resourceParts;
     }
-    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, resourceParts);
+    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, jpaStartEntityType, resourceParts);
     return resourceParts.subList(0, naviPathList.size());
   }
 
@@ -344,7 +345,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final List<UriResource> resourceParts = uriNavigation.getUriResourceParts();
 
     // 1. Determine all relevant associations
-    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(getServiceDocument(), resourceParts);
+    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(getServiceDocument(),
+        jpaStartEntityType, resourceParts);
 
     // 2. Create the queries and roots
     final List<NavigationBuilder> navigationQueryList = new ArrayList<NavigationBuilder>(uriNavigation
@@ -415,6 +417,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
       if (filterOption != null/* isLastNavigableElementInUriResource(uriInfo, queryStartUriResource) */) {
         // no navigation, so we may have an filter directly for this entity
         final List<UriResource> navPath = extractNavigableResourcePath(context.getEdmProvider().getServiceDocument(),
+            jpaStartEntityType,
             uriNavigation.getFirstStep().getUriResourceParts());
         final FilterQueryBuilderContext filterContext = new FilterQueryBuilderContext(jpaStartEntityType,
             getQueryStartFrom());
@@ -445,7 +448,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
           }
         }
         final List<UriResource> navFilterPath = extractNavigableResourcePath(context.getEdmProvider()
-            .getServiceDocument(), navResourcePath);
+            .getServiceDocument(), jpaStartEntityType, navResourcePath);
 
         final javax.persistence.criteria.Expression<Boolean> navFilterCondition = createWhereFromFilter(
             navFilterContext, navFilterPath, navFilterOption);

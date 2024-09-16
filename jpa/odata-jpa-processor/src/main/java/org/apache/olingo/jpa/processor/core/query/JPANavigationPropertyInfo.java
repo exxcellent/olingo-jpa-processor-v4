@@ -7,10 +7,10 @@ public final class JPANavigationPropertyInfo {
 	private final UriResourcePartTyped navigationResource;
 	private final JPANavigationPath navigationPath;
 
-	public JPANavigationPropertyInfo(final UriResourcePartTyped uriResourceNavigation,
+	public JPANavigationPropertyInfo(final UriResourcePartTyped uriResourceNavigationScope,
 			final JPANavigationPath associationPath) {
 		super();
-		this.navigationResource = uriResourceNavigation;
+		this.navigationResource = uriResourceNavigationScope;
 		this.navigationPath = associationPath;
 		if (associationPath == null) {
 			throw new IllegalArgumentException("Association path required");

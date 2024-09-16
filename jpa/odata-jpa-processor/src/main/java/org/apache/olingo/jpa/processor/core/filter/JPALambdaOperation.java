@@ -46,32 +46,31 @@ abstract class JPALambdaOperation extends JPAExistsOperation {
     }
   }
 
-  // TODO merge with logic as in JPAMemberOperationNavigation
+  // TODO merge with logic with the similar one in JPAMemberOperationNavigation (AbstractMemberNavigation)
   protected final Subquery<?> buildFilterSubQueries(final Expression expression) throws ODataApplicationException,
   ODataJPAModelException {
-    final List<UriResource> allUriResourceParts = new ArrayList<UriResource>(getUriResourceParts());
-    allUriResourceParts.addAll(member.getResourcePath().getUriResourceParts());
-
     final IntermediateServiceDocument sd = getIntermediateServiceDocument();
     // 1. Determine all relevant associations
-    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, allUriResourceParts);
+    final List<UriResource> uriResourceParts = member.getResourcePath().getUriResourceParts();
+    final List<JPANavigationPropertyInfo> naviPathList = Util.determineNavigations(sd, this.getQueryBuilder()
+        .getQueryResultType(), uriResourceParts);
     FilterContextQueryBuilderIfc parent = getQueryBuilder();
     final List<FilterSubQueryBuilder> queryList = new ArrayList<>(naviPathList.size());
 
     // 2. Create the queries and roots
     final OData odata = getOdata();
-    for (int i = naviPathList.size() - 1; i >= 0; i--) {
+    for (int i = 0; i < naviPathList.size(); i++) {
       final JPANavigationPropertyInfo naviInfo = naviPathList.get(i);
       FilterSubQueryBuilder query;
-      if (i == 0) {
-        query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+      if (i == naviPathList.size() - 1) {
+        query = new FilterSubQueryBuilder(odata, uriResourceParts, naviInfo.getNavigationUriResource(),
             naviInfo.getNavigationPath(), parent, expression);
       } else {
-        query = new FilterSubQueryBuilder(odata, allUriResourceParts, naviInfo.getNavigationUriResource(),
+        query = new FilterSubQueryBuilder(odata, uriResourceParts, naviInfo.getNavigationUriResource(),
             naviInfo.getNavigationPath(), parent);
       }
       queryList.add(query);
-      parent = queryList.get(queryList.size() - 1);
+      parent = query;
     }
     // 3. Create select statements
     Subquery<?> childQuery = null;
