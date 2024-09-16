@@ -40,6 +40,44 @@ public class TestJPAQueryNavigationFilter extends TestBase {
   }
 
   @Test
+  public void testFilterNavigationNestedLambda() throws IOException, ODataException
+  {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").select("ID").filter(
+        "MemberOfOrganizations/any(d:d/Roles/any(e:e/RoleCategory eq 'B'))");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode persons = helper.getJsonObjectValues();
+    // only the person 97 is organisation member (and having the request role category)
+    assertEquals(1, persons.size());
+    assertEquals(97, persons.get(0).get("ID").asInt());
+  }
+
+  @Test
+  public void testFilterLongerNavigationNestedLambda() throws IOException, ODataException
+  {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").select("ID").filter(
+        "Creator/MemberOfOrganizations/any(d:d/Roles/any(e:e/RoleCategory eq 'B') and d/Address/Region eq 'US-CA')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertEquals(1, orgs.size());
+  }
+
+  @Test
+  public void testFilterNavigationLongerNestedLambda() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").select("ID").filter(
+        "FirstName eq 'Max' and MemberOfOrganizations/any(d:d/Roles/any(e:e/RoleCategory eq 'A'))");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode persons = helper.getJsonObjectValues();
+    assertEquals(1, persons.size());
+    assertEquals(99, persons.get(0).get("ID").asInt());
+  }
+
+  @Test
   public void testFilterCountNavigationProperty() throws IOException, ODataException {
     // https://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
     // Example 43: return all Categories with less than 10 products
