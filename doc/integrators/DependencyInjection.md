@@ -3,8 +3,8 @@
 ---
 # Dependency injection
 For DTO handlers and action methods there is a limited support for injection runtime values as defined in [JSR-330](https://jcp.org/en/jsr/detail?id=330). Currently only single objects without ambiguous type can be handled. Automatically available are (if called via `JPAODataGetHandler` in a servlet):
-* javax.servlet.http.HttpServletRequest and javax.servlet.http.HttpServletResponse
-* org.apache.olingo.jpa.processor.core.mapping.JPAAdapter and javax.persistence.EntityManager: covering the current transaction
+* jakarta.servlet.http.HttpServletRequest and jakarta.servlet.http.HttpServletResponse
+* org.apache.olingo.jpa.processor.core.mapping.JPAAdapter and jakarta.persistence.EntityManager: covering the current transaction
 * org.apache.olingo.jpa.metadata.api.JPAEdmProvider
 * java.security.Principal: after authentication via `SecurityInceptor`
 
@@ -31,6 +31,6 @@ handler.getJPAODataContext().getDependencyInjector().registerDependencyMapping(S
 ```
 
 ## Got values injected
-As `@Inject` annotation can be used `javax.inject.Inject` or better `org.apache.olingo.jpa.cdi.Inject`. Limitations are:
-* `org.apache.olingo.jpa.cdi.Inject` and `javax.inject.Inject` for fields
+As `@Inject` annotation can be used `jakarta.inject.Inject` or better `org.apache.olingo.jpa.cdi.Inject`. Limitations are:
+* `org.apache.olingo.jpa.cdi.Inject` and `jakarta.inject.Inject` for fields
 * `org.apache.olingo.jpa.cdi.Inject` for method parameters

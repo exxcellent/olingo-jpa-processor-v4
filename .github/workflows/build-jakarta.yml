@@ -1,0 +1,64 @@
+name: Build OData-JPA-Adapter (jakarta)
+on:
+  push:
+    branches:
+      - main-jakarta
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear cache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log("About to clear")
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              console.log(cache)
+              github.rest.actions.deleteActionsCacheById({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: cache.id,
+              })
+            }
+            console.log("Clear completed")
+  build:
+    environment: production
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        java-version: [ 21, 17 ]
+        jpa-provider: ["eclipselink", "hibernate"]
+    name: Build with Java ${{ matrix.java-version }} and ${{ matrix.jpa-provider }}
+    steps:
+      - uses: haya14busa/action-cond@v1
+        id: mavenopts
+        with:
+          cond: ${{ matrix.java-version < 17 }}
+          if_true: ""
+          if_false: "--add-opens=java.base/java.util=ALL-UNNAMED"
+      - uses: haya14busa/action-cond@v1
+        id: forkcountOption
+        with:
+          cond: ${{ matrix.java-version < 17 }}
+          if_true: ""
+          if_false: "-DforkCount=0"
+      - uses: actions/checkout@v3
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          architecture: x64
+          cache: maven
+      - name: Build with Maven
+        # with forkCount=0 no coverage report is created, but it runs with all java versions
+        run: MAVEN_OPTS=${{ steps.mavenopts.outputs.value }} mvn --batch-mode clean verify -Duse-${{ matrix.jpa-provider }} -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip ${{ steps.forkcountOption.outputs.value }}
