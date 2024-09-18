@@ -120,4 +120,17 @@ public class ReadEntitiesIT {
     response.close();
   }
 
+  @Test
+  public void testFilterOrganizations() {
+    final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Organizations");
+    final ODataRetrieveResponse<ClientEntitySet> response = endpoint.retrieveEntityCollection(uriBuilder,
+        "Load filtered organization entities");
+    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    final ClientEntitySet body = response.getBody();
+    Assert.assertTrue(body.getEntities().size() == 1);
+    // only Org 2 has 'Urs' as creator (see ExampleQueryCustomizer)
+    Assert.assertEquals(body.getEntities().get(0).getProperty("ID").getPrimitiveValue().toValue(), "2");
+    response.close();
+  }
+
 }

@@ -225,7 +225,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, 
       final PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).nullable(
           Boolean.valueOf(actionReturn.isNullable())).precision(actionReturn.getPrecision()).scale(actionReturn
               .getScale()).maxLength(
-              actionReturn.getMaxLength()).build();
+                  actionReturn.getMaxLength()).build();
       final ODataSerializer serializer = getOData().createSerializer(responseFormat);
 
       final SerializerResult serializerResult;
@@ -359,8 +359,9 @@ ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, 
           final int bufferSize = 1048576;// 1MB
           is = new BufferedInputStream(is, bufferSize);
           is.mark(bufferSize - 1);
+          @SuppressWarnings("resource")
           final String bodyContent = new BufferedReader(new InputStreamReader(is)).lines().parallel()
-              .collect(Collectors.joining("\n"));
+          .collect(Collectors.joining("\n"));
           log.log(Level.FINER, "Request body for action call: " + bodyContent);
           is.reset();
         }

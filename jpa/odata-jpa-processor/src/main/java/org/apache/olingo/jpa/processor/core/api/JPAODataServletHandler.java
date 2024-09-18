@@ -30,7 +30,7 @@ import org.apache.olingo.server.api.processor.Processor;
 import org.apache.olingo.server.api.serializer.RepresentationType;
 
 /**
- * The implementor to handle HTTP servlet requests as an OData REST API.
+ * The implementor to handle HTTP servlet requests as an OData REST API call.
  *
  * @author Ralf Zozmann
  *
