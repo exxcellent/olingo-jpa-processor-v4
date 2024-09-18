@@ -17,7 +17,7 @@ Developers using this library have to write only a few lines of code to get a se
 # Javax (1.x) vs Jakarta (2.x)
 Currently the library exists in two kinds of versions. One is for the old `javax` namespace the other for the more modern `jakarta` namespace. The differences can be explained as follows:
 * _javax_  means Java 8 (but CI is runing also for Java 11 and 17)
-    * This variant is using Olingo 4.9
+    * This variant is using Olingo 4.x
     * This variant will have the version range **1.x**, the older one 0.x is shared with the  _jakarta_  variant
     * The branch [main-javax](https://github.com/exxcellent/olingo-jpa-processor-v4/tree/main-javax) contains the content.
 * _jakarta_  means Java 17+
