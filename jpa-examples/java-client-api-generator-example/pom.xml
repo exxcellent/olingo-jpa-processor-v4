@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.olingo.jpa.examples</groupId>
 		<artifactId>odata-jpa-examples</artifactId>
-		<version>0.62.0-JAKARTA</version>
+		<version>0.63.0-JAKARTA</version>
 		<relativePath>..</relativePath>
 	</parent>
 
