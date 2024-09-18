@@ -16,7 +16,7 @@
 
 		<slf4j.version>2.0.7</slf4j.version>
 		<logback.version>1.4.8</logback.version>
-		<olingo.version>4.10.0-JAKARTA-SNAPSHOT</olingo.version>
+		<olingo.version>5.0.0</olingo.version>
 		<jetty.version>11.0.15</jetty.version>
         <jersey.version>3.1.2</jersey.version>
 		<jackson.version>2.15.2</jackson.version>
