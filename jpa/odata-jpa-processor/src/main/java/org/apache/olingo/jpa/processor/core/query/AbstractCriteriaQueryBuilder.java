@@ -9,17 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Selection;
-import jakarta.persistence.criteria.Subquery;
-
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -33,6 +22,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
+import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
@@ -53,6 +44,18 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import org.apache.olingo.server.api.uri.queryoption.expression.VisitableExpression;
+
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.criteria.Subquery;
 
 public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>, DT> extends AbstractQueryBuilder {
 
@@ -110,6 +113,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private final NavigationKeyBuilder jpaStartNavigationKeyBuilder;
   private List<NavigationBuilder> navigationQueryList = null;
   private InitializationState initStateType = InitializationState.NotInitialized;
+  @Inject
+  private QueryCustomizer queryCustomizer = null;
 
   protected AbstractCriteriaQueryBuilder(final JPAODataRequestContext context, final NavigationIfc uriInfo,
       final EntityManager em)
@@ -124,6 +129,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     this.jpaStartEntityType = context.getEdmProvider().getServiceDocument().getEntityType(edmType);
     assert jpaStartEntityType != null;
     jpaStartNavigationKeyBuilder = new NavigationKeyBuilder(jpaStartEntityType);
+    // self injection
+    context.getDependencyInjector().injectDependencyValues(this);
   }
 
   protected abstract <T> Subquery<T> createSubquery(Class<T> subqueryResultType);
@@ -368,6 +375,32 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return navigationQueryList;
   }
 
+  private jakarta.persistence.criteria.Expression<Boolean> createWhereFromCustomizer()
+      throws ODataApplicationException {
+    if (queryCustomizer == null) {
+      return null;
+    }
+    getContext().getDependencyInjector().injectDependencyValues(queryCustomizer);
+    final QueryContext qContext = new QueryContext() {
+      @SuppressWarnings("unchecked")
+      @Override
+      public From<DT, DT> getFrom() {
+        return AbstractCriteriaQueryBuilder.this.getQueryResultFrom();
+      }
+
+      @Override
+      public EntityManager getEntityManager() {
+        return AbstractCriteriaQueryBuilder.this.getEntityManager();
+      }
+
+      @Override
+      public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+        return AbstractCriteriaQueryBuilder.this.createSubquery(subqueryResultType);
+      }
+    };
+    return queryCustomizer.restrictQuery(qContext, uriNavigation);
+  }
+
   @SuppressWarnings("unchecked")
   private jakarta.persistence.criteria.Expression<Boolean> createWhereFromAccessConditioner()
       throws ODataApplicationException {
@@ -406,6 +439,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final jakarta.persistence.criteria.Expression<Boolean> accessConditionerClause =
         createWhereFromAccessConditioner();
     whereCondition = combineAND(whereCondition, accessConditionerClause);
+    final jakarta.persistence.criteria.Expression<Boolean> customizerClause = createWhereFromCustomizer();
+    whereCondition = combineAND(whereCondition, customizerClause);
 
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part2-url-conventions/odata-v4.0-errata02-os-part2-url-conventions-complete.html#_Toc406398094

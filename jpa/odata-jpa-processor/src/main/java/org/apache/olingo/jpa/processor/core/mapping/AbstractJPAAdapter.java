@@ -1,6 +1,10 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -9,6 +13,7 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
+import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
 
 /**
  * Generic implementation to map OData entities 1:1 to JPA entities.
@@ -26,16 +31,23 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
   private final Set<Class<?>> dtos = new LinkedHashSet<>();
 
   /**
+   * Convenience constructor to use the {@link JPA_DefaultDatabaseProcessor} for database access.
+   */
+  protected AbstractJPAAdapter(final String pUnit, final EntityManagerFactory emf) throws IllegalArgumentException {
+    this(pUnit, emf, new JPA_DefaultDatabaseProcessor());
+  }
+
+  /**
    *
    * @param pUnit
-   *            The name of the persistence unit is used also as namespace.
+   * The name of the persistence unit is used also as namespace.
    *
    * @param mapEntityManagerProperties
-   *            Maybe <code>null</code>
+   * Maybe <code>null</code>
    * @param dbAccessor
    */
-  public AbstractJPAAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
-      final AbstractJPADatabaseProcessor dbAccessor) {
+  protected AbstractJPAAdapter(final String pUnit, final Map<?, ?> mapEntityManagerProperties,
+      final AbstractJPADatabaseProcessor dbAccessor) throws IllegalArgumentException {
     this(pUnit, Persistence.createEntityManagerFactory(pUnit, mapEntityManagerProperties), dbAccessor);
   }
 
@@ -85,7 +97,7 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
     return Collections.unmodifiableCollection(dtos);
   }
 
-	/**
+  /**
    *
    * @param dto The class must have the annotation
    * {@link org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO}.

@@ -25,7 +25,7 @@ import jakarta.transaction.UserTransaction;
  */
 public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
 
-  private final static String DEFAULT_USERTRANSACTION_NAME = "java:comp/UserTransaction";
+  private static final String DEFAULT_USERTRANSACTION_NAME = "java:comp/UserTransaction";
 
   private UserTransaction transactionAccessor = null;
   private final String jndiUserTxName;
