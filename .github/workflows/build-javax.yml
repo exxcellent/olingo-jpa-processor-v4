@@ -2,7 +2,7 @@ name: Build OData-JPA-Adapter (javax)
 on:
   push:
     branches:
-      - eXXcellent_adaptions
+      - main-javax
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:

@@ -1,4 +1,4 @@
-![Build Status (javax)](https://github.com/exxcellent/olingo-jpa-processor-v4/actions/workflows/build-javax.yml/badge.svg?branch=eXXcellent_adaptions&event=push)
+![Build Status (javax)](https://github.com/exxcellent/olingo-jpa-processor-v4/actions/workflows/build-javax.yml/badge.svg?branch=main-javax&event=push)
 [![codecov](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4/branch/eXXcellent_adaptions/graph/badge.svg)](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4)
 
 # First words...
@@ -13,6 +13,19 @@ Developers using this library have to write only a few lines of code to get a se
 * Limit access to resources/actions with authorisation checks
 * A few builtin automatic datatype conversions (including time types) to mediate between OData, Java and the JPA/Database
 * Sorting + filtering for results
+
+# Javax (1.x) vs Jakarta (2.x)
+Currently the library exists in two kinds of versions. One is for the old `javax` namespace the other for the more modern `jakarta` namespace. The differences can be explained as follows:
+* _javax_  means Java 8 (but CI is runing also for Java 11 and 17)
+    * This variant is using Olingo 4.9
+    * This variant will have the version range **1.x**, the older one 0.x is shared with the  _jakarta_  variant
+    * The branch [main-javax](https://github.com/exxcellent/olingo-jpa-processor-v4/tree/main-javax) contains the content.
+* _jakarta_  means Java 17+
+    * This variant is using Olingo 5.x
+    * This variant will have the version range **2.x**, the older one 0.x is shared with the  _javax_  variant
+    * The branch [main-jakarta](https://github.com/exxcellent/olingo-jpa-processor-v4/tree/main-jakarta) contains the content.
+
+The documentation is slightly different for the both variants, so read the right one!
 
 # Documentation
 ## For integrators
