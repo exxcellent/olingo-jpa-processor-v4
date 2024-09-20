@@ -1,7 +1,9 @@
 name: Deploy OData-JPA-Adapter (javax) on packagecloud
 on:
-  workflow_dispatch:
-  
+  push:
+    tags:
+      - 1.**
+
 jobs:
   deployment:
     environment: production
