@@ -1,8 +1,7 @@
 name: Deploy OData-JPA-Adapter (jakarta) on packagecloud
 on:
-  push:
-    tags:
-      - 2.**
+  release:
+    types: [released]
   
 jobs:
   deployment:
