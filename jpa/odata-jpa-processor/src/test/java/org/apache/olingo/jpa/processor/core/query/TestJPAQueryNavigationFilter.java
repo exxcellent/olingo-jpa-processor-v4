@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -10,8 +10,8 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -104,7 +104,7 @@ public class TestJPAQueryNavigationFilter extends TestBase {
     assertEquals(9, orgs.size());
   }
 
-  @Ignore("Currently no deeper navigation available ending with a collection")
+  @Disabled("Currently no deeper navigation available ending with a collection")
   @Test
   public void testFilterCountNavigationPropertyMultipleHops() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").select("ID").filter(

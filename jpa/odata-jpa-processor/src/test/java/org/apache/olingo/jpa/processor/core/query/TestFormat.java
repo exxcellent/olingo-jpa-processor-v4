@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -9,7 +9,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestFormat extends TestBase {
 

@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TupleDouble;
 import org.apache.olingo.server.api.ODataApplicationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestJPATupleResultConverterCompoundKey extends TestBase {
 

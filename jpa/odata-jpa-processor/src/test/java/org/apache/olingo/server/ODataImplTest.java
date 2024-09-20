@@ -1,7 +1,7 @@
 package org.apache.olingo.server;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -11,7 +11,8 @@ import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.core.deserializer.json.JPAODataJsonDeserializer;
 import org.apache.olingo.server.core.serializer.json.JPAODataJsonSerializer;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ODataImplTest {
 
@@ -21,10 +22,10 @@ public class ODataImplTest {
     assertTrue(ODataFactory.createCustomODataInstance().getClass() == JPAODataImpl.class);
   }
 
-  @Test(expected = SerializerException.class)
+  @Test
   public void testSerializerNoContentType() throws IOException, ODataException {
     final OData odata = ODataFactory.createCustomODataInstance();
-    odata.createSerializer(null);
+    Assertions.assertThrows(SerializerException.class, () -> odata.createSerializer(null));
   }
 
   @Test

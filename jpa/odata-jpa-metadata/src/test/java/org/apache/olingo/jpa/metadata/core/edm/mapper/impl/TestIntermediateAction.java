@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 
@@ -12,35 +12,36 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestIntermediateAction extends TestMappingRoot {
   private TestHelper helper;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     helper = new TestHelper(emf.getMetamodel(), PUNIT_NAME);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rejectNotAnnotatedMethod() throws ODataJPAModelException {
-    Method notAnnotatedMethod = null;
+    final Method[] notAnnotatedMethod = new Method[] { null };
     for (final Method method : Person.class.getMethods()) {
       final EdmAction action = method.getAnnotation(EdmAction.class);
       // take the first not annotated method
       if (action == null) {
-        notAnnotatedMethod = method;
+        notAnnotatedMethod[0] = method;
         break;
       }
     }
-    if (notAnnotatedMethod == null) {
+    if (notAnnotatedMethod[0] == null) {
       throw new IllegalStateException("Couldn't find a JAVA method without @" + EdmAction.class.getSimpleName()
           + " annotation for testing");
     }
-    new IntermediateAction(new JPAEdmNameBuilder(PUNIT_NAME), Person.class, notAnnotatedMethod,
-        helper.getServiceDocument());
-    org.junit.Assert.fail("Action constructor has not thrown an exception");
+    Assertions.assertThrows(IllegalArgumentException.class, () -> new IntermediateAction(new JPAEdmNameBuilder(
+        PUNIT_NAME), Person.class, notAnnotatedMethod[0],
+        helper.getServiceDocument()));
   }
 
   @Test

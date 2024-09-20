@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 
@@ -12,8 +12,8 @@ import org.apache.olingo.jpa.processor.core.util.ImageLoader;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,7 +31,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals("Third Org.", org.get("value").asText());
   }
 
-  @Ignore
+  @Disabled
   @Test
   public void testNavigationToOwnPrimitiveDescriptionProperty() throws IOException, ODataException {
 
@@ -69,7 +69,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals("98", created.get("By").asText());
   }
 
-  @Ignore
+  @Disabled
   @Test
   public void testNavigationViaComplexAndNaviPropertyToPrimitive() throws IOException, ODataException {
 
@@ -122,7 +122,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals("../../$metadata#Organizations/Address/Region", org.get("@odata.context").asText());
   }
 
-  @Ignore("MediaEntityProcessor required")
+  @Disabled("MediaEntityProcessor required")
   @Test
   public void testNavigationToStreamValue() throws IOException, ODataException {
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
@@ -137,7 +137,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
   }
 
   // TODO
-  @Ignore("MediaEntityProcessor required")
+  @Disabled("MediaEntityProcessor required")
   @Test
   public void testNavigationToStreamValueVia() throws IOException, ODataException {
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
@@ -154,7 +154,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
   @Test
   public void testNavigationToComplexAttributeValue() throws IOException, ODataException {
     // skip test with Hibernate
-    assumeTrue("Hibernate produce invalid SQL", getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate, "Hibernate produce invalid SQL");
 
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 
@@ -171,7 +171,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
   @Test
   public void testNavigationToPrimitiveAttributeValue() throws IOException, ODataException {
     // skip test with Hibernate
-    assumeTrue("Hibernate produce invalid SQL", getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate, "Hibernate produce invalid SQL");
 
     new ImageLoader().loadPerson(persistenceAdapter.createEntityManager(), "OlingoOrangeTM.png", "99");
 

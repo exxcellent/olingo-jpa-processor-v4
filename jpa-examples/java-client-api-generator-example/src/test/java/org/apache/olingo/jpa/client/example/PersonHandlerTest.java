@@ -14,15 +14,10 @@ import org.apache.olingo.jpa.processor.core.testmodel.PersonImageMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonURIBuilder;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressDataMeta;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class PersonHandlerTest extends HandlerTestBase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testInvalidLoadEntitySetPerson() throws Exception {
@@ -32,8 +27,7 @@ public class PersonHandlerTest extends HandlerTestBase {
         "97")));
     final PersonURIBuilder uriBuilder = handler.defineEndpoint().filter(filter);
 
-    thrown.expect(IllegalArgumentException.class);
-    handler.retrieve(uriBuilder);
+    org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> handler.retrieve(uriBuilder));
   }
 
   @Test
@@ -45,30 +39,30 @@ public class PersonHandlerTest extends HandlerTestBase {
         + "/" + PostalAddressDataMeta.ADMINISTRATIVEDIVISION_NAME).expandWithOptions(
             PersonMeta.IMAGE1_NAME, expandImage1Options);
     final PersonDto dto = handler.retrieve(uriBuilder);
-    Assert.assertNotNull(dto);
-    Assert.assertEquals(1, dto.getPhoneNumbers().size());
-    Assert.assertEquals(dto.getPhoneNumbersAsString().size(), dto.getPhoneNumbers().size());
-    Assert.assertEquals("CHE", dto.getCountry());
-    Assert.assertEquals(Timestamp.valueOf("2016-07-20 09:21:23.0"), dto.getCreationDateTime());
-    Assert.assertNotNull(dto.getAddress());
-    Assert.assertEquals("23", dto.getAddress().getHouseNumber());
-    Assert.assertNotNull(dto.getAdministrativeInformation());
-    Assert.assertNotNull(dto.getAdministrativeInformation().getCreated());
-    Assert.assertEquals("99", dto.getAdministrativeInformation().getCreated().getBy());
-    Assert.assertNotNull(dto.getAdministrativeInformation().getUpdated());
-    Assert.assertNotNull(dto.getAddress().getAdministrativeDivision());
-    Assert.assertEquals("CH-BL", dto.getAddress().getAdministrativeDivision().getDivisionCode());
+    Assertions.assertNotNull(dto);
+    Assertions.assertEquals(1, dto.getPhoneNumbers().size());
+    Assertions.assertEquals(dto.getPhoneNumbersAsString().size(), dto.getPhoneNumbers().size());
+    Assertions.assertEquals("CHE", dto.getCountry());
+    Assertions.assertEquals(Timestamp.valueOf("2016-07-20 09:21:23.0"), dto.getCreationDateTime());
+    Assertions.assertNotNull(dto.getAddress());
+    Assertions.assertEquals("23", dto.getAddress().getHouseNumber());
+    Assertions.assertNotNull(dto.getAdministrativeInformation());
+    Assertions.assertNotNull(dto.getAdministrativeInformation().getCreated());
+    Assertions.assertEquals("99", dto.getAdministrativeInformation().getCreated().getBy());
+    Assertions.assertNotNull(dto.getAdministrativeInformation().getUpdated());
+    Assertions.assertNotNull(dto.getAddress().getAdministrativeDivision());
+    Assertions.assertEquals("CH-BL", dto.getAddress().getAdministrativeDivision().getDivisionCode());
 
-    Assert.assertNotNull(dto.getImage1());
-    Assert.assertEquals("97", dto.getImage1().getPID());
-    Assert.assertNotNull(dto.getImage1().getOwningPerson());
-    Assert.assertEquals(dto.getImage1().getOwningPerson().getID(), dto.getID());
-    Assert.assertNull(dto.getImage1().getPersonReferenceWithoutMappedAttribute());
-    Assert.assertNull(dto.getImage1().getPersonWithDefaultIdMapping());
-    Assert.assertNotNull(dto.getImage1().getAdministrativeInformation());
-    Assert.assertNotNull(dto.getImage1().getAdministrativeInformation().getCreated());
-    Assert.assertNotNull(dto.getImage1().getAdministrativeInformation().getUpdated());
-    Assert.assertEquals("John Doe", dto.getImage1().getAdministrativeInformation().getUpdated().getBy());
+    Assertions.assertNotNull(dto.getImage1());
+    Assertions.assertEquals("97", dto.getImage1().getPID());
+    Assertions.assertNotNull(dto.getImage1().getOwningPerson());
+    Assertions.assertEquals(dto.getImage1().getOwningPerson().getID(), dto.getID());
+    Assertions.assertNull(dto.getImage1().getPersonReferenceWithoutMappedAttribute());
+    Assertions.assertNull(dto.getImage1().getPersonWithDefaultIdMapping());
+    Assertions.assertNotNull(dto.getImage1().getAdministrativeInformation());
+    Assertions.assertNotNull(dto.getImage1().getAdministrativeInformation().getCreated());
+    Assertions.assertNotNull(dto.getImage1().getAdministrativeInformation().getUpdated());
+    Assertions.assertEquals("John Doe", dto.getImage1().getAdministrativeInformation().getUpdated().getBy());
   }
 
   @Test
@@ -83,7 +77,7 @@ public class PersonHandlerTest extends HandlerTestBase {
     // (embedded) complex type
     modifiedPerson.getAddress().setAdministrativeDivision(null);
     final PersonDto updatedPerson = handler.update(modifiedPerson);
-    Assert.assertEquals(modifiedPerson.getID(), updatedPerson.getID());
+    Assertions.assertEquals(modifiedPerson.getID(), updatedPerson.getID());
   }
 
 }

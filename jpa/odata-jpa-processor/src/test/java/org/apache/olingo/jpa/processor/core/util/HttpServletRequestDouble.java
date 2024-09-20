@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.util;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,6 +20,7 @@ import org.apache.olingo.commons.core.Decoder;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConnection;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
@@ -209,12 +210,6 @@ public class HttpServletRequestDouble implements HttpServletRequest {
 
   @Override
   public RequestDispatcher getRequestDispatcher(final String path) {
-    fail();
-    return null;
-  }
-
-  @Override
-  public String getRealPath(final String path) {
     fail();
     return null;
   }
@@ -450,12 +445,6 @@ public class HttpServletRequestDouble implements HttpServletRequest {
   }
 
   @Override
-  public boolean isRequestedSessionIdFromUrl() {
-    fail();
-    return false;
-  }
-
-  @Override
   public long getContentLengthLong() {
     if (input == null) {
       return 0;
@@ -554,4 +543,20 @@ public class HttpServletRequestDouble implements HttpServletRequest {
     return null;
   }
 
+  @Override
+  public String getRequestId() {
+    return requestId;
+  }
+
+  @Override
+  public String getProtocolRequestId() {
+    fail();
+    return null;
+  }
+
+  @Override
+  public ServletConnection getServletConnection() {
+    fail();
+    return null;
+  }
 }

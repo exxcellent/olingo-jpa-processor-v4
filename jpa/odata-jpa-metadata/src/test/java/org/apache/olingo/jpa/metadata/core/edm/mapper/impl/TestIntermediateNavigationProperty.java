@@ -1,15 +1,11 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.EmbeddableType;
-import jakarta.persistence.metamodel.EntityType;
 
 import org.apache.olingo.commons.api.edm.provider.CsdlOnDeleteAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlReferentialConstraint;
@@ -17,13 +13,17 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartner;
 import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EmbeddableType;
+import jakarta.persistence.metamodel.EntityType;
 
 public class TestIntermediateNavigationProperty extends TestMappingRoot {
   private TestHelper helper;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     helper = new TestHelper(emf.getMetamodel(), PUNIT_NAME);
   }
@@ -46,7 +46,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
         jpaAttribute,
         helper.getServiceDocument());
 
-    assertEquals("Wrong name", "Roles", property.getEdmItem().getName());
+    assertEquals("Roles", property.getEdmItem().getName());
   }
 
   @Test
@@ -57,7 +57,7 @@ public class TestIntermediateNavigationProperty extends TestMappingRoot {
         jpaAttribute,
         helper.getServiceDocument());
 
-    assertEquals("Wrong name", PUNIT_NAME + ".BusinessPartnerRole", property.getEdmItem().getType());
+    assertEquals(PUNIT_NAME + ".BusinessPartnerRole", property.getEdmItem().getType());
   }
 
   @Test

@@ -1,8 +1,8 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.util.List;
 
@@ -12,13 +12,13 @@ import org.apache.olingo.commons.api.edm.provider.CsdlNavigationPropertyBinding;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.test.util.TestDataConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestIntermediateContainer extends TestMappingRoot {
   private IntermediateServiceDocument serviceDocument;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
     serviceDocument.createMetamodelSchema(PUNIT_NAME, emf.getMetamodel());
@@ -42,8 +42,8 @@ public class TestIntermediateContainer extends TestMappingRoot {
   public void checkGetNoEntitySets() throws ODataJPAModelException {
 
     assumeTrue(
-        "Hibernate does not separate entities in different persistence units, so the numer of entities is the sum of all persistence units",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate does not separate entities in different persistence units, so the numer of entities is the sum of all persistence units");
 
     final IntermediateEntityContainer container = new IntermediateEntityContainer(new JPAEdmNameBuilder(PUNIT_NAME),
         serviceDocument);

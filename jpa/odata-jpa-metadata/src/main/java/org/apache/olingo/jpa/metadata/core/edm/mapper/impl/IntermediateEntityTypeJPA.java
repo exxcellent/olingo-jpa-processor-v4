@@ -112,7 +112,7 @@ JPAEntityType {
     if (propertyInternalName == null || propertyInternalName.isEmpty()) {
       return null;
     }
-    // Ensure that @Ignore is ignored, because we have to find/select that path independent from business requirements
+    // Ensure that @Disabled is ignored, because we have to find/select that path independent from business requirements
     return getPath(getAttribute(propertyInternalName).getExternalName());
   }
 

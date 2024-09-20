@@ -1,13 +1,11 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.criteria.CriteriaBuilder;
 
 import org.apache.olingo.commons.api.edm.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
@@ -22,8 +20,10 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
 
 public class TestJPAVisitor {
 
@@ -32,7 +32,7 @@ public class TestJPAVisitor {
   private JPAVisitor cut;
   private AbstractJPADatabaseProcessor converter;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     converter = new JPA_DefaultDatabaseProcessor();
     converter.initialize(mock(CriteriaBuilder.class));

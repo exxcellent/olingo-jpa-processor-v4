@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -123,7 +124,7 @@ public class DTOEntityHelper {
         odataEntityCollection.getEntities().add(entity);
       }
       return odataEntityCollection;
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e);
     } catch (final ODataJPAModelException e) {
@@ -143,7 +144,7 @@ public class DTOEntityHelper {
           provider.getServiceDocument(), context.getServiceMetaData());
       final Object dto = converter.convertOData2JPAEntity(odataEntity, jpaEntityType);
       handler.write(uriInfo, dto);
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e);
     } catch (final ODataJPAModelException e) {
@@ -154,9 +155,10 @@ public class DTOEntityHelper {
   }
 
   private ODataDTOHandler<?> buildHandlerInstance(final EdmEntitySet targetEdmEntitySet)
-      throws ODataJPAModelException, InstantiationException, IllegalAccessException, ODataApplicationException {
+      throws ODataJPAModelException, InstantiationException, IllegalAccessException, ODataApplicationException,
+      IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
     final Class<? extends ODataDTOHandler<?>> classHandler = determineDTOHandlerClass(targetEdmEntitySet);
-    final ODataDTOHandler<?> handler = classHandler.newInstance();
+    final ODataDTOHandler<?> handler = classHandler.getDeclaredConstructor().newInstance();
     context.getDependencyInjector().injectDependencyValues(handler);
     return handler;
   }

@@ -15,8 +15,8 @@ import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityDt
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityDtoConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntityURIBuilder;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DatatypeConversionEntityHandlerTest extends HandlerTestBase {
 
@@ -41,16 +41,17 @@ public class DatatypeConversionEntityHandlerTest extends HandlerTestBase {
         DatatypeConversionEntityAbstractHandler.class, DatatypeConversionEntityCustomConverter.class);
     final DatatypeConversionEntityURIBuilder uriBuilder = handler.defineEndpoint().appendKeySegment(Integer.valueOf(2));
     final DatatypeConversionEntityDto dto = handler.retrieve(uriBuilder);
-    Assert.assertNotNull(dto);
-    Assert.assertEquals(Integer.valueOf(2000), dto.getAIntegerYear());
+    Assertions.assertNotNull(dto);
+    Assertions.assertEquals(Integer.valueOf(2000), dto.getAIntegerYear());
     // check unexpected time zone/type conversion
-    Assert.assertEquals(LocalDateTime.of(2016, 01, 20, 9, 21, 23), dto.getATimestamp2());
-    Assert.assertEquals(Timestamp.valueOf(LocalDateTime.of(2010, 01, 01, 23, 00, 59)), dto
+    Assertions.assertEquals(LocalDateTime.of(2016, 01, 20, 9, 21, 23), dto.getATimestamp2());
+    Assertions.assertEquals(Timestamp.valueOf(LocalDateTime.of(2010, 01, 01, 23, 00, 59)), dto
         .getATimestamp1SqlTimestamp());
-    Assert.assertEquals(Timestamp.valueOf(LocalDateTime.of(2010, 01, 01, 23, 00, 59)), dto.getATimestamp1UtilDate());
-    Assert.assertEquals(java.sql.Date.valueOf(LocalDate.of(2090, 12, 01)), dto.getADate1());
-    Assert.assertEquals(UUID.fromString("7f905a0b-bb6e-11e3-9e8f-000000000001"), dto.getUuid());
-    Assert.assertEquals(5, dto.getUuidFragments().size());
+    Assertions.assertEquals(Timestamp.valueOf(LocalDateTime.of(2010, 01, 01, 23, 00, 59)), dto
+        .getATimestamp1UtilDate());
+    Assertions.assertEquals(java.sql.Date.valueOf(LocalDate.of(2090, 12, 01)), dto.getADate1());
+    Assertions.assertEquals(UUID.fromString("7f905a0b-bb6e-11e3-9e8f-000000000001"), dto.getUuid());
+    Assertions.assertEquals(5, dto.getUuidFragments().size());
   }
 
 }

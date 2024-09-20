@@ -4,10 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.junit.jupiter.api.Assertions;
+
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
-
-import org.junit.Assert;
 
 public class ServletInputStreamDouble extends ServletInputStream {
   private final InputStream stream;
@@ -58,7 +58,7 @@ public class ServletInputStreamDouble extends ServletInputStream {
 
   @Override
   public void setReadListener(final ReadListener readListener) {
-    Assert.fail();
+    Assertions.fail();
 
   }
 

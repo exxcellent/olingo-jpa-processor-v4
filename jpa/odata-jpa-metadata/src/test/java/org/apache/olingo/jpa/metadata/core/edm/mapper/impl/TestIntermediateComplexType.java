@@ -1,28 +1,28 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
-import jakarta.persistence.metamodel.EmbeddableType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeInformation;
 import org.apache.olingo.jpa.processor.core.testmodel.Phone;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.metamodel.EmbeddableType;
 
 public class TestIntermediateComplexType extends TestMappingRoot {
   private Set<EmbeddableType<?>> etList;
   private IntermediateServiceDocument serviceDocument;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     etList = emf.getMetamodel().getEmbeddables();
     serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
@@ -50,10 +50,10 @@ public class TestIntermediateComplexType extends TestMappingRoot {
     final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "CommunicationData"), serviceDocument);
     // one attribute is ignored, so we should have 3 public entries
-    assertEquals("Wrong number of declared attributes", 4, ct.getSimpleAttributePathMap().size());
-    assertEquals("Wrong number of attributes", 3, ct.getAttributes(true).size());
-    assertEquals("Wrong number of properties", 3, ct.getEdmItem().getProperties().size());
-    assertEquals("Wrong number of paths", 3, ct.getPathList().size());
+    assertEquals(4, ct.getSimpleAttributePathMap().size(), "Wrong number of declared attributes");
+    assertEquals(3, ct.getAttributes(true).size(), "Wrong number of attributes");
+    assertEquals(3, ct.getEdmItem().getProperties().size(), "Wrong number of properties");
+    assertEquals(3, ct.getPathList().size(), "Wrong number of paths");
   }
 
   @Test
@@ -86,7 +86,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
     final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
         "PostalAddressData"),
         serviceDocument);
-    assertEquals("Wrong number of properties", 1, ct.getEdmItem().getNavigationProperties().size());
+    assertEquals(1, ct.getEdmItem().getNavigationProperties().size(), "Wrong number of properties");
   }
 
   @Test
@@ -105,7 +105,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
     assertEquals("AdministrativeDivision", ct.getEdmItem().getNavigationProperty("AdministrativeDivision").getName());
   }
 
-  @Ignore("countryName is currently commented out")
+  @Disabled("countryName is currently commented out")
   @Test
   public void checkGetDescriptionPropertyManyToOne() throws ODataJPAModelException {
     final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
@@ -114,7 +114,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
     assertNotNull(ct.getEdmItem().getProperty("CountryName"));
   }
 
-  @Ignore("regionName is currently commented out")
+  @Disabled("regionName is currently commented out")
   @Test
   public void checkGetDescriptionPropertyManyToMany() throws ODataJPAModelException {
     final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(
@@ -123,7 +123,7 @@ public class TestIntermediateComplexType extends TestMappingRoot {
     assertNotNull(ct.getEdmItem().getProperty("RegionName"));
   }
 
-  @Ignore("countryName is currently commented out")
+  @Disabled("countryName is currently commented out")
   @Test
   public void checkDescriptionPropertyType() throws ODataJPAModelException {
     final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEmbeddedableType(

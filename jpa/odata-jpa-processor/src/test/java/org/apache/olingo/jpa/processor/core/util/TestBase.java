@@ -29,8 +29,8 @@ import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.uri.UriInfoKind;
 import org.apache.olingo.server.core.uri.UriInfoImpl;
 import org.apache.olingo.server.core.uri.UriResourceEntitySetImpl;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public abstract class TestBase {
@@ -52,12 +52,12 @@ public abstract class TestBase {
   /**
    * Execute every test class with a fresh created database
    */
-  @BeforeClass
+  @BeforeAll
   public static void setupDatabase() {
     DataSourceHelper.forceFreshCreatedDatabase();
   }
 
-  @Before
+  @BeforeEach
   public final void setupTest() throws ODataException {
     persistenceAdapter = createPersistenceAdapter();
     helper = new TestHelper(persistenceAdapter.getMetamodel(), Constant.PUNIT_NAME);

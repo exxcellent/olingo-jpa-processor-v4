@@ -77,7 +77,7 @@ public class EdmEntitySetDouble implements EdmEntitySet {
 
 	@Override
 	public EdmMapping getMapping() {
-		org.junit.Assert.fail();
+		org.junit.jupiter.api.Assertions.fail();
 		return null;
 	}
 }

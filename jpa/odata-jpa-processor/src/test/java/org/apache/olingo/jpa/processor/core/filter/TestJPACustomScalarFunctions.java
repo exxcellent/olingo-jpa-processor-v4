@@ -1,12 +1,8 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Query;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -17,24 +13,28 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Query;
 
 public class TestJPACustomScalarFunctions {
 
   private static TestGenericJPAPersistenceAdapter persistenceAdapter;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() throws ODataJPAModelException {
     persistenceAdapter = new TestGenericJPAPersistenceAdapter(
         Constant.PUNIT_NAME, DataSourceHelper.DatabaseType.HSQLDB);
     createDenfityFunction();
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDownClass() throws ODataJPAModelException {
     dropDenfityFunction();
   }

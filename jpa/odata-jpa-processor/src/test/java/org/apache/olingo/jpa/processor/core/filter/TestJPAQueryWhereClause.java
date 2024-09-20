@@ -1,8 +1,8 @@
 package org.apache.olingo.jpa.processor.core.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 
@@ -13,8 +13,8 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -96,7 +96,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     assertEquals("10", orgs.get(0).get("ID").asText());
   }
 
-  @Ignore("LocationName currently not available")
+  @Disabled("LocationName currently not available")
   @Test
   public void testFilterOneDescriptionEqualsFieldNotSelected() throws IOException, ODataException {
 
@@ -304,7 +304,7 @@ public class TestJPAQueryWhereClause extends TestBase {
   @Test
   public void testFilterDivGreater() throws IOException, ODataException {
 
-    assumeTrue("Hibernate cannot compare a Short (from 6000) as Number", getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate, "Hibernate cannot compare a Short (from 6000) as Number");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").filter(
         "Area gt 0 and Area div Population ge 6000");
@@ -601,7 +601,7 @@ public class TestJPAQueryWhereClause extends TestBase {
    *
    * @see https://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.html#_Toc26179939
    */
-  @Ignore("With Olingo 4.7.0 operators are case sensitive (must be lower case)")
+  @Disabled("With Olingo 4.7.0 operators are case sensitive (must be lower case)")
   @Test
   public void testCaseInsensitiveFilterOperators() throws IOException, ODataException {
 
@@ -675,7 +675,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     assertEquals(0, values.size());
   };
 
-  @Ignore("RegionName currently not available in PostalAdress")
+  @Disabled("RegionName currently not available in PostalAdress")
   @Test
   public void testFilterNavigationPropertyDescriptionViaComplexTypeWOSubselectSelectId() throws IOException,
   ODataException {
@@ -783,8 +783,9 @@ public class TestJPAQueryWhereClause extends TestBase {
 
   @Test
   public void testFilterWithWildcardEscape() throws IOException, ODataException {
-    assumeTrue("Hibernate cannot handle the not insertable property 'aDouble' while inserting, so we ignore test",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate cannot handle the not insertable property 'aDouble' while inserting, so we ignore test");
 
     // create entities with reserved characters
     final URIBuilder uriBuilderCreate = TestBase.newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities");
@@ -820,7 +821,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final ServerCallSimulator servercallQuery1 = new ServerCallSimulator(persistenceAdapter, uriBuilderQuery1);
     servercallQuery1.execute(HttpStatusCode.OK.getStatusCode());
     entities = servercallQuery1.getJsonObjectValues();
-    assertEquals("With escaping only one result expected", 1, entities.size());
+    assertEquals(1, entities.size(), "With escaping only one result expected");
     assertTrue(entities.get(0).get("AUrl").asText().contains("my_underscore"));
 
     // query entity '?' having 0 valid result
@@ -829,7 +830,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final ServerCallSimulator servercallQuery2 = new ServerCallSimulator(persistenceAdapter, uriBuilderQuery2);
     servercallQuery2.execute(HttpStatusCode.OK.getStatusCode());
     entities = servercallQuery2.getJsonObjectValues();
-    assertEquals("With escaping only one result expected", 0, entities.size());
+    assertEquals(0, entities.size(), "With escaping only one result expected");
 
     // query entity '*' having 0 valid result
     final URIBuilder uriBuilderQuery3 = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
@@ -837,7 +838,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     final ServerCallSimulator servercallQuery3 = new ServerCallSimulator(persistenceAdapter, uriBuilderQuery3);
     servercallQuery3.execute(HttpStatusCode.OK.getStatusCode());
     entities = servercallQuery3.getJsonObjectValues();
-    assertEquals("With escaping only one result expected", 2, entities.size());
+    assertEquals(2, entities.size(), "With escaping only one result expected");
   }
 
 }

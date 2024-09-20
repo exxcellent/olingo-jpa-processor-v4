@@ -3,6 +3,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
+import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription;
+import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
+import org.apache.olingo.jpa.processor.core.testmodel.Organization;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
@@ -16,23 +26,13 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 
-import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
-import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescription;
-import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRole;
-import org.apache.olingo.jpa.processor.core.testmodel.Organization;
-import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 public class TestCriteriaBuilder {
   private static final String ENTITY_MANAGER_DATA_SOURCE = "jakarta.persistence.nonJtaDataSource";
   private static EntityManagerFactory emf;
   private EntityManager em;
   private CriteriaBuilder cb;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() {
     DataSourceHelper.forceFreshCreatedDatabase();
     final Map<String, Object> properties = new HashMap<String, Object>();
@@ -42,13 +42,13 @@ public class TestCriteriaBuilder {
     emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME, properties);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     em = emf.createEntityManager();
     cb = em.getCriteriaBuilder();
   }
 
-  @Ignore("For development test only")
+  @Disabled("For development test only")
   @SuppressWarnings("unchecked")
   @Test
   public void testSubstringWithExperession() {
@@ -66,7 +66,7 @@ public class TestCriteriaBuilder {
     tq.getResultList();
   }
 
-  @Ignore("For development test only")
+  @Disabled("For development test only")
   @Test
   public void testSubSelect() {
     // https://stackoverflow.com/questions/29719321/combining-conditional-expressions-with-and-and-or-predicates-using-the-jpa-c
@@ -96,7 +96,7 @@ public class TestCriteriaBuilder {
     tq.getResultList();
   }
 
-  @Ignore("For development test only")
+  @Disabled("For development test only")
   @Test
   public void TestExpandSimilarCount() {
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
@@ -111,7 +111,7 @@ public class TestCriteriaBuilder {
     tq.getFirstResult();
   }
 
-  @Ignore("For development test only")
+  @Disabled("For development test only")
   @Test
   public void TestAnd() {
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
@@ -129,7 +129,7 @@ public class TestCriteriaBuilder {
     tq.getFirstResult();
   }
 
-  @Ignore("For development test only")
+  @Disabled("For development test only")
   @Test
   public void TestSearchNoSubquery() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();

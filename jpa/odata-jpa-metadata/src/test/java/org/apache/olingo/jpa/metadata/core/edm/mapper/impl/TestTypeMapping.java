@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.geo.Geospatial.Dimension;
@@ -9,8 +9,7 @@ import org.apache.olingo.commons.api.edm.geo.MultiLineString;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmGeospatial;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
-import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.Test;
 
 public class TestTypeMapping extends TestMappingRoot {
 
@@ -31,11 +30,9 @@ public class TestTypeMapping extends TestMappingRoot {
 
     // Geo types must have an annotation to qualify as Geometry or Geography, so without annotation (on a field) a type
     // mapping must fail
-    ThrowingRunnable throwingRunnable = () -> TypeMapping.convertToEdmSimpleType(MultiLineString.class);
-    assertThrows(ODataJPAModelException.class, throwingRunnable);
-    throwingRunnable = () -> TypeMapping.convertToEdmSimpleType(GeospatialTest.class
-        .getDeclaredField("geographyMLSUnsupportedWithoutAnnotation"));
-    assertThrows(ODataJPAModelException.class, throwingRunnable);
+    assertThrows(ODataJPAModelException.class, () -> TypeMapping.convertToEdmSimpleType(MultiLineString.class));
+    assertThrows(ODataJPAModelException.class, () -> TypeMapping.convertToEdmSimpleType(GeospatialTest.class
+        .getDeclaredField("geographyMLSUnsupportedWithoutAnnotation")));
 
     assertEquals(EdmPrimitiveTypeKind.GeographyMultiLineString, TypeMapping.convertToEdmSimpleType(GeospatialTest.class
         .getDeclaredField("geographyMLS")));

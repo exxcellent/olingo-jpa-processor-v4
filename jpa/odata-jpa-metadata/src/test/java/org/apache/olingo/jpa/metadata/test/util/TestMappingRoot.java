@@ -2,11 +2,11 @@ package org.apache.olingo.jpa.metadata.test.util;
 
 import java.util.logging.Level;
 
-import jakarta.persistence.EntityManagerFactory;
-
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+
+import jakarta.persistence.EntityManagerFactory;
 
 public abstract class TestMappingRoot extends org.apache.olingo.jpa.test.util.AbstractTest {
 
@@ -19,7 +19,7 @@ public abstract class TestMappingRoot extends org.apache.olingo.jpa.test.util.Ab
 
   protected static EntityManagerFactory emf;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() {
     emf = createEntityManagerFactory(DataSourceHelper.DatabaseType.HSQLDB);
   }

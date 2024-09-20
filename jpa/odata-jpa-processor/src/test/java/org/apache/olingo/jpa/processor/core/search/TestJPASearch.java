@@ -1,8 +1,8 @@
 package org.apache.olingo.jpa.processor.core.search;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapte
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -45,8 +45,8 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testAllAttributesDerivedFromEmbeddable() throws IOException, ODataException {
     assumeTrue(
-        "Hibernate produces an SQL selecting the search columns from the wrong table",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate produces an SQL selecting the search columns from the wrong table");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EntityWithSecondaryTableAndEmbeddedSet")
         .search("\"96\"");
@@ -62,8 +62,8 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testMultipleAttributesSearchWithPhrase() throws IOException, ODataException {
     assumeTrue(
-        "Hibernate has a stupid parameter binding check not accepting '%001%' as pattern for java.net.URL attribute",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate has a stupid parameter binding check not accepting '%001%' as pattern for java.net.URL attribute");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "\"001\"");
@@ -79,8 +79,8 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testMultipleAttributesSearchWithComplexExpressionOR() throws IOException, ODataException {
     assumeTrue(
-        "Hibernate has a stupid parameter binding check not accepting '%12345%' as pattern for java.math.BigDecimal",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate has a stupid parameter binding check not accepting '%12345%' as pattern for java.math.BigDecimal");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "anywhere OR 12345");
@@ -109,8 +109,8 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testMultipleAttributesSearchWithComplexExpressionANDNOT() throws IOException, ODataException {
     assumeTrue(
-        "Hibernate has a stupid parameter binding check not accepting '%2000%' as pattern for java.math.BigDecimal",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate has a stupid parameter binding check not accepting '%2000%' as pattern for java.math.BigDecimal");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "anywhere AND NOT 2000");
@@ -124,8 +124,8 @@ public class TestJPASearch extends TestBase {
   @Test
   public void testMultipleAttributesSearchWithComplexExpressionAND() throws IOException, ODataException {
     assumeTrue(
-        "Hibernate has a stupid parameter binding check not accepting '%2000%' as pattern for java.math.BigDecimal",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate has a stupid parameter binding check not accepting '%2000%' as pattern for java.math.BigDecimal");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").search(
         "anywhere AND 2000");
@@ -140,8 +140,8 @@ public class TestJPASearch extends TestBase {
   public void testHANACaseInsensitiveSearch() throws IOException, ODataException {
     // skip test with Hibernate
     assumeTrue(
-        "Hibernate does not accept the search string as value for an BigDecimal attribute having @EdmSearchable",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate does not accept the search string as value for an BigDecimal attribute having @EdmSearchable");
 
     final Map<String, Object> properties = new HashMap<String, Object>();
     final DataSource ds = DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.H2);

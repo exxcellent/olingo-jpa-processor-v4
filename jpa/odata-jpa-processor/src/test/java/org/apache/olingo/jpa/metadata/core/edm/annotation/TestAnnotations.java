@@ -1,8 +1,8 @@
 package org.apache.olingo.jpa.metadata.core.edm.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -17,8 +17,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.dataaccessconditioner.Gene
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.Test;
 
 public class TestAnnotations extends TestBase {
 
@@ -31,8 +30,7 @@ public class TestAnnotations extends TestBase {
     assertEquals(EdmPrimitiveTypeKind.TimeOfDay, anno.odataType());
     assertEquals(EdmAttributeConversion.DEFAULT.class, anno.converter());
 
-    final ThrowingRunnable throwingRunnable = () -> anno.converter().newInstance().convertToJPA(null);
-    assertThrows(UnsupportedOperationException.class, throwingRunnable);
+    assertThrows(UnsupportedOperationException.class, () -> anno.converter().newInstance().convertToJPA(null));
 
   }
 
@@ -49,7 +47,7 @@ public class TestAnnotations extends TestBase {
     assertEquals(GenericBusinessPartnerDataAccessConditioner.class, dac.getClass());
     AbstractGenericBusinessPartner.class.getAnnotation(ODataEntity.class);
     final ODataEntity anno = GenericBusinessPartner.class.getAnnotation(ODataEntity.class);
-    assertNotNull("@Inherited annotation must not be null", anno);
+    assertNotNull(anno, "@Inherited annotation must not be null");
     assertEquals(GenericBusinessPartnerDataAccessConditioner.class, anno.handlerDataAccessConditioner());
   }
 

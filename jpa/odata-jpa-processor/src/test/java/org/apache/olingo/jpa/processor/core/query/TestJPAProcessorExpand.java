@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -20,8 +20,8 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -65,7 +65,7 @@ public class TestJPAProcessorExpand extends TestBase {
         found++;
       }
     }
-    assertEquals("Not all expected results found", 2, found);
+    assertEquals(2, found);
   }
 
   @Test
@@ -117,7 +117,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
   }
 
-  @Ignore // Not supported by Olingo as of now
+  @Disabled // Not supported by Olingo as of now
   @Test
   public void testExpandEntitySetViaNonKeyField_FieldNotSelected() throws IOException, ODataException {
 
@@ -684,7 +684,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
     assertNotNull(set);
-    assertEquals("The number of existing/expected organizations", 8, set.getEntities().size());
+    assertEquals(8, set.getEntities().size());
     assertEquals("9", set.getEntities().get(7).getProperty("ID").getPrimitiveValue().toCastValue(String.class));
     // Organization('9') must have OrganizationImage
     assertNotNull(set.getEntities().get(7).getNavigationLink("ImageUnidirectional"));

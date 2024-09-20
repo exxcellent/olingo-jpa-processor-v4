@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.processor.core.action;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,8 +19,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-
-import jakarta.persistence.Id;
 
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.ODataClientBuilder;
@@ -61,11 +59,13 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import jakarta.persistence.Id;
 
 public class TestJPAActions extends TestBase {
 
@@ -175,8 +175,8 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testBoundPrimitiveActionWithEntityParameter() throws IOException, ODataException {
-    assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate does not build a proper columns selection without quoting of column name");
 
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"dummy\": " + Integer.toString(3)).append(", ");
@@ -279,8 +279,8 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testBoundPrimitiveActionWithEnumParameter() throws IOException, ODataException {
-    assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate does not build a proper columns selection without quoting of column name");
 
     final StringBuffer requestBody = new StringBuffer("{");
     final String testValue = TestEnum.Three.name();
@@ -347,8 +347,8 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testActionInAbstractEntity() throws IOException, ODataException, NoSuchMethodException {
-    assumeTrue("Hibernate cannot handle an abstract entity class as resource",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate cannot handle an abstract entity class as resource");
 
     URIBuilder uriBuilder;
 
@@ -382,8 +382,8 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testBoundActionInMappedSuperclass() throws IOException, ODataException, NoSuchMethodException {
-    assumeTrue("Hibernate cannot handle an abstract entity class as resource",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate cannot handle an abstract entity class as resource");
 
     // the action must be present in all concrete/abstract entity classes
 
@@ -838,7 +838,7 @@ public class TestJPAActions extends TestBase {
     final Number targetId = targetsSource1.get(0).get("ID").numberValue();
     // backlink must be empty
     final ArrayNode backlingSourceTarget1 = targetsSource1.get(0).withArray("RightM2Ns");
-    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget1.size());
+    assertEquals(0, backlingSourceTarget1.size(), "inverse relationship collection must be empty");
 
     final ObjectNode source2 = (ObjectNode) sourcesCreated.get(0);
     assertNotNull(source2);
@@ -848,7 +848,7 @@ public class TestJPAActions extends TestBase {
     assertEquals(targetId, targetsSource2.get(0).get("ID").numberValue());
     // backlink must be empty
     final ArrayNode backlingSourceTarget2 = targetsSource2.get(0).withArray("RightM2Ns");
-    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget2.size());
+    assertEquals(0, backlingSourceTarget2.size(), "inverse relationship collection must be empty");
   }
 
   @Test
@@ -872,7 +872,7 @@ public class TestJPAActions extends TestBase {
     final Number targetId = targetsSource1.get(0).get("ID").numberValue();
     // backlink must be empty
     final ArrayNode backlingSourceTarget1 = targetsSource1.get(0).withArray("RightM2Ns");
-    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget1.size());
+    assertEquals(0, backlingSourceTarget1.size(), "inverse relationship collection must be empty");
 
     final ObjectNode source2 = (ObjectNode) sourcesCreated.get(0);
     assertNotNull(source2);
@@ -882,7 +882,7 @@ public class TestJPAActions extends TestBase {
     assertEquals(targetId, targetsSource2.get(0).get("ID").numberValue());
     // backlink must be empty
     final ArrayNode backlingSourceTarget2 = targetsSource2.get(0).withArray("RightM2Ns");
-    assertEquals("inverse relationship collection must be empty", 0, backlingSourceTarget2.size());
+    assertEquals(0, backlingSourceTarget2.size(), "inverse relationship collection must be empty");
 
     // now send back the shared target entity (must be merged on backend side)
     final String sourceNameBefore = "client side modified source1 name";
@@ -926,8 +926,8 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testBoundActionModifyingBusinessPartner() throws IOException, ODataException {
-    assumeTrue("Hibernate cannot handle an abstract entity class as resource",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate cannot handle an abstract entity class as resource");
 
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("  \"changedCityName\": \"MyCity\"");

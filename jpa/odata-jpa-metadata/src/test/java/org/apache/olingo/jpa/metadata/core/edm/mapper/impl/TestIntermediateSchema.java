@@ -1,20 +1,20 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.test.util.TestDataConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestIntermediateSchema extends TestMappingRoot {
 
   private AbstractJPASchema schema;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     final IntermediateServiceDocument serviceDocument = new IntermediateServiceDocument(PUNIT_NAME);
     schema = serviceDocument.createMetamodelSchema(PUNIT_NAME,
@@ -24,11 +24,11 @@ public class TestIntermediateSchema extends TestMappingRoot {
   @Test
   public void checkSchemaGetAllEntityTypes() throws ODataJPAModelException {
     assumeTrue(
-        "Hibernate does not separate entities in different persistence units, so the numer of entities is the sum of all persistence units",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate does not separate entities in different persistence units, so the numer of entities is the sum of all persistence units");
 
-    assertEquals("Wrong number of entities", TestDataConstants.NO_ENTITY_TYPES, schema.getEdmItem().getEntityTypes()
-        .size());
+    assertEquals(TestDataConstants.NO_ENTITY_TYPES, schema.getEdmItem().getEntityTypes()
+        .size(), "Wrong number of entities");
   }
 
   @Test
@@ -44,7 +44,7 @@ public class TestIntermediateSchema extends TestMappingRoot {
   @Test
   public void checkSchemaGetAllComplexTypes() throws ODataJPAModelException {
     // ChangeInformation,CommunicationData,AdministrativeInformation,PostalAddressData
-    assertEquals("Wrong number of entities", 8, schema.getEdmItem().getComplexTypes().size());
+    assertEquals(8, schema.getEdmItem().getComplexTypes().size(), "Wrong number of entities");
   }
 
   @Test
@@ -59,6 +59,6 @@ public class TestIntermediateSchema extends TestMappingRoot {
 
   @Test
   public void checkSchemaGetAllFunctions() throws ODataJPAModelException {
-    assertEquals("Wrong number of (bound) function", 5, schema.getEdmItem().getFunctions().size());
+    assertEquals(5, schema.getEdmItem().getFunctions().size(), "Wrong number of (bound) function");
   }
 }

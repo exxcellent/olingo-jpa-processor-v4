@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.processor.core.dto;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.StandardProtocolFamily;
@@ -33,8 +33,9 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -116,13 +117,13 @@ public class TestDTOs extends TestBase {
     private Phone phone;
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
   }
 
-  @Test(expected = ODataJPAModelException.class)
+  @Test
   public void testNonDTOThrowsError() throws IOException, ODataException, SQLException {
     // create own instance to avoid pollution of other tests
     final TestGenericJPAPersistenceAdapter myPersistenceAdapter = new TestGenericJPAPersistenceAdapter(
@@ -130,9 +131,11 @@ public class TestDTOs extends TestBase {
         DataSourceHelper.DatabaseType.HSQLDB);
     myPersistenceAdapter.registerDTO(TestDTOs.class);
     // must throw an exception on further processing
-    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-    final ServerCallSimulator helper = new ServerCallSimulator(myPersistenceAdapter, uriBuilder);
-    helper.execute(HttpStatusCode.OK.getStatusCode());
+    Assertions.assertThrows(ODataJPAModelException.class, () -> {
+      final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+      final ServerCallSimulator helper = new ServerCallSimulator(myPersistenceAdapter, uriBuilder);
+      helper.execute(HttpStatusCode.OK.getStatusCode());
+    });
   }
 
   @Test
@@ -208,14 +211,16 @@ public class TestDTOs extends TestBase {
     assertNotNull(result);
   }
 
-  @Test(expected = ODataJPAModelException.class)
+  @Test
   public void testInvalidRegisteredDTOComplexType() throws ODataException, IOException {
     // a DTO must have the @ODataDTO annotation
     persistenceAdapter.registerDTO(NestedComplexType.class);
     // trigger metamodel building and exception...
-    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
-    helper.execute(HttpStatusCode.OK.getStatusCode());
+    Assertions.assertThrows(ODataJPAModelException.class, () -> {
+      final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
+      final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
+      helper.execute(HttpStatusCode.OK.getStatusCode());
+    });
   }
 
   @Test

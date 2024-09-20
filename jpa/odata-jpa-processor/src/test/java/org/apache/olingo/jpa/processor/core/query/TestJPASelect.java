@@ -1,9 +1,9 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.time.DayOfWeek;
@@ -14,7 +14,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -73,8 +73,8 @@ public class TestJPASelect extends TestBase {
   public void testEmbeddedComingFromOtherTable() throws IOException, ODataException {
     // skip test with Hibernate
     assumeTrue(
-        "Hibernate will produce an invalid query, because an @Embedded with @AttributeOveride's targeting another table will not create a JOIN",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate will produce an invalid query, because an @Embedded with @AttributeOveride's targeting another table will not create a JOIN");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("EntityWithSecondaryTableAndEmbeddedSet")
         .appendKeySegment("97");
@@ -119,9 +119,9 @@ public class TestJPASelect extends TestBase {
 
     // skip test with Hibernate
     assumeTrue(
+        getJPAProvider() != JPAProvider.Hibernate,
         "Hibernate will create a query without condition for target type (like tx.\"Type\" = 'RelationshipTargetEntity'),"
-            + " so the result size will 2 instead of 1, because our test data invalid for 1->4 (see *.sql for RELATIONSHIPJoinTable)",
-            getJPAProvider() != JPAProvider.Hibernate);
+            + " so the result size will 2 instead of 1, because our test data invalid for 1->4 (see *.sql for RELATIONSHIPJoinTable)");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").appendKeySegment(
         Integer.valueOf(1)).appendNavigationSegment("leftM2Ns");

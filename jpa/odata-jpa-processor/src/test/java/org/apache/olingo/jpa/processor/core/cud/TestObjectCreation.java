@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.processor.core.cud;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 
@@ -19,9 +19,9 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
@@ -30,13 +30,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestObjectCreation extends TestBase {
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     persistenceAdapter.registerDTO(EnvironmentInfo.class);
     persistenceAdapter.registerDTO(SystemRequirement.class);
   }
 
-  @Ignore("Keys are currently not forbidden, because OData<->JPA conversion is also used for internal loading (bound actions for example)")
+  @Disabled("Keys are currently not forbidden, because OData<->JPA conversion is also used for internal loading (bound actions for example)")
   @Test
   public void testIllegalCreationWithKey() throws IOException, ODataException {
     final StringBuffer requestBody = new StringBuffer("{");
@@ -84,8 +84,8 @@ public class TestObjectCreation extends TestBase {
   @Test
   public void testCreationEntityWithNestedComplexType() throws IOException, ODataException {
     assumeTrue(
-        "We cannot provide a Address/AdministrativeDivision instance, because ODataDeserializer does not suppport complex types having relationships... but Hibernate does not accept null value for that relationship",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "We cannot provide a Address/AdministrativeDivision instance, because ODataDeserializer does not suppport complex types having relationships... but Hibernate does not accept null value for that relationship");
 
     final String ADMINSITRATIVEINFORMATION_CREATED_BY = "ME";
     final StringBuffer requestBody = new StringBuffer("{");
@@ -120,8 +120,8 @@ public class TestObjectCreation extends TestBase {
   @Test
   public void testCreationEntityWithElementCollection() throws IOException, ODataException {
     assumeTrue(
-        "We cannot provide a Address/AdministrativeDivision instance, because ODataDeserializer does not suppport complex types having relationships... but Hibernate does not accept null value for that relationship",
-        getJPAProvider() != JPAProvider.Hibernate);
+        getJPAProvider() != JPAProvider.Hibernate,
+        "We cannot provide a Address/AdministrativeDivision instance, because ODataDeserializer does not suppport complex types having relationships... but Hibernate does not accept null value for that relationship");
 
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"ID\": \"" + Long.toString(System.currentTimeMillis())).append("\", ");

@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.transformation;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -19,7 +19,7 @@ import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
 import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.core.util.TypedParameter;
 import org.apache.olingo.server.api.serializer.RepresentationType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TransformationDescriptionTest {
 

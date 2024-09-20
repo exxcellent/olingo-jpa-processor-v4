@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.util;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -142,18 +142,6 @@ public class HttpServletResponseDouble implements HttpServletResponse {
   }
 
   @Override
-  public String encodeUrl(final String url) {
-    fail();
-    return null;
-  }
-
-  @Override
-  public String encodeRedirectUrl(final String url) {
-    fail();
-    return null;
-  }
-  
-  @Override
   public void sendError(final int sc, final String msg) throws IOException {
     // TODO do not ignore message?
     setStatus(sc);
@@ -167,7 +155,11 @@ public class HttpServletResponseDouble implements HttpServletResponse {
   @Override
   public void sendRedirect(final String location) throws IOException {
     fail();
+  }
 
+  @Override
+  public void sendRedirect(final String location, final int sc, final boolean clearBuffer) throws IOException {
+    fail();
   }
 
   @Override
@@ -213,11 +205,6 @@ public class HttpServletResponseDouble implements HttpServletResponse {
   @Override
   public void setStatus(final int sc) {
     this.setStatus = sc;
-  }
-
-  @Override
-  public void setStatus(final int sc, final String sm) {
-    fail();
   }
 
   @Override
@@ -282,4 +269,5 @@ public class HttpServletResponseDouble implements HttpServletResponse {
   public Collection<String> getHeaderNames() {
     return headers.keySet();
   }
+
 }

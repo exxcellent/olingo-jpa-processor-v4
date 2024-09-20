@@ -27,6 +27,7 @@ public class DataSourceHelper {
     /**
      * @deprecated Currently not useable
      */
+    @Deprecated
     REMOTE;
   }
 
@@ -40,7 +41,7 @@ public class DataSourceHelper {
   private static final String H2_DRIVER_CLASS_NAME = "org.h2.Driver";
 
   private static final String HSQLDB_URL = "jdbc:hsqldb:mem:com.sample";
-  private static final String HSQLDB_DRIVER_CLASS_NAME = "org.hsqldb.jdbcDriver";
+  private static final String HSQLDB_DRIVER_CLASS_NAME = "org.hsqldb.jdbc.JDBCDriver";
 
   private static final String DERBY_URL =
       "jdbc:derby:memory:target/testdb;create=true;traceFile=derby_trace.log;trace_level=0xFFFFFFFF";

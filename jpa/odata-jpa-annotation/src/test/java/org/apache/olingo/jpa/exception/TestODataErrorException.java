@@ -1,10 +1,10 @@
 package org.apache.olingo.jpa.exception;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.apache.olingo.commons.api.ex.ODataError;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestODataErrorException {
 

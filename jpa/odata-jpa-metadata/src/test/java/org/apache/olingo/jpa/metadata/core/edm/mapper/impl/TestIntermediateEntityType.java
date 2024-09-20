@@ -1,14 +1,12 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-
-import jakarta.persistence.metamodel.EntityType;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.AttributeMapping;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
@@ -20,15 +18,17 @@ import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
 import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntity;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.test.util.TestDataConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.metamodel.EntityType;
 
 public class TestIntermediateEntityType extends TestMappingRoot {
 
   private Set<EntityType<?>> etList;
   private IntermediateServiceDocument serviceDocument;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     // IntermediateModelElement.setPostProcessor(new DefaultEdmPostProcessor());
     etList = emf.getMetamodel().getEntities();
@@ -122,7 +122,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
     final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
         "BusinessPartner"),
         serviceDocument);
-    assertEquals("Wrong number of navigation entities", 3, et.getEdmItem().getNavigationProperties().size());
+    assertEquals(3, et.getEdmItem().getNavigationProperties().size(), "Wrong number of navigation entities");
   }
 
   @Test
@@ -156,7 +156,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
         serviceDocument);
     final JPAAssociationPath assoPath = et.getAssociationPath("Address/AdministrativeDivision");
     final List<JPASelector> rightSelectors = assoPath.getRightPaths();
-    assertEquals("Not all join columns found", 3, rightSelectors.size());
+    assertEquals(3, rightSelectors.size(), "Not all join columns found");
     assertTrue(rightSelectors.get(0).getAlias().equals("CodePublisher"));
     assertTrue(rightSelectors.get(1).getAlias().equals("CodeID"));
     assertTrue(rightSelectors.get(2).getAlias().equals("DivisionCode"));
@@ -169,10 +169,10 @@ public class TestIntermediateEntityType extends TestMappingRoot {
         "BusinessPartner"), serviceDocument);
     final JPAAssociationPath assoPath = et.getAssociationPath("Roles");
     final List<JPASelector> rightSelectors = assoPath.getRightPaths();
-    assertEquals("Exactly 1 @JoinColumn expected", 1, rightSelectors.size());
+    assertEquals(1, rightSelectors.size(), "Exactly 1 @JoinColumn expected");
     assertTrue(rightSelectors.get(0).getAlias().equals("BusinessPartnerID"));
-    assertEquals("BusinessPartnerRole must have 2 @Id attributes", 2, assoPath.getTargetType().getKeyAttributes(true)
-        .size());
+    assertEquals(2, assoPath.getTargetType().getKeyAttributes(true)
+        .size(), "BusinessPartnerRole must have 2 @Id attributes");
   }
 
   @Test
@@ -180,11 +180,11 @@ public class TestIntermediateEntityType extends TestMappingRoot {
     final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
         "BusinessPartner"),
         serviceDocument);
-    assertEquals("Wrong number of entities",
+    assertEquals(
         TestDataConstants.NO_SIMPLE_ATTRIBUTES_BUISNESS_PARTNER
         + TestDataConstants.NO_COMPLEX_ATTRIBUTES_BUISNESS_PARTNER,
         et.getEdmItem()
-        .getProperties().size());
+        .getProperties().size(), "Wrong number of entities");
   }
 
   @Test
@@ -215,7 +215,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
   public void checkGetKeyProperties() throws ODataJPAModelException {
     final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
         "BusinessPartnerRole"), serviceDocument);
-    assertEquals("Wrong number of key propeties", 2, et.getEdmItem().getKey().size());
+    assertEquals(2, et.getEdmItem().getKey().size(), "Wrong number of key propeties");
   }
 
   @Test
@@ -223,7 +223,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
     final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), getEntityType(
         "BusinessPartnerRole"),
         serviceDocument);
-    assertEquals("Wrong number of entities", 2, et.getPathList().size());
+    assertEquals(2, et.getPathList().size(), "Wrong number of entities");
   }
 
   @Test
@@ -237,7 +237,7 @@ public class TestIntermediateEntityType extends TestMappingRoot {
         + TestDataConstants.NO_ATTRIBUTES_COMMUNICATION_DATA
         + 2 * TestDataConstants.NO_ATTRIBUTES_CHANGE_INFO
         + TestDataConstants.NO_ATTRIBUTES_ORGANIZATION;
-    assertEquals("Wrong number of entities", exp, et.getPathList().size());
+    assertEquals(exp, et.getPathList().size(), "Wrong number of entities");
   }
 
   @Test

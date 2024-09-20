@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -15,14 +15,14 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestJPAInstanceResultConverter extends TestBase {
   private JPAInstanceResultConverter cut;
   private List<Object> jpaQueryResult;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataException {
     final UriHelper uriHelper = odata.createUriHelper();
     final EdmEntitySet edmEntitySet = serviceMetaData.getEdm().getEntityContainer().getEntitySet(

@@ -1,5 +1,5 @@
 package org.apache.olingo.jpa.test.criteriaapi;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -8,6 +8,15 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
+import org.apache.olingo.jpa.test.util.DataSourceHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -21,21 +30,13 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import javax.sql.DataSource;
-
-import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
-import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
 
 public class TestFunctionsDerby {
   private static final String ENTITY_MANAGER_DATA_SOURCE = "jakarta.persistence.nonJtaDataSource";
   private static EntityManagerFactory emf;
   private static DataSource ds;
 
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() {
 
     final Map<String, Object> properties = new HashMap<String, Object>();
@@ -50,13 +51,13 @@ public class TestFunctionsDerby {
 
   private CriteriaBuilder cb;
 
-  @Before
+  @BeforeEach
   public void setup() {
     em = emf.createEntityManager();
     cb = em.getCriteriaBuilder();
   }
 
-  @Ignore
+  @Disabled
   @Test
   public void TestProcedure() throws SQLException {
     final StoredProcedureQuery pc = em.createStoredProcedureQuery("\"OLINGO\".\"org.apache.olingo.jpa::Siblings\"");
@@ -135,7 +136,7 @@ public class TestFunctionsDerby {
     assertNotNull(one);
   }
 
-  @Ignore("Classpath problem to find java method at runtime?")
+  @Disabled("Classpath problem to find java method at runtime?")
   @Test
   public void TestScalarFunctionsWhere() {
     CreateUDFDerby();

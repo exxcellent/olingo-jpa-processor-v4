@@ -1,13 +1,11 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.criteria.Selection;
 
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -36,14 +34,17 @@ import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.core.uri.UriResourceComplexPropertyImpl;
 import org.apache.olingo.server.core.uri.UriResourceEntitySetImpl;
 import org.apache.olingo.server.core.uri.UriResourceValueImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.criteria.Selection;
 
 public class TestJPAQuerySelectClause extends TestBase {
 
   private JPAODataRequestContext context;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataException {
     context = new JPAODataContextAccessDouble(
         new JPAEdmProvider(Constant.PUNIT_NAME, persistenceAdapter.getMetamodel()),
@@ -96,7 +97,7 @@ public class TestJPAQuerySelectClause extends TestBase {
 
     final EntityQueryBuilder cut = new EntityQueryBuilder(context, createTestUriInfo("BusinessPartners"),
         persistenceAdapter
-            .createEntityManager(), null);
+        .createEntityManager(), null);
     final List<Selection<?>> selectClause = cut
         .createSelectClause(cut.buildSelectionPathList(uriInfo).determineAllPaths());
 
@@ -108,7 +109,7 @@ public class TestJPAQuerySelectClause extends TestBase {
   public void checkSelectOnePropertyCreatedAt() throws ODataApplicationException, ODataJPAModelException {
     final EntityQueryBuilder cut = new EntityQueryBuilder(context, createTestUriInfo("BusinessPartners"),
         persistenceAdapter
-            .createEntityManager(), null);
+        .createEntityManager(), null);
     final List<Selection<?>> selectClause = cut.createSelectClause(cut.buildSelectionPathList(
         new UriInfoDouble(new SelectOptionDouble("CreationDateTime"))).determineAllPaths());
     assertEquals(2, selectClause.size());
@@ -120,7 +121,7 @@ public class TestJPAQuerySelectClause extends TestBase {
   public void checkSelectOnePropertyID() throws ODataApplicationException, ODataJPAModelException {
     final EntityQueryBuilder cut = new EntityQueryBuilder(context, createTestUriInfo("BusinessPartners"),
         persistenceAdapter
-            .createEntityManager(), null);
+        .createEntityManager(), null);
     final List<Selection<?>> selectClause = cut.createSelectClause(cut.buildSelectionPathList(
         new UriInfoDouble(new SelectOptionDouble("ID"))).determineAllPaths());
     assertEquals(1, selectClause.size());
@@ -146,7 +147,7 @@ public class TestJPAQuerySelectClause extends TestBase {
   public void checkSelectPropertyTypeCreatedAt() throws ODataApplicationException, ODataJPAModelException {
     final EntityQueryBuilder cut = new EntityQueryBuilder(context, createTestUriInfo("BusinessPartners"),
         persistenceAdapter
-            .createEntityManager(), null);
+        .createEntityManager(), null);
     final List<Selection<?>> selectClause = cut.createSelectClause(cut.buildSelectionPathList(
         new UriInfoDouble(new SelectOptionDouble("Type,CreationDateTime"))).determineAllPaths());
 
@@ -230,13 +231,14 @@ public class TestJPAQuerySelectClause extends TestBase {
     assertEquals(2, selectClause.size());
   }
 
-  @Test(expected = ODataJPAQueryException.class)
+  @Test
   public void checkInvalidSelectedAttribute() throws ODataApplicationException, ODataJPAModelException {
     final EntityQueryBuilder cut = new EntityQueryBuilder(context, createTestUriInfo("Organizations"),
         persistenceAdapter.createEntityManager(),
         null);
 
-    cut.buildSelectionPathList(new UriInfoDouble(new SelectOptionDouble("Address/CountryName")));
+    Assertions.assertThrows(ODataJPAQueryException.class, () -> cut.buildSelectionPathList(new UriInfoDouble(
+        new SelectOptionDouble("Address/CountryName"))));
   }
 
   @Test

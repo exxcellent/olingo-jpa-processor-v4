@@ -1,24 +1,24 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.EmbeddableType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EmbeddableType;
 
 public class TestIntermediateProperty extends TestMappingRoot {
 
   private TestHelper helper;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     helper = new TestHelper(emf.getMetamodel(), PUNIT_NAME);
   }
@@ -36,7 +36,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
     final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
         helper.getEdmProvider().getServiceDocument());
-    assertEquals("Wrong name", "Type", property.getEdmItem().getName());
+    assertEquals("Type", property.getEdmItem().getName());
   }
 
   @Test
@@ -44,7 +44,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
     final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
         helper.getEdmProvider().getServiceDocument());
-    assertEquals("Wrong name", "\"Type\"", property.getDBFieldName());
+    assertEquals("\"Type\"", property.getDBFieldName());
   }
 
   @Test
@@ -52,7 +52,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "type");
     final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
         helper.getEdmProvider().getServiceDocument());
-    assertEquals("Wrong type", EdmPrimitiveTypeKind.String.getFullQualifiedName().getFullQualifiedNameAsString(),
+    assertEquals(EdmPrimitiveTypeKind.String.getFullQualifiedName().getFullQualifiedNameAsString(),
         property.getEdmItem().getType());
   }
 
@@ -61,7 +61,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
     final Attribute<?, ?> jpaAttribute = helper.getAttribute(helper.getEntityType("BusinessPartner"), "communicationData");
     final IntermediateProperty property = new IntermediateProperty(new JPAEdmNameBuilder(PUNIT_NAME), jpaAttribute,
         helper.getEdmProvider().getServiceDocument());
-    assertEquals("Wrong type", PUNIT_NAME + ".CommunicationData", property.getEdmItem().getType());
+    assertEquals(PUNIT_NAME + ".CommunicationData", property.getEdmItem().getType());
   }
 
   @Test
@@ -168,7 +168,7 @@ public class TestIntermediateProperty extends TestMappingRoot {
     assertTrue(property.isStream());
   }
 
-  @Ignore
+  @Disabled
   @Test
   public void checkGetSRID() {
     // Test for spatial data missing

@@ -32,10 +32,10 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,7 +59,7 @@ public class CallOperationsIT {
 
   private ODataEndpointTestDefinition endpoint;
 
-  @Before
+  @BeforeEach
   public void setup() {
     endpoint = new ODataEndpointTestDefinition();
   }
@@ -72,7 +72,7 @@ public class CallOperationsIT {
     final Map<String, ClientValue> functionParameters = new HashMap<>();
     final ODataInvokeResponse<ClientInvokeResult> response = endpoint.callAction(uriBuilder, ClientInvokeResult.class,
         functionParameters);
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.NO_CONTENT.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.NO_CONTENT.getStatusCode());
     response.close();
   }
 
@@ -87,11 +87,11 @@ public class CallOperationsIT {
     functionParameters.put("minAny", new ClientPrimitiveValueImpl.BuilderImpl().buildInt32(Integer.valueOf(123)));
     functionParameters.put("maxAny", new ClientPrimitiveValueImpl.BuilderImpl().buildInt32(Integer.valueOf(4000)));
     final ODataInvokeResponse<ClientEntity> response = endpoint.callAction(uriBuilder, ClientEntity.class, functionParameters);
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final ClientEntity body = response.getBody();
     // the package name differs from oData namespace, so we can only compare the simple name
-    Assert.assertTrue(BusinessPartner.class.getSimpleName().equals(body.getTypeName().getName()));
-    Assert.assertNotNull(body.getProperty("Country"));
+    Assertions.assertTrue(BusinessPartner.class.getSimpleName().equals(body.getTypeName().getName()));
+    Assertions.assertNotNull(body.getProperty("Country"));
     response.close();
   }
 
@@ -103,13 +103,13 @@ public class CallOperationsIT {
     final String teststring = "teststring";
     functionParameters.put("input", new ClientPrimitiveValueImpl.BuilderImpl().buildString(teststring));
     final ODataInvokeResponse<ClientProperty> response = endpoint.callAction(uriBuilder, ClientProperty.class, functionParameters);
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final String retValue = response.getBody().getPrimitiveValue().toCastValue(String.class);
-    Assert.assertTrue(teststring.equals(retValue));
+    Assertions.assertTrue(teststring.equals(retValue));
     response.close();
   }
 
-  @Ignore
+  @Disabled
   @Test
   public void testDataConversionUnboundActionUnbound() throws Exception {
     final URIBuilder uriBuilder = endpoint.newUri().appendOperationCallSegment("unboundActionCheckAllValueSettings");
@@ -141,13 +141,13 @@ public class CallOperationsIT {
     .add(new ClientPropertyImpl("AIntBoolean", new ClientPrimitiveValueImpl.BuilderImpl().buildBoolean(Boolean.TRUE)));
 
     final ODataInvokeResponse<ClientProperty> response = endpoint.callAction(uriBuilder, ClientProperty.class, actionParameters);
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final Boolean success = response.getBody().getPrimitiveValue().toCastValue(Boolean.class);
     response.close();
-    Assert.assertTrue(success.booleanValue());
+    Assertions.assertTrue(success.booleanValue());
   }
 
-  @Ignore("No functions are available in test environment")
+  @Disabled("No functions are available in test environment")
   @Test
   public void testFunctionUnbound() throws Exception {
     final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendOperationCallSegment("IS_PRIME");
@@ -155,9 +155,9 @@ public class CallOperationsIT {
     functionParameters.put("Number", new ClientPrimitiveValueImpl.BuilderImpl().buildDecimal(BigDecimal.valueOf(123.456)));
     final ODataInvokeResponse<ClientInvokeResult> response = endpoint.callFunction(uriBuilder, ClientInvokeResult.class,
         functionParameters);
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     // String sCount = response.getBody().toCastValue(String.class);
-    // Assert.assertTrue(Integer.valueOf(sCount).intValue() > 0);
+    // Assertions.assertTrue(Integer.valueOf(sCount).intValue() > 0);
     response.close();
   }
 
@@ -196,15 +196,15 @@ public class CallOperationsIT {
         .header(HttpHeaders.AUTHORIZATION, endpoint.determineAuthorization())
         .post(Entity.entity(multipartPart, multipartPart.getMediaType()));
     multipartPart.close();
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     final String json = response.readEntity(String.class);
     response.close();
-    Assert.assertNotNull(json);
+    Assertions.assertNotNull(json);
     final ObjectMapper mapper = new ObjectMapper();
     final Map<?, ?> map = mapper.readValue(json, Map.class);
-    Assert.assertEquals(testFileName, ((List<?>) map.get("value")).get(0));
+    Assertions.assertEquals(testFileName, ((List<?>) map.get("value")).get(0));
     // the received file size on server side must match
-    Assert.assertEquals(fileSize, Integer.parseInt((String) ((List<?>) map.get("value")).get(1)));
+    Assertions.assertEquals(fileSize, Integer.parseInt((String) ((List<?>) map.get("value")).get(1)));
 
   }
 }

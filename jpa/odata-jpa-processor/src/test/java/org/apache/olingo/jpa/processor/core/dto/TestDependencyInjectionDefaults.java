@@ -21,7 +21,7 @@ import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.uri.UriInfo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;

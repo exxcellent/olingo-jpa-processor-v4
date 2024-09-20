@@ -86,8 +86,9 @@ public class DatatypeConversionEntity extends AbstractEntity {
   private BigDecimal aDecimal;
 
   // reuse decimal column for double representation
+  // 'scale' is not supported for Double
   @EdmSearchable
-  @Column(name = "\"ADecimal\"", precision = 16, scale = 5, updatable = false, insertable = false)
+  @Column(name = "\"ADecimal\"", precision = 16/* , scale = 5 */, updatable = false, insertable = false)
   private double aDouble;
 
   // @Column(name = "\"AYear\"", insertable = false, updatable = false)

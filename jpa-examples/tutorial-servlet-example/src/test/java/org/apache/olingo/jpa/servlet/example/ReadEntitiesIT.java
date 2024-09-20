@@ -15,9 +15,9 @@ import org.apache.olingo.jpa.processor.core.testmodel.BPImageIfc;
 import org.apache.olingo.jpa.processor.core.testmodel.DatatypeConversionEntity;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonImage;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -30,7 +30,7 @@ public class ReadEntitiesIT {
 
   private ODataEndpointTestDefinition endpoint;
 
-  @Before
+  @BeforeEach
   public void setup() {
     endpoint = new ODataEndpointTestDefinition();
   }
@@ -41,32 +41,32 @@ public class ReadEntitiesIT {
     try {
       endpoint.retrieveEntity(uriBuilder, "Try to load non existing resource");
     } catch(final ODataClientErrorException ex) {
-      Assert.assertTrue(ex.getStatusLine().getStatusCode() == HttpStatusCode.NOT_FOUND.getStatusCode());
+      Assertions.assertTrue(ex.getStatusLine().getStatusCode() == HttpStatusCode.NOT_FOUND.getStatusCode());
     }
   }
 
   @Test
   public void testMetadataAndCacheControl() {
     final ODataRetrieveResponse<Edm> response = endpoint.retrieveMetadata();
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     response.getHeader(HttpHeader.CACHE_CONTROL);
     // disabled cache control is set as default, so header must be present
-    Assert.assertNotNull(response.getHeader(HttpHeader.CACHE_CONTROL));
+    Assertions.assertNotNull(response.getHeader(HttpHeader.CACHE_CONTROL));
     response.close();
   }
 
   @Test
   public void testInterfaceAndTargetEntity() throws Exception {
     // in the JPA model we have to check, that a interface is used, not a real impl class
-    Assert.assertTrue(Person.class.getDeclaredField("image1").getType() == BPImageIfc.class);
+    Assertions.assertTrue(Person.class.getDeclaredField("image1").getType() == BPImageIfc.class);
 
     final ODataRetrieveResponse<Edm> response = endpoint.retrieveMetadata();
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final String simpleName = response.getBody().getEntityType(new FullQualifiedName("org.apache.olingo.jpa.Person"))
         .getNavigationProperty(
             "Image1").getType().getFullQualifiedName().getName();
     // in the OData metamodel the real impl class must be referenced, not the interface
-    Assert.assertEquals(simpleName, PersonImage.class.getSimpleName());
+    Assertions.assertEquals(simpleName, PersonImage.class.getSimpleName());
     response.close();
   }
 
@@ -74,9 +74,9 @@ public class ReadEntitiesIT {
   public void testPersonCount() throws Exception {
     final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").count();
     final ODataRetrieveResponse<ClientPrimitiveValue> response = endpoint.retrieveValue(uriBuilder, "Count persons in database");
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final String sCount = response.getBody().toCastValue(String.class);
-    Assert.assertTrue(Integer.valueOf(sCount).intValue() > 0);
+    Assertions.assertTrue(Integer.valueOf(sCount).intValue() > 0);
     response.close();
   }
 
@@ -84,11 +84,11 @@ public class ReadEntitiesIT {
   public void testLoadPerson() {
     final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Persons").appendKeySegment("99");
     final ODataRetrieveResponse<ClientEntity> response = endpoint.retrieveEntity(uriBuilder, "Load person with ID 99");
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final ClientEntity body = response.getBody();
     // the package name differs from oData namespace, so we can only compare the simple name
-    Assert.assertTrue(Person.class.getSimpleName().equals(body.getTypeName().getName()));
-    Assert.assertNotNull(body.getProperty("LastName"));
+    Assertions.assertTrue(Person.class.getSimpleName().equals(body.getTypeName().getName()));
+    Assertions.assertNotNull(body.getProperty("LastName"));
     response.close();
   }
 
@@ -98,9 +98,9 @@ public class ReadEntitiesIT {
         .addQueryOption(QueryOption.EXPAND, "Roles").addQueryOption(QueryOption.EXPAND, "Locations");
     final ODataRetrieveResponse<ClientEntity> response = endpoint.retrieveEntity(uriBuilder,
         "Load person with ID 99 and expanded navigation");
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final ClientEntity body = response.getBody();
-    Assert.assertFalse(body.getNavigationLink("Roles").asInlineEntitySet().getEntitySet().getEntities().isEmpty());
+    Assertions.assertFalse(body.getNavigationLink("Roles").asInlineEntitySet().getEntitySet().getEntities().isEmpty());
     response.close();
   }
 
@@ -109,14 +109,14 @@ public class ReadEntitiesIT {
     final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("DatatypeConversionEntities");
     final ODataRetrieveResponse<ClientEntitySet> response = endpoint.retrieveEntityCollection(uriBuilder,
         "Load all data conversion entities");
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final ClientEntitySet body = response.getBody();
-    Assert.assertTrue(body.getEntities().size() > 0);
+    Assertions.assertTrue(body.getEntities().size() > 0);
     // the package name differs from oData namespace, so we can only compare the
     // simple name
-    Assert.assertTrue(DatatypeConversionEntity.class.getSimpleName()
+    Assertions.assertTrue(DatatypeConversionEntity.class.getSimpleName()
         .equals(body.getEntities().get(0).getTypeName().getName()));
-    Assert.assertNotNull(body.getEntities().get(0).getProperty("ID"));
+    Assertions.assertNotNull(body.getEntities().get(0).getProperty("ID"));
     response.close();
   }
 
@@ -125,11 +125,11 @@ public class ReadEntitiesIT {
     final URIBuilder uriBuilder = endpoint.newUri().appendEntitySetSegment("Organizations");
     final ODataRetrieveResponse<ClientEntitySet> response = endpoint.retrieveEntityCollection(uriBuilder,
         "Load filtered organization entities");
-    Assert.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
+    Assertions.assertTrue(response.getStatusCode() == HttpStatusCode.OK.getStatusCode());
     final ClientEntitySet body = response.getBody();
-    Assert.assertTrue(body.getEntities().size() == 1);
+    Assertions.assertTrue(body.getEntities().size() == 1);
     // only Org 2 has 'Urs' as creator (see ExampleQueryCustomizer)
-    Assert.assertEquals(body.getEntities().get(0).getProperty("ID").getPrimitiveValue().toValue(), "2");
+    Assertions.assertEquals(body.getEntities().get(0).getProperty("ID").getPrimitiveValue().toValue(), "2");
     response.close();
   }
 

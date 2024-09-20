@@ -1,14 +1,12 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import jakarta.persistence.Tuple;
 
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.EntityCollection;
@@ -20,8 +18,10 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TupleDouble;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriHelper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.Tuple;
 
 public class TestJPATupleResultConverter extends TestBase {
 
@@ -30,7 +30,7 @@ public class TestJPATupleResultConverter extends TestBase {
   private DatabaseQueryResult2ODataEntityConverter cut;
   private UriHelper uriHelper;
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataException {
     /* final UriHelper */ uriHelper = odata.createUriHelper();
     cut = new DatabaseQueryResult2ODataEntityConverter(helper.getServiceDocument(), uriHelper, serviceMetaData);

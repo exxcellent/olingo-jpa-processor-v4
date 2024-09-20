@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.api;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.chrono.IsoEra;
@@ -16,7 +16,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.testmodel.otherpackage.TestEnum;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -54,8 +54,9 @@ public class TestODataBasics extends TestBase {
 
     final String metadataString = helper.getRawResult();
     assertNotNull(metadataString);
-    assertTrue("EnvironmentInfo declares a Map, that must be present in meta data", metadataString.contains(
-        "ComplexType Name=\"Map{1}\" Abstract=\"true\" OpenType=\"true\""));
+    assertTrue(metadataString.contains(
+        "ComplexType Name=\"Map{1}\" Abstract=\"true\" OpenType=\"true\""),
+        "EnvironmentInfo declares a Map, that must be present in meta data");
   }
 
   @Test

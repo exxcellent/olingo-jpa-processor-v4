@@ -3,9 +3,10 @@ package org.apache.olingo.jpa.test.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import javax.sql.DataSource;
 
 public abstract class AbstractTest implements Constant {
 

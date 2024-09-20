@@ -5,15 +5,10 @@ import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityAb
 import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityDto;
 import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityURIBuilder;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class RelationshipSourceEntityHandlerTest extends HandlerTestBase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testLoadManyRelationship() throws Exception {
@@ -24,20 +19,20 @@ public class RelationshipSourceEntityHandlerTest extends HandlerTestBase {
             RelationshipSourceEntityMeta.TARGETS_NAME);
 
     final RelationshipSourceEntityDto dto =handler.retrieve(uriBuilder);
-    Assert.assertNotNull(dto);
-    Assert.assertNull(dto.getSecondLeftM2Ns());
+    Assertions.assertNotNull(dto);
+    Assertions.assertNull(dto.getSecondLeftM2Ns());
 
-    Assert.assertNotNull(dto.getLeftM2Ns());
-    Assert.assertEquals(1, dto.getLeftM2Ns().size());
-    Assert.assertEquals(Integer.valueOf(5), dto.getLeftM2Ns().iterator().next().getID());
+    Assertions.assertNotNull(dto.getLeftM2Ns());
+    Assertions.assertEquals(1, dto.getLeftM2Ns().size());
+    Assertions.assertEquals(Integer.valueOf(5), dto.getLeftM2Ns().iterator().next().getID());
 
-    Assert.assertNotNull(dto.getUnidirectionalTargets());
-    Assert.assertEquals(2, dto.getUnidirectionalTargets().size());
-    Assert.assertEquals(Integer.valueOf(2), dto.getUnidirectionalTargets().iterator().next().getID());
+    Assertions.assertNotNull(dto.getUnidirectionalTargets());
+    Assertions.assertEquals(2, dto.getUnidirectionalTargets().size());
+    Assertions.assertEquals(Integer.valueOf(2), dto.getUnidirectionalTargets().iterator().next().getID());
 
-    Assert.assertNotNull(dto.getTargets());
-    Assert.assertEquals(dto.getTargets().size(), dto.getUnidirectionalTargets().size());
-    Assert.assertEquals(dto.getTargets().iterator().next().getID(), dto.getUnidirectionalTargets().iterator().next()
+    Assertions.assertNotNull(dto.getTargets());
+    Assertions.assertEquals(dto.getTargets().size(), dto.getUnidirectionalTargets().size());
+    Assertions.assertEquals(dto.getTargets().iterator().next().getID(), dto.getUnidirectionalTargets().iterator().next()
         .getID());
   }
 

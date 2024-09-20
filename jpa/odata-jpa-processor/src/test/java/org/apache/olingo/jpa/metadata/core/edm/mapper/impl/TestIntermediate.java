@@ -1,15 +1,15 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.core.testmodel.Country;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestIntermediate extends TestBase {
 

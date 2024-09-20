@@ -11,9 +11,9 @@ import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.client.core.http.DefaultHttpClientFactory;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @see https://fetch.spec.whatwg.org/#cors-preflight-request
@@ -23,7 +23,7 @@ public class TestOptionsIT {
 
   private ODataEndpointTestDefinition endpoint;
 
-  @Before
+  @BeforeEach
   public void setup() {
     endpoint = new ODataEndpointTestDefinition();
   }
@@ -36,7 +36,8 @@ public class TestOptionsIT {
       final HttpOptions options = new HttpOptions(uri);
       options.addHeader("Origin", uri.toASCIIString());
       final CloseableHttpResponse response = httpClient.execute(options);
-      Assert.assertEquals(HttpStatusCode.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatusLine().getStatusCode());
+      Assertions.assertEquals(HttpStatusCode.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatusLine()
+          .getStatusCode());
     }
   }
 
@@ -50,7 +51,7 @@ public class TestOptionsIT {
       options.addHeader("Access-Control-Request-Method", HttpMethod.GET.name());
       final CloseableHttpResponse response = httpClient.execute(options);
       // the example servlet must have overwritten the default and must accept cross origin requests
-      Assert.assertEquals(uri.toASCIIString(), response.getFirstHeader("Access-Control-Allow-Origin").getValue());
+      Assertions.assertEquals(uri.toASCIIString(), response.getFirstHeader("Access-Control-Allow-Origin").getValue());
     }
   }
 

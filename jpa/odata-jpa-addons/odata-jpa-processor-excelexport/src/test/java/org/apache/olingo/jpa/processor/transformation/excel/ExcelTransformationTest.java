@@ -1,9 +1,9 @@
 package org.apache.olingo.jpa.processor.transformation.excel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,8 +34,9 @@ import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.serializer.RepresentationType;
 import org.apache.olingo.server.api.serializer.SerializerException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
@@ -44,7 +45,7 @@ import jakarta.persistence.Query;
 
 public class ExcelTransformationTest extends TestBase {
 
-  @Before
+  @BeforeEach
   public void recreateDatabase() {
     DataSourceHelper.forceFreshCreatedDatabase();
   }
@@ -221,8 +222,8 @@ public class ExcelTransformationTest extends TestBase {
   @Test
   public void testLoad() throws IOException, ODataException {
 
-    assumeTrue("We do not execute thit long term test with all JPA providers...",
-        getJPAProvider() == JPAProvider.EclipseLink);
+    assumeTrue(
+        getJPAProvider() == JPAProvider.EclipseLink, "We do not execute this long term test with all JPA providers...");
 
     final long beforeData = System.currentTimeMillis();
 
@@ -270,11 +271,11 @@ public class ExcelTransformationTest extends TestBase {
     assertTrue(transformation.createSubTransformation(QueryEntityResult.class) == transformation);
   }
 
-  @Test(expected = SerializerException.class)
+  @Test
   public void testUnsupportedTransfromation() throws IOException, ODataException {
     final QueryEntityResult2ExcelODataResponseContentTransformation transformation =
         new QueryEntityResult2ExcelODataResponseContentTransformation();
-    transformation.createSubTransformation(Class.class);
+    Assertions.assertThrows(SerializerException.class, () -> transformation.createSubTransformation(Class.class));
   }
 
   private void createData(final int number) {

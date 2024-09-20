@@ -1,7 +1,7 @@
 package org.apache.olingo.jpa.processor.core.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -146,7 +146,7 @@ public class IntegrationTestHelper {
     LOG.info("Execute " + req.getRequestTestExecutionURI().toString() + "...");
     handler.process(req, resp);
     executed = true;
-    assertEquals(parseResponse(), status, getStatus());
+    assertEquals(status, getStatus(), parseResponse());
 
   }
 

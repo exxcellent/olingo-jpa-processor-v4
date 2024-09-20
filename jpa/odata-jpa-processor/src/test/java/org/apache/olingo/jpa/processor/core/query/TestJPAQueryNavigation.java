@@ -1,8 +1,8 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -14,8 +14,8 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -70,8 +70,9 @@ public class TestJPAQueryNavigation extends TestBase {
 
   @Test
   public void testNavigationTwoHopUsingDefaultIdMapping() throws IOException, ODataException {
-    assumeTrue("Hibernate does not build a proper columns selection without quoting of column name",
-        getJPAProvider() != JPAProvider.Hibernate);
+    assumeTrue(
+        getJPAProvider() != JPAProvider.Hibernate,
+        "Hibernate does not build a proper columns selection without quoting of column name");
 
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").appendKeySegment("98")
         .appendNavigationSegment("Image2").appendNavigationSegment("PersonWithDefaultIdMapping");
@@ -132,7 +133,7 @@ public class TestJPAQueryNavigation extends TestBase {
     assertEquals("99", org.get("value").asText());
   }
 
-  @Ignore("Requested navigation path currenlty not exisitng in model")
+  @Disabled("Requested navigation path currenlty not exisitng in model")
   @Test
   public void testNavigationViaComplexTypeTwoHops() throws IOException, ODataException {
 

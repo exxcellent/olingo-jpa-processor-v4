@@ -1,13 +1,11 @@
 package org.apache.olingo.jpa.processor.core.security;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
-
-import jakarta.persistence.Id;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -25,8 +23,10 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.security.AccessDefinition;
 import org.apache.olingo.jpa.security.ODataEntityAccess;
 import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.Id;
 
 public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
@@ -86,7 +86,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     persistenceAdapter.registerDTO(DefaultResourceSecurityDto.class);
     persistenceAdapter.registerDTO(ActionInResourceSecuredDto.class);

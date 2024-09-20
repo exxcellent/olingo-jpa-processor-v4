@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.dto;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -20,8 +20,9 @@ import org.apache.olingo.jpa.processor.core.util.DependencyInjectorImpl;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -95,7 +96,7 @@ public class TestDependencyInjection extends TestBase {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setup() throws ODataJPAModelException {
     persistenceAdapter.registerDTO(Dto.class);
   }
@@ -123,9 +124,10 @@ public class TestDependencyInjection extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testInvalidType() {
     final DependencyInjectorImpl injector = new DependencyInjectorImpl();
-    injector.registerDependencyMapping(Integer.class, Integer.valueOf(2));
+    Assertions.assertThrows(IllegalArgumentException.class, () -> injector.registerDependencyMapping(Integer.class,
+        Integer.valueOf(2)));
   }
 }
