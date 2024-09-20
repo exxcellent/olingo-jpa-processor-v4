@@ -1,8 +1,7 @@
 name: Deploy OData-JPA-Adapter (javax) on packagecloud
 on:
-  push:
-    tags:
-      - 1.**
+  release:
+    types: [released]
 
 jobs:
   deployment:
