@@ -40,6 +40,9 @@ import org.apache.olingo.jpa.processor.core.mapping.converter.LocalDateTime2Zone
 import org.apache.olingo.jpa.processor.core.mapping.converter.LocalTime2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.SqlDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.SqlTime2UtilCalendarODataAttributeConverter;
+import org.apache.olingo.jpa.processor.core.mapping.converter.TimeInstant2TimestampODataAttributeConverter;
+import org.apache.olingo.jpa.processor.core.mapping.converter.TimeInstant2UtilCalenderODataAttributeConverter;
+import org.apache.olingo.jpa.processor.core.mapping.converter.TimeInstant2UtilDateODataAttributeConverter;
 import org.apache.olingo.jpa.processor.core.mapping.converter.UtilDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
 
@@ -100,6 +103,9 @@ public abstract class AbstractConverter {
         java.time.LocalDateTime.class, true, new LocalDateTime2ZonedDateTimeODataAttributeConverter()));
     DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.sql.Timestamp.class,
         java.time.LocalDateTime.class, true, new LocalDateTime2SqlTimestampODataAttributeConverter()));
+    DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.sql.Date.class, java.time.Instant.class, false, new TimeInstant2UtilDateODataAttributeConverter()));
+    DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.sql.Timestamp.class, java.time.Instant.class, false, new TimeInstant2TimestampODataAttributeConverter()));
+    DEFAULT_ODATA_ATTRIBUTE_CONVERTERS.add(new ConverterMapping(java.util.Calendar.class, java.time.Instant.class, false, new TimeInstant2UtilCalenderODataAttributeConverter()));
   }
 
   protected final Logger log = Logger.getLogger(AbstractConverter.class.getName());
