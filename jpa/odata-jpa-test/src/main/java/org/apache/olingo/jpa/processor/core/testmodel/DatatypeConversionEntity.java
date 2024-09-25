@@ -68,6 +68,9 @@ public class DatatypeConversionEntity extends AbstractEntity {
   @Column(name = "\"ATimestamp1\"", insertable = false, updatable = false)
   private java.sql.Timestamp aTimestamp1SqlTimestamp;
 
+  @Column(name = "\"ATimestamp1\"", insertable = false, updatable = false)
+  private java.time.Instant aTimestamp1Instant;
+
   @Column(name = "\"ATimestamp2\"")
   private java.time.LocalDateTime aTimestamp2;
 
