@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-	  <groupId>org.apache.olingo.jpa.tools</groupId>
+	  <groupId>de.exxcellent.odata.jpa.tools</groupId>
 	  <artifactId>tools-parent</artifactId>
 	  <version>1.0.0</version>
 	</parent>
@@ -58,7 +58,7 @@
 		</dependency>			
 		
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-processor</artifactId>
 			<version>${project.version}</version>
 		</dependency> 

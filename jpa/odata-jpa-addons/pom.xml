@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.apache.olingo.jpa</groupId>
+		<groupId>de.exxcellent.odata.jpa</groupId>
 		<artifactId>odata-jpa</artifactId>
 		<version>1.0.0</version>
 		<relativePath>..</relativePath>

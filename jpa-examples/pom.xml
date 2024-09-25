@@ -9,7 +9,7 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<groupId>org.apache.olingo.jpa.examples</groupId>
+	<groupId>de.exxcellent.odata.jpa.examples</groupId>
 	<artifactId>odata-jpa-examples</artifactId>
 	<packaging>pom</packaging>
 

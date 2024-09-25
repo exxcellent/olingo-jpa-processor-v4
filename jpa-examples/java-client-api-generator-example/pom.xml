@@ -4,7 +4,7 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.apache.olingo.jpa.examples</groupId>
+		<groupId>de.exxcellent.odata.jpa.examples</groupId>
 		<artifactId>odata-jpa-examples</artifactId>
 		<version>1.0.0</version>
 		<relativePath>..</relativePath>
@@ -32,33 +32,33 @@
 		    <artifactId>odata-client-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-processor</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-processor</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-test</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-test</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-metadata</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
@@ -123,7 +123,7 @@
 			</plugin-->        
             <plugin>
             	<!-- Test for java client code generation -->
-                <groupId>org.apache.olingo.jpa.tools</groupId>
+                <groupId>de.exxcellent.odata.jpa.tools</groupId>
                 <artifactId>java-client-api-generator-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
@@ -142,7 +142,7 @@
                 	<process-dependencies>
 						<task>
 							<!-- used as data model to generate client code for it -->
-							<groupId>org.apache.olingo.jpa</groupId>
+							<groupId>de.exxcellent.odata.jpa</groupId>
 							<artifactId>odata-jpa-test</artifactId>
 							<version>${project.version}</version>
 							<persistenceUnit>org.apache.olingo.jpa</persistenceUnit>
