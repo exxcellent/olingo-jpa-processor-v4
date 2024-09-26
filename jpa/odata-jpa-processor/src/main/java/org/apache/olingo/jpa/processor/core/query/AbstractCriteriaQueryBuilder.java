@@ -23,7 +23,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryContext;
+import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
@@ -133,7 +133,16 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     context.getDependencyInjector().injectDependencyValues(this);
   }
 
+  /**
+   * Create a sub query for the {@link #getQuery() current query} .
+   */
   protected abstract <T> Subquery<T> createSubquery(Class<T> subqueryResultType);
+
+  /**
+   *
+   * @return The query where the builder is working on.
+   */
+  protected abstract QT getQuery();
 
   protected void assertInitialized() {
     if (initStateType != InitializationState.Initialized) {
@@ -236,10 +245,14 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    *
    * @return The initial {@link From starting} entity table before first join.
    */
-  public abstract <T> From<T, T> getQueryStartFrom();
+  public abstract <S> From<S, S> getQueryStartFrom();
 
+  /**
+   *
+   * @return The last ({@link From targeting}) entity table after last join (triggered by navigation).
+   */
   @SuppressWarnings("unchecked")
-  public final From<DT, DT> getQueryResultFrom() {
+  public final <T> From<T, T> getQueryEndFrom() {
     assertInitialized();
 
     final NavigationBuilder last = determineLastWorkingNavigationBuilder();
@@ -247,19 +260,19 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     if (last == null) {
       return getQueryStartFrom();
     }
-    return (From<DT, DT>) last.getQueryResultFrom();
+    return (From<T, T>) last.getQueryEndFrom();
   }
 
-  public final JPAEntityType getQueryResultType() {
+  public final JPAEntityType getQueryEndType() {
     assertInitialized();
     final NavigationBuilder last = determineLastWorkingNavigationBuilder();
     if (last == null) {
       return getQueryStartType();
     }
-    return (JPAEntityType) last.getQueryResultType();
+    return (JPAEntityType) last.getQueryEndType();
   }
 
-  protected final EdmType getQueryResultEdmType() {
+  protected final EdmType getQueryEndEdmType() {
     assertInitialized();
     final NavigationBuilder last = determineLastWorkingNavigationBuilder();
     if (last == null) {
@@ -369,48 +382,34 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
       final NavigationBuilder navQuery = new NavigationBuilder(naviInfo.getNavigationUriResource(), naviInfo
           .getNavigationPath(), parentFrom, keyBuilderParent, getEntityManager());
       navigationQueryList.add(navQuery);
-      parentFrom = navQuery.getQueryResultFrom();
+      parentFrom = navQuery.getQueryEndFrom();
       keyBuilderParent = navQuery.getNavigationKeyBuilder();
     }
     return navigationQueryList;
   }
 
-  private jakarta.persistence.criteria.Expression<Boolean> createWhereFromCustomizer()
-      throws ODataApplicationException {
+  /**
+   * The customizer must be called as last before executing the query.
+   */
+  protected void involveCustomizer() throws ODataApplicationException {
     if (queryCustomizer == null) {
-      return null;
+      return;
     }
     getContext().getDependencyInjector().injectDependencyValues(queryCustomizer);
-    final QueryContext qContext = new QueryContext() {
-      @SuppressWarnings("unchecked")
-      @Override
-      public From<DT, DT> getFrom() {
-        return AbstractCriteriaQueryBuilder.this.getQueryResultFrom();
-      }
-
-      @Override
-      public EntityManager getEntityManager() {
-        return AbstractCriteriaQueryBuilder.this.getEntityManager();
-      }
-
-      @Override
-      public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
-        return AbstractCriteriaQueryBuilder.this.createSubquery(subqueryResultType);
-      }
-    };
-    return queryCustomizer.restrictQuery(qContext, uriNavigation);
+    final QueryCustomization qContext = new QueryCustomizerAdapter<DT>(this);
+    queryCustomizer.customizeQuery(qContext, uriNavigation);
   }
 
   @SuppressWarnings("unchecked")
   private jakarta.persistence.criteria.Expression<Boolean> createWhereFromAccessConditioner()
       throws ODataApplicationException {
-    final DataAccessConditioner<Object> dac = (DataAccessConditioner<Object>) getQueryResultType()
+    final DataAccessConditioner<Object> dac = (DataAccessConditioner<Object>) getQueryEndType()
         .getDataAccessConditioner();
     if (dac == null) {
       return null;
     }
     getContext().getDependencyInjector().injectDependencyValues(dac);
-    return dac.buildSelectCondition(getEntityManager(), (From<Object, Object>) getQueryResultFrom());
+    return dac.buildSelectCondition(getEntityManager(), getQueryEndFrom());
   }
 
   private final jakarta.persistence.criteria.Expression<Boolean> createWhereFromFilter(
@@ -439,8 +438,6 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final jakarta.persistence.criteria.Expression<Boolean> accessConditionerClause =
         createWhereFromAccessConditioner();
     whereCondition = combineAND(whereCondition, accessConditionerClause);
-    final jakarta.persistence.criteria.Expression<Boolean> customizerClause = createWhereFromCustomizer();
-    whereCondition = combineAND(whereCondition, customizerClause);
 
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part2-url-conventions/odata-v4.0-errata02-os-part2-url-conventions-complete.html#_Toc406398094
@@ -472,8 +469,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
         }
         // TODO type cast ok? -> prefer JPAStructuredType
         final FilterQueryBuilderContext navFilterContext = new FilterQueryBuilderContext((JPAEntityType) navQuery
-            .getQueryResultType(),
-            navQuery.getQueryResultFrom());
+            .getQueryEndType(),
+            navQuery.getQueryEndFrom());
         // build a navigation (sub) path up to the navigation element resource
         final List<UriResource> navResourcePath = new LinkedList<UriResource>();
         for (final UriResource current : uriNavigation.getUriResourceParts()) {
@@ -570,8 +567,8 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private jakarta.persistence.criteria.Expression<Boolean> createWhereFromSearchOption(final SearchOption searchOption)
       throws ODataApplicationException,
       ODataJPAModelException {
-    final FilterQueryBuilderContext filterHelper = new FilterQueryBuilderContext(getQueryResultType(),
-        getQueryResultFrom());
+    final FilterQueryBuilderContext filterHelper = new FilterQueryBuilderContext(getQueryEndType(),
+        getQueryEndFrom());
     final SearchSubQueryBuilder searchQuery = new SearchSubQueryBuilder(filterHelper, searchOption);
     final Subquery<?> subquery = searchQuery.getSubQueryExists();
     if (subquery == null) {
@@ -588,7 +585,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     if (orderBy == null) {
       return Collections.emptyList();
     }
-    final JPAStructuredType jpaEntityType = getQueryResultType();
+    final JPAStructuredType jpaEntityType = getQueryEndType();
     final List<JPAAssociationAttribute> naviAttributes = new ArrayList<JPAAssociationAttribute>();
     for (final OrderByItem orderByItem : orderBy.getOrders()) {
       final Expression expression = orderByItem.getExpression();
@@ -657,7 +654,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
 
     // Build select clause
     for (final JPASelector jpaPath : jpaPathList) {
-      final Path<?> p = convertToCriteriaAliasPath(getQueryResultFrom(), jpaPath, null);
+      final Path<?> p = convertToCriteriaAliasPath(getQueryEndFrom(), jpaPath, null);
       if (p == null) {
         continue;
       }
@@ -692,9 +689,9 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   protected final Map<String, From<?, ?>> createFromClause(final List<JPAAssociationAttribute> orderByTarget)
       throws ODataApplicationException {
     final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
-    final From<?, ?> root = getQueryResultFrom();
+    final From<?, ?> root = getQueryEndFrom();
     // 1. Create root
-    final JPAEntityType jpaEntityType = getQueryResultType();
+    final JPAEntityType jpaEntityType = getQueryEndType();
     joinTables.put(jpaEntityType.getInternalName(), root);
 
     // 2. OrderBy navigation property

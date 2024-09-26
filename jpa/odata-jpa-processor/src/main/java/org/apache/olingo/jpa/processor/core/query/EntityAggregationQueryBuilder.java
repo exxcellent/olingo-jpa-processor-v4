@@ -102,8 +102,13 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
   }
 
   @Override
-  public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+  protected <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
     return cq.subquery(subqueryResultType);
+  }
+
+  @Override
+  protected CriteriaQuery<Tuple> getQuery() {
+    return cq;
   }
 
   @SuppressWarnings("unchecked")
@@ -114,8 +119,8 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
 
   private Expression<?>[] createAggregationSelect() throws ODataApplicationException {
     final List<Expression<? extends Number>> selects = new ArrayList<>(aggregateExpressions.size());
-    final JPAEntityType targetType = getQueryResultType();
-    final FilterQueryBuilderContext filterContext = new FilterQueryBuilderContext(targetType, getQueryResultFrom());
+    final JPAEntityType targetType = getQueryEndType();
+    final FilterQueryBuilderContext filterContext = new FilterQueryBuilderContext(targetType, getQueryEndFrom());
     final JPAODataDatabaseProcessor dbProcessor = getContext().getDatabaseProcessor();
 
     for (final AggregateExpression aggExpressionDefinition : aggregateExpressions) {
@@ -169,6 +174,9 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
     if (whereClause != null) {
       cq.where(whereClause);
     }
+
+    involveCustomizer();// as last before querying
+
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
 
     final List<Tuple> intermediateResult = tq.getResultList();
@@ -217,7 +225,7 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
 
   private CsdlEntityType createDynamicType(final Entity odataEntity) throws ODataJPAModelException {
     final CsdlEntityType csdlEntityType = new CsdlEntityType();
-    csdlEntityType.setName(UUID.randomUUID().toString() + "." + getQueryResultType().getExternalName() + "Aggregation");
+    csdlEntityType.setName(UUID.randomUUID().toString() + "." + getQueryEndType().getExternalName() + "Aggregation");
 
     for (final Property odataProperty : odataEntity.getProperties()) {
       final CsdlProperty csdlProperty = new CsdlProperty();

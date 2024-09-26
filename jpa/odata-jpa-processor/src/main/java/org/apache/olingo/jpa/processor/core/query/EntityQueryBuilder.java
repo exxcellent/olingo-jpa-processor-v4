@@ -125,8 +125,13 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
   }
 
   @Override
-  public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+  protected <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
     return cq.subquery(subqueryResultType);
+  }
+
+  @Override
+  protected CriteriaQuery<Tuple> getQuery() {
+    return cq;
   }
 
   @SuppressWarnings("unchecked")
@@ -178,6 +183,8 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       cq.groupBy(createGroupBy(allSelectionPaths));
     }
 
+    involveCustomizer();// as last before querying
+
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
     if (hasQueryLimits()) {
       addTopSkip(tq);
@@ -187,7 +194,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final Collection<String> requestedAttributes = paths.requestedPaths.stream().map(s -> s.getAlias()).collect(
         Collectors.toList());
     final QueryEntityResult queryResult = new QueryEntityResult(intermediateResult, requestedAttributes,
-        getQueryResultType());
+        getQueryEndType());
 
     // load not yet processed @ElementCollection attribute content
     queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
@@ -260,7 +267,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final List<jakarta.persistence.criteria.Expression<?>> groupBy = new ArrayList<jakarta.persistence.criteria.Expression<?>>();
 
     for (final JPASelector jpaPath : selectionPathList) {
-      final Path<?> path = convertToCriteriaAliasPath(getQueryResultFrom(), jpaPath, null);
+      final Path<?> path = convertToCriteriaAliasPath(getQueryEndFrom(), jpaPath, null);
       if (path == null) {
         continue;
       }
@@ -284,7 +291,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
   protected final PathSelectors buildSelectionPathList(final UriInfoResource uriResource)
       throws ODataApplicationException {
-    final JPAEntityType jpaEntityType = getQueryResultType();
+    final JPAEntityType jpaEntityType = getQueryEndType();
     // TODO It is also possible to request all actions or functions available for each returned entity:
     // http://host/service/Products?$select=DemoService.*
 
@@ -431,7 +438,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final List<Order> orders = new ArrayList<Order>();
     if (orderByOption != null) {
       final CriteriaBuilder cb = getCriteriaBuilder();
-      final JPAEntityType jpaEntityType = getQueryResultType();
+      final JPAEntityType jpaEntityType = getQueryEndType();
 
       for (final OrderByItem orderByItem : orderByOption.getOrders()) {
         final Expression expression = orderByItem.getExpression();
@@ -526,7 +533,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       return Collections.emptyMap();
     }
 
-    final EdmStructuredType owningType = (EdmStructuredType) getQueryResultEdmType();
+    final EdmStructuredType owningType = (EdmStructuredType) getQueryEndEdmType();
     final Map<JPAAttribute<?>, QueryElementCollectionResult> allResults = new HashMap<>();
     // build queries with most elements also used for primary entity selection
     // query, but with a few adaptions for the @ElementCollection selection
