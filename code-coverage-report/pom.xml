@@ -9,7 +9,7 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<groupId>org.apache.olingo.jpa</groupId>
+	<groupId>de.exxcellent.odata.jpa</groupId>
 	<artifactId>code-coverage-report</artifactId>
 	<packaging>pom</packaging>
 
@@ -22,22 +22,22 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-annotation</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-metadata</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-processor</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.olingo.jpa</groupId>
+			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-processor-excelexport</artifactId>
 			<version>${project.version}</version>
 		</dependency>
