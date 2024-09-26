@@ -1,13 +1,13 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Subquery;
-
 import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Subquery;
 
 public class QueryCustomizerAdapter<DT> implements QueryCustomization {
 
@@ -54,7 +54,7 @@ public class QueryCustomizerAdapter<DT> implements QueryCustomization {
     }
     final CriteriaQuery<DT> query = caller.getQuery();
     for (final E expression : expressions) {
-      javax.persistence.criteria.Expression<Boolean> whereClause = query.getRestriction();
+      jakarta.persistence.criteria.Expression<Boolean> whereClause = query.getRestriction();
       whereClause = caller.combineAND(whereClause, expression);
       if (whereClause != null) {
         query.where(whereClause);

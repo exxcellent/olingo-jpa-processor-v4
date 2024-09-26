@@ -4,10 +4,10 @@ import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.jpa.processor.core.query.NavigationIfc;
 import org.apache.olingo.jpa.processor.impl.JPAStructureProcessor;
 
-import jakarta.persistence.criteria.Order;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Subquery;
 
 /**
@@ -72,7 +72,7 @@ public interface QueryCustomizer {
      * @throws IllegalStateException If a grouping is already present (check via {@link #hasAlreadyGroupBy()} before
      * trying).
      *
-     * @see javax.persistence.criteria.CriteriaQuery#groupBy(Expression...)
+     * @see jakarta.persistence.criteria.CriteriaQuery#groupBy(Expression...)
      * @see #withOrderBy(Order...)
      */
     public void withGroupBy(Expression<?>... grouping) throws IllegalStateException;
@@ -89,7 +89,7 @@ public interface QueryCustomizer {
      * @throws IllegalStateException If a sorting is already present (check via {@link #hasAlreadyOrderBy()} before
      * trying).
      *
-     * @see javax.persistence.criteria.CriteriaQuery#orderBy(Order...)
+     * @see jakarta.persistence.criteria.CriteriaQuery#orderBy(Order...)
      * @see #withGroupBy(Expression...)
      */
     public void withOrderBy(Order... sortings) throws IllegalStateException;

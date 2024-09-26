@@ -21,7 +21,7 @@ import org.apache.olingo.server.api.ODataApplicationException;
  * Helper class to realize a limited support for dependency injection. Supported
  * are:
  * <ul>
- * <li>org.apache.olingo.jpa.cdi.Inject (javax.inject.Inject): for fields</li>
+ * <li>org.apache.olingo.jpa.cdi.Inject (jakarta.inject.Inject): for fields</li>
  * <li>org.apache.olingo.jpa.cdi.Inject: for method parameters</li>
  * </ul>
  *
