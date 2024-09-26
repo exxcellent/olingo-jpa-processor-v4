@@ -77,11 +77,11 @@ class NavigationBuilder extends AbstractQueryBuilder {
    *
    * @return The entity type of target (result) JOIN of query part.
    */
-  protected final JPAStructuredType getQueryResultType() {
+  protected final JPAStructuredType getQueryEndType() {
     return resultEntityType;
   }
 
-  protected final From<?, ?> getQueryResultFrom() {
+  protected final From<?, ?> getQueryEndFrom() {
     return joinedParentResultFrom;
   }
 
@@ -90,7 +90,7 @@ class NavigationBuilder extends AbstractQueryBuilder {
       return null;
     }
     // navigation can only have keys
-    return extendWhereByKey(joinedParentResultFrom, getQueryResultType(), this.keyPredicates);
+    return extendWhereByKey(joinedParentResultFrom, getQueryEndType(), this.keyPredicates);
   }
 
   final List<Selection<?>> buildNavigationKeySelection() throws ODataApplicationException, ODataJPAModelException {

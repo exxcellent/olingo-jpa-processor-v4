@@ -100,7 +100,7 @@ public interface JPAStructuredType extends JPAElement {
    */
   public List<JPASelector> getPathList() throws ODataJPAModelException;
 
-  public Class<?> getTypeClass();
+  public <T> Class<T> getTypeClass();
 
   /**
    * Returns a resolved list of all attributes that are marked as Id.

@@ -84,3 +84,6 @@ With Hibernate byte code enhancement produce problems with every configuration (
 * **Define bound actions not for an abstract entity class**</br>
   Calling bound action means that the entity will be loaded from database. JPA provider like Hibernate cannot (EclipseLink will do) instance/load data for abstract entity classes.
     * The OData-JPA-Adapter will create a entity proxy for abstract classes to work on it while converting from OData to JPA.
+
+# Customizing of SQL queries
+Reading data from the database based on a OData request is normally completely managed by the library. But sometimes it is necessary to modify the query for any reason. So the builtin processor used to read data from the database provides a mechanism to customize any read query. You have to implement the `org.apache.olingo.jpa.processor.core.api.QueryCustomizer` interface and to inject the customizer on a per request base into the `JPAODataServletHandler`. See into the [example servlet](https://github.com/exxcellent/olingo-jpa-processor-v4/blob/main-javax/jpa-examples/tutorial-servlet-example/src/main/java/org/apache/olingo/jpa/servlet/example/ODataServlet.java#L114) for more details.

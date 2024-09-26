@@ -82,8 +82,13 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
   }
 
   @Override
-  public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+  protected <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
     return cq.subquery(subqueryResultType);
+  }
+
+  @Override
+  protected CriteriaQuery<Tuple> getQuery() {
+    return cq;
   }
 
   @SuppressWarnings("unchecked")
@@ -104,6 +109,9 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
       if (where != null) {
         cq.where(where);
       }
+
+      involveCustomizer();// as last before querying
+
       final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
       // FIXME how to add TOP or SKIP for elements of another table? (do not work as
       // in JPAExpandQuery, because we have to avoid loading of too much rows)
