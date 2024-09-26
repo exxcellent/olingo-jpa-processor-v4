@@ -629,8 +629,6 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    * "http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part2-url-conventions/odata-v4.0-errata02-os-part2-url-conventions-complete.html#_Toc406398163"
    * >OData Version 4.0 Part 2 - 5.1.3 System Query Option $select</a>
    *
-   * @param select
-   * @return
    * @throws ODataApplicationException
    */
   protected final List<Selection<?>> createSelectClause(final Collection<? extends JPASelector> jpaPathList)

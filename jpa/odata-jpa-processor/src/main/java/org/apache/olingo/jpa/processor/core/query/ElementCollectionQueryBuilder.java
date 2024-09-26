@@ -4,16 +4,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Selection;
-import jakarta.persistence.criteria.Subquery;
-
 import org.apache.olingo.commons.api.edm.EdmProperty;
 import org.apache.olingo.commons.api.edm.EdmStructuredType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -27,6 +17,16 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 import org.apache.olingo.server.core.uri.UriResourceComplexPropertyImpl;
 import org.apache.olingo.server.core.uri.UriResourcePrimitivePropertyImpl;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.criteria.Subquery;
 
 class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQuery<Tuple>, Tuple> {
   private final CriteriaQuery<Tuple> cq;
@@ -93,8 +93,8 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
 
   @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getQueryStartFrom() {
-    return root;
+  public <S> From<S, S> getQueryStartFrom() {
+    return (From<S, S>) root;
   }
 
   public QueryElementCollectionResult execute() throws ODataApplicationException {

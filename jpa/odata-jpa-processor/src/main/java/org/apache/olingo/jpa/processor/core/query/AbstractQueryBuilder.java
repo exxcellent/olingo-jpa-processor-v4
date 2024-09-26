@@ -130,7 +130,7 @@ abstract class AbstractQueryBuilder {
   /**
    *
    * @param association The association to take {@link JPAAssociationPath#getPathElements() path elements} from it and
-   * build {@link #buildJoinPath(From, String...) join path}.
+   * build {@link #buildJoinPath(From, JPAAttribute...) join path}.
    */
   protected static final From<?, ?> buildJoinPath(final From<?, ?> from, final JPANavigationPath association) {
     final List<JPAAttribute<?>> pathElements = association.getPathElements();

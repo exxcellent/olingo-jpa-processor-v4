@@ -2,17 +2,17 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.List;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
-
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 /**
  * <pre>
@@ -54,8 +54,8 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
 
   @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getQueryStartFrom() {
-    return root;
+  public <S> From<S, S> getQueryStartFrom() {
+    return (From<S, S>) root;
   }
 
   /**

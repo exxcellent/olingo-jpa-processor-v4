@@ -40,7 +40,7 @@ public class UserTransctionPersistenceAdapter extends AbstractJPAAdapter {
   }
 
   /**
-   * {@inheritDoc}
+   * @see AbstractJPAAdapter#AbstractJPAAdapter(String, Map, AbstractJPADatabaseProcessor)
    */
   public UserTransctionPersistenceAdapter(final String namespace, final Map<?, ?> mapEntityManagerProperties,
       final AbstractJPADatabaseProcessor dbAccessor) {

@@ -3,11 +3,11 @@ package org.apache.olingo.jpa.processor.core.query.result;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.persistence.Tuple;
-
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
 import org.apache.olingo.server.api.ODataApplicationException;
+
+import jakarta.persistence.Tuple;
 
 /**
  * Result class used to convert a {@link QueryEntityResult direct result} from {@link EntityQueryBuilder expand query}
@@ -36,10 +36,7 @@ public final class ExpandQueryEntityResult extends AbstractEntityQueryResult {
   }
 
   /**
-   * The {@linkplain #getResultNavigationKeyPath()} is used to order all tuples by the key build with that builder.
-   *
    * @see NavigationKeyBuilder#buildKeyForNavigationTargetRow(Tuple)
-   * @see getResultNavigationKeyPath()
    */
   public List<Tuple> getAssociationResult(final String owningEntityKey) {
     return resultValues.get(owningEntityKey);
