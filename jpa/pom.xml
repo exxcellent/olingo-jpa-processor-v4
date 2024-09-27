@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>de.exxcellent.olingo-generic-processor</groupId>
 		<artifactId>olingo-generic-processor-root-pom</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 
-	<groupId>org.apache.olingo.jpa</groupId>
+	<groupId>de.exxcellent.odata.jpa</groupId>
 	<artifactId>odata-jpa</artifactId>
 	<packaging>pom</packaging>
 

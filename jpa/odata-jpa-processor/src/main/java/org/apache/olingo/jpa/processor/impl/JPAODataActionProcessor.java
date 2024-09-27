@@ -404,7 +404,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, 
             HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
 
-      final JPAStructuredType jpaType = query.getQueryResultType();
+      final JPAStructuredType jpaType = query.getQueryEndType();
       if (entityCollection.getEntities() != null && entityCollection.getEntities().size() > 0) {
         try {
           final JPAEntityHelper invoker = new JPAEntityHelper(getEntityManager(), sd, uriInfo, getOData()
