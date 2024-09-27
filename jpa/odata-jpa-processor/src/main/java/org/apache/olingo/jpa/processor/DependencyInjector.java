@@ -8,7 +8,7 @@ public interface DependencyInjector {
    *
    * @param type
    * The type as registered via
-   * {@link #registerDependencyMapping(Class, Object)}.
+   * {@link ModifiableDependencyInjector#registerDependencyMapping(Class, Object)}.
    * @return The value for registered type.
    */
   public <T> T getDependencyValue(final Class<T> type);

@@ -15,8 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.GeneratedValue;
-
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.Valuable;
@@ -43,6 +41,7 @@ import org.apache.olingo.jpa.processor.core.mapping.converter.SqlTime2UtilCalend
 import org.apache.olingo.jpa.processor.core.mapping.converter.UtilDate2UtilCalendarODataAttributeConverter;
 import org.apache.olingo.server.api.ODataApplicationException;
 
+import jakarta.persistence.GeneratedValue;
 import javassist.util.proxy.ProxyFactory;
 
 public abstract class AbstractConverter {
@@ -145,9 +144,11 @@ public abstract class AbstractConverter {
     if (annoConversionConfiguration != null) {
       try {
         if (!EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration.converter())) {
-          return (ODataAttributeConverter<Object, Object>) annoConversionConfiguration.converter().newInstance();
+          return (ODataAttributeConverter<Object, Object>) annoConversionConfiguration.converter()
+              .getDeclaredConstructor().newInstance();
         }
-      } catch (InstantiationException | IllegalAccessException e) {
+      } catch (InstantiationException | IllegalAccessException | InvocationTargetException | IllegalArgumentException
+          | NoSuchMethodException | SecurityException e) {
         throw new ODataJPAConversionException(e, ODataJPAConversionException.MessageKeys.RUNTIME_PROBLEM, e.getMessage());
       }
     }
@@ -654,7 +655,7 @@ public abstract class AbstractConverter {
 
   final public void transferODataSingleComplexValue2JPAProperty(final JPAStructuredType embeddedJPAMemberType,
       final Object targetJPAObjectMemberValue, final List<Property> listEmbeddedProperties)
-      throws ODataJPAModelException, ODataJPAConversionException {
+          throws ODataJPAModelException, ODataJPAConversionException {
     final Set<String> unprocessedPropertyNames = listEmbeddedProperties.stream().map(p -> p.getName()).collect(
         Collectors.toSet());
     // 1. normal attributes
@@ -712,8 +713,9 @@ public abstract class AbstractConverter {
       }
     }
     try {
-      return jpaEntityType.getTypeClass().newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+      return jpaEntityType.getTypeClass().getDeclaredConstructor().newInstance();
+    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+        | NoSuchMethodException | SecurityException e) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.GENERAL, e);
     }
   }

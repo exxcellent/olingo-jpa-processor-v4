@@ -2,17 +2,17 @@ package org.apache.olingo.jpa.processor.core.query;
 
 import java.util.List;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
-
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 /**
  * <pre>
@@ -43,14 +43,19 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
   }
 
   @Override
-  public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+  protected <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
     return cq.subquery(subqueryResultType);
+  }
+
+  @Override
+  protected CriteriaQuery<Long> getQuery() {
+    return cq;
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getQueryStartFrom() {
-    return root;
+  public <S> From<S, S> getQueryStartFrom() {
+    return (From<S, S>) root;
   }
 
   /**
@@ -79,13 +84,16 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
 
     // HANA does not work as expected on calculation views -> count only has the expected result if COUNT(*) or
     // COUNT(<with all distinct columns>) is used, but both is not possible with JPA 2.2
-    final From<?, ?> targetFrom = getQueryResultFrom();
+    final From<?, ?> targetFrom = getQueryEndFrom();
     cq.select(getCriteriaBuilder().count(targetFrom));
 
     final jakarta.persistence.criteria.Expression<Boolean> whereClause = createWhere();
     if (whereClause != null) {
       cq.where(whereClause);
     }
+
+    involveCustomizer();// as last before querying
+
     final Long count = getEntityManager().createQuery(cq).getSingleResult();
     return count.longValue();
   }

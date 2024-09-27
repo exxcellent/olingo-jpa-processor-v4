@@ -4,16 +4,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Selection;
-import jakarta.persistence.criteria.Subquery;
-
 import org.apache.olingo.commons.api.edm.EdmProperty;
 import org.apache.olingo.commons.api.edm.EdmStructuredType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -27,6 +17,16 @@ import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriResourceProperty;
 import org.apache.olingo.server.core.uri.UriResourceComplexPropertyImpl;
 import org.apache.olingo.server.core.uri.UriResourcePrimitivePropertyImpl;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.criteria.Subquery;
 
 class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQuery<Tuple>, Tuple> {
   private final CriteriaQuery<Tuple> cq;
@@ -82,14 +82,19 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
   }
 
   @Override
-  public <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
+  protected <T> Subquery<T> createSubquery(final Class<T> subqueryResultType) {
     return cq.subquery(subqueryResultType);
+  }
+
+  @Override
+  protected CriteriaQuery<Tuple> getQuery() {
+    return cq;
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public From<?, ?> getQueryStartFrom() {
-    return root;
+  public <S> From<S, S> getQueryStartFrom() {
+    return (From<S, S>) root;
   }
 
   public QueryElementCollectionResult execute() throws ODataApplicationException {
@@ -104,6 +109,9 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
       if (where != null) {
         cq.where(where);
       }
+
+      involveCustomizer();// as last before querying
+
       final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
       // FIXME how to add TOP or SKIP for elements of another table? (do not work as
       // in JPAExpandQuery, because we have to avoid loading of too much rows)

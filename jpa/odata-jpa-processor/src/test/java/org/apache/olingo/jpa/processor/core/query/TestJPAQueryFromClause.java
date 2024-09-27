@@ -44,7 +44,7 @@ public class TestJPAQueryFromClause extends TestBase {
     cut = new EntityQueryBuilder(/* new EdmEntitySetDouble(nameBuilder, "Organizations").getEntityType(), */ context,
         createTestUriInfo("Organizations"),
         persistenceAdapter.createEntityManager(), null);
-    root = cut.getQueryResultFrom();
+    root = cut.getQueryEndFrom();
   }
 
   @Test
