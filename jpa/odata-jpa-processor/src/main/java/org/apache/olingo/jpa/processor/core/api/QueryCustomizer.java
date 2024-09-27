@@ -4,6 +4,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.processor.core.query.EntityQueryBuilder;
@@ -98,6 +99,12 @@ public interface QueryCustomizer {
      * @return TRUE if query has already a sorting
      */
     public boolean hasAlreadyOrderBy();
+
+    /**
+     *
+     * @return The currently defined selection of columns for result set, maybe <code>null</code>.
+     */
+    public <T> Selection<T> getSelection();
   }
 
   /**

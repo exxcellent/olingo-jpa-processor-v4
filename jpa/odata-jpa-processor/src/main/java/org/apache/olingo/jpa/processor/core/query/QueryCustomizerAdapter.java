@@ -5,6 +5,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
@@ -90,4 +91,9 @@ public class QueryCustomizerAdapter<DT> implements QueryCustomization {
     return caller.getQuery().getOrderList() != null && !caller.getQuery().getOrderList().isEmpty();
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public Selection<DT> getSelection() {
+    return caller.getQuery().getSelection();
+  }
 }
