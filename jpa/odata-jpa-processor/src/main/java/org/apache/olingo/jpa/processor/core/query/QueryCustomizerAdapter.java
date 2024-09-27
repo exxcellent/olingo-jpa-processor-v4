@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Selection;
 import jakarta.persistence.criteria.Subquery;
 
 public class QueryCustomizerAdapter<DT> implements QueryCustomization {
@@ -90,4 +91,9 @@ public class QueryCustomizerAdapter<DT> implements QueryCustomization {
     return caller.getQuery().getOrderList() != null && !caller.getQuery().getOrderList().isEmpty();
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public Selection<DT> getSelection() {
+    return caller.getQuery().getSelection();
+  }
 }

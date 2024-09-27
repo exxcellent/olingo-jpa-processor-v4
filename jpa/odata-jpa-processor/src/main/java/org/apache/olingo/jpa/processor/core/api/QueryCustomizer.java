@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Selection;
 import jakarta.persistence.criteria.Subquery;
 
 /**
@@ -98,6 +99,12 @@ public interface QueryCustomizer {
      * @return TRUE if query has already a sorting
      */
     public boolean hasAlreadyOrderBy();
+
+    /**
+     *
+     * @return The currently defined selection of columns for result set, maybe <code>null</code>.
+     */
+    public <T> Selection<T> getSelection();
   }
 
   /**
