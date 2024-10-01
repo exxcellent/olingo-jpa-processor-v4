@@ -145,9 +145,11 @@ public abstract class AbstractConverter {
     if (annoConversionConfiguration != null) {
       try {
         if (!EdmAttributeConversion.DEFAULT.class.equals(annoConversionConfiguration.converter())) {
-          return (ODataAttributeConverter<Object, Object>) annoConversionConfiguration.converter().newInstance();
+          return (ODataAttributeConverter<Object, Object>) annoConversionConfiguration.converter()
+              .getDeclaredConstructor().newInstance();
         }
-      } catch (InstantiationException | IllegalAccessException e) {
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+          | NoSuchMethodException | SecurityException e) {
         throw new ODataJPAConversionException(e, ODataJPAConversionException.MessageKeys.RUNTIME_PROBLEM, e.getMessage());
       }
     }
@@ -654,7 +656,7 @@ public abstract class AbstractConverter {
 
   final public void transferODataSingleComplexValue2JPAProperty(final JPAStructuredType embeddedJPAMemberType,
       final Object targetJPAObjectMemberValue, final List<Property> listEmbeddedProperties)
-      throws ODataJPAModelException, ODataJPAConversionException {
+          throws ODataJPAModelException, ODataJPAConversionException {
     final Set<String> unprocessedPropertyNames = listEmbeddedProperties.stream().map(p -> p.getName()).collect(
         Collectors.toSet());
     // 1. normal attributes

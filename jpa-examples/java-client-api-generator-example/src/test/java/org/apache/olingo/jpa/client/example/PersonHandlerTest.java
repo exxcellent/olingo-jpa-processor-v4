@@ -15,14 +15,9 @@ import org.apache.olingo.jpa.processor.core.testmodel.PersonMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.PersonURIBuilder;
 import org.apache.olingo.jpa.processor.core.testmodel.PostalAddressDataMeta;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class PersonHandlerTest extends HandlerTestBase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testInvalidLoadEntitySetPerson() throws Exception {
@@ -32,8 +27,7 @@ public class PersonHandlerTest extends HandlerTestBase {
         "97")));
     final PersonURIBuilder uriBuilder = handler.defineEndpoint().filter(filter);
 
-    thrown.expect(IllegalArgumentException.class);
-    handler.retrieve(uriBuilder);
+    Assert.assertThrows(IllegalArgumentException.class, () -> handler.retrieve(uriBuilder));
   }
 
   @Test

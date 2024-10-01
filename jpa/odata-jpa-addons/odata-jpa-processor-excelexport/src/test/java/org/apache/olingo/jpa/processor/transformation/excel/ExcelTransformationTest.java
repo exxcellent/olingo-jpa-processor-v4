@@ -90,7 +90,7 @@ public class ExcelTransformationTest extends TestBase {
     fos.close();
 
     final TestInspector validator = new TestInspector(configuration, data);
-    assertEquals(20, validator.determineNumberOfColumns("Demo"));
+    assertEquals(21, validator.determineNumberOfColumns("Demo"));
     assertTrue(validator.determineNumberOfRows("Demo") > 2);// 2+header
     final DecimalFormat df = new DecimalFormat("#.00000#", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
     assertEquals("98989898.34678", df.format(validator.determineCellValueAsNumber("Demo", 2, "ADecimal")));
@@ -118,7 +118,7 @@ public class ExcelTransformationTest extends TestBase {
     //    file.close();
 
     final TestInspector validator = new TestInspector(configuration, data);
-    assertEquals(19, validator.determineNumberOfColumns("Demo"));
+    assertEquals(20, validator.determineNumberOfColumns("Demo"));
     assertEquals(2, validator.determineColumnIndex("Demo", "AIntegerYear"));
     assertFalse(validator.hasColumnOfName("Demo", "ID"));
     assertTrue(validator.hasColumnOfName("Demo", "AIntegerYear"));

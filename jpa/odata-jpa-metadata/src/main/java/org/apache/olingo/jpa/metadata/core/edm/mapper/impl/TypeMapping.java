@@ -102,7 +102,7 @@ public final class TypeMapping {
     MAPPINGS_JPA2ODATA.add(new ODataMapping(java.time.LocalDate.class, EdmPrimitiveTypeKind.Date,
         java.time.LocalDate.class, java.sql.Date.class));
     MAPPINGS_JPA2ODATA.add(new ODataMapping(ZonedDateTime.class, EdmPrimitiveTypeKind.DateTimeOffset,
-        java.time.LocalDateTime.class, java.sql.Timestamp.class));
+        java.time.LocalDateTime.class, java.sql.Timestamp.class, java.time.Instant.class));
     MAPPINGS_JPA2ODATA.add(new ODataMapping(BigDecimal.class, EdmPrimitiveTypeKind.Duration, java.time.Duration.class));
     MAPPINGS_JPA2ODATA.add(new ODataMapping(UUID.class, EdmPrimitiveTypeKind.Guid, UUID.class));
 
@@ -162,7 +162,7 @@ public final class TypeMapping {
     // special handling for types with additional annotations determining the final kind
     final EdmPrimitiveTypeKind temporalKind;
     final String memberName = (javaMember instanceof Field) ? ((Field) javaMember).getName() : null;
-    if (java.util.Date.class.isAssignableFrom(jpaType) || java.util.Calendar.class.isAssignableFrom(jpaType)) {
+    if (isJavaTemporal(jpaType)) {
       temporalKind = mapTemporalType(javaMember);
     } else if (isGeography(javaMember)) {
       temporalKind = convertGeography(jpaType, memberName);
@@ -203,6 +203,12 @@ public final class TypeMapping {
       return new ODataMapping(java.time.LocalDateTime.class, EdmPrimitiveTypeKind.DateTimeOffset, java.util.Date.class);
     }
     return null;
+  }
+
+  private static boolean isJavaTemporal(Class<?> jpaType) {
+    return java.util.Date.class.isAssignableFrom(jpaType) ||
+            java.util.Calendar.class.isAssignableFrom(jpaType) ||
+            java.time.temporal.Temporal.class.isAssignableFrom(jpaType);
   }
 
   /**

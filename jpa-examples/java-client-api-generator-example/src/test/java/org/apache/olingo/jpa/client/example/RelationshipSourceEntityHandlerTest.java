@@ -6,14 +6,9 @@ import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityDt
 import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityMeta;
 import org.apache.olingo.jpa.processor.core.testmodel.RelationshipSourceEntityURIBuilder;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class RelationshipSourceEntityHandlerTest extends HandlerTestBase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testLoadManyRelationship() throws Exception {
