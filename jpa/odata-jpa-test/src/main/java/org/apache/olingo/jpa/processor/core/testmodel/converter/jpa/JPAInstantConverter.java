@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 //This converter has to be mentioned at all columns it is applicable
 @Converter(autoApply = false)
