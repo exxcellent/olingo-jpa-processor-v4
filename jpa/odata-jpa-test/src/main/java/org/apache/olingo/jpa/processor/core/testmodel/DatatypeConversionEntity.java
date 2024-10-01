@@ -18,6 +18,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAttributeConversion;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmSearchable;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter;
+import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAInstantConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUrlConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter;
 import org.apache.olingo.jpa.processor.core.testmodel.converter.odata.EdmUrlConverter;
@@ -67,6 +68,11 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
   @Column(name = "\"ATimestamp1\"", insertable = false, updatable = false)
   private java.sql.Timestamp aTimestamp1SqlTimestamp;
+
+  @Column(name = "\"ATimestamp1\"", insertable = false, updatable = false)
+  // Hibernate supports Instant, Eclipselink not before JPA 3.2
+  @Convert(converter = JPAInstantConverter.class)
+  private java.time.Instant aTimestamp1Instant;
 
   @Column(name = "\"ATimestamp2\"")
   private java.time.LocalDateTime aTimestamp2;
