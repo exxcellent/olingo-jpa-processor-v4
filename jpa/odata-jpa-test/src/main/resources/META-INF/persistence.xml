@@ -15,6 +15,7 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADateConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPADayOfWeekConverter</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAUuidFragmentsListConverter</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.converter.jpa.JPAInstantConverter</class>
 
         <!-- Persistent entities -->
 		<class>org.apache.olingo.jpa.processor.core.testmodel.Organization</class>
