@@ -133,7 +133,9 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
       throws ODataApplicationException {
     // use double decoding to workaround OLINGO-1239
     String sTerm = term.getSearchTerm();
-    sTerm = Decoder.decode(sTerm);
+    if(sTerm.contains("%")) {
+        sTerm = Decoder.decode(sTerm);    	
+    }
     term = new SearchTermImpl(sTerm);
 
     final Expression<Boolean> searchCondition = context.getDatabaseProcessor().createSearchExpression(term,
