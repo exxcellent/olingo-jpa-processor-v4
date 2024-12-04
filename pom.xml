@@ -41,7 +41,7 @@
 	        <dependency>
 	            <groupId>org.junit</groupId>
 	            <artifactId>junit-bom</artifactId>
-	            <version>5.11.0</version>
+	            <version>5.11.3</version>
 	            <type>pom</type>
 	            <scope>import</scope>
 	        </dependency>
@@ -296,17 +296,13 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>3.5.0</version>
+					<version>3.5.2</version>
 					<configuration>
-						<forkCount>0</forkCount><!-- workaround for fork error while test execution -->
                         <argLine>${surefireArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
-						<systemProperties>
-							<property>
-								<name>derby.stream.error.file</name>
-								<value>target/derby.log</value>
-							</property>
-						</systemProperties>
+						<systemPropertyVariables>
+							<derby.stream.error.file>target/derby.log</derby.stream.error.file>
+						</systemPropertyVariables>
                         <excludes>
                             <exclude>**/*IT.java</exclude>
                         </excludes>
@@ -315,7 +311,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>3.5.0</version>
+					<version>3.5.2</version>
 					<configuration>
                         <argLine>${failsafeArgLine}</argLine>
 						<useSystemClassLoader>false</useSystemClassLoader>
@@ -411,6 +407,7 @@
                                 <propertyName>surefireArgLine</propertyName>
                                 <append>true</append>
                                 <inclNoLocationClasses>true</inclNoLocationClasses>
+                                <excludes>jdk.internal.*</excludes>
                             </configuration>
                         </execution>
                         <!--
@@ -488,12 +485,12 @@
 				<plugin>
 				  <groupId>org.apache.maven.plugins</groupId>
 				  <artifactId>maven-plugin-plugin</artifactId>
-				  <version>3.6.4</version>
+				  <version>3.15.1</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>3.3.0</version>
+					<version>3.6.0</version>
 				</plugin>
 		        <plugin>
 		            <groupId>org.hibernate.orm.tooling</groupId>

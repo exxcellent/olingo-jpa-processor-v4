@@ -21,6 +21,6 @@ public class SimpleIT {
   @Test
   public void testRunningServlet() throws Exception {
     final ResponseEntity<String> response = restTemplate.getForEntity("/odata/$metadata", String.class);
-    Assertions.assertEquals(HttpStatusCode.OK.getStatusCode(), response.getStatusCodeValue());
+    Assertions.assertEquals(HttpStatusCode.OK.getStatusCode(), response.getStatusCode().value());
   }
 }

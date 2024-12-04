@@ -47,8 +47,20 @@ public class TestIntermediateFunction extends TestMappingRoot {
     assertEquals("COUNT_ROLES", func.getUserDefinedFunction());
   }
 
-  private static void assertListEquals(final List<?> exp, final List<?> act) {
-    assertTrue(EqualsBuilder.reflectionEquals(exp, act));
+  private static void assertListEquals(final List<CsdlParameter> exp, final List<CsdlParameter> act) {
+	  assertEquals(exp.size(), act.size());
+	  for(int i=0;i<exp.size();i++) {
+		  CsdlParameter pExp = exp.get(i);
+		  CsdlParameter pAct = act.get(i);
+		  
+		  assertEquals(pExp.getType(), pAct.getType());
+		  assertEquals(pExp.getName(), pAct.getName());
+		  assertEquals(pExp.getTypeFQN(), pAct.getTypeFQN());
+		  assertEquals(pExp.getMaxLength(), pAct.getMaxLength());
+		  assertEquals(pExp.getPrecision(), pAct.getPrecision());
+		  assertEquals(pExp.getScale(), pAct.getScale());
+		  assertEquals(pExp.getClass(), pAct.getClass());
+	  }
   }
 
   @Test

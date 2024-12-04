@@ -22,6 +22,8 @@ import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -168,6 +170,18 @@ public class TestJPASearch extends TestBase {
     final ArrayNode ents = helper.getJsonObjectValues();
     assertEquals(1, ents.size());
     assertEquals("Bezirk Löwen", ents.get(0).get("Name").asText());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {"\"John\" \"Doe\":1", "John Doe:1", "John AND Doe:1", "Nothing OR Dorf:2", "\"Test\" AND \"Stra%C3%9Fe\":2", "(John AND Doe) OR (\"Max\" AND Mustermann):2"}, delimiter = ':')
+  public void testParametrizedQuoteEffects(String searchTerm, int expected) throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").search(searchTerm);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
+        uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode ents = helper.getJsonObjectValues();
+    assertEquals(expected, ents.size());
   }
 
 }
