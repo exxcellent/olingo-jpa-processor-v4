@@ -3,7 +3,7 @@
 ---
 # 1.0.0/2.0.0 &#8594; 1.1.0/2.1.0
 ## Namespace for maven artifacts changed
-The _groupId_ for all maven artifacts has changed from `org.apache.olingo.jpa` to `de.exxcellent.odata.jpa`. So the dependencies to use the library has to be adaptedlike that example:
+The _groupId_ for all maven artifacts has changed from `org.apache.olingo.jpa` to `de.exxcellent.odata.jpa`. So the dependencies to use the library has to be adapted like that example:
 <table class="conversions-table">
 	<tr valign="top" align="center"><th>Old</th><th>&nbsp;</th><th>New</th></tr>
 	<tr valign="top"><td>
