@@ -64,12 +64,12 @@ or in the _pom.xml_:
 
 We have to differentiate two phases of application lifecycle having different requirements on dependencies:
 ## 2. Compile time (meaning editing source and compiling that)
-* In that phase only _org.apache.olingo.jpa:odata-jpa-annotation_ is required to annotate your Java classes (JPA entities) for later use
+* In that phase only _de.exxcellent.odata.jpa:odata-jpa-annotation_ is required to annotate your Java classes (JPA entities) for later use
 
 ```
 <dependencies>
     <dependency>
-        <groupId>org.apache.olingo.jpa</groupId>
+        <groupId>de.exxcellent.odata.jpa</groupId>
         <artifactId>odata-jpa-annotation</artifactId>
         <version>...</version>
     </dependency>
@@ -78,13 +78,13 @@ We have to differentiate two phases of application lifecycle having different re
     
 ## 3. Runtime
 * The target type containing all the dependencies for runtime is controlled by the integrator. The following documentation will assume a WAR as target to explain a example integration.
-* You need to have the OLingo base libraries for OData protocol handling as dependecies for your WAR module.
-* And you need to have the OLingo JPA processor libraries to make your JPA entities OData capable
+* You need to have the OLingo base libraries for OData protocol handling as dependencies for your WAR module.
+* And you need to have the OData JPA processor libraries to make your JPA entities OData capable
 
 ```
 <dependencies>
 	<dependency>
-		<groupId>org.apache.olingo.jpa</groupId>
+		<groupId>de.exxcellent.odata.jpa</groupId>
 		<artifactId>odata-jpa-processor</artifactId>
 		<version>...</version>
 	</dependency>
