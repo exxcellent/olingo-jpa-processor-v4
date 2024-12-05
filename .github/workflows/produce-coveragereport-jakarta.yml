@@ -1,6 +1,5 @@
 name: Produce/Upload coverage report for OData-JPA-Adapter (jakarta) to Codedov
 on:
-  workflow_dispatch:
   release:
     types: [released]
   push:
