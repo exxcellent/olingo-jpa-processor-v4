@@ -14,7 +14,6 @@ import org.apache.olingo.jpa.processor.transformation.TransformationDeclaration;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.queryoption.CountOption;
 
 public class QueryEntityResult2EntityCollectionTransformation implements
 Transformation<QueryEntityResult, EntityCollection> {
@@ -69,22 +68,13 @@ Transformation<QueryEntityResult, EntityCollection> {
 
   private EntityCollection convertToEntityCollection(final QueryEntityResult result) throws ODataApplicationException {
     // Convert tuple result into an OData Result
-    EntityCollection entityCollection;
     try {
-      entityCollection = new DatabaseQueryResult2ODataEntityConverter(globalContext.getEdmProvider()
+      return new DatabaseQueryResult2ODataEntityConverter(globalContext.getEdmProvider()
           .getServiceDocument(), globalContext.getOdata().createUriHelper(), globalContext.getServiceMetaData())
           .convertDBTuple2OData(result);
     } catch (final ODataJPAModelException e) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_RESULT_CONV_ERROR,
           HttpStatusCode.INTERNAL_SERVER_ERROR, e);
     }
-
-    // Count results if requested
-    final CountOption countOption = uriResource/* getNavigation().getLastStep() */.getCountOption();
-    if (countOption != null && countOption.getValue()) {
-      entityCollection.setCount(Integer.valueOf(entityCollection.getEntities().size()));
-    }
-
-    return entityCollection;
   }
 }

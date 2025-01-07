@@ -31,7 +31,8 @@ public class TestDataAccessConditioner extends TestBase {
   public void testGETCount() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners/$count");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").appendCountSegment();
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);    
     helper.execute(HttpStatusCode.OK.getStatusCode());
     // we have 14 entries in BusinessPartner table
     assertEquals(14, Integer.parseInt(helper.getRawResult()));
@@ -45,8 +46,8 @@ public class TestDataAccessConditioner extends TestBase {
   @Test
   public void testGETSelect() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners('3')");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").appendKeySegment("3");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);    
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode orgUnrestricted = helper.getJsonObjectValue();
     assertNotNull(orgUnrestricted);
@@ -60,8 +61,8 @@ public class TestDataAccessConditioner extends TestBase {
   public void testGETNavigation() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
 
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "BusinessPartnerImages('97')/BusinessPartnerPerson");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartnerImages").appendKeySegment("97").appendNavigationSegment("BusinessPartnerPerson");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);    
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode personUnrestricted = helper.getJsonObjectValue();
     assertNotNull(personUnrestricted);
@@ -74,9 +75,8 @@ public class TestDataAccessConditioner extends TestBase {
   @Test
   public void testGETFilter() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.ALL;
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "GenericBusinessPartners?$filter=Image/PID eq '97'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").filter("Image/PID eq '97'");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);    
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode personImagesUnrestricted = helper.getJsonObjectValues();
     assertEquals(1, personImagesUnrestricted.size());
@@ -91,17 +91,17 @@ public class TestDataAccessConditioner extends TestBase {
   @Test
   public void testDELETE() throws IOException, ODataException {
     GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyOrganizations;
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners('7')", null,
-        HttpMethod.DELETE);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").appendKeySegment("7");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.DELETE);    
     helper.execute(HttpStatusCode.NO_CONTENT.getStatusCode());
 
   }
 
   @Test
   public void testInvalidDELETE() throws IOException, ODataException {
-    GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyPersons;
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, "GenericBusinessPartners('8')", null,
-        HttpMethod.DELETE);
+    GenericBusinessPartnerDataAccessConditioner.SelectStrategy = SelectionStrategy.OnlyPersons;    
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("GenericBusinessPartners").appendKeySegment("8");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.DELETE);    
     helper.execute(HttpStatusCode.NOT_FOUND.getStatusCode());
   }
 

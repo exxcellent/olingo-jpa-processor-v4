@@ -24,9 +24,7 @@ import org.apache.olingo.client.api.domain.ClientEntitySet;
 import org.apache.olingo.client.api.serialization.ClientODataDeserializer;
 import org.apache.olingo.client.api.serialization.ODataDeserializerException;
 import org.apache.olingo.client.api.uri.URIBuilder;
-import org.apache.olingo.client.core.ConfigurationImpl;
 import org.apache.olingo.client.core.ODataClientFactory;
-import org.apache.olingo.client.core.uri.URIBuilderImpl;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
@@ -75,36 +73,6 @@ public class ServerCallSimulator {
   private HttpServletResponseDouble resp = null;
   private boolean executed = false;
   private SecurityInceptor securityInceptor = null;
-
-  /**
-   *
-   * @see #IntegrationTestHelper(JPAAdapter, String,
-   *      StringBuffer, HttpMethod)
-   * @deprecated Use {@link #IntegrationTestHelper(JPAAdapter, URIBuilder)} instead to improve client side behaviour of
-   *             tests.
-   */
-  @Deprecated
-  public ServerCallSimulator(final JPAAdapter persistenceAdapter, final String urlPath)
-      throws IOException, ODataException {
-    this(persistenceAdapter, urlPath, null, HttpMethod.GET);
-  }
-
-  /**
-   * @deprecated Use {@link #IntegrationTestHelper(JPAAdapter, URIBuilder, StringBuffer, HttpMethod)} instead to improve
-   *             client side behaviour of tests.
-   */
-  @Deprecated
-  public ServerCallSimulator(final JPAAdapter persistenceAdapter,
-      final String urlPath, final String requestBody, final HttpMethod requestMethod)
-          throws IOException,
-          ODataException {
-    this(persistenceAdapter, wrapUrl(urlPath), requestBody, requestMethod);
-
-  }
-
-  private static URIBuilder wrapUrl(final String urlPath) {
-    return new URIBuilderImpl(new ConfigurationImpl(), ServerCallSimulator.SERVLET_LOCAL_BASE_URI + urlPath.replace(" ", "%20"));
-  }
 
   /**
    * @see #IntegrationTestHelper(JPAAdapter, URIBuilder, StringBuffer, HttpMethod)
