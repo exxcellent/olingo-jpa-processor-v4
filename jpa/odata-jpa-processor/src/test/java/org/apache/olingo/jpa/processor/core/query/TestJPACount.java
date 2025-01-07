@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
+import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
@@ -50,9 +51,25 @@ public class TestJPACount extends TestBase {
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(9, orgs.size());
     final ObjectNode result = helper.getJsonObjectValue();
-    assertEquals(9, result.get("@odata.count").asInt());
+    assertEquals(9, result.get(Constants.JSON_COUNT).asInt());
   }
 
+  /**
+   * $count=true must be unaffected by any paging option.
+   */
+  @Test
+  public void testFilterCountTrueAndPagingQueryOption() throws IOException, ODataException {
+
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").filter("Country eq 'USA'").skip(2).top(3).count(true);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertEquals(3, orgs.size());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertEquals(9, result.get(Constants.JSON_COUNT).asInt());
+  }
+  
   @Test
   public void testFilterCountFalseQueryOption() throws IOException, ODataException {
 
@@ -65,7 +82,7 @@ public class TestJPACount extends TestBase {
     assertEquals(9, orgs.size());
     final ObjectNode result = helper.getJsonObjectValue();
     // must not be given for count=false
-    assertNull(result.get("@odata.count"));
+    assertNull(result.get(Constants.JSON_COUNT));
   }
 
   @Test
@@ -75,8 +92,6 @@ public class TestJPACount extends TestBase {
         true, Collections.emptyMap()).orderBy("ID asc");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
-    //    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-    //        "Persons?$expand=Roles($count=true)&$orderby=Country asc");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
     assertNull(result.get("@odata.count"));
@@ -96,8 +111,6 @@ public class TestJPACount extends TestBase {
         .expandWithOptions("Roles", false,
             true, Collections.emptyMap()).orderBy("ID");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    //    final IntegrationTestHelper helper = new IntegrationTestHelper(persistenceAdapter,
-    //        "Organizations?$skip=2&$top=5&$orderby=ID&$expand=Roles/$count");
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());

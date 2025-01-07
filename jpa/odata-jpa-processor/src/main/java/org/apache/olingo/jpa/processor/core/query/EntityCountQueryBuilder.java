@@ -21,10 +21,9 @@ import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitEx
  * .../Organizations/$count
  * .../Organizations('3')/Roles/$count
  *
- * This is NOT covered:
+ * This is NOT covered (automatically):
  * .../Organizations?$count=true
- * This example is wrong because the entity collection self is loaded, but the count added to response, so the
- * {@link EntityQueryBuilder} will handle that
+ * In that case the {@link EntityQueryBuilder} will call this builder to process $count.
  * </pre>
  */
 public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQuery<Long>, Long> {

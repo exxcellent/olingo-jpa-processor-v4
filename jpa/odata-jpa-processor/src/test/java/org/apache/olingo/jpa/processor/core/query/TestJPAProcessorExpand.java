@@ -20,7 +20,6 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,9 +104,8 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandEntitySetWithOutParentKeySelection() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$orderby=Name1&$select=Name1&$expand=Roles");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("Name1").select("Name1").expand("Roles");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -117,27 +115,14 @@ public class TestJPAProcessorExpand extends TestBase {
 
   }
 
-  @Ignore // Not supported by Olingo as of now
-  @Test
-  public void testExpandEntitySetViaNonKeyField_FieldNotSelected() throws IOException, ODataException {
-
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')/AdministrativeInformation/Created?$select=At&$expand=User");
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ObjectNode created = helper.getJsonObjectValue();
-    // ObjectNode created = (ObjectNode) admin.get("Created");
-    assertNotNull(created.get("User"));
-  }
-
   @Test
   public void testExpandEntitySetViaNonKeyFieldNavi2Hops() throws IOException, ODataException {
-    final Map<String, Object> mapKeys = new HashMap<String, Object>();
-    mapKeys.put("DivisionCode", "BE253");
-    mapKeys.put("CodeID", "NUTS3");
-    mapKeys.put("CodePublisher", "Eurostat");
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        mapKeys)
+	    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+	    mapKeys.put("DivisionCode", "BE253");
+	    mapKeys.put("CodeID", "NUTS3");
+	    mapKeys.put("CodePublisher", "Eurostat");
+	    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+	        mapKeys)
         .appendNavigationSegment("Parent").appendNavigationSegment("Parent").expand("Children");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
@@ -170,7 +155,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
     expandOptionsTargets.put(QueryOption.EXPAND, "Children");
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        mapKeys).expandWithOptions("Parent", expandOptionsTargets);
+    		mapKeys).expandWithOptions("Parent", expandOptionsTargets);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -212,8 +197,11 @@ public class TestJPAProcessorExpand extends TestBase {
   public void testNestedExpandNestedExpand2LevelsMixed() throws IOException, ODataException {
     // see example:
     // https://services.odata.org/V4/Northwind/Northwind.svc/Customers('ALFKI')/Orders?$select=ShipCity&$expand=Order_Details
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations('3')/Address?$select=Country&$expand=AdministrativeDivision($expand=Parent)");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.EXPAND, "Parent");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").appendKeySegment("3").appendNavigationSegment("Address").select("Country")
+    		.expandWithOptions("AdministrativeDivision", expandOptionsTargets);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
@@ -248,25 +236,6 @@ public class TestJPAProcessorExpand extends TestBase {
   }
 
   @Test
-  public void testExpandWithOrderByDesc() throws IOException, ODataException {
-    final Map<String, Object> mapKeys = new HashMap<String, Object>();
-    mapKeys.put("DivisionCode", "BE2");
-    mapKeys.put("CodeID", "NUTS1");
-    mapKeys.put("CodePublisher", "Eurostat");
-    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
-    expandOptionsTargets.put(QueryOption.ORDERBY, "DivisionCode desc");
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
-        mapKeys).expandWithOptions("Children", expandOptionsTargets);
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ObjectNode div = helper.getJsonObjectValue();
-    final ArrayNode children = (ArrayNode) div.get("Children");
-    assertEquals(5, children.size());
-    assertEquals("BE25", children.get(0).get("DivisionCode").asText());
-  }
-
-  @Test
   public void testExpandWithOrderByAsc() throws IOException, ODataException {
     final Map<String, Object> mapKeys = new HashMap<String, Object>();
     mapKeys.put("DivisionCode", "BE2");
@@ -286,36 +255,32 @@ public class TestJPAProcessorExpand extends TestBase {
   }
 
   @Test
-  public void testExpandWithOrderByDescTop() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($top=2;$orderby=DivisionCode desc)");
+  public void testExpandWithOrderByDesc() throws IOException, ODataException {
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE2");
+    mapKeys.put("CodeID", "NUTS1");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.ORDERBY, "DivisionCode desc");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions")
+       		.appendKeySegment(mapKeys).expandWithOptions(
+               "Children", expandOptionsTargets);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
-    assertEquals(2, children.size());
+    assertEquals(5, children.size());
     assertEquals("BE25", children.get(0).get("DivisionCode").asText());
-  }
-
-  @Test
-  public void testExpandWithOrderByDescTopSkip() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE2',CodeID='NUTS1',CodePublisher='Eurostat')?$expand=Children($top=2;$skip=2;$orderby=DivisionCode desc)");
-    helper.execute(HttpStatusCode.OK.getStatusCode());
-
-    final ObjectNode div = helper.getJsonObjectValue();
-    final ArrayNode children = (ArrayNode) div.get("Children");
-    assertEquals(2, children.size());
-    assertEquals("BE23", children.get(0).get("DivisionCode").asText());
+    assertEquals("BE21", children.get(4).get("DivisionCode").asText());
   }
 
   @Test
   public void testExpandWithCount() throws IOException, ODataException {
-
-    final Map<QueryOption, Object> optionsRolesExpand = new HashMap<>();
-    optionsRolesExpand.put(QueryOption.COUNT, Boolean.TRUE);
-    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").count(true).expandWithOptions(
-        "Roles", optionsRolesExpand).orderBy("Roles/$count desc");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.COUNT, Boolean.TRUE);	  
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("Roles/$count desc").count(true).expandWithOptions(
+        "Roles", expandOptionsTargets);
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
@@ -328,10 +293,32 @@ public class TestJPAProcessorExpand extends TestBase {
   }
 
   @Test
-  public void testExpandWithOrderByDescTopSkipAndExternalOrderBy() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "Organizations?$count=true&$expand=Roles($orderby=RoleCategory desc)&$orderby=Roles/$count desc");
+  public void testExpandWithInvalidNestedSkip() throws IOException, ODataException {
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.SKIP, 1);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("Roles/$count desc").expandWithOptions(
+        "Roles", expandOptionsTargets);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.PRECONDITION_FAILED.getStatusCode());
+  }
 
+  @Test
+  public void testExpandWithInvalidNestedTop() throws IOException, ODataException {
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.TOP, 1);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("Roles/$count desc").expandWithOptions(
+        "Roles", expandOptionsTargets);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.PRECONDITION_FAILED.getStatusCode());
+  }
+  
+  @Test
+  public void testExpandWithOrderByDescTopSkipAndExternalOrderBy() throws IOException, ODataException {
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.ORDERBY, "RoleCategory desc");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations").orderBy("Roles/$count desc").count(true).expandWithOptions(
+            "Roles", expandOptionsTargets);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ArrayNode orgs = helper.getJsonObjectValues();
@@ -346,8 +333,15 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithNestedFilter() throws IOException, ODataException {
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
-        "AdministrativeDivisions(DivisionCode='BE25',CodeID='NUTS2',CodePublisher='Eurostat')?$expand=Children($filter=DivisionCode eq 'BE252')");
+    final Map<String, Object> mapKeys = new HashMap<String, Object>();
+    mapKeys.put("DivisionCode", "BE25");
+    mapKeys.put("CodeID", "NUTS2");
+    mapKeys.put("CodePublisher", "Eurostat");
+    final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
+    expandOptionsTargets.put(QueryOption.FILTER, "DivisionCode eq 'BE252'");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions")
+   		.appendKeySegment(mapKeys).expandWithOptions("Children", expandOptionsTargets);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
 

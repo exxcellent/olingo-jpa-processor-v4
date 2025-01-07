@@ -51,6 +51,9 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
       final Entity odataEntity = convertTuple2ODataEntity(row, jpaQueryResult);
       odataEntityCollection.getEntities().add(odataEntity);
     }
+    if(jpaQueryResult.getCount() != null) {
+    	odataEntityCollection.setCount(jpaQueryResult.getCount());
+    }
     return odataEntityCollection;
   }
 

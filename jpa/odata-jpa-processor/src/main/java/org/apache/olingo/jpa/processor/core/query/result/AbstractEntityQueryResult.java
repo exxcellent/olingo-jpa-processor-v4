@@ -20,6 +20,7 @@ public abstract class AbstractEntityQueryResult {
   private final Map<JPAAssociationPath, ExpandQueryEntityResult> resultRelationshipTargets = new HashMap<>();
   private final Map<JPAAttribute<?>, QueryElementCollectionResult> resultElementCollectionTargets = new HashMap<>();
   private final JPAEntityType jpaEntityType;
+  private Integer count = null;
 
   protected AbstractEntityQueryResult(final JPAEntityType jpaEntityType) {
     super();
@@ -64,6 +65,18 @@ public abstract class AbstractEntityQueryResult {
     return jpaEntityType;
   }
 
+  /**
+   * 
+   * @return The "@odata.count" value if given. Mostly <code>null</code>.
+   */
+  public Integer getCount() {
+	return count;
+  }
+  
+  public void setCount(Integer count) {
+	this.count = count;
+  }
+  
   static Map<String, List<Tuple>> convertResult(final List<Tuple> expandResult,
       final NavigationKeyBuilder keyBuilder) {
 

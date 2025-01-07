@@ -48,6 +48,7 @@ import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceComplexProperty;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
+import org.apache.olingo.server.api.uri.queryoption.CountOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
@@ -203,6 +204,15 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       // generate expand queries only for non empty entity result list
       queryResult.putExpandResults(readExpandEntities(null));
     }
+    // Count entities affected by f$filter+$search etc. if requested
+    final CountOption countOption = uriResource.getCountOption();
+    if (countOption != null && countOption.getValue()) {
+    	//counting needs a separate database call
+        final EntityCountQueryBuilder query = new EntityCountQueryBuilder(getContext(), getNavigation(), getEntityManager());
+        final long count = query.execute();
+        queryResult.setCount(Integer.valueOf(Long.valueOf(count).intValue()));
+    }
+        
     return queryResult;
   }
 

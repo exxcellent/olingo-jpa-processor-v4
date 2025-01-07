@@ -295,7 +295,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return (determineSkipValue() != null || determineTopValue() != null);
   }
 
-  private Integer determineSkipValue() throws ODataJPAQueryException {
+  private Integer determineSkipValue() throws ODataJPAQueryException {	  
     final UriInfoResource uriResource = getNavigation().getLastStep();
     final SkipOption skipOption = uriResource.getSkipOption();
     if (skipOption == null) {
@@ -352,11 +352,20 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final Integer topValue = determineTopValue();
     if (topValue != null) {
       tq.setMaxResults(topValue.intValue());
+      if(getNavigation().getUriResourceParts().size() > 1) {
+          throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+                  HttpStatusCode.PRECONDITION_FAILED, "$skip not supported for nested parts");    	
+      }
     }
 
     final Integer skipValue = determineSkipValue();
     if (skipValue != null) {
       tq.setFirstResult(skipValue.intValue());
+      if(getNavigation().getUriResourceParts().size() > 1) {
+          throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+                  HttpStatusCode.PRECONDITION_FAILED, "$skip not supported for nested parts");    	
+      }
+      
     }
   }
 
