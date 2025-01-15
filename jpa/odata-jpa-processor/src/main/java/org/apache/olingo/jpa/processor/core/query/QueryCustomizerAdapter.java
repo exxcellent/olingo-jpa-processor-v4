@@ -8,7 +8,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer.QueryCustomization;
 
 public class QueryCustomizerAdapter<DT> implements QueryCustomization {
 
