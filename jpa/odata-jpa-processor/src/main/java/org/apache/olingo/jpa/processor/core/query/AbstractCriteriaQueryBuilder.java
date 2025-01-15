@@ -22,8 +22,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer.QueryCustomization;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
@@ -114,7 +114,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private List<NavigationBuilder> navigationQueryList = null;
   private InitializationState initStateType = InitializationState.NotInitialized;
   @Inject
-  private QueryCustomizer queryCustomizer = null;
+  private QueryRequestCustomizer queryCustomizer = null;
 
   protected AbstractCriteriaQueryBuilder(final JPAODataRequestContext context, final NavigationIfc uriInfo,
       final EntityManager em)

@@ -10,7 +10,7 @@ import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
@@ -30,7 +30,7 @@ public class TestQueryCustomizer extends TestBase {
   public void testEntityAndElementCollectionAndExpandBuilder() throws IOException, ODataException {
 
     final boolean[] wasCalled = new boolean[] { false };
-    final QueryCustomizer testCustomizer = new QueryCustomizer() {
+    final QueryRequestCustomizer testCustomizer = new QueryRequestCustomizer() {
 
       @Override
       public void customizeQuery(final QueryCustomization context, final NavigationIfc queryScope) {
@@ -54,7 +54,7 @@ public class TestQueryCustomizer extends TestBase {
       @Override
       protected void modifyRequestContext(final ModifiableJPAODataRequestContext requestContext) {
         super.modifyRequestContext(requestContext);
-        requestContext.getDependencyInjector().registerDependencyMapping(QueryCustomizer.class, testCustomizer);
+        requestContext.getDependencyInjector().registerDependencyMapping(QueryRequestCustomizer.class, testCustomizer);
       }
     };
     helper.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
@@ -69,7 +69,7 @@ public class TestQueryCustomizer extends TestBase {
   public void testCountBuilder() throws IOException, ODataException {
 
     final boolean[] wasCalled = new boolean[] { false };
-    final QueryCustomizer testCustomizer = new QueryCustomizer() {
+    final QueryRequestCustomizer testCustomizer = new QueryRequestCustomizer() {
 
       @Override
       public void customizeQuery(final QueryCustomization context, final NavigationIfc queryScope) {
@@ -92,7 +92,7 @@ public class TestQueryCustomizer extends TestBase {
       @Override
       protected void modifyRequestContext(final ModifiableJPAODataRequestContext requestContext) {
         super.modifyRequestContext(requestContext);
-        requestContext.getDependencyInjector().registerDependencyMapping(QueryCustomizer.class, testCustomizer);
+        requestContext.getDependencyInjector().registerDependencyMapping(QueryRequestCustomizer.class, testCustomizer);
       }
     };
     helper.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());

@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer.QueryCustomization;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaQuery;
