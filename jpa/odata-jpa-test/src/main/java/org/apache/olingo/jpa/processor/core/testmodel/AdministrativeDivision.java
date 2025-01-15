@@ -2,6 +2,10 @@ package org.apache.olingo.jpa.processor.core.testmodel;
 
 import java.util.List;
 
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,10 +17,6 @@ import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
 
 @EdmFunctions({
   @EdmFunction(
@@ -30,6 +30,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctions;
           @EdmFunctionParameter(name = "Population", parameterName = "Population", type = Long.class) }),
 })
 
+//@EmbeddedId is used in another entity
 @IdClass(AdministrativeDivisionKey.class)
 @Entity(name = "AdministrativeDivision")
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::AdministrativeDivision\"")

@@ -1,19 +1,20 @@
 package org.apache.olingo.jpa.processor.core.testmodel;
 
+import org.apache.olingo.jpa.cdi.Inject;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
+import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Table;
 
-import org.apache.olingo.jpa.cdi.Inject;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
-import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmActionParameter;
-
 @Entity
 @Table(schema = "\"OLINGO\"", name = "\"org.apache.olingo.jpa::AdministrativeDivisionDescription\"")
 public class AdministrativeDivisionDescription {
 
+	//@IdClass is used in another entity
 	@EmbeddedId
 	private AdministrativeDivisionDescriptionKey key;
 

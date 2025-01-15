@@ -33,7 +33,7 @@ public class ODataSpringBootServlet extends HttpServlet {
   @Override
   public void init() throws ServletException {
     super.init();
-    // use in memory Derby database
+    // use in-memory Derby database
     try {
       final Map<String, Object> emProperties = AbstractTest.buildEntityManagerFactoryProperties(
           DataSourceHelper.DatabaseType.DERBY);
@@ -45,7 +45,7 @@ public class ODataSpringBootServlet extends HttpServlet {
       throw new ServletException("Initialization of request handler failed", e);
     }
 
-    log("oData endpoint prepared");
+    log("oData endpoint prepared, call http://localhost:8080/odata/$metadata");
   }
 
   @Override
