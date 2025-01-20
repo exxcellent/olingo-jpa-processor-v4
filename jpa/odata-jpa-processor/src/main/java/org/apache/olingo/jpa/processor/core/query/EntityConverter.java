@@ -151,7 +151,7 @@ public class EntityConverter extends AbstractEntityConverter {
       final List<Entity> odataEntities = odataLink.getInlineEntitySet().getEntities();
       final Collection<Object> list = new ArrayList<Object>();
       for (final Entity childEntity : odataEntities) {
-        final JPAStructuredType jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(
+        final JPAStructuredType<?> jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(
             childEntity
             .getType()));
         final Object associationTargetJPAInstance = convertOData2JPAEntityInternal(childEntity, jpaType,
@@ -166,7 +166,7 @@ public class EntityConverter extends AbstractEntityConverter {
       if(childEntity == null) {
         return null;
       }
-      final JPAStructuredType jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(childEntity
+      final JPAStructuredType<?> jpaType = getIntermediateServiceDocument().getEntityType(new FullQualifiedName(childEntity
           .getType()));
       result = convertOData2JPAEntityInternal(childEntity, jpaType, mapId2Instance);
       manageOData2JPABacklink(owningJPAInstance, association, result);
@@ -213,7 +213,7 @@ public class EntityConverter extends AbstractEntityConverter {
    * because relationships between that entities can be handled properly.
    */
   public Collection<Object> convertOData2JPAEntity(final EntityCollection odataEntities,
-      final JPAStructuredType jpaEntityType)
+      final JPAStructuredType<?> jpaEntityType)
           throws ODataJPAModelException, ODataJPAConversionException {
     final HashMap<String, Pair<Entity, Object>> cacheMap = new HashMap<>();
     final List<Object> jpaEntities = new ArrayList<>(odataEntities.getEntities().size());
@@ -228,7 +228,7 @@ public class EntityConverter extends AbstractEntityConverter {
    * Convert a OData entity into a JPA entity.
    * @see #convertOData2JPAEntity(EntityCollection, JPAStructuredType)
    */
-  public Object convertOData2JPAEntity(final Entity entity, final JPAStructuredType jpaEntityType)
+  public Object convertOData2JPAEntity(final Entity entity, final JPAStructuredType<?> jpaEntityType)
       throws ODataJPAModelException, ODataJPAConversionException {
     return convertOData2JPAEntityInternal(entity, jpaEntityType, new HashMap<String, Pair<Entity, Object>>());
   }
@@ -250,7 +250,7 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private Object convertOData2JPAEntityInternal(final Entity entity, final JPAStructuredType jpaEntityType,
+  private Object convertOData2JPAEntityInternal(final Entity entity, final JPAStructuredType<?> jpaEntityType,
       final Map<String, Pair<Entity, Object>> mapId2Instance)
           throws ODataJPAModelException, ODataJPAConversionException {
     if (!jpaEntityType.getExternalFQN().getFullQualifiedNameAsString().equals(entity.getType())) {
@@ -301,7 +301,7 @@ public class EntityConverter extends AbstractEntityConverter {
   }
 
   private Property convertJPAAttribute2OData(final JPAMemberAttribute jpaAttribute, final Object value,
-      final JPAStructuredType jpaType, final Map<String, Object> complexValueBuffer, final List<Property> properties,
+      final JPAStructuredType<?> jpaType, final Map<String, Object> complexValueBuffer, final List<Property> properties,
       final JPA2ODataProcessingContext processingContext) throws ODataJPAConversionException, ODataJPAModelException {
     if (jpaAttribute.isAssociation()) {
       // couldn't be happen
@@ -323,7 +323,7 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private Entity convertJPA2ODataEntityInternal(final JPAEntityType jpaType, final Object jpaEntity,
+  private Entity convertJPA2ODataEntityInternal(final JPAEntityType<?> jpaType, final Object jpaEntity,
       final JPA2ODataProcessingContext processingContext)
           throws ODataJPAModelException, ODataJPAConversionException, EntityAsLinkException {
     final Entity odataEntity = new Entity();
@@ -336,7 +336,7 @@ public class EntityConverter extends AbstractEntityConverter {
       if (jpaAttribute.isComplex()) {
         // for @EmbeddedId
         // transfer nested key attribute values to owning oadata entity
-        final JPAStructuredType keyType = jpaAttribute.getStructuredType();
+        final JPAStructuredType<?> keyType = jpaAttribute.getStructuredType();
         final Object keyObject = jpaAttribute.getAttributeAccessor().getPropertyValue(jpaEntity);
         for (final JPAMemberAttribute nestedAttribute : keyType.getAttributes(false)) {
           final Object value = nestedAttribute.getAttributeAccessor().getPropertyValue(keyObject);
@@ -383,12 +383,12 @@ public class EntityConverter extends AbstractEntityConverter {
    * OData entity representation.
    *
    */
-  public Entity convertJPA2ODataEntity(final JPAEntityType jpaType, final Object jpaEntity)
+  public Entity convertJPA2ODataEntity(final JPAEntityType<?> jpaType, final Object jpaEntity)
       throws ODataJPAModelException, ODataJPAConversionException {
     return convertJPA2ODataEntityInternal(jpaType, jpaEntity, new JPA2ODataProcessingContext());
   }
 
-  public ComplexValue convertJPA2ODataComplexType(final JPAComplexType jpaType, final Object jpaInstance)
+  public ComplexValue convertJPA2ODataComplexType(final JPAComplexType<?> jpaType, final Object jpaInstance)
       throws ODataJPAModelException, ODataJPAConversionException {
     final JPA2ODataProcessingContext processingContext = new JPA2ODataProcessingContext();
     final ComplexValue complexValue = new ComplexValue();
@@ -420,7 +420,7 @@ public class EntityConverter extends AbstractEntityConverter {
     return false;
   }
 
-  private Collection<Link> convertJPAAssociations2ODataLinks(final JPAStructuredType jpaType, final Object jpaObject,
+  private Collection<Link> convertJPAAssociations2ODataLinks(final JPAStructuredType<?> jpaType, final Object jpaObject,
       final JPA2ODataProcessingContext processingContext)
           throws ODataJPAModelException, ODataJPAConversionException {
     final List<Link> entityExpandLinks = new LinkedList<Link>();
@@ -442,7 +442,7 @@ public class EntityConverter extends AbstractEntityConverter {
         final EntityCollection expandCollection = new EntityCollection();
         for (final Object cEntry : ((Collection<?>) value)) {
           try {
-            final Entity expandEntity = convertJPA2ODataEntityInternal((JPAEntityType) relationship.getStructuredType(),
+            final Entity expandEntity = convertJPA2ODataEntityInternal((JPAEntityType<?>) relationship.getStructuredType(),
                 cEntry, subContext);
             if (expandEntity == null) {
               continue;
@@ -464,7 +464,7 @@ public class EntityConverter extends AbstractEntityConverter {
       } else {
         // no collection -> 1:1
         try {
-          final Entity expandEntity = convertJPA2ODataEntityInternal((JPAEntityType) relationship.getStructuredType(),
+          final Entity expandEntity = convertJPA2ODataEntityInternal((JPAEntityType<?>) relationship.getStructuredType(),
               value, subContext);
           if (expandEntity == null) {
             continue;
@@ -489,7 +489,7 @@ public class EntityConverter extends AbstractEntityConverter {
   private Property convertJPAComplexAttribute2OData(final JPAMemberAttribute jpaAttribute, final Object value,
       final JPA2ODataProcessingContext processingContext)
           throws ODataJPAModelException, ODataJPAConversionException {
-    final JPAStructuredType attributeType = jpaAttribute.getStructuredType();
+    final JPAStructuredType<?> attributeType = jpaAttribute.getStructuredType();
     if (jpaAttribute.isCollection()) {
       final Collection<?> valuesToProcess = (value == null) ? Collections.emptyList() : (Collection<?>) value;
       final Collection<ComplexValue> convertedValues = new LinkedList<>();
@@ -514,7 +514,7 @@ public class EntityConverter extends AbstractEntityConverter {
     }
   }
 
-  private void convertComplexTypeValue2OData(final JPAStructuredType valueType, final Object cValue,
+  private void convertComplexTypeValue2OData(final JPAStructuredType<?> valueType, final Object cValue,
       final List<Property> cvProperties, final JPA2ODataProcessingContext processingContext)
           throws ODataJPAModelException, ODataJPAConversionException {
     if (cValue == null) {

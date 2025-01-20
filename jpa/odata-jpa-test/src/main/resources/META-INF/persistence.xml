@@ -40,6 +40,7 @@
 		<class>org.apache.olingo.jpa.processor.core.testmodel.ChangeInformation</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.CommunicationData</class>
 		<class>org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivisionDescriptionKey</class>
+		<class>org.apache.olingo.jpa.processor.core.testmodel.Phone</class>
 		
 		<properties>
 			<!--  EclipselInk properties -->

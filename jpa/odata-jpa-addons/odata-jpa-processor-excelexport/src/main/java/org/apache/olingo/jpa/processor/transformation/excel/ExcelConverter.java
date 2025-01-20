@@ -78,7 +78,7 @@ public class ExcelConverter {
    */
   private static class WorkbookState {
     private final Workbook workbook;
-    Map<JPAEntityType, SheetState> sheets = new HashMap<>();
+    Map<JPAEntityType<?>, SheetState> sheets = new HashMap<>();
     short shortBestFontHeight = XSSFFont.DEFAULT_FONT_SIZE;
     Map<EdmPrimitiveTypeKind, CellStyle> mapDatatypeCellStyle = new HashMap<>();
     Map<Integer, Integer> mapColumn2RecommendedWidth = new HashMap<>();
@@ -90,13 +90,13 @@ public class ExcelConverter {
 
   private static class SheetState {
     private final WorkbookState workbookState;
-    private final JPAEntityType jpaType;
+    private final JPAEntityType<?> jpaType;
     private final Sheet sheet;
     @SuppressWarnings("unused")
     boolean isNewCreated = false;
     Map<String, Integer> mapAlias2ColumnIndex = null;
 
-    public SheetState(final WorkbookState ws, final JPAEntityType jpaType, final Sheet sheet) {
+    public SheetState(final WorkbookState ws, final JPAEntityType<?> jpaType, final Sheet sheet) {
       this.workbookState = ws;
       this.jpaType = jpaType;
       this.sheet = sheet;
@@ -114,7 +114,7 @@ public class ExcelConverter {
     return new WorkbookState(new SXSSFWorkbook());
   }
 
-  private SheetState findOrCreateSheet(final WorkbookState workbookState, final JPAEntityType jpaType) {
+  private SheetState findOrCreateSheet(final WorkbookState workbookState, final JPAEntityType<?> jpaType) {
     SheetState sheetState = workbookState.sheets.get(jpaType);
     if (sheetState != null) {
       return sheetState;
@@ -276,7 +276,7 @@ public class ExcelConverter {
     return new ODataResponseContent(contentState, isResult);
   }
 
-  private Map<String, Integer> buildColumnOrder(final JPAEntityType jpaType,
+  private Map<String, Integer> buildColumnOrder(final JPAEntityType<?> jpaType,
       final Collection<String> requestedResultAttributes, final List<TupleElement<?>> unsortedList) {
     // use copy constructor to modify map
     final Map<String, Integer> mapConfigured = new HashMap<>(configuration.getCustomColumnIndexes(jpaType));
@@ -312,7 +312,7 @@ public class ExcelConverter {
     return mapResult;
   }
 
-  private boolean isSuppressedColumn(final JPAEntityType jpaType, final Collection<String> requestedResultAttributes,
+  private boolean isSuppressedColumn(final JPAEntityType<?> jpaType, final Collection<String> requestedResultAttributes,
       final String dbAlias) {
     // static config exlusion?
     if (configuration.isSuppressedColumn(jpaType, dbAlias)) {
@@ -423,7 +423,7 @@ public class ExcelConverter {
    *
    * @return The combination of resulting value for Excel sheet (after any conversion) and data type assignment.
    */
-  protected ExcelCell determineCellContent(final JPAEntityType entityType, final String attributePath,
+  protected ExcelCell determineCellContent(final JPAEntityType<?> entityType, final String attributePath,
       final JPAAttribute<?> targetAttribute, final Object value) {
     final EdmPrimitiveTypeKind kindOfCell = determineCellRepresentation(entityType, attributePath, targetAttribute);
     Object odataValue;
@@ -447,7 +447,7 @@ public class ExcelConverter {
    * @return The primitive data type of column to use for Excel cell formatting.
    * @see #determineCellContent(JPAEntityType, String, JPAAttribute, Object)
    */
-  protected EdmPrimitiveTypeKind determineCellRepresentation(final JPAEntityType entityType, final String attributePath,
+  protected EdmPrimitiveTypeKind determineCellRepresentation(final JPAEntityType<?> entityType, final String attributePath,
       final JPAAttribute<?> targetAttribute) {
     if (JPADescribedElement.class.isInstance(targetAttribute)) {
       try {

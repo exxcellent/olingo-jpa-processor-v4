@@ -8,21 +8,25 @@ import java.util.Map;
 
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
-import org.apache.olingo.jpa.processor.ModifiableDependencyInjector;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.util.TypedParameter;
+import org.apache.olingo.jpa.processor.transformation.impl.EntityCollection2ODataResponseContentTransformation;
 import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2EntityCollectionTransformation;
-import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2ODataResponseContentTransformation;
 import org.apache.olingo.server.api.serializer.SerializerException;
 
 /**
- * Helper class to build a proper serializer to convert processor results to requested response format.
+ * Helper class to build a proper transformer to convert processor results to requested response format.
  * @author Ralf Zozmann
  *
  */
 public class TransformingFactory {
 
-  private final Map<TransformationDeclaration<?, ?>, Class<? extends Transformation<?, ?>>> mapRegisteredTransformings =
+  interface TransformationBuilder<I, O> {
+    public Transformation<I, O> build(ModifiableJPAODataRequestContext subContext,
+        TypedParameter... transformationContext) throws ReflectiveOperationException;
+  }
+
+  private final Map<TransformationDeclaration<?, ?>, TransformationBuilder<?, ?>> mapRegisteredTransformings =
       new HashMap<>();
   private final JPAODataRequestContext requestContext;
 
@@ -36,21 +40,36 @@ public class TransformingFactory {
     registerTransformation(QueryEntityResult2EntityCollectionTransformation.DEFAULT_DECLARATION,
         QueryEntityResult2EntityCollectionTransformation.class);
 
-    // DB-Tuples -> OData-EntityCollection -> JSON/XML
-    registerTransformation(QueryEntityResult2ODataResponseContentTransformation.DEFAULT_DECLARATION,
-        QueryEntityResult2ODataResponseContentTransformation.class);
+    // OData-EntityCollection -> JSON/XML
+    registerTransformation(EntityCollection2ODataResponseContentTransformation.DEFAULT_DECLARATION,
+        EntityCollection2ODataResponseContentTransformation.class);
+
+    // register chain to combine both
+    registerTransformation(ChainTransformationBuilder.createDeclaration(
+        QueryEntityResult2EntityCollectionTransformation.DEFAULT_DECLARATION,
+        EntityCollection2ODataResponseContentTransformation.DEFAULT_DECLARATION), ChainTransformationBuilder.create(
+            QueryEntityResult2EntityCollectionTransformation.class).append(
+                EntityCollection2ODataResponseContentTransformation.class));
   }
 
   public <I, O> void registerTransformation(final TransformationDeclaration<I, O> declaration,
-      final Class<? extends Transformation<I, O>> serializer) {
-    if (serializer == null) {
-      throw new IllegalArgumentException("serializer required");
+      final Class<? extends Transformation<I, O>> transformerClass) {
+    if (transformerClass == null) {
+      throw new IllegalArgumentException("transformer class required");
+    }
+    registerTransformation(declaration, new ClassTransformationBuilder<>(transformerClass));
+  }
+
+  private <I, O> void registerTransformation(final TransformationDeclaration<I, O> declaration,
+      TransformationBuilder<I, O> builder) {
+    if (builder == null) {
+      throw new IllegalArgumentException("builder required");
     }
     if (declaration == null) {
       throw new IllegalArgumentException("descriptor required");
     }
     synchronized (mapRegisteredTransformings) {
-      mapRegisteredTransformings.put(declaration, serializer);
+      mapRegisteredTransformings.put(declaration, builder);
     }
   }
 
@@ -66,17 +85,17 @@ public class TransformingFactory {
   public <T extends Transformation<I, O>, I, O> T createTransformation(final Class<I> inputType,
       final Class<O> outputType,
       final TypedParameter... transformationContext)
-          throws SerializerException {
-    final Map<TransformationDeclaration<I, O>, Class<? extends Transformation<I, O>>> matchingTransformations =
+      throws SerializerException {
+    final Map<TransformationDeclaration<I, O>, TransformationBuilder<?, ?>> matchingTransformations =
         collectMatchingTransformations(inputType, outputType, transformationContext);
     if (matchingTransformations.isEmpty()) {
       throw new SerializerException(inputType.getName() + " -> " + outputType.getName()
-      + " is not supported by this factory",
-      SerializerException.MessageKeys.NOT_IMPLEMENTED);
+          + " is not supported by this factory",
+          SerializerException.MessageKeys.NOT_IMPLEMENTED);
     }
     // try to find a better matching (more specific) one...
-    Map.Entry<TransformationDeclaration<I, O>, Class<? extends Transformation<I, O>>> bestMatchEntry = null;
-    for (final Map.Entry<TransformationDeclaration<I, O>, Class<? extends Transformation<I, O>>> entry : matchingTransformations
+    Map.Entry<TransformationDeclaration<I, O>, TransformationBuilder<?, ?>> bestMatchEntry = null;
+    for (final Map.Entry<TransformationDeclaration<I, O>, TransformationBuilder<?, ?>> entry : matchingTransformations
         .entrySet()) {
       if (bestMatchEntry == null) {
         bestMatchEntry = entry;
@@ -85,26 +104,25 @@ public class TransformingFactory {
         bestMatchEntry = entry;
       }
     }
-    @SuppressWarnings("null")
-    final Class<? extends Transformation<I, O>> clazz = bestMatchEntry.getValue();
-    return createTransformation(clazz, transformationContext);
+    final TransformationBuilder<?, ?> builder = bestMatchEntry.getValue();
+    return createTransformation(builder, transformationContext);
   }
 
   @SuppressWarnings("unchecked")
-  private <I, O> Map<TransformationDeclaration<I, O>, Class<? extends Transformation<I, O>>>
-  collectMatchingTransformations(final Class<I> inputType,
-      final Class<O> outputType, final TypedParameter... transformationContext) {
-    final Collection<TypedParameter> transformationContextValues = transformationContext!=null? Arrays.asList(transformationContext): Collections.emptyList();
+  private <I, O> Map<TransformationDeclaration<I, O>, TransformationBuilder<?, ?>>
+      collectMatchingTransformations(final Class<I> inputType,
+          final Class<O> outputType, final TypedParameter... transformationContext) {
+    final Collection<TypedParameter> transformationContextValues = transformationContext != null ? Arrays.asList(
+        transformationContext) : Collections.emptyList();
     synchronized (mapRegisteredTransformings) {
-      final Map<TransformationDeclaration<I, O>, Class<? extends Transformation<I, O>>> map = new HashMap<>();
-      for (final Map.Entry<TransformationDeclaration<?, ?>, Class<? extends Transformation<?, ?>>> entry : mapRegisteredTransformings
+      final Map<TransformationDeclaration<I, O>, TransformationBuilder<?, ?>> map = new HashMap<>();
+      for (final Map.Entry<TransformationDeclaration<?, ?>, TransformationBuilder<?, ?>> entry : mapRegisteredTransformings
           .entrySet()) {
-        final TransformationDeclaration<?,?> declaration = entry.getKey();
+        final TransformationDeclaration<?, ?> declaration = entry.getKey();
         if (!declaration.isMatching(inputType, outputType, transformationContextValues, requestContext)) {
           continue;
         }
-        map.put((TransformationDeclaration<I, O>) declaration, (Class<? extends Transformation<I, O>>) entry
-            .getValue());
+        map.put((TransformationDeclaration<I, O>) declaration, entry.getValue());
       }
       return map;
     }
@@ -112,16 +130,12 @@ public class TransformingFactory {
 
   @SuppressWarnings("unchecked")
   private <T extends Transformation<I, O>, I, O> T createTransformation(
-      final Class<? extends Transformation<I, O>> classTransformation, final TypedParameter... transformationContext)
-          throws SerializerException {
+      final TransformationBuilder<?, ?> builder, final TypedParameter... transformationContext)
+      throws SerializerException {
     try {
-      final Transformation<I, O> instance = classTransformation.newInstance();
       final ModifiableJPAODataRequestContext subContext = requestContext.createSubRequestContext();
-      final ModifiableDependencyInjector dpi = subContext.getDependencyInjector();
-      dpi.registerDependencyMappings(transformationContext);
-      dpi.injectDependencyValues(instance);
-      return (T) instance;
-    } catch (InstantiationException | IllegalAccessException | ODataException e) {
+      return (T) builder.build(subContext, transformationContext);
+    } catch (ReflectiveOperationException | ODataException e) {
       throw new SerializerException("Could not create instance of builtin transformation", e,
           SerializerException.MessageKeys.NOT_IMPLEMENTED);
     }

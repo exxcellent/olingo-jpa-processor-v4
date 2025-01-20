@@ -90,7 +90,7 @@ public class JPAEntityHelper {
    * @see #lookupJPAEntity(JPAEntityType, Entity)
    */
   @SuppressWarnings("unchecked")
-  public final <R> R invokeBoundActionMethod(final JPAStructuredType jpaType, final Entity oDataEntity,
+  public final <R> R invokeBoundActionMethod(final JPAStructuredType<?> jpaType, final Entity oDataEntity,
       final JPAAction jpaAction,
       final Map<String, Parameter> parameters) throws ODataJPAModelException, ODataJPAConversionException, ODataApplicationException {
     final Object jpaEntity = lookupJPAEntity(jpaType, oDataEntity);
@@ -160,17 +160,17 @@ public class JPAEntityHelper {
         args[i] = p.asCollection();
         break;
       case ENTITY:
-        final JPAEntityType jpaTypeS = sd.getEntityType(jpaParameter.getTypeFQN());
+        final JPAEntityType<?> jpaTypeS = sd.getEntityType(jpaParameter.getTypeFQN());
         final Entity odataEntityS = p.asEntity();
         args[i] = entityConverter.convertOData2JPAEntity(odataEntityS, jpaTypeS);
         break;
       case COLLECTION_ENTITY:
-        final JPAEntityType jpaTypeCE = sd.getEntityType(jpaParameter.getTypeFQN());
+        final JPAEntityType<?> jpaTypeCE = sd.getEntityType(jpaParameter.getTypeFQN());
         final EntityCollection odataEntities = (EntityCollection) p.getValue();
         args[i] = entityConverter.convertOData2JPAEntity(odataEntities, jpaTypeCE);
         break;
       case COMPLEX:
-        final JPAStructuredType jpaTypeST = sd.getStructuredType(jpaParameter.getTypeFQN());
+        final JPAStructuredType<?> jpaTypeST = sd.getStructuredType(jpaParameter.getTypeFQN());
         if (jpaTypeST.isOpenType() && Map.class.isAssignableFrom(jpaTypeST.getTypeClass())) {
           // support java.util.Map as special complex type
           final Map<?, ?> map = new HashMap<>();
@@ -201,7 +201,7 @@ public class JPAEntityHelper {
    * @see jakarta.persistence.EntityManager#find(Class, Object)
    */
   @SuppressWarnings("unchecked")
-  public final <O> O lookupJPAEntity(final JPAStructuredType jpaType, final Entity oDataEntity)
+  public final <O> O lookupJPAEntity(final JPAStructuredType<?> jpaType, final Entity oDataEntity)
       throws ODataJPAModelException {
     final List<Object> listPrimaryKeyValues = new LinkedList<>();
     try {

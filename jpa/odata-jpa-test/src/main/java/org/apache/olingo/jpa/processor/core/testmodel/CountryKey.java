@@ -13,7 +13,6 @@ public class CountryKey implements Serializable {
 	 * we have to check whether the JPA provider will handle such stupid
 	 * declarations in a proper way.
 	 */
-
 	@Id
 	@Column(name = "\"ISOCode\"")
 	private String code;

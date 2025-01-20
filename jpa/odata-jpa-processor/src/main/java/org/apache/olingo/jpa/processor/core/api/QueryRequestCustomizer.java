@@ -20,7 +20,7 @@ import jakarta.persistence.criteria.Subquery;
  * <code>requestContext.getDependencyInjector().registerDependencyMapping(QueryCustomizer.class, &lt;customizer
  * instance&gt;);</code>
  */
-public interface QueryCustomizer {
+public interface QueryRequestCustomizer {
 
   /**
    * Adapter representing the query to customize.

@@ -11,6 +11,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmAction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunction.ReturnType;
 import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
+import org.apache.olingo.jpa.metadata.core.edm.entity.ODataEntity;
 
 @EdmFunction(
     name = "AllCustomersByABC",
@@ -20,6 +21,7 @@ import org.apache.olingo.jpa.metadata.core.edm.annotation.EdmFunctionParameter;
 
 @Entity(name = "Organization")
 @DiscriminatorValue(value = "2")
+@ODataEntity(openType = true)
 public class Organization extends BusinessPartner {
 
   @Column(name = "\"NameLine1\"")

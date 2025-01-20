@@ -50,7 +50,7 @@ public class ConfigurationTest extends TestBase {
     configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C1", 2);
     configuration.assignColumnIndex(DatatypeConversionEntity.class.getAnnotation(Entity.class).name(), "C2", 3);
 
-    final JPAEntityType et = helper.getJPAEntityType("DatatypeConversionEntities");
+    final JPAEntityType<?> et = helper.getJPAEntityType("DatatypeConversionEntities");
     final Map<String, Integer> map = configuration.getCustomColumnIndexes(et);
     assertEquals(2, map.size());
   }

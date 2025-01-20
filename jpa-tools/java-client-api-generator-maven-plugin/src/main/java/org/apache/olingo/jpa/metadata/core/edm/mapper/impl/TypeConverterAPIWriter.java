@@ -45,10 +45,10 @@ class TypeConverterAPIWriter extends AbstractWriter {
 
   @SuppressWarnings("unused")
   private final AbstractJPASchema schema;
-  private final JPAStructuredType type;
+  private final JPAStructuredType<?> type;
 
   public TypeConverterAPIWriter(final File generationBaseDirectory, final AbstractJPASchema schema,
-      final JPAStructuredType et) {
+      final JPAStructuredType<?> et) {
     super(generationBaseDirectory, et.getTypeClass().getPackage().getName(), determineConverterName(et));
     this.schema = schema;
     this.type = et;
@@ -70,7 +70,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
   }
 
-  static String determineConverterName(final JPAStructuredType type) {
+  static String determineConverterName(final JPAStructuredType<?> type) {
     return TypeDtoAPIWriter.determineTypeName(type.getTypeClass().getSimpleName()) + "Converter";
   }
 
@@ -110,7 +110,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
   }
 
-  private void generateConvertMethods4Attribute2PropertyValue(final JPAStructuredType ownerType,
+  private void generateConvertMethods4Attribute2PropertyValue(final JPAStructuredType<?> ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     for (final JPAMemberAttribute attribute : ownerType.getAttributes(false)) {
@@ -250,7 +250,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
         return methodName;
   }
 
-  private void generateAllAttribute2PropertyConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
+  private void generateAllAttribute2PropertyConversion(final JPAStructuredType<?> sType, final boolean ownerISRootEntity,
       final Set<String> mapAlreadeGeneratedMethods) throws ODataJPAModelException,
   IOException {
     for (final JPAAssociationAttribute asso : sType.getAssociations()) {
@@ -301,7 +301,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
   }
 
-  private void generateConvertMethods4Property2Attribute(final JPAStructuredType ownerType,
+  private void generateConvertMethods4Property2Attribute(final JPAStructuredType<?> ownerType,
       final Set<String> mapAlreadeGeneratedMethods)
           throws ODataJPAModelException, IOException {
     for (final JPAMemberAttribute attribute : ownerType.getAttributes(false)) {
@@ -824,7 +824,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     return methodCollectionName;
   }
 
-  private void generateAllProperty2AttributeConversion(final JPAStructuredType sType, final boolean ownerISRootEntity,
+  private void generateAllProperty2AttributeConversion(final JPAStructuredType<?> sType, final boolean ownerISRootEntity,
       final Set<String> mapAlreadeGeneratedMethods) throws ODataJPAModelException,
   IOException {
     for (final JPAAssociationAttribute asso : sType.getAssociations()) {
@@ -852,7 +852,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     }
   }
 
-  private void generateProperty2AssociationConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+  private void generateProperty2AssociationConversion(final JPAStructuredType<?> ownerType, final boolean ownerISRootEntity,
       final JPAAssociationAttribute relationship) throws ODataJPAModelException, IOException {
     final String memberName = qualifiedName2FirstCharacterUppercasedString(relationship.getInternalName());
     final String propClientType = TypeDtoAPIWriter.determineClientSidePropertyJavaTypeName(relationship, false);
@@ -891,7 +891,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
     }
   }
 
-  private void generateAssociation2PropertyConversion(final JPAStructuredType ownerType,
+  private void generateAssociation2PropertyConversion(final JPAStructuredType<?> ownerType,
       final boolean ownerISRootEntity,
       final JPAAssociationAttribute relationship) throws ODataJPAModelException, IOException {
     final String memberName = qualifiedName2FirstCharacterUppercasedString(relationship.getInternalName());
@@ -932,7 +932,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
   /**
    * DTO Attribute -> Olingo Entity Property
    */
-  private void generateAttribute2PropertyConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+  private void generateAttribute2PropertyConversion(final JPAStructuredType<?> ownerType, final boolean ownerISRootEntity,
       final JPAMemberAttribute attribute)
           throws ODataJPAModelException,
           IOException {
@@ -998,7 +998,7 @@ class TypeConverterAPIWriter extends AbstractWriter {
   /**
    * Olingo Entity Property -> DTO Attribute
    */
-  private void generateProperty2AttributeConversion(final JPAStructuredType ownerType, final boolean ownerISRootEntity,
+  private void generateProperty2AttributeConversion(final JPAStructuredType<?> ownerType, final boolean ownerISRootEntity,
       final JPAMemberAttribute attribute)
           throws ODataJPAModelException,
           IOException {

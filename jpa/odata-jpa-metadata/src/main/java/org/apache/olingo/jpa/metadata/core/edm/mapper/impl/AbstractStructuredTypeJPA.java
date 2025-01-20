@@ -26,13 +26,15 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAssociationPath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAttributePath;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-abstract class AbstractStructuredTypeJPA<JPAType extends ManagedType<?>, CsdlType extends CsdlStructuralType> extends
-AbstractStructuredType<CsdlType> {
+abstract class AbstractStructuredTypeJPA<X, JPAType extends ManagedType<X>, CsdlType extends CsdlStructuralType> extends
+AbstractStructuredType<X, CsdlType> {
 
   private final JPAType jpaManagedType;
   private final IntermediateServiceDocument serviceDocument;
+  private boolean isOpenType = false;
 
   protected AbstractStructuredTypeJPA(final JPAEdmNameBuilder nameBuilder, final JPAType jpaManagedType,
       final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
@@ -47,7 +49,7 @@ AbstractStructuredType<CsdlType> {
   }
 
   @Override
-  public Class<?> getTypeClass() {
+  public Class<X> getTypeClass() {
     return this.jpaManagedType.getJavaType();
   }
 
@@ -116,12 +118,15 @@ AbstractStructuredType<CsdlType> {
 
   @Override
   final public boolean isOpenType() {
-    // always false for JPA
-    return false;
+    return isOpenType;
   }
 
+  protected void setOpenType(boolean isOpenType) {
+    this.isOpenType = isOpenType;
+  }
+  
   @Override
-  final protected AbstractStructuredType<?> getBaseType() throws ODataJPAModelException {
+  final protected JPAStructuredType<?> getBaseType() throws ODataJPAModelException {
     final Class<?> baseType = jpaManagedType.getJavaType().getSuperclass();
     if (baseType == null) {
       return null;
@@ -129,7 +134,7 @@ AbstractStructuredType<CsdlType> {
     if (isMappedSuperclass(baseType)) {
       return null;
     }
-    return (AbstractStructuredType<?>) serviceDocument.getEntityType(baseType);
+    return serviceDocument.getEntityType(baseType);
   }
 
   private static boolean isMappedSuperclass(final Class<?> clazz) {

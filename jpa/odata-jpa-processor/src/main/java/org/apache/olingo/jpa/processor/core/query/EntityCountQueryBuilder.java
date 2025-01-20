@@ -91,7 +91,7 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
       cq.where(whereClause);
     }
 
-    involveCustomizer();// as last before querying
+    involveQueryCustomizer();// as last before querying
 
     final Long count = getEntityManager().createQuery(cq).getSingleResult();
     return count.longValue();

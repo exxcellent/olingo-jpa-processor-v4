@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.servlet.example;
 
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
 import org.apache.olingo.jpa.processor.core.query.NavigationIfc;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
@@ -10,7 +10,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 
-public class ExampleQueryCustomizer implements QueryCustomizer {
+public class ExampleQueryCustomizer implements QueryRequestCustomizer {
   @Override
   public void customizeQuery(final QueryCustomization context, final NavigationIfc queryScope) {
     if (!context.getEndTypeClass().equals(Organization.class)) {
