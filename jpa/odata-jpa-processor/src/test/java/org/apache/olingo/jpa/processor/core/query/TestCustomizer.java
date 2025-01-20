@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-public class TestQueryCustomizer extends TestBase {
+public class TestCustomizer extends TestBase {
 
   @Test
   public void testEntityAndElementCollectionAndExpandBuilder() throws IOException, ODataException {
