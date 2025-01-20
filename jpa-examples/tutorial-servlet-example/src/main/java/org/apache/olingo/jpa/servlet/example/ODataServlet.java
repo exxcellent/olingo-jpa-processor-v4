@@ -29,6 +29,7 @@ import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.ModifiableJPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.api.JPAODataServletHandler;
 import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryResponseCustomizer;
 import org.apache.olingo.jpa.processor.core.database.JPA_DERBYDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
@@ -113,6 +114,8 @@ public class ODataServlet extends HttpServlet {
         requestContext.getDependencyInjector().registerDependencyMapping(String.class, getServletName());
         requestContext.getDependencyInjector().registerDependencyMapping(QueryRequestCustomizer.class,
             new ExampleQueryCustomizer());
+        requestContext.getDependencyInjector().registerDependencyMapping(QueryResponseCustomizer.class,
+            new ExampleQueryResponseCustomizer());
       }
 
       @Override

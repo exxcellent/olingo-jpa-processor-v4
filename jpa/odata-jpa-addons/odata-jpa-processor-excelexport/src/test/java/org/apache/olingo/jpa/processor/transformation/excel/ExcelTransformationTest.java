@@ -270,15 +270,6 @@ public class ExcelTransformationTest extends TestBase {
         new QueryEntityResult2ExcelODataResponseContentTransformation();
     assertTrue(transformation.getInputType() == QueryEntityResult.class);
     assertTrue(transformation.getOutputType() == ODataResponseContent.class);
-    // identical transformation
-    assertTrue(transformation.createSubTransformation(QueryEntityResult.class) == transformation);
-  }
-
-  @Test(expected = SerializerException.class)
-  public void testUnsupportedTransfromation() throws IOException, ODataException {
-    final QueryEntityResult2ExcelODataResponseContentTransformation transformation =
-        new QueryEntityResult2ExcelODataResponseContentTransformation();
-    transformation.createSubTransformation(Class.class);
   }
 
   private void createData(final int number) {

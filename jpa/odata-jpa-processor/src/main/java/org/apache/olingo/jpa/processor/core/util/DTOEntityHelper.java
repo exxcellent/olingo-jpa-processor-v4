@@ -18,7 +18,7 @@ import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionExceptio
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException.MessageKeys;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
-import org.apache.olingo.jpa.processor.transformation.Transformation;
+import org.apache.olingo.jpa.processor.transformation.TransformationChain;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -52,7 +52,7 @@ public class DTOEntityHelper {
   }
 
   private ODataDTO determineODataDTOAnnotation(final EdmEntitySet targetEdmEntitySet) throws ODataJPAModelException {
-    final JPAEntityType jpaEntityType = provider.getServiceDocument()
+    final JPAEntityType<?> jpaEntityType = provider.getServiceDocument()
         .getEntityType(targetEdmEntitySet.getName());
     if (jpaEntityType == null) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_ENTITY_TYPE);
@@ -91,21 +91,17 @@ public class DTOEntityHelper {
     }
   }
 
-  public <O> O loadEntities(final Transformation<?, O> transformation,
-      final EdmEntitySet targetEdmEntitySet)
-          throws ODataApplicationException {
-    final EntityCollection ec = loadAsEntityCollection(targetEdmEntitySet);
-    try {
-      final Transformation<EntityCollection, O> subTransformation = transformation.createSubTransformation(
-          EntityCollection.class);
-      return subTransformation.transform(ec);
-    } catch (final SerializerException e) {
-      throw new ODataJPAConversionException(e, MessageKeys.RUNTIME_PROBLEM);
-    }
+  public <O> O loadEntities(final TransformationChain<?, O> transformation, final EdmEntitySet targetEdmEntitySet) throws ODataApplicationException {
+	    final EntityCollection ec = loadAsEntityCollection(targetEdmEntitySet);
+	    try {
+	      final TransformationChain<EntityCollection, O> subTransformation = transformation.createSubTransformation(EntityCollection.class, transformation.getOutputType());
+	      return subTransformation.transform(ec);
+	    } catch (final SerializerException e) {
+	      throw new ODataJPAConversionException(e, MessageKeys.RUNTIME_PROBLEM, e.getLocalizedMessage());
+	    }
   }
-
-  private EntityCollection loadAsEntityCollection(final EdmEntitySet targetEdmEntitySet)
-      throws ODataApplicationException {
+  
+  private EntityCollection loadAsEntityCollection(final EdmEntitySet targetEdmEntitySet) throws ODataApplicationException {
     try {
       final EntityCollection odataEntityCollection = new EntityCollection();
       final ODataDTOHandler<?> handler = buildHandlerInstance(targetEdmEntitySet);
@@ -113,7 +109,7 @@ public class DTOEntityHelper {
       if (result == null) {
         return odataEntityCollection;
       }
-      final JPAEntityType jpaEntityType = provider.getServiceDocument()
+      final JPAEntityType<?> jpaEntityType = provider.getServiceDocument()
           .getEntityType(targetEdmEntitySet.getName());
 
       final EntityConverter converter = new EntityConverter(context.getOdata().createUriHelper(),
@@ -137,7 +133,7 @@ public class DTOEntityHelper {
     try {
       @SuppressWarnings("unchecked")
       final ODataDTOHandler<Object> handler = (ODataDTOHandler<Object>) buildHandlerInstance(targetEdmEntitySet);
-      final JPAEntityType jpaEntityType = provider.getServiceDocument()
+      final JPAEntityType<?> jpaEntityType = provider.getServiceDocument()
           .getEntityType(targetEdmEntitySet.getName());
       final EntityConverter converter = new EntityConverter(context.getOdata().createUriHelper(),
           provider.getServiceDocument(), context.getServiceMetaData());

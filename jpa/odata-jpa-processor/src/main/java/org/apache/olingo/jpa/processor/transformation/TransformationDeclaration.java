@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.transformation;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +51,10 @@ public final class TransformationDeclaration<Input, Output> {
     return outputType;
   }
 
+  public List<TransformationContextRequirement> getRequirements() {
+    return Collections.unmodifiableList(requirements);
+  }
+  
   private final boolean hasMatchingTypes(final Class<?> inputTypeOther, final Class<?> outputTypeOther) {
     if (!inputTypeOther.isAssignableFrom(this.getInputType())) {
       return false;
