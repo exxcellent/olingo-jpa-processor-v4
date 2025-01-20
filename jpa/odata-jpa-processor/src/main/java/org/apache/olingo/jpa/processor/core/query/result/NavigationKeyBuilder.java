@@ -21,14 +21,14 @@ public final class NavigationKeyBuilder {
   private final List<JPASelector> navigationKeyPaths;
   private final JPANavigationPath navigationPath;
   private final String targetLabel;
-  private final JPAStructuredType jpaNavigationTargetType;
+  private final JPAStructuredType<?> jpaNavigationTargetType;
   private final int level;
 
   /**
    *
    * @see #NavigationKeyBuilder(NavigationKeyBuilder, JPANavigationPath, JPAStructuredType)
    */
-  public NavigationKeyBuilder(final JPAStructuredType jpaType)
+  public NavigationKeyBuilder(final JPAStructuredType<?> jpaType)
       throws ODataJPAModelException {
     this(null, null, jpaType);
   }
@@ -40,7 +40,7 @@ public final class NavigationKeyBuilder {
    * @param jpaNavigationTargetType The target of navigation, maybe the result table of starting FROM of an query.
    */
   private NavigationKeyBuilder(final NavigationKeyBuilder parent, final JPANavigationPath navigationPath,
-      final JPAStructuredType jpaNavigationTargetType)
+      final JPAStructuredType<?> jpaNavigationTargetType)
           throws ODataJPAModelException {
     this.parent = parent;
     if (parent == null) {
@@ -74,11 +74,11 @@ public final class NavigationKeyBuilder {
   }
 
   public NavigationKeyBuilder buildChildNavigation(final JPANavigationPath navigationPath,
-      final JPAStructuredType jpaNavigationResultType) throws ODataJPAModelException {
+      final JPAStructuredType<?> jpaNavigationResultType) throws ODataJPAModelException {
     return new NavigationKeyBuilder(this, navigationPath, jpaNavigationResultType);
   }
 
-  public final JPAStructuredType getNavigationTargetType() {
+  public final JPAStructuredType<?> getNavigationTargetType() {
     return jpaNavigationTargetType;
   }
 

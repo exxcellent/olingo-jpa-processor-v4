@@ -62,6 +62,6 @@ public interface JPAODataDatabaseProcessor {
   public Expression<Long> convert(final JPAAggregationOperation jpaOperator) throws ODataApplicationException;
 
   List<?> executeFunctionQuery(UriResourceFunction uriResourceFunction, JPAFunction jpaFunction,
-      JPAEntityType returnType, EntityManager em) throws ODataApplicationException;
+      JPAEntityType<?> returnType, EntityManager em) throws ODataApplicationException;
 
 }

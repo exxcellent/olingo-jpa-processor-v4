@@ -110,7 +110,7 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
         cq.where(where);
       }
 
-      involveCustomizer();// as last before querying
+      involveQueryCustomizer();// as last before querying
 
       final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
       // FIXME how to add TOP or SKIP for elements of another table? (do not work as

@@ -8,11 +8,11 @@ import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-class IntermediateComplexTypeDTO extends AbstractIntermediateComplexTypeDTO {
+class IntermediateComplexTypeDTO<X> extends AbstractIntermediateComplexTypeDTO<X> {
 
-  private final Class<?> cType;
+  private final Class<X> cType;
 
-  public IntermediateComplexTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<?> type,
+  public IntermediateComplexTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<X> type,
       final IntermediateServiceDocument serviceDocument)
           throws ODataJPAModelException {
     super(determineComplexTypeNameBuilder(nameBuilder, type), type.getName(), false, false, serviceDocument);
@@ -21,12 +21,12 @@ class IntermediateComplexTypeDTO extends AbstractIntermediateComplexTypeDTO {
   }
 
   @Override
-  public Class<?> getTypeClass() {
+  public Class<X> getTypeClass() {
     return cType;
   }
 
   @Override
-  protected JPAStructuredType getBaseType() throws ODataJPAModelException {
+  protected JPAStructuredType<?> getBaseType() throws ODataJPAModelException {
     final Class<?> baseType = cType.getSuperclass();
     if (baseType == null) {
       return null;

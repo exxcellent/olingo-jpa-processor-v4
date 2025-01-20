@@ -571,7 +571,7 @@ public abstract class AbstractConverter {
     if (targetJPAObject != null) {
       embeddedIdFieldObject = jpaAttribute.getAttributeAccessor().getPropertyValue(targetJPAObject);
     }
-    final JPAStructuredType embeddedIdFieldType = jpaAttribute.getStructuredType();
+    final JPAStructuredType<?> embeddedIdFieldType = jpaAttribute.getStructuredType();
     boolean newInstance = false;
     if (embeddedIdFieldObject == null) {
       embeddedIdFieldObject = newJPAInstance(embeddedIdFieldType);
@@ -617,7 +617,7 @@ public abstract class AbstractConverter {
       throw new ODataJPAConversionException(ODataJPAConversionException.MessageKeys.ATTRIBUTE_MUST_NOT_BE_NULL,
           jpaAttribute.getExternalName());
     }
-    final JPAStructuredType embeddedJPAMemberType = jpaAttribute.getStructuredType();
+    final JPAStructuredType<?> embeddedJPAMemberType = jpaAttribute.getStructuredType();
     if (sourceOdataProperty.isCollection()) {
       // manage structured types in a collection
       @SuppressWarnings("unchecked")
@@ -654,7 +654,7 @@ public abstract class AbstractConverter {
     return targetJPAObjectMemberValue;
   }
 
-  final public void transferODataSingleComplexValue2JPAProperty(final JPAStructuredType embeddedJPAMemberType,
+  final public void transferODataSingleComplexValue2JPAProperty(final JPAStructuredType<?> embeddedJPAMemberType,
       final Object targetJPAObjectMemberValue, final List<Property> listEmbeddedProperties)
           throws ODataJPAModelException, ODataJPAConversionException {
     final Set<String> unprocessedPropertyNames = listEmbeddedProperties.stream().map(p -> p.getName()).collect(
@@ -699,7 +699,7 @@ public abstract class AbstractConverter {
    * @throws ODataJPAModelException
    *             If construction of new instance failed.
    */
-  protected Object newJPAInstance(final JPAStructuredType jpaEntityType) throws ODataJPAModelException {
+  protected Object newJPAInstance(final JPAStructuredType<?> jpaEntityType) throws ODataJPAModelException {
 
     if (Modifier.isAbstract(jpaEntityType.getTypeClass().getModifiers())) {
       // special code to create instance of abstract class

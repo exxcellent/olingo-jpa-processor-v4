@@ -103,11 +103,11 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
     if (clazzType.isEnum()) {
       return (isCollection ? ValueType.COLLECTION_ENUM : ValueType.ENUM);
     }
-    final JPAEntityType entityType= isd.getEntityType(clazzType);
+    final JPAEntityType<?> entityType= isd.getEntityType(clazzType);
     if(entityType != null) {
       return (isCollection?ValueType.COLLECTION_ENTITY:ValueType.ENTITY);
     }
-    final JPAStructuredType complexType = isd.getComplexType(clazzType);
+    final JPAStructuredType<?> complexType = isd.getComplexType(clazzType);
     if(complexType != null) {
       return (isCollection?ValueType.COLLECTION_COMPLEX:ValueType.COMPLEX);
     }
@@ -168,7 +168,7 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
     } else if (typeClass.getAnnotation(ODataDTO.class) != null || isTargetingJPA(serviceDocument, typeClass)) {
       // is targeting a class to use as (already registered) @ODataDTO or as JPA element (entity, @Embeddable and maybe
       // including @ODataComplexType)
-      final JPAStructuredType predefinedType = serviceDocument.getStructuredType(typeClass);
+      final JPAStructuredType<?> predefinedType = serviceDocument.getStructuredType(typeClass);
       if (predefinedType == null) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM,
             typeClass.getName() + " is not registered as Entity/DTO");
@@ -181,7 +181,7 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
       return jpaEnumType.getExternalFQN();
     } else if (typeClass.getAnnotation(ODataComplexType.class) != null) {
       // is targeting a class to use as @ODataComplexType and is here no JPA metamodel element
-      final AbstractIntermediateComplexTypeDTO ct = serviceDocument.findOrCreateDTOComplexType(typeClass);
+      final AbstractIntermediateComplexTypeDTO<?> ct = serviceDocument.findOrCreateDTOComplexType(typeClass);
       return ct.getExternalFQN();
     }
     // assume primitive, trigger exception if not mappable

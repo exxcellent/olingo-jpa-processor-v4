@@ -64,7 +64,7 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
    * id will be <code>null</code>.
    * @return The id URI or <code>null</code>
    */
-  protected final URI createId(final Entity odataEntity, final JPAEntityType jpaEntityType,
+  protected final URI createId(final Entity odataEntity, final JPAEntityType<?> jpaEntityType,
       final boolean forbidAutoGeneration)
           throws ODataJPAModelException {
 
@@ -116,7 +116,7 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
    */
   protected final Property convertJPAValue2ODataAttribute(final Object value, final String externalName,
       final String prefix,
-      final JPAStructuredType jpaStructuredType, final Map<String, Object> complexValueBuffer,
+      final JPAStructuredType<?> jpaStructuredType, final Map<String, Object> complexValueBuffer,
       final int complexValueIndex,
       final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException {
 

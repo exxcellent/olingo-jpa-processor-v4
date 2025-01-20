@@ -114,7 +114,7 @@ public class IntermediateServiceDocument {
     }
   }
 
-  public JPAEntityType getEntityType(final EdmType edmType) {
+  public JPAEntityType<?> getEntityType(final EdmType edmType) {
     synchronized (lock) {
       resolveSchemas();
 
@@ -130,7 +130,7 @@ public class IntermediateServiceDocument {
    *
    * @return The entity type based on given external (OData) related full qualified name.
    */
-  public JPAEntityType getEntityType(final FullQualifiedName typeName) {
+  public JPAEntityType<?> getEntityType(final FullQualifiedName typeName) {
     synchronized (lock) {
       resolveSchemas();
       final AbstractJPASchema schema = schemaListInternalKey.get(typeName.getNamespace());
@@ -141,7 +141,7 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  public JPAEntityType getEntityType(final String edmEntitySetName) throws ODataJPAModelException {
+  public JPAEntityType<?> getEntityType(final String edmEntitySetName) throws ODataJPAModelException {
     synchronized (lock) {
       // do not resolve the on-demand schemas here; we have to avoid recursion
       // problems and want to optimize performance
@@ -180,7 +180,7 @@ public class IntermediateServiceDocument {
   /**
    * @see AbstractJPASchema#getStructuredType(Class)
    */
-  JPAStructuredType getStructuredType(final Class<?> targetClass) {
+  JPAStructuredType<?> getStructuredType(final Class<?> targetClass) {
     if (targetClass.isPrimitive()) {
       return null;
     }
@@ -188,7 +188,7 @@ public class IntermediateServiceDocument {
       // do not resolve the on-demand schemas here; we have to avoid recursion
       // problems and want to optimize performance
       for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
-        final JPAStructuredType structuredType = schema.getStructuredType(targetClass);
+        final JPAStructuredType<?> structuredType = schema.getStructuredType(targetClass);
         if (structuredType != null) {
           return structuredType;
         }
@@ -197,7 +197,7 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  public JPAStructuredType getStructuredType(final FullQualifiedName typeName) {
+  public JPAStructuredType<?> getStructuredType(final FullQualifiedName typeName) {
     synchronized (lock) {
       resolveSchemas();
       final AbstractJPASchema schema = schemaListInternalKey.get(typeName.getNamespace());
@@ -208,8 +208,8 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  JPAEntityType getEntityType(final Class<?> targetClass) {
-    JPAEntityType entityType;
+  JPAEntityType<?> getEntityType(final Class<?> targetClass) {
+    JPAEntityType<?> entityType;
     if (Object.class.equals(targetClass)) {
       return null;
     }
@@ -239,8 +239,8 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  JPAStructuredType getComplexType(final Class<?> targetClass) {
-    JPAStructuredType complexType;
+  JPAStructuredType<?> getComplexType(final Class<?> targetClass) {
+    JPAStructuredType<?> complexType;
     if (Object.class.equals(targetClass)) {
       return null;
     }
@@ -301,7 +301,7 @@ public class IntermediateServiceDocument {
     return ((IntermediateCustomSchema) schema).createDynamicMapType(mapKeyType, mapValueType, valueIsCollection);
   }
 
-  AbstractIntermediateComplexTypeDTO findOrCreateDTOComplexType(final Class<?> clazz) throws ODataJPAModelException {
+  AbstractIntermediateComplexTypeDTO<?> findOrCreateDTOComplexType(final Class<?> clazz) throws ODataJPAModelException {
     // the same class could be register as @Embeddable via JPA in another namespace... we accept that currently
     synchronized (lock) {
       final String namespace = clazz.getPackage().getName();
@@ -310,7 +310,7 @@ public class IntermediateServiceDocument {
     }
   }
 
-  public IntermediateEnityTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+  public IntermediateEnityTypeDTO<?> createDTOType(final Class<?> clazz) throws ODataJPAModelException {
     synchronized (lock) {
       if (clazz == null) {
         throw new ODataJPAModelException(MessageKeys.GENERAL);
@@ -327,7 +327,7 @@ public class IntermediateServiceDocument {
     }
   }
 
-  public JPAElement getEntitySet(final JPAEntityType entityType) throws ODataJPAModelException {
+  public JPAElement getEntitySet(final JPAEntityType<?> entityType) throws ODataJPAModelException {
     synchronized (lock) {
       resolveSchemas();
       for (final AbstractJPASchema schema : schemaListInternalKey.values()) {
