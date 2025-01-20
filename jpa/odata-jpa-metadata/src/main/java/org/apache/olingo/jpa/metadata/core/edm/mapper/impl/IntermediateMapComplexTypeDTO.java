@@ -18,7 +18,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElemen
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-class IntermediateMapComplexTypeDTO extends AbstractIntermediateComplexTypeDTO implements JPADynamicPropertyContainer {
+class IntermediateMapComplexTypeDTO extends AbstractIntermediateComplexTypeDTO<Map> implements JPADynamicPropertyContainer {
   final private EdmPrimitiveTypeKind mapValueKind;
   final private DynamicJPAParameterizedElement dynamicProperty;
 
@@ -53,12 +53,12 @@ class IntermediateMapComplexTypeDTO extends AbstractIntermediateComplexTypeDTO i
   }
 
   @Override
-  public Class<?> getTypeClass() {
+  public Class<Map> getTypeClass() {
     return Map.class;
   }
 
   @Override
-  protected JPAStructuredType getBaseType() throws ODataJPAModelException {
+  protected JPAStructuredType<?> getBaseType() throws ODataJPAModelException {
     return null;
   }
 

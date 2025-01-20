@@ -2,6 +2,7 @@ package org.apache.olingo.jpa.processor.transformation;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Defines a concrete requirement for transformation processing. A transformation will be used only if all requirements
@@ -48,4 +49,20 @@ public final class TransformationContextRequirement {
   public Collection<Object> getAlternatives() {
     return alternativeValues;
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(alternativeValues, type);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    TransformationContextRequirement other = (TransformationContextRequirement) obj;
+    return Objects.equals(alternativeValues, other.alternativeValues) && Objects.equals(type, other.type);
+  }
+  
+  
 }

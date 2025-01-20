@@ -5,12 +5,12 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
 import org.apache.olingo.jpa.processor.core.query.NavigationIfc;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
 
-public class ExampleQueryCustomizer implements QueryCustomizer {
+public class ExampleQueryCustomizer implements QueryRequestCustomizer {
   @Override
   public void customizeQuery(final QueryCustomization context, final NavigationIfc queryScope) {
     if (!context.getEndTypeClass().equals(Organization.class)) {

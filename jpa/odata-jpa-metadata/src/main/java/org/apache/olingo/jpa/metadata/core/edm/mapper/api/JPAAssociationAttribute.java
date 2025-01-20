@@ -10,7 +10,7 @@ public interface JPAAssociationAttribute extends JPAAttribute<CsdlNavigationProp
    *
    * @see #getStructuredType()
    */
-  public JPAStructuredType getTargetEntity() throws ODataJPAModelException;
+  public JPAStructuredType<?> getTargetEntity() throws ODataJPAModelException;
 
   /**
    *

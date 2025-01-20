@@ -34,8 +34,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateServiceDocument;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer;
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer.QueryCustomization;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAQueryException;
 import org.apache.olingo.jpa.processor.core.filter.JPAEntityFilterProcessor;
 import org.apache.olingo.jpa.processor.core.query.result.NavigationKeyBuilder;
@@ -69,10 +69,10 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    */
   protected class FilterQueryBuilderContext implements FilterContextQueryBuilderIfc {
 
-    private final JPAEntityType scopeEntity;
+    private final JPAEntityType<?> scopeEntity;
     private final From<?, ?> filterFrom;
 
-    FilterQueryBuilderContext(final JPAEntityType filterEntity, final From<?, ?> filterFrom) {
+    FilterQueryBuilderContext(final JPAEntityType<?> filterEntity, final From<?, ?> filterFrom) {
       this.scopeEntity = filterEntity;
       this.filterFrom = filterFrom;
     }
@@ -93,7 +93,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     }
 
     @Override
-    public JPAEntityType getQueryResultType() {
+    public JPAEntityType<?> getQueryResultType() {
       return scopeEntity;
     }
 
@@ -108,13 +108,13 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private final NavigationIfc uriNavigation;
   private final EdmType edmType;
   private final UriResourceEntitySet queryStartUriResource;
-  private final JPAEntityType jpaStartEntityType;
+  private final JPAEntityType<?> jpaStartEntityType;
   private final List<UriParameter> keyPredicates;
   private final NavigationKeyBuilder jpaStartNavigationKeyBuilder;
   private List<NavigationBuilder> navigationQueryList = null;
   private InitializationState initStateType = InitializationState.NotInitialized;
   @Inject
-  private QueryCustomizer queryCustomizer = null;
+  private QueryRequestCustomizer queryCustomizer = null;
 
   protected AbstractCriteriaQueryBuilder(final JPAODataRequestContext context, final NavigationIfc uriInfo,
       final EntityManager em)
@@ -168,7 +168,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    * simple/complex properties at end of path.
    */
   private static List<UriResource> extractNavigableResourcePath(final IntermediateServiceDocument sd,
-      final JPAEntityType jpaStartEntityType,
+      final JPAEntityType<?> jpaStartEntityType,
       final List<UriResource> resourceParts) throws ODataApplicationException {
     if (!Util.hasNavigation(resourceParts)) {
       return resourceParts;
@@ -233,7 +233,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    *
    * @return The {@link #getQueryStartFrom() starting} query entity type.
    */
-  public final JPAEntityType getQueryStartType() {
+  public final JPAEntityType<?> getQueryStartType() {
     return jpaStartEntityType;
   }
 
@@ -263,13 +263,13 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     return (From<T, T>) last.getQueryEndFrom();
   }
 
-  public final JPAEntityType getQueryEndType() {
+  public final JPAEntityType<?> getQueryEndType() {
     assertInitialized();
     final NavigationBuilder last = determineLastWorkingNavigationBuilder();
     if (last == null) {
       return getQueryStartType();
     }
-    return (JPAEntityType) last.getQueryEndType();
+    return (JPAEntityType<?>) last.getQueryEndType();
   }
 
   protected final EdmType getQueryEndEdmType() {
@@ -400,7 +400,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   /**
    * The customizer must be called as last before executing the query.
    */
-  protected void involveCustomizer() throws ODataApplicationException {
+  protected void involveQueryCustomizer() throws ODataApplicationException {
     if (queryCustomizer == null) {
       return;
     }
@@ -477,7 +477,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
           continue;
         }
         // TODO type cast ok? -> prefer JPAStructuredType
-        final FilterQueryBuilderContext navFilterContext = new FilterQueryBuilderContext((JPAEntityType) navQuery
+        final FilterQueryBuilderContext navFilterContext = new FilterQueryBuilderContext((JPAEntityType<?>) navQuery
             .getQueryEndType(),
             navQuery.getQueryEndFrom());
         // build a navigation (sub) path up to the navigation element resource
@@ -524,7 +524,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final List<UriParameter> keyPredicates = getKeyPredicates();
     // keys are always for start table, not for target after joins
     final From<?, ?> root = getQueryStartFrom();
-    final JPAEntityType rootType = getQueryStartType();
+    final JPAEntityType<?> rootType = getQueryStartType();
     // Given key: Organizations('1')
     return extendWhereByKey(root, rootType, keyPredicates);
   }
@@ -594,7 +594,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     if (orderBy == null) {
       return Collections.emptyList();
     }
-    final JPAStructuredType jpaEntityType = getQueryEndType();
+    final JPAStructuredType<?> jpaEntityType = getQueryEndType();
     final List<JPAAssociationAttribute> naviAttributes = new ArrayList<JPAAssociationAttribute>();
     for (final OrderByItem orderByItem : orderBy.getOrders()) {
       final Expression expression = orderByItem.getExpression();
@@ -700,7 +700,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final HashMap<String, From<?, ?>> joinTables = new HashMap<String, From<?, ?>>();
     final From<?, ?> root = getQueryEndFrom();
     // 1. Create root
-    final JPAEntityType jpaEntityType = getQueryEndType();
+    final JPAEntityType<?> jpaEntityType = getQueryEndType();
     joinTables.put(jpaEntityType.getInternalName(), root);
 
     // 2. OrderBy navigation property

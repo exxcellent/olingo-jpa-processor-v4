@@ -1,10 +1,14 @@
 package org.apache.olingo.jpa.processor.transformation.impl;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.cdi.Inject;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.JPAODataGlobalContext;
+import org.apache.olingo.jpa.processor.core.api.QueryResponseCustomizer;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAProcessorException;
 import org.apache.olingo.jpa.processor.core.query.DatabaseQueryResult2ODataEntityConverter;
 import org.apache.olingo.jpa.processor.core.query.result.QueryEntityResult;
@@ -20,14 +24,20 @@ Transformation<QueryEntityResult, EntityCollection> {
 
   public final static TransformationDeclaration<QueryEntityResult, EntityCollection> DEFAULT_DECLARATION =
       new TransformationDeclaration<>(
-          QueryEntityResult.class, EntityCollection.class, new TransformationContextRequirement(
-              JPAODataGlobalContext.class), new TransformationContextRequirement(
-                  UriInfoResource.class));
+          QueryEntityResult.class, EntityCollection.class, 
+          new TransformationContextRequirement(JPAODataGlobalContext.class), 
+          new TransformationContextRequirement(UriInfoResource.class),
+          new TransformationContextRequirement(QueryResponseCustomizer.class)
+      );
 
+  private final Logger log = Logger.getLogger(Transformation.class.getName());
+  
   @Inject
   private final JPAODataGlobalContext globalContext = null;
   @Inject
   private final UriInfoResource uriResource = null;
+  @Inject
+  private QueryResponseCustomizer responseCustomizer;
 
   @Override
   public Class<QueryEntityResult> getInputType() {
@@ -37,16 +47,6 @@ Transformation<QueryEntityResult, EntityCollection> {
   @Override
   public Class<EntityCollection> getOutputType() {
     return EntityCollection.class;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <I> Transformation<I, EntityCollection> createSubTransformation(final Class<I> newStart)
-      throws SerializerException {
-    if (newStart.isAssignableFrom(getInputType())) {
-      return (Transformation<I, EntityCollection>) this;
-    }
-    throw new SerializerException("No sub transformation possible", SerializerException.MessageKeys.UNSUPPORTED_FORMAT);
   }
 
   @Override
@@ -60,7 +60,15 @@ Transformation<QueryEntityResult, EntityCollection> {
           + " expected");
     }
     try {
-      return convertToEntityCollection(input);
+      EntityCollection result = convertToEntityCollection(input);
+      if(responseCustomizer != null) {
+        log.log(Level.FINE, "Response customizer present, modify entity collection before building response from it...");
+        EntityCollection modifiedCollection = responseCustomizer.customizeResult(globalContext.getServiceMetaData().getEdm(), input.getEntityType().getTypeClass(), result);
+        if(modifiedCollection != null) {
+          result = modifiedCollection;
+        }
+      }
+      return result;      
     } catch (final ODataApplicationException e) {
       throw new SerializerException("", e, SerializerException.MessageKeys.IO_EXCEPTION);
     }

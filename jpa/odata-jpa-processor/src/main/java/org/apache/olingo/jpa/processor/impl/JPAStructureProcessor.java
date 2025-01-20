@@ -45,6 +45,7 @@ import org.apache.olingo.jpa.processor.core.util.DTOEntityHelper;
 import org.apache.olingo.jpa.processor.core.util.JPAEntityHelper;
 import org.apache.olingo.jpa.processor.core.util.TypedParameter;
 import org.apache.olingo.jpa.processor.transformation.Transformation;
+import org.apache.olingo.jpa.processor.transformation.TransformationChain;
 import org.apache.olingo.jpa.processor.transformation.impl.ODataResponseContent;
 import org.apache.olingo.jpa.processor.transformation.impl.ODataResponseContent.ContentState;
 import org.apache.olingo.server.api.OData;
@@ -100,7 +101,7 @@ ComplexProcessor, PrimitiveValueProcessor {
     final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
     final EdmEntitySet targetEdmEntitySet = Util.determineTargetEntitySet(resourceParts);
     try {
-      final JPAEntityType jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
+      final JPAEntityType<?> jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
           .getEntityType(targetEdmEntitySet.getName());
       final OData odata = getOData();
       final ServiceMetadata serviceMetadata = getServiceMetadata();
@@ -183,7 +184,7 @@ ComplexProcessor, PrimitiveValueProcessor {
     final DTOEntityHelper helper = new DTOEntityHelper(getRequestContext(), uriInfo);
     if (helper.isTargetingDTOWithHandler(targetEdmEntitySet)) {
       try {
-        final JPAEntityType jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
+        final JPAEntityType<?> jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
             .getEntityType(targetEdmEntitySet.getName());
         final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
         final ODataDeserializer deserializer = odata.createDeserializer(requestFormat, serviceMetadata);
@@ -223,7 +224,7 @@ ComplexProcessor, PrimitiveValueProcessor {
           HttpStatusCode.INTERNAL_SERVER_ERROR);
     } else {
       try {
-        final JPAEntityType jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
+        final JPAEntityType<?> jpaEntityType = getRequestContext().getEdmProvider().getServiceDocument()
             .getEntityType(targetEdmEntitySet.getName());
         final EdmEntityType edmType = serviceMetadata.getEdm().getEntityType(jpaEntityType.getExternalFQN());
 
@@ -292,7 +293,7 @@ ComplexProcessor, PrimitiveValueProcessor {
         final JPAEntityHelper invoker = new JPAEntityHelper(em, sd, uriInfo, getOData()
             .createUriHelper(),
             getRequestContext());
-        final JPAEntityType jpaType = sd.getEntityType(targetEdmEntitySet.getName());
+        final JPAEntityType<?> jpaType = sd.getEntityType(targetEdmEntitySet.getName());
         for (final Entity entity : entityCollection.getEntities()) {
           final Object persistenceEntity = invoker.lookupJPAEntity(jpaType, entity);
           em.remove(persistenceEntity);
@@ -323,7 +324,7 @@ ComplexProcessor, PrimitiveValueProcessor {
           HttpStatusCode.NOT_IMPLEMENTED, jpaFunction.getResultParameter().getTypeFQN()
           .getFullQualifiedNameAsString());
     }
-    final JPAEntityType returnType = sd.getEntityType(jpaFunction.getResultParameter().getTypeFQN());
+    final JPAEntityType<?> returnType = sd.getEntityType(jpaFunction.getResultParameter().getTypeFQN());
     if (returnType == null) {
       throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.NOT_SUPPORTED_RESOURCE_TYPE,
           HttpStatusCode.INTERNAL_SERVER_ERROR, jpaFunction.getResultParameter().getTypeFQN().getFullQualifiedNameAsString());
@@ -354,7 +355,7 @@ ComplexProcessor, PrimitiveValueProcessor {
    */
   @SuppressWarnings("unchecked")
   private <O> O retrieveEntityResult(final ODataRequest request, final UriInfo uriInfo,
-      final Transformation<QueryEntityResult, O> transformation, final ContentType responseFormat)
+      final TransformationChain<QueryEntityResult, O> transformation, final ContentType responseFormat)
           throws ODataApplicationException, ODataLibraryException {
 
     final List<UriResource> resourceParts = uriInfo.getUriResourceParts();
@@ -428,14 +429,13 @@ ComplexProcessor, PrimitiveValueProcessor {
   public void readEntityCollection(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
       final ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
 
-    final Transformation<QueryEntityResult, ODataResponseContent> transformation = getRequestContext()
+    final TransformationChain<QueryEntityResult, ODataResponseContent> transformation = getRequestContext()
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, ODataResponseContent.class, new TypedParameter(
             RepresentationType.class, RepresentationType.COLLECTION_ENTITY), new TypedParameter(UriInfoResource.class,
-                uriInfo), new TypedParameter(
-                    ODataRequest.class, request), new TypedParameter(ContentType.class,
-                        responseFormat));
-
+                uriInfo), new TypedParameter(ODataRequest.class, request), new TypedParameter(ContentType.class,
+                        responseFormat)).asChain();
+        
     final ODataResponseContent result = retrieveEntityResult(request, uriInfo, transformation, responseFormat);
     if (result.getContentState() == ContentState.NULL) {
       // 404 Not Found indicates that the resource specified by the request URL does
@@ -489,10 +489,10 @@ ComplexProcessor, PrimitiveValueProcessor {
   private void readEntity(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
       final ContentType responseFormat, final JPASerializer serializer)
           throws ODataApplicationException, ODataLibraryException {
-    final Transformation<QueryEntityResult, EntityCollection> transformation = getRequestContext()
+    final TransformationChain<QueryEntityResult, EntityCollection> transformation = getRequestContext()
         .getTransformerFactory()
         .createTransformation(QueryEntityResult.class, EntityCollection.class, new TypedParameter(UriInfoResource.class,
-            uriInfo));
+            uriInfo)).asChain();
     final EntityCollection entityCollection = retrieveEntityResult(request, uriInfo, transformation, responseFormat);
     if (entityCollection.getEntities() == null || entityCollection.getEntities().isEmpty()) {
       // 404 Not Found indicates that the resource specified by the request URL does

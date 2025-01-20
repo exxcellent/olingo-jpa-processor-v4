@@ -26,8 +26,8 @@ public interface JPAAssociationPath extends JPANavigationPath {
   @Deprecated
   public List<JPASelector> getRightPaths() throws ODataJPAModelException;
 
-  JPAStructuredType getTargetType();
+  JPAStructuredType<?> getTargetType();
 
-  JPAStructuredType getSourceType();
+  JPAStructuredType<?> getSourceType();
 
 }

@@ -59,7 +59,7 @@ public class TestJPAQuerySelectClause extends TestBase {
     final List<Selection<?>> selectClause = cut.createSelectClause(cut
         .buildSelectionPathList(
             new UriInfoDouble(new SelectOptionDouble("*"))).determineAllPaths());
-    final JPAEntityType jpaEntityType = helper.getJPAEntityType("BusinessPartners");
+    final JPAEntityType<?> jpaEntityType = helper.getJPAEntityType("BusinessPartners");
     assertEquals(jpaEntityType.getPathList().size(), selectClause.size());
 
   }
@@ -73,7 +73,7 @@ public class TestJPAQuerySelectClause extends TestBase {
     final List<Selection<?>> selectClause = cut.createSelectClause(cut.buildSelectionPathList(new UriInfoDouble(
         null)).determineAllPaths());
 
-    final JPAEntityType jpaEntityType = helper.getJPAEntityType("BusinessPartners");
+    final JPAEntityType<?> jpaEntityType = helper.getJPAEntityType("BusinessPartners");
     assertEquals(jpaEntityType.getPathList().size(), selectClause.size());
   }
 

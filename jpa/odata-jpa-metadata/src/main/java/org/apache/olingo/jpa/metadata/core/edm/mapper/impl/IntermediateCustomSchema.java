@@ -35,8 +35,8 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   private static boolean mapWarningAlreadyLogged = false;
 
   final private Map<String, IntermediateEnumType> enumTypes = new TreeMap<>();
-  final private Map<String, IntermediateEnityTypeDTO> dtoTypes = new TreeMap<>();
-  final private Map<String, AbstractIntermediateComplexTypeDTO> complexTypes = new TreeMap<>();
+  final private Map<String, IntermediateEnityTypeDTO<?>> dtoTypes = new TreeMap<>();
+  final private Map<String, AbstractIntermediateComplexTypeDTO<?>> complexTypes = new TreeMap<>();
   final private Map<String, IntermediateAction> actions = new TreeMap<>();
   final private Map<String, JPAEntitySet> entitySets = new TreeMap<>();
   final private IntermediateServiceDocument serviceDocument;
@@ -50,13 +50,14 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  JPAComplexType getComplexType(final Class<?> targetClass) {
+  <X> JPAComplexType<X> getComplexType(final Class<X> targetClass) {
     return getComplexType(getNameBuilder().buildComplexTypeName(targetClass));
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  JPAComplexType getComplexType(final String externalName) {
-    return complexTypes.get(externalName);
+  <X> JPAComplexType<X> getComplexType(final String externalName) {
+    return (JPAComplexType<X>) complexTypes.get(externalName);
   }
 
   @Override
@@ -65,12 +66,13 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  List<JPAComplexType> getComplexTypes() {
-    return new ArrayList<JPAComplexType>(complexTypes.values());
+  List<JPAComplexType<?>> getComplexTypes() {
+    return new ArrayList<JPAComplexType<?>>(complexTypes.values());
   }
 
-  IntermediateEnityTypeDTO getDTOType(final Class<?> targetClass) {
-    return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
+  @SuppressWarnings("unchecked")
+  <X> IntermediateEnityTypeDTO<X> getDTOType(final Class<X> targetClass) {
+    return (IntermediateEnityTypeDTO<X>) dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
   }
 
   protected final void lazyBuildEdmItem() throws ODataJPAModelException {
@@ -151,15 +153,15 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     return mapType;
   }
 
-  AbstractIntermediateComplexTypeDTO findOrCreateDTOComplexType(final Class<?> clazz) throws ODataJPAModelException {
+  <X> AbstractIntermediateComplexTypeDTO<X> findOrCreateDTOComplexType(final Class<X> clazz) throws ODataJPAModelException {
     final String namespace = clazz.getPackage().getName();
     if (!namespace.equalsIgnoreCase(getInternalName())) {
       throw new ODataJPAModelException(MessageKeys.GENERAL);
     }
 
-    AbstractIntermediateComplexTypeDTO complexType = (AbstractIntermediateComplexTypeDTO) getComplexType(clazz);
+    AbstractIntermediateComplexTypeDTO<X> complexType = (AbstractIntermediateComplexTypeDTO<X>) getComplexType(clazz);
     if (complexType == null) {
-      complexType = new IntermediateComplexTypeDTO(getNameBuilder(), clazz, serviceDocument);
+      complexType = new IntermediateComplexTypeDTO<X>(getNameBuilder(), clazz, serviceDocument);
       complexTypes.put(complexType.getExternalName(), complexType);
       // force rebuild
       edmSchema = null;
@@ -167,15 +169,15 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     return complexType;
   }
 
-  IntermediateEnityTypeDTO findOrCreateDTOType(final Class<?> clazz) throws ODataJPAModelException {
+  <X> IntermediateEnityTypeDTO<X> findOrCreateDTOType(final Class<X> clazz) throws ODataJPAModelException {
     final String namespace = clazz.getPackage().getName();
     if (!namespace.equalsIgnoreCase(getInternalName())) {
       throw new ODataJPAModelException(MessageKeys.GENERAL);
     }
 
-    IntermediateEnityTypeDTO dtoType = getDTOType(clazz);
+    IntermediateEnityTypeDTO<X> dtoType = getDTOType(clazz);
     if (dtoType == null) {
-      dtoType = new IntermediateEnityTypeDTO(getNameBuilder(), clazz, serviceDocument);
+      dtoType = new IntermediateEnityTypeDTO<X>(getNameBuilder(), clazz, serviceDocument);
       dtoTypes.put(dtoType.getExternalName(), dtoType);
       // build actions for DTO
       final IntermediateActionFactory factory = new IntermediateActionFactory();
@@ -225,13 +227,14 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  JPAEntityType getEntityType(final Class<?> targetClass) {
+  <X> JPAEntityType<X> getEntityType(final Class<X> targetClass) {
     return getEntityType(getNameBuilder().buildDTOTypeName(targetClass));
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  JPAEntityType getEntityType(final String externalName) {
-    return dtoTypes.get(externalName);
+  <X> JPAEntityType<X> getEntityType(final String externalName) {
+    return (JPAEntityType<X>) dtoTypes.get(externalName);
   }
 
   @Override
@@ -247,8 +250,8 @@ class IntermediateCustomSchema extends AbstractJPASchema {
   }
 
   @Override
-  List<JPAEntityType> getEntityTypes() {
-    return new ArrayList<JPAEntityType>(dtoTypes.values());
+  List<JPAEntityType<?>> getEntityTypes() {
+    return new ArrayList<JPAEntityType<?>>(dtoTypes.values());
   }
 
   @Override

@@ -20,7 +20,7 @@ import org.apache.olingo.jpa.processor.impl.JPAStructureProcessor;
  * <code>requestContext.getDependencyInjector().registerDependencyMapping(QueryCustomizer.class, &lt;customizer
  * instance&gt;);</code>
  */
-public interface QueryCustomizer {
+public interface QueryRequestCustomizer {
 
   /**
    * Adapter representing the query to customize.

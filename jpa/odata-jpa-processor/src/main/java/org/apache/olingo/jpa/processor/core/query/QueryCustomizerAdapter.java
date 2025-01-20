@@ -8,7 +8,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
-import org.apache.olingo.jpa.processor.core.api.QueryCustomizer.QueryCustomization;
+import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer.QueryCustomization;
 
 public class QueryCustomizerAdapter<DT> implements QueryCustomization {
 
@@ -28,9 +28,10 @@ public class QueryCustomizerAdapter<DT> implements QueryCustomization {
     return caller.getQueryStartFrom();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <S> Class<S> getStartTypeClass() {
-    return caller.getQueryStartType().getTypeClass();
+    return (Class<S>) caller.getQueryStartType().getTypeClass();
   }
 
   @Override
@@ -38,9 +39,10 @@ public class QueryCustomizerAdapter<DT> implements QueryCustomization {
     return caller.getQueryEndFrom();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <T> Class<T> getEndTypeClass() {
-    return caller.getQueryEndType().getTypeClass();
+    return (Class<T>) caller.getQueryEndType().getTypeClass();
   }
 
   @Override

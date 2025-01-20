@@ -240,7 +240,7 @@ public class Util {
       if (item.isStar()) {
         final EdmEntitySet edmEntitySet = determineTargetEntitySet(startResourceList);
         try {
-          final JPAEntityType jpaEntityType = sd.getEntityType(edmEntitySet.getName());
+          final JPAEntityType<?> jpaEntityType = sd.getEntityType(edmEntitySet.getName());
           final List<JPAAssociationPath> associationPaths = jpaEntityType.getAssociationPathList();
           for (final JPAAssociationPath path : associationPaths) {
             final JPAAssociationAttribute asso = jpaEntityType.getAssociationByPath(path);
@@ -306,9 +306,9 @@ public class Util {
    * types (always located in another database table requiring a JOIN)
    */
   public static List<JPANavigationPropertyInfo> determineNavigations(final IntermediateServiceDocument sd,
-      final JPAEntityType scope, final List<UriResource> resourceParts) throws ODataApplicationException {
+      final JPAEntityType<?> scope, final List<UriResource> resourceParts) throws ODataApplicationException {
     final List<JPANavigationPropertyInfo> pathList = new LinkedList<>();
-    JPAStructuredType startType = scope;
+    JPAStructuredType<?> startType = scope;
     StringBuilder complexTypeNavigation = null;
     try {
       for (final UriResource resourcePart : resourceParts) {
@@ -440,7 +440,7 @@ public class Util {
    * @return The list of selectors for all key attributes (exploded!).
    * @see JPAEntityType#getKeyAttributes(boolean)
    */
-  public static List<JPASelector> buildKeyPath(final JPAStructuredType jpaType) throws ODataJPAModelException {
+  public static List<JPASelector> buildKeyPath(final JPAStructuredType<?> jpaType) throws ODataJPAModelException {
     final List<? extends JPAAttribute<?>> jpaKeyList = jpaType.getKeyAttributes(true);
     final List<JPASelector> jpaPathList = new ArrayList<JPASelector>();
     for (final JPAAttribute<?> key : jpaKeyList) {

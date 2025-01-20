@@ -58,7 +58,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
   }
 
   @SuppressWarnings("null")
-  private String determineContentType(final JPAEntityType jpaEntity, final Tuple row) throws ODataJPAModelException {
+  private String determineContentType(final JPAEntityType<?> jpaEntity, final Tuple row) throws ODataJPAModelException {
     if (jpaEntity.getContentType() != null && !jpaEntity.getContentType().isEmpty()) {
       return jpaEntity.getContentType();
     } else {
@@ -89,7 +89,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
     final Map<String, Object> complexValueBuffer = new HashMap<String, Object>();
     final Entity odataEntity = new Entity();
 
-    final JPAEntityType jpaEntityType = jpaQueryResult.getEntityType();
+    final JPAEntityType<?> jpaEntityType = jpaQueryResult.getEntityType();
     odataEntity.setType(jpaEntityType.getExternalFQN().getFullQualifiedNameAsString());
 
     try {
@@ -169,7 +169,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
   private Collection<? extends Link> createExpandsForComplexValue(final String complexValueAttributeName,
       final Tuple row,
       final AbstractEntityQueryResult jpaQueryResult) throws ODataJPAModelException, ODataJPAConversionException {
-    final JPAEntityType jpaEntityType = jpaQueryResult.getEntityType();
+    final JPAEntityType<?> jpaEntityType = jpaQueryResult.getEntityType();
     final JPASelector selector = jpaEntityType.getPath(complexValueAttributeName);
     if (selector == null) {
       LOG.log(Level.WARNING, "Problems to handle $expand for complex value '" + complexValueAttributeName + "' of "
@@ -183,7 +183,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
     }
     final Collection<Link> expands = new LinkedList<Link>();
     final JPAAttribute<?> iAttribute = selector.getLeaf();
-    final JPAStructuredType iComplexType = iAttribute.getStructuredType();
+    final JPAStructuredType<?> iComplexType = iAttribute.getStructuredType();
     // build expands for all relationships of complex type
     for (final JPAAssociationPath cvAssociation : iComplexType.getAssociationPathList()) {
       final String assoPath = complexValueAttributeName.concat(JPASelector.PATH_SEPERATOR).concat(cvAssociation
@@ -273,7 +273,7 @@ public class DatabaseQueryResult2ODataEntityConverter extends AbstractEntityConv
 
   private final Property convertTupleValue2ODataAttribute(final Object value, final String externalName,
       final String prefix,
-      final JPAStructuredType jpaStructuredType, final Map<String, Object> complexValueBuffer,
+      final JPAStructuredType<?> jpaStructuredType, final Map<String, Object> complexValueBuffer,
       final int complexValueIndex,
       final List<Property> properties) throws ODataJPAModelException, ODataJPAConversionException {
     // TODO force as single value conversion (not complete collection attribute)... but maybe affecting a collection
