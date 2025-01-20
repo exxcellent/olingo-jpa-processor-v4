@@ -18,9 +18,9 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 class TypeMetaAPIWriter extends AbstractWriter {
 
-  private final JPAStructuredType type;
+  private final JPAStructuredType<?> type;
 
-  public TypeMetaAPIWriter(final File generationBaseDirectory, final JPAStructuredType st) {
+  public TypeMetaAPIWriter(final File generationBaseDirectory, final JPAStructuredType<?> st) {
     super(generationBaseDirectory, st.getTypeClass().getPackage()
         .getName(), determineTypeMetaName(st.getTypeClass().getSimpleName()));
     this.type = st;
@@ -32,7 +32,7 @@ class TypeMetaAPIWriter extends AbstractWriter {
     final String typeMetaName = determineTypeMetaName(type.getTypeClass().getSimpleName());
     String extendsBaseClass = "";
     if (AbstractStructuredTypeJPA.class.isInstance(type)) {
-      final JPAStructuredType base = AbstractStructuredTypeJPA.class.cast(type).getBaseType();
+      final JPAStructuredType<?> base = AbstractStructuredTypeJPA.class.cast(type).getBaseType();
       if (base != null) {
         extendsBaseClass = " extends " + determineTypeMetaName(base.getTypeClass().getSimpleName());
       }

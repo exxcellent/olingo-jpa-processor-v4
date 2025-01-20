@@ -30,7 +30,7 @@ class NavigationBuilder extends AbstractQueryBuilder {
   private final List<UriParameter> keyPredicates;
   private final UriResourcePartTyped navigationResource;
   private final From<?, ?> joinedParentResultFrom;
-  private final JPAStructuredType resultEntityType;
+  private final JPAStructuredType<?> resultEntityType;
   private final NavigationKeyBuilder navigationKeyBuilder;
 
   public <T extends Object> NavigationBuilder(
@@ -77,7 +77,7 @@ class NavigationBuilder extends AbstractQueryBuilder {
    *
    * @return The entity type of target (result) JOIN of query part.
    */
-  protected final JPAStructuredType getQueryEndType() {
+  protected final JPAStructuredType<?> getQueryEndType() {
     return resultEntityType;
   }
 

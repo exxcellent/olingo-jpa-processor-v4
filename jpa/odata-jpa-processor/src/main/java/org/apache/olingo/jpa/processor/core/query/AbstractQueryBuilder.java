@@ -79,7 +79,7 @@ abstract class AbstractQueryBuilder {
     return whereCondition;
   }
 
-  private Path<?> buildPath(final From<?, ?> from, final JPAStructuredType entity, final UriParameter keyPredicate)
+  private Path<?> buildPath(final From<?, ?> from, final JPAStructuredType<?> entity, final UriParameter keyPredicate)
       throws ODataJPAModelException {
     Path<?> path = from;
     final JPASelector selector = entity.getPath(keyPredicate.getName());
@@ -97,7 +97,7 @@ abstract class AbstractQueryBuilder {
    * @return A condition for existing key predicates or <code>null</code>.
    */
   protected final jakarta.persistence.criteria.Expression<Boolean> extendWhereByKey(final From<?, ?> root,
-      final JPAStructuredType entity, final List<UriParameter> keyPredicates)
+      final JPAStructuredType<?> entity, final List<UriParameter> keyPredicates)
           throws ODataApplicationException {
     // .../Organizations('3')
     // .../BusinessPartnerRoles(BusinessPartnerID='6',RoleCategory='C')

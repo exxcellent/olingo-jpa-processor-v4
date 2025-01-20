@@ -41,7 +41,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
   private final JPAEntityFilterProcessor<Boolean> filter;
   private final List<UriParameter> keyPredicates;
   private final JPANavigationPath navigationPath;
-  private final JPAEntityType entityType;
+  private final JPAEntityType<?> entityType;
   private final EdmType edmType;
   private final From<?, ?> subqueryResultFrom;
 
@@ -94,7 +94,7 @@ public class FilterSubQueryBuilder extends AbstractSubQueryBuilder implements Fi
   }
 
   @Override
-  public final JPAEntityType getQueryResultType() {
+  public final JPAEntityType<?> getQueryResultType() {
     return entityType;
   }
 

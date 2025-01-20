@@ -43,9 +43,9 @@ public abstract class AbstractJPASchema implements JPAElement {
 
   abstract IntermediateEnumType getEnumType(final Class<?> targetClass);
 
-  abstract JPAEntityType getEntityType(final Class<?> targetClass);
+  abstract <X> JPAEntityType<X> getEntityType(final Class<X> targetClass);
 
-  abstract JPAEntityType getEntityType(final String externalName);
+  abstract <X> JPAEntityType<X> getEntityType(final String externalName);
 
   abstract JPAEntitySet getEntitySet(String entitySetName);
 
@@ -61,25 +61,25 @@ public abstract class AbstractJPASchema implements JPAElement {
 
   abstract IntermediateEnumType findOrCreateEnumType(final Class<? extends Enum<?>> clazz) throws ODataJPAModelException;
 
-  abstract List<JPAEntityType> getEntityTypes();
+  abstract List<JPAEntityType<?>> getEntityTypes();
 
-  abstract List<JPAComplexType> getComplexTypes();
+  abstract List<JPAComplexType<?>> getComplexTypes();
 
   abstract List<IntermediateEnumType> getEnumTypes();
 
   abstract List<JPAEntitySet> getEntitySets();
 
-  abstract JPAComplexType getComplexType(final Class<?> targetClass);
+  abstract <X> JPAComplexType<X> getComplexType(final Class<X> targetClass);
 
-  abstract JPAComplexType getComplexType(String externalName);
+  abstract <X> JPAComplexType<X> getComplexType(String externalName);
 
   /**
    *
    * @return The type descriptor or <code>null</code> of {@link #getEntityType(Class) entity} or
    * {@link #getComplexType(Class) complex} types.
    */
-  final JPAStructuredType getStructuredType(final Class<?> typeClass) {
-    final JPAEntityType eType = getEntityType(typeClass);
+  final <X> JPAStructuredType<X> getStructuredType(final Class<X> typeClass) {
+    final JPAEntityType<X> eType = getEntityType(typeClass);
     if (eType != null) {
       return eType;
     }
@@ -91,8 +91,8 @@ public abstract class AbstractJPASchema implements JPAElement {
    * @return The type descriptor or <code>null</code> of {@link #getEntityType(String) entity} or
    * {@link #getComplexType(String) complex} types.
    */
-  final JPAStructuredType getStructuredType(final String externalName) {
-    final JPAEntityType eType = getEntityType(externalName);
+  final <X> JPAStructuredType<X> getStructuredType(final String externalName) {
+    final JPAEntityType<X> eType = getEntityType(externalName);
     if (eType != null) {
       return eType;
     }

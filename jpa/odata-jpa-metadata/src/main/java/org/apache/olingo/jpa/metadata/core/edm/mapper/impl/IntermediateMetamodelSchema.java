@@ -39,8 +39,8 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
 
   final private IntermediateServiceDocument serviceDocument;
   final private Metamodel jpaMetamodel;
-  final private Map<String, IntermediateComplexTypeJPA> mapExternalName2ComplexType;
-  final private Map<String, IntermediateEntityTypeJPA> mapExternalName2EntityType;
+  final private Map<String, IntermediateComplexTypeJPA<?>> mapExternalName2ComplexType;
+  final private Map<String, IntermediateEntityTypeJPA<?>> mapExternalName2EntityType;
   final private Map<String, IntermediateFunction> mapeExternalName2Function;
   final private List<IntermediateAction> collectionActions;
   final private Map<String, JPAEntitySet> mapExternalName2EntitySet;
@@ -89,40 +89,44 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return edmSchema;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  IntermediateComplexTypeJPA getComplexType(final Class<?> targetClass) {
-    return mapExternalName2ComplexType.get(getNameBuilder().buildComplexTypeName(targetClass));
+  <X> IntermediateComplexTypeJPA<X> getComplexType(final Class<X> targetClass) {
+    return (IntermediateComplexTypeJPA<X>) mapExternalName2ComplexType.get(getNameBuilder().buildComplexTypeName(targetClass));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  <X> JPAComplexType<X> getComplexType(final String externalName) {
+    return (JPAComplexType<X>) mapExternalName2ComplexType.get(externalName);
   }
 
   @Override
-  JPAComplexType getComplexType(final String externalName) {
-    return mapExternalName2ComplexType.get(externalName);
-  }
-
-  @Override
-  List<JPAComplexType> getComplexTypes() {
+  List<JPAComplexType<?>> getComplexTypes() {
     return new ArrayList<>(mapExternalName2ComplexType.values());
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  JPAEntityType getEntityType(final Class<?> targetClass) {
+  <X> JPAEntityType<X> getEntityType(final Class<X> targetClass) {
     // an JPA entity can have a complete different name...
-    for (final IntermediateEntityTypeJPA jpaEntity : mapExternalName2EntityType.values()) {
+    for (final IntermediateEntityTypeJPA<?> jpaEntity : mapExternalName2EntityType.values()) {
       if (jpaEntity.getManagedType().getJavaType().equals(targetClass)) {
-        return jpaEntity;
+        return (JPAEntityType<X>) jpaEntity;
       }
     }
     return null;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  JPAEntityType getEntityType(final String externalName) {
-    return mapExternalName2EntityType.get(externalName);
+  <X> JPAEntityType<X> getEntityType(final String externalName) {
+    return (JPAEntityType<X>) mapExternalName2EntityType.get(externalName);
   }
 
   @Override
-  List<JPAEntityType> getEntityTypes() {
-    return new ArrayList<JPAEntityType>(mapExternalName2EntityType.values());
+  List<JPAEntityType<?>> getEntityTypes() {
+    return new ArrayList<JPAEntityType<?>>(mapExternalName2EntityType.values());
   }
 
   @Override
@@ -161,22 +165,22 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return Collections.unmodifiableList(collectionActions);
   }
 
-  private Map<String, IntermediateComplexTypeJPA> buildComplexTypeList() throws ODataJPAModelException {
-    final Map<String, IntermediateComplexTypeJPA> ctList = new TreeMap<>();
+  private Map<String, IntermediateComplexTypeJPA<?>> buildComplexTypeList() throws ODataJPAModelException {
+    final Map<String, IntermediateComplexTypeJPA<?>> ctList = new TreeMap<>();
 
     for (final EmbeddableType<?> embeddable : this.jpaMetamodel.getEmbeddables()) {
-      final IntermediateComplexTypeJPA ct = new IntermediateComplexTypeJPA(getNameBuilder(), embeddable,
+      final IntermediateComplexTypeJPA<?> ct = new IntermediateComplexTypeJPA<>(getNameBuilder(), embeddable,
           serviceDocument);
       ctList.put(ct.getExternalName(), ct);
     }
     return ctList;
   }
 
-  private Map<String, JPAEntitySet> buildEntitySetList(final Collection<IntermediateEntityTypeJPA> entities)
+  private Map<String, JPAEntitySet> buildEntitySetList(final Collection<IntermediateEntityTypeJPA<?>> entities)
       throws ODataJPAModelException {
     final Map<String, JPAEntitySet> esList = new TreeMap<>();
 
-    for (final IntermediateEntityTypeJPA entity : entities) {
+    for (final IntermediateEntityTypeJPA<?> entity : entities) {
       if (esList.containsKey(entity.getEntitySetName())) {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.UNIQUE_NAME_VIOLATION, entity
             .getEntitySetName());
@@ -187,11 +191,11 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
     return esList;
   }
 
-  private Map<String, IntermediateEntityTypeJPA> buildEntityTypeList() throws ODataJPAModelException {
-    final Map<String, IntermediateEntityTypeJPA> etMap = new TreeMap<>();
+  private Map<String, IntermediateEntityTypeJPA<?>> buildEntityTypeList() throws ODataJPAModelException {
+    final Map<String, IntermediateEntityTypeJPA<?>> etMap = new TreeMap<>();
 
     for (final EntityType<?> entity : this.jpaMetamodel.getEntities()) {
-      final IntermediateEntityTypeJPA et = new IntermediateEntityTypeJPA(getNameBuilder(), entity, serviceDocument);
+      final IntermediateEntityTypeJPA<?> et = new IntermediateEntityTypeJPA<>(getNameBuilder(), entity, serviceDocument);
       etMap.put(et.getExternalName(), et);
     }
     return etMap;

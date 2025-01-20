@@ -73,7 +73,7 @@ public class Configuration {
     mapEntityType2SheetName.put(entityTypeName, sheetName);
   }
 
-  String getSheetName(final JPAEntityType entity) {
+  String getSheetName(final JPAEntityType<?> entity) {
     final String sheetName = mapEntityType2SheetName.get(determineSheetKeyName(entity));
     if (sheetName != null) {
       return sheetName;
@@ -164,7 +164,7 @@ public class Configuration {
     }
   }
 
-  boolean isSuppressedColumn(final JPAEntityType entity, final String dbColumnName) {
+  boolean isSuppressedColumn(final JPAEntityType<?> entity, final String dbColumnName) {
     return isSuppressedColumn(determineSheetKeyName(entity), dbColumnName);
   }
 
@@ -248,7 +248,7 @@ public class Configuration {
    *
    * @return The custom name or <code>null</code>
    */
-  String getCustomColumnName(final JPAEntityType entity, final String dbColumnName) {
+  String getCustomColumnName(final JPAEntityType<?> entity, final String dbColumnName) {
     final ColumnConfiguration cc = findColumnConfiguration(determineSheetKeyName(entity), dbColumnName);
     if (cc == null) {
       return null;
@@ -263,7 +263,7 @@ public class Configuration {
    * @return A map where the key is the DB column name and the value the assigned column index for final Excel sheet.
    * Unassigned columns are not present in map. The map is created as return value and not used internally.
    */
-  Map<String, Integer> getCustomColumnIndexes(final JPAEntityType entity) {
+  Map<String, Integer> getCustomColumnIndexes(final JPAEntityType<?> entity) {
     final Map<String, ColumnConfiguration> configs = mapEntityType2ColumnConfiguration.get(determineSheetKeyName(
         entity));
     if (configs == null) {
@@ -282,7 +282,7 @@ public class Configuration {
     return result;
   }
 
-  private static String determineSheetKeyName(final JPAEntityType entity) {
+  private static String determineSheetKeyName(final JPAEntityType<?> entity) {
     return entity.getExternalName();
   }
 

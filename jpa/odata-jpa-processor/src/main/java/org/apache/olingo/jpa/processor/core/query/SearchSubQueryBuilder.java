@@ -56,7 +56,7 @@ class SearchSubQueryBuilder extends AbstractSubQueryBuilder {
     }
     try {
       boolean attributesWithSearchableAnnotationFound = true;
-      final JPAStructuredType jpaEntityType = getOwningQueryBuilder().getQueryResultType();
+      final JPAStructuredType<?> jpaEntityType = getOwningQueryBuilder().getQueryResultType();
       List<JPASelector> searchableAttributes = jpaEntityType.getSearchablePath();
       if (searchableAttributes.isEmpty()) {
         LOG.log(Level.WARNING, "Entity " + jpaEntityType.getExternalName() + " has not attributes marked with @"

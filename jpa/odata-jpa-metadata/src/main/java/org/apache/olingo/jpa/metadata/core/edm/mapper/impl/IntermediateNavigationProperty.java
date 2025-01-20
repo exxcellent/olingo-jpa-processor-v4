@@ -66,8 +66,8 @@ IntermediateNavigationPropertyAccess {
   private final Attribute<?, ?> jpaAttribute;
   private CsdlNavigationProperty edmNaviProperty;
   private CsdlOnDelete edmOnDelete;
-  private final AbstractStructuredTypeJPA<?, ?> sourceType;
-  private AbstractStructuredTypeJPA<?, ?> targetType;
+  private final AbstractStructuredTypeJPA<?, ?, ?> sourceType;
+  private AbstractStructuredTypeJPA<?, ?, ?> targetType;
   private final IntermediateServiceDocument serviceDocument;
   private final JPAAttributeAccessor accessor;
   private JoinConfiguration joinConfiguration = null;
@@ -75,7 +75,7 @@ IntermediateNavigationPropertyAccess {
   private JPAAssociationAttribute bidirectionalOppositeAssociation = null;
   private final Class<?> attributeClass;
 
-  IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final AbstractStructuredTypeJPA<?, ?> parent,
+  IntermediateNavigationProperty(final JPAEdmNameBuilder nameBuilder, final AbstractStructuredTypeJPA<?, ?, ?> parent,
       final Attribute<?, ?> jpaAttribute,
       final IntermediateServiceDocument serviceDocument) {
     super(nameBuilder, jpaAttribute.getName());
@@ -128,7 +128,7 @@ IntermediateNavigationPropertyAccess {
   }
 
   @Override
-  public JPAStructuredType getStructuredType() {
+  public JPAStructuredType<?> getStructuredType() {
     try {
       return getTargetEntity();
     } catch (final ODataJPAModelException e) {
@@ -137,7 +137,7 @@ IntermediateNavigationPropertyAccess {
   }
 
   @Override
-  public JPAStructuredType getTargetEntity() throws ODataJPAModelException {
+  public JPAStructuredType<?> getTargetEntity() throws ODataJPAModelException {
     lazyBuildEdmItem();
     return targetType;
   }
@@ -223,7 +223,7 @@ IntermediateNavigationPropertyAccess {
     try {
       initStateEdm = InitializationState.InProgress;
 
-      targetType = (AbstractStructuredTypeJPA<?, ?>) serviceDocument.getStructuredType(attributeClass);
+      targetType = (AbstractStructuredTypeJPA<?, ?, ?>) serviceDocument.getStructuredType(attributeClass);
       if (targetType == null) {
         LOG.log(Level.SEVERE, "Target of navigation property (" + sourceType.getInternalName() + "#"
             + getInternalName() + ") couldn't be found, navigation to target entity is not possible!!");
@@ -328,8 +328,8 @@ IntermediateNavigationPropertyAccess {
 
 
   private static JoinConfiguration buildJoinConfiguration(final Attribute<?, ?> sourceJpaAttribute,
-      final String mappedBy, final AbstractStructuredTypeJPA<?, ?> sourceType,
-      final AbstractStructuredTypeJPA<?, ?> targetType)
+      final String mappedBy, final AbstractStructuredTypeJPA<?, ?, ?> sourceType,
+      final AbstractStructuredTypeJPA<?, ?, ?> targetType)
           throws ODataJPAModelException {
     final String relationshipLabel = sourceType.getInternalName().concat("#").concat(sourceJpaAttribute.getName());
     final AnnotatedElement annotatedElement = determineRealPropertyDeclarationElement(sourceJpaAttribute);
@@ -388,8 +388,8 @@ IntermediateNavigationPropertyAccess {
   }
 
   private static void handleJoinColumnsMappedByOfTarget(final JoinConfiguration joinConfiguration,
-      final Attribute<?, ?> oppositeJpaAttribute, final AbstractStructuredTypeJPA<?, ?> oppositeType,
-      final AbstractStructuredTypeJPA<?, ?> originalRelationshipStartingType) throws ODataJPAModelException {
+      final Attribute<?, ?> oppositeJpaAttribute, final AbstractStructuredTypeJPA<?, ?, ?> oppositeType,
+      final AbstractStructuredTypeJPA<?, ?, ?> originalRelationshipStartingType) throws ODataJPAModelException {
 
     // take all informations from the other end of relationship (switch source and
     // target)
@@ -644,7 +644,7 @@ IntermediateNavigationPropertyAccess {
    * set
    */
   private static Collection<IntermediateJoinColumn> buildDefaultKeyBasedJoinColumns(
-      final String relationshipName, final AbstractStructuredTypeJPA<?, ?> targetType)
+      final String relationshipName, final AbstractStructuredTypeJPA<?, ?, ?> targetType)
           throws ODataJPAModelException {
     final List<JPAMemberAttribute> targetKeyAttributes = targetType.getKeyAttributes(true);
     final List<IntermediateJoinColumn> joinColumns = new ArrayList<>(targetKeyAttributes.size());

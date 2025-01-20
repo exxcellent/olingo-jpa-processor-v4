@@ -22,7 +22,7 @@ public interface FilterContextQueryBuilderIfc {
    *
    * @return The query {@link #getQueryResultFrom() result} entity type (selection from the last joined table).
    */
-  public JPAEntityType getQueryResultType();
+  public JPAEntityType<?> getQueryResultType();
 
   /**
    *

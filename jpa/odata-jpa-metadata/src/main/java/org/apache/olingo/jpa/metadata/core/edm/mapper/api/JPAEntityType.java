@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.olingo.jpa.metadata.core.edm.entity.DataAccessConditioner;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-public interface JPAEntityType extends JPAStructuredType {
+public interface JPAEntityType<T> extends JPAStructuredType<T> {
 
   /**
    *
@@ -28,7 +28,7 @@ public interface JPAEntityType extends JPAStructuredType {
    *
    * @return The data access handler or <code>null</code> if not defined.
    */
-  public DataAccessConditioner<?> getDataAccessConditioner();
+  public DataAccessConditioner<T> getDataAccessConditioner();
 
   /**
    *

@@ -1,6 +1,7 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.impl;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,15 +27,15 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Oliver Grande
  *
  */
-class IntermediateEntityTypeJPA extends AbstractStructuredTypeJPA<EntityType<?>, CsdlEntityType> implements
-JPAEntityType {
+class IntermediateEntityTypeJPA<X> extends AbstractStructuredTypeJPA<X, EntityType<X>, CsdlEntityType> implements
+JPAEntityType<X> {
 
   private CsdlEntityType csdlEntityType;
   private boolean hasEtag = false;
-  private final DataAccessConditioner<?> dac;
+  private final DataAccessConditioner<X> dac;
   private final String entitySetName;
 
-  IntermediateEntityTypeJPA(final JPAEdmNameBuilder nameBuilder, final EntityType<?> et,
+  IntermediateEntityTypeJPA(final JPAEdmNameBuilder nameBuilder, final EntityType<X> et,
       final IntermediateServiceDocument serviceDocument)
           throws ODataJPAModelException {
     super(determineEntityNameBuilder(nameBuilder, et.getJavaType()), et, serviceDocument);
@@ -45,6 +46,12 @@ JPAEntityType {
     }
     dac = buildDataAccessConditionerInstance(et.getJavaType());
     entitySetName = determineEntitySetName(et.getJavaType());
+    this.setOpenType(determineIsOpenType(et.getJavaType()));
+  }
+
+  private boolean determineIsOpenType(final Class<?> entityClass) {
+    final ODataEntity entityAnnotation = entityClass.getAnnotation(ODataEntity.class);
+    return entityAnnotation != null && entityAnnotation.openType();
   }
 
   private String determineEntitySetName(final Class<?> entityClass) {
@@ -69,18 +76,19 @@ JPAEntityType {
     return new JPAEdmNameBuilder(nameBuilderDefault.getNamespace(), entityAnnotation.attributeNaming());
   }
 
-  private DataAccessConditioner<?> buildDataAccessConditionerInstance(final Class<?> entityClass) throws ODataJPAModelException {
+  private DataAccessConditioner<X> buildDataAccessConditionerInstance(final Class<X> entityClass) throws ODataJPAModelException {
     final ODataEntity entityAnnotation = entityClass.getAnnotation(ODataEntity.class);
     if (entityAnnotation == null) {
       return null;
     }
-    final Class<? extends DataAccessConditioner<?>> handlerClass = entityAnnotation.handlerDataAccessConditioner();
+    @SuppressWarnings("unchecked")
+    final Class<? extends DataAccessConditioner<X>> handlerClass = (Class<? extends DataAccessConditioner<X>>) entityAnnotation.handlerDataAccessConditioner();
     if (handlerClass == null || ODataEntity.DEFAULT.class.equals(handlerClass)) {
       return null;
     }
     try {
-      return handlerClass.newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
+      return handlerClass.getConstructor().newInstance();
+    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INNER_EXCEPTION, e);
     }
   }
@@ -91,7 +99,7 @@ JPAEntityType {
   }
 
   @Override
-  public DataAccessConditioner<?> getDataAccessConditioner() {
+  public DataAccessConditioner<X> getDataAccessConditioner() {
     return dac;
   }
 

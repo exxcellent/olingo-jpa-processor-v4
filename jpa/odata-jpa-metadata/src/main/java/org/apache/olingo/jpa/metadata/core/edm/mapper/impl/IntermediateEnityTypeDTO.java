@@ -23,13 +23,13 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType> implements JPAEntityType {
+class IntermediateEnityTypeDTO<T> extends AbstractStructuredTypeDTO<T, CsdlEntityType> implements JPAEntityType<T> {
 
-  private final Class<?> dtoType;
+  private final Class<T> dtoType;
   private final String entitySetName;
   private CsdlEntityType edmEntityType = null;
 
-  public IntermediateEnityTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<?> dtoType,
+  public IntermediateEnityTypeDTO(final JPAEdmNameBuilder nameBuilder, final Class<T> dtoType,
       final IntermediateServiceDocument serviceDocument) throws ODataJPAModelException {
     super(determineDTONameBuilder(nameBuilder, dtoType), dtoType.getName(), determineAbstract(dtoType), false,
         serviceDocument);
@@ -97,22 +97,22 @@ class IntermediateEnityTypeDTO extends AbstractStructuredTypeDTO<CsdlEntityType>
   }
 
   @Override
-  protected AbstractStructuredType<?> getBaseType() throws ODataJPAModelException {
+  protected AbstractStructuredType<?, ?> getBaseType() throws ODataJPAModelException {
     final Class<?> baseType = dtoType.getSuperclass();
     if (baseType == null) {
       return null;
     }
-    return (AbstractStructuredType<?>) getServiceDocument().getEntityType(baseType);
+    return (AbstractStructuredType<?, ?>) getServiceDocument().getEntityType(baseType);
   }
 
   @Override
-  public Class<?> getTypeClass() {
+  public Class<T> getTypeClass() {
     return dtoType;
   }
 
 
   @Override
-  public final DataAccessConditioner<?> getDataAccessConditioner() {
+  public final DataAccessConditioner<T> getDataAccessConditioner() {
     return null;
   }
 

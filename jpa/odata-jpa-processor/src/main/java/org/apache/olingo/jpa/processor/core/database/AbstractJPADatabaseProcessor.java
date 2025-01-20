@@ -407,7 +407,7 @@ public abstract class AbstractJPADatabaseProcessor implements JPAODataDatabasePr
 
   @Override
   public List<?> executeFunctionQuery(final UriResourceFunction uriResourceFunction, final JPAFunction jpaFunction,
-      final JPAEntityType returnType, final EntityManager em) throws ODataApplicationException {
+      final JPAEntityType<?> returnType, final EntityManager em) throws ODataApplicationException {
 
     final String queryString = generateQueryString(jpaFunction);
     final Query functionQuery = em.createNativeQuery(queryString, returnType.getTypeClass());
