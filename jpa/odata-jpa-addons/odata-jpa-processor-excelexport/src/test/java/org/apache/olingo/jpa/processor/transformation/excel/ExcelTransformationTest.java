@@ -33,8 +33,6 @@ import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.serializer.RepresentationType;
-import org.apache.olingo.server.api.serializer.SerializerException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -267,15 +265,6 @@ public class ExcelTransformationTest extends TestBase {
         new QueryEntityResult2ExcelODataResponseContentTransformation();
     assertTrue(transformation.getInputType() == QueryEntityResult.class);
     assertTrue(transformation.getOutputType() == ODataResponseContent.class);
-    // identical transformation
-    assertTrue(transformation.createSubTransformation(QueryEntityResult.class) == transformation);
-  }
-
-  @Test
-  public void testUnsupportedTransfromation() throws IOException, ODataException {
-    final QueryEntityResult2ExcelODataResponseContentTransformation transformation =
-        new QueryEntityResult2ExcelODataResponseContentTransformation();
-    Assertions.assertThrows(SerializerException.class, () -> transformation.createSubTransformation(Class.class));
   }
 
   private void createData(final int number) {

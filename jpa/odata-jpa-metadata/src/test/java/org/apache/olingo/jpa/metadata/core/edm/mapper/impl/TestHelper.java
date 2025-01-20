@@ -56,19 +56,19 @@ public class TestHelper {
     return null;
   }
 
-  public JPAEntityType getJPAEntityType(final String entitySetName) throws ODataJPAModelException {
+  public JPAEntityType<?> getJPAEntityType(final String entitySetName) throws ODataJPAModelException {
     return serviceDocument.getEntityType(entitySetName);
   }
 
   public JPAAssociationPath getJPAAssociationPath(final String entitySetName, final String attributeExtName)
       throws ODataJPAModelException {
-    final JPAEntityType jpaEntity = serviceDocument.getEntityType(entitySetName);
+    final JPAEntityType<?> jpaEntity = serviceDocument.getEntityType(entitySetName);
     return jpaEntity.getAssociationPath(attributeExtName);
   }
 
   public JPAAssociationAttribute getJPAAssociation(final String entitySetName, final String attributeIntName)
       throws ODataJPAModelException {
-    final JPAEntityType jpaEntity = serviceDocument.getEntityType(entitySetName);
+    final JPAEntityType<?> jpaEntity = serviceDocument.getEntityType(entitySetName);
     for (final JPAAssociationAttribute attribute : jpaEntity.getAssociations()) {
       if (attribute.getInternalName().equals(attributeIntName)) {
         return attribute;

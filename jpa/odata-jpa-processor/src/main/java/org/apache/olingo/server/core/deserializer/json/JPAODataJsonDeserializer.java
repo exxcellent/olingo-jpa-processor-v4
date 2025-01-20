@@ -656,7 +656,7 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
       removeAnnotations((ObjectNode) jsonNode);
     }
 
-    // custom code part after removing of meta data annotation fields
+    // INFO: custom code part after removing of meta data annotation fields
     readDynamicProperties(type, value, jsonNode);
 
     // Afterwards the node must be empty
@@ -666,6 +666,7 @@ public class JPAODataJsonDeserializer extends ODataJsonDeserializer implements O
   }
 
   /**
+   * INFO: new code part
    * Custom method to handle dynamic properties.
    */
   protected void readDynamicProperties(final EdmType type, final ComplexValue result, final JsonNode jsonNode)

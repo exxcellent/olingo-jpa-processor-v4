@@ -6,11 +6,13 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 /**
  * External view on an Intermediate Structured Type.
+ * 
+ * @param <T> The type class
  *
  * @author Oliver Grande
  *
  */
-public interface JPAStructuredType extends JPAElement {
+public interface JPAStructuredType<T> extends JPAElement {
 
   public boolean isAbstract();
 
@@ -100,7 +102,7 @@ public interface JPAStructuredType extends JPAElement {
    */
   public List<JPASelector> getPathList() throws ODataJPAModelException;
 
-  public <T> Class<T> getTypeClass();
+  public Class<T> getTypeClass();
 
   /**
    * Returns a resolved list of all attributes that are marked as Id.

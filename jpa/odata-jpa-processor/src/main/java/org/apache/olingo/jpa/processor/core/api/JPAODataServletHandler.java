@@ -192,7 +192,7 @@ public class JPAODataServletHandler {
    * Set or replace the security inceptor. A <code>null</code> parameter will
    * disable security constraints.
    */
-  public void setSecurityInceptor(final SecurityInceptor securityInceptor) {
+  public final void setSecurityInceptor(final SecurityInceptor securityInceptor) {
     this.securityInceptor = securityInceptor;
   }
 

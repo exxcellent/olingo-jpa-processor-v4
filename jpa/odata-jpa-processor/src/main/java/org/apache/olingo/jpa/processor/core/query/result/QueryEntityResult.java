@@ -20,7 +20,7 @@ public final class QueryEntityResult extends AbstractEntityQueryResult {
   private final List<Tuple> resultValues;
   private final Collection<String> requestedResultAttributes;
 
-  public QueryEntityResult(final List<Tuple> result, final JPAEntityType jpaEntityType) {
+  public QueryEntityResult(final List<Tuple> result, final JPAEntityType<?> jpaEntityType) {
     this(result, null, jpaEntityType);
   }
 
@@ -31,7 +31,7 @@ public final class QueryEntityResult extends AbstractEntityQueryResult {
    * returned result list to that columns... like for Excel export.
    */
   public QueryEntityResult(final List<Tuple> result, final Collection<String> requestedResultAttributes,
-      final JPAEntityType jpaEntityType) {
+      final JPAEntityType<?> jpaEntityType) {
     super(jpaEntityType);
     assert result != null;
     this.resultValues = result;

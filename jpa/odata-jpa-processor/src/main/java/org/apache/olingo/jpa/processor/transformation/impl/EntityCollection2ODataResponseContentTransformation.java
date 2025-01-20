@@ -8,6 +8,8 @@ import org.apache.olingo.jpa.processor.core.exception.ODataJPASerializerExceptio
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializeCollection;
 import org.apache.olingo.jpa.processor.core.serializer.JPASerializer;
 import org.apache.olingo.jpa.processor.transformation.Transformation;
+import org.apache.olingo.jpa.processor.transformation.TransformationContextRequirement;
+import org.apache.olingo.jpa.processor.transformation.TransformationDeclaration;
 import org.apache.olingo.jpa.processor.transformation.impl.ODataResponseContent.ContentState;
 import org.apache.olingo.server.api.ODataRequest;
 import org.apache.olingo.server.api.serializer.RepresentationType;
@@ -18,6 +20,16 @@ import org.apache.olingo.server.api.uri.UriInfoResource;
 public class EntityCollection2ODataResponseContentTransformation implements
     Transformation<EntityCollection, ODataResponseContent> {
 
+  public final static TransformationDeclaration<EntityCollection, ODataResponseContent> DEFAULT_DECLARATION =
+	      new TransformationDeclaration<>(
+	    		  EntityCollection.class, ODataResponseContent.class, 
+	    		  new TransformationContextRequirement(JPAODataGlobalContext.class),
+	    		  new TransformationContextRequirement(RepresentationType.class),
+	    		  new TransformationContextRequirement(ContentType.class),	    		  
+	    		  new TransformationContextRequirement(UriInfoResource.class),
+	    		  new TransformationContextRequirement(ODataRequest.class)
+    		  );
+	
   @Inject
   private JPAODataGlobalContext globalContext;
   @Inject
@@ -28,7 +40,7 @@ public class EntityCollection2ODataResponseContentTransformation implements
   private UriInfoResource uriResource;
   @Inject
   private ODataRequest odataRequest;
-
+  
   @Override
   public Class<EntityCollection> getInputType() {
     return EntityCollection.class;
@@ -61,7 +73,7 @@ public class EntityCollection2ODataResponseContentTransformation implements
       throw new IllegalStateException("Dependency injection not working: " + ODataRequest.class.getSimpleName()
           + " expected");
     }
-
+    
     final JPASerializer serializer = createSerializer();
     try {
       final SerializerResult sResult = serializer.serialize(odataRequest, entityCollection);
@@ -70,16 +82,6 @@ public class EntityCollection2ODataResponseContentTransformation implements
     } catch (final ODataJPASerializerException e) {
       throw new SerializerException("Problem while serialization", e, SerializerException.MessageKeys.IO_EXCEPTION);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <I> Transformation<I, ODataResponseContent> createSubTransformation(final Class<I> newStart)
-      throws SerializerException {
-    if (newStart.isAssignableFrom(getInputType())) {
-      return (Transformation<I, ODataResponseContent>) this;
-    }
-    throw new SerializerException("No sub transformation possible", SerializerException.MessageKeys.UNSUPPORTED_FORMAT);
   }
 
   private JPASerializer createSerializer() throws SerializerException {
