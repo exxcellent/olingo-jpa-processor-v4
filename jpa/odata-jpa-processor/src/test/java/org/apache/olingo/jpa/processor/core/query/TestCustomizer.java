@@ -1,12 +1,12 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.time.chrono.IsoEra;
-import java.util.List;
+import java.util.Arrays;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -148,13 +148,13 @@ public class TestCustomizer extends TestBase {
           pComplexNested.setName("By"); //the property is not dynamic -> use existing property name, but type is already known
           pComplexNested.setValue(ValueType.PRIMITIVE, propertyValueComplexBy);
           cNew.getValue().add(pComplexNested);
-          pNewComplex.setValue(ValueType.COLLECTION_COMPLEX, List.of(cNew));
+          pNewComplex.setValue(ValueType.COLLECTION_COMPLEX, Arrays.asList(cNew));
           e.addProperty(pNewComplex);
 
           Property pNewPrimitive = new Property();
           pNewPrimitive.setName(propertyNameToAddPrimitive);
           pNewPrimitive.setType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName().getFullQualifiedNameAsString());
-          pNewPrimitive.setValue(ValueType.COLLECTION_PRIMITIVE, List.of(Integer.valueOf(4), Integer.valueOf(2)));
+          pNewPrimitive.setValue(ValueType.COLLECTION_PRIMITIVE, Arrays.asList(Integer.valueOf(4), Integer.valueOf(2)));
           e.addProperty(pNewPrimitive);
                     
           Property pNewGeospatial = new Property();

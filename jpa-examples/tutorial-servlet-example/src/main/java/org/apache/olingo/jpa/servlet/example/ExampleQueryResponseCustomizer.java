@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.servlet.example;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.apache.olingo.commons.api.data.ComplexValue;
@@ -25,7 +25,7 @@ public class ExampleQueryResponseCustomizer implements QueryResponseCustomizer {
         pComplexNested.setName("By"); //the property is not dynamic -> use existing property name, but type is already known
         pComplexNested.setValue(ValueType.PRIMITIVE, UUID.randomUUID().toString());
         cNew.getValue().add(pComplexNested);
-        pNewComplex.setValue(ValueType.COMPLEX, List.of(cNew));
+        pNewComplex.setValue(ValueType.COMPLEX, Arrays.asList(cNew));
         p.addProperty(pNewComplex);
       });
     }

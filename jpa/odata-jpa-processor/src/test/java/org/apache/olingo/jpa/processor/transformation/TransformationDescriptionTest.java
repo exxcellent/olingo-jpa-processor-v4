@@ -1,8 +1,8 @@
 package org.apache.olingo.jpa.processor.transformation;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
@@ -134,6 +133,6 @@ public class TransformationDescriptionTest {
     final TransformationDeclaration<Object, Object> d5 = new TransformationDeclaration<>( Object.class, Object.class, new TransformationContextRequirement(Integer.class, Integer.valueOf(123)));
     TransformationDeclaration<?, ?> mergedDeclaration = ChainTransformationBuilder.createDeclaration(d1, d2, d3, d4, d5);
     assertEquals(2, mergedDeclaration.getRequirements().size());
-    assertTrue(Objects.equals(mergedDeclaration.getRequirements().get(0).getAlternatives(), List.of("a", "b", "c")));
+    assertTrue(Objects.equals(mergedDeclaration.getRequirements().get(0).getAlternatives(), Arrays.asList("a", "b", "c")));
   }
 }

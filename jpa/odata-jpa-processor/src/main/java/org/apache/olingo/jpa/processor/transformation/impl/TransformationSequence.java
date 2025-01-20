@@ -9,7 +9,7 @@ import org.apache.olingo.jpa.processor.transformation.Transformation;
 import org.apache.olingo.jpa.processor.transformation.TransformationChain;
 import org.apache.olingo.server.api.serializer.SerializerException;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 
 /**
  * Helper class to combine two ore more transformations in a chained sequence.

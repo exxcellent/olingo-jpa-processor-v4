@@ -3,7 +3,7 @@ package org.apache.olingo.jpa.processor.transformation;
 import org.apache.olingo.jpa.processor.transformation.impl.TransformationSequence;
 import org.apache.olingo.server.api.serializer.SerializerException;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 
 /**
  * Every implementing class must have an default constructor.

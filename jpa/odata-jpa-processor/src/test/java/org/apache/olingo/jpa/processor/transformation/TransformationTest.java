@@ -1,8 +1,10 @@
 package org.apache.olingo.jpa.processor.transformation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+
+import javax.validation.constraints.NotNull;
 
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
@@ -11,9 +13,7 @@ import org.apache.olingo.jpa.processor.transformation.impl.EntityCollection2ODat
 import org.apache.olingo.jpa.processor.transformation.impl.ODataResponseContent;
 import org.apache.olingo.jpa.processor.transformation.impl.QueryEntityResult2EntityCollectionTransformation;
 import org.apache.olingo.server.api.serializer.SerializerException;
-import org.junit.jupiter.api.Test;
-
-import jakarta.validation.constraints.NotNull;
+import org.junit.Test;
 
 public class TransformationTest {
 

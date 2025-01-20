@@ -81,7 +81,7 @@ public class JPAODataJsonSerializer extends ODataJsonSerializer {
 
   private static EdmProperty createDynamicEdmProperty(ServiceMetadata metadata, EdmStructuredType type, Property property) throws SerializerException {
     final String sType = property.getType();
-    if(property.getValueType() == null || sType == null || sType.isBlank()) {
+    if(property.getValueType() == null || sType == null || sType.isEmpty()) {
       //fallback to old behavior also compatible with de-serializer
       return ODataFactory.createDynamicEdmProperty(type, property.getName());
     }

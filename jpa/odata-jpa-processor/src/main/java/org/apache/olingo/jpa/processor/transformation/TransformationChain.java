@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 
 /**
  * A chain defines a sequence of one or more transformations.
