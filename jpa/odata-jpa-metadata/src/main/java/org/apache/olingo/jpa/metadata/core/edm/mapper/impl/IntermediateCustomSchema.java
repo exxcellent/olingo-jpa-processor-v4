@@ -69,10 +69,6 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     return new ArrayList<JPAComplexType>(complexTypes.values());
   }
 
-  IntermediateEnityTypeDTO getDTOType(final Class<?> targetClass) {
-    return dtoTypes.get(getNameBuilder().buildDTOTypeName(targetClass));
-  }
-
   protected final void lazyBuildEdmItem() throws ODataJPAModelException {
     if (edmSchema != null) {
       return;
@@ -129,21 +125,20 @@ class IntermediateCustomSchema extends AbstractJPASchema {
    * The map may be part of an schema (namespace), but as representation for {@link java.util.Map} the related namespace
    * should be used.
    */
-  IntermediateMapComplexTypeDTO createDynamicMapType(final Class<?> mapKeyType, final Class<?> mapValueType,
+  <Y> IntermediateMapComplexTypeDTO<Y> createDynamicMapType(final Class<Y> mapValueType,
       final boolean valueIsCollection) throws ODataJPAModelException {
-    final String simpleName = Map.class.getSimpleName() + "{" + Integer.toString(++dtCount) + "}";
-    if (complexTypes.containsKey(simpleName))
+    final String dtName = Map.class.getSimpleName() + "Type{" + Integer.toString(++dtCount) + "}";
+    if (complexTypes.containsKey(dtName))
     {
       throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
     }
     // define a Map DTO type... the map will have no attributes (mostly EdmUntyped), because all attributes are dynamic.
-    final IntermediateMapComplexTypeDTO mapType = new IntermediateMapComplexTypeDTO(getNameBuilder(), simpleName,
-        mapKeyType, mapValueType,
+    final IntermediateMapComplexTypeDTO<Y> mapType = new IntermediateMapComplexTypeDTO<>(getNameBuilder(), dtName, mapValueType,
         valueIsCollection, serviceDocument);
     if (!mapWarningAlreadyLogged) {
       mapWarningAlreadyLogged = true;
-      LOGGER.info("The type " + Map.class.getCanonicalName()
-          + " was created as complex open type. Open types are not supported by Olingo's (de)serializer, so a custom (de)serializer by OData-JPA-Adapter must be used. There is only JSON supported!");
+      LOGGER.info("The type " + dtName
+          + " was created as complex (open) type. Open types are not supported by Olingo's (de)serializer, so a custom (de)serializer by OData-JPA-Adapter must be used. There is only JSON supported!");
     }
     complexTypes.put(mapType.getExternalName(), mapType);
     // force rebuild
@@ -167,13 +162,13 @@ class IntermediateCustomSchema extends AbstractJPASchema {
     return complexType;
   }
 
-  IntermediateEnityTypeDTO findOrCreateDTOType(final Class<?> clazz) throws ODataJPAModelException {
+  <X> IntermediateEnityTypeDTO<X> findOrCreateDTOEntityType(final Class<X> clazz) throws ODataJPAModelException {
     final String namespace = clazz.getPackage().getName();
     if (!namespace.equalsIgnoreCase(getInternalName())) {
       throw new ODataJPAModelException(MessageKeys.GENERAL);
     }
 
-    IntermediateEnityTypeDTO dtoType = getDTOType(clazz);
+    IntermediateEnityTypeDTO<X> dtoType = (IntermediateEnityTypeDTO<X>)getEntityType(clazz);
     if (dtoType == null) {
       dtoType = new IntermediateEnityTypeDTO(getNameBuilder(), clazz, serviceDocument);
       dtoTypes.put(dtoType.getExternalName(), dtoType);

@@ -64,8 +64,16 @@ public interface JPAAdapter {
    * @see org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO
    *      annotation
    */
-  public Collection<Class<?>> getDTOs();
+  public Collection<Class<?>> getDTOEntityTypes();
 
+  /**
+   * @return An empty, non empty or <code>null</code> collection of non persistent
+   *         (non JPA) POJOs classes to handle as OData complex types.
+   * @see org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType @ODataComplexType
+   *      annotation
+   */
+  public Collection<Class<?>> getDTOComplexTypes();
+  
   /**
    *
    * @return The implementor knowing the database specific SQL dialect to

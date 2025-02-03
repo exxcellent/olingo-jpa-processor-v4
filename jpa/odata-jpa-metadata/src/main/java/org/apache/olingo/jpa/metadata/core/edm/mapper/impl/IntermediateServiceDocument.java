@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.metamodel.Metamodel;
-
 import org.apache.olingo.commons.api.edm.EdmAction;
 import org.apache.olingo.commons.api.edm.EdmFunction;
 import org.apache.olingo.commons.api.edm.EdmType;
@@ -16,13 +14,14 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
-import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAElement;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntitySet;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAFunction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException.MessageKeys;
+
+import javax.persistence.metamodel.Metamodel;
 
 /*
  * http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/schemas/edmx.xsd
@@ -33,6 +32,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @see org.apache.olingo.client.api.data.ServiceDocument
  */
 public class IntermediateServiceDocument {
+  private final static String DYNAMICTYPE_NAMESPACE = "odata.dynamic";
   private final Object lock = new Object();
   private final Map<String, AbstractJPASchema> schemaListInternalKey = new HashMap<>();
   private boolean dependendSchemaCreationRequired = false;
@@ -208,8 +208,8 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  JPAEntityType getEntityType(final Class<?> targetClass) {
-    JPAEntityType entityType;
+  <X> JPAEntityType<X> getEntityType(final Class<X> targetClass) {
+    JPAEntityType<X> entityType;
     if (Object.class.equals(targetClass)) {
       return null;
     }
@@ -239,8 +239,8 @@ public class IntermediateServiceDocument {
     return null;
   }
 
-  JPAStructuredType getComplexType(final Class<?> targetClass) {
-    JPAStructuredType complexType;
+  <X> JPAStructuredType<X> getComplexType(final Class<X> targetClass) {
+    JPAStructuredType<X> complexType;
     if (Object.class.equals(targetClass)) {
       return null;
     }
@@ -293,15 +293,13 @@ public class IntermediateServiceDocument {
    *
    * @see IntermediateCustomSchema#createDynamicMapType(Class, Class, boolean)
    */
-  IntermediateMapComplexTypeDTO createDynamicJavaUtilMapType(final Class<?> mapKeyType,
-      final Class<?> mapValueType, final boolean valueIsCollection) throws ODataJPAModelException {
-    final String namespace = Map.class.getPackage().getName();
-    final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);
+  <X, Y> IntermediateMapComplexTypeDTO<Y> createDynamicJavaUtilMapType(final Class<Y> mapValueType, final boolean valueIsCollection) throws ODataJPAModelException {
+    final AbstractJPASchema schema = findOrCreateCustomSchema(DYNAMICTYPE_NAMESPACE);
     // Map type is created on-demand while creating other DTO types, so we have to avoid to reset the container
-    return ((IntermediateCustomSchema) schema).createDynamicMapType(mapKeyType, mapValueType, valueIsCollection);
+    return ((IntermediateCustomSchema) schema).createDynamicMapType(mapValueType, valueIsCollection);
   }
 
-  AbstractIntermediateComplexTypeDTO findOrCreateDTOComplexType(final Class<?> clazz) throws ODataJPAModelException {
+  <T> AbstractIntermediateComplexTypeDTO<T> findOrCreateDTOComplexType(final Class<T> clazz) throws ODataJPAModelException {
     // the same class could be register as @Embeddable via JPA in another namespace... we accept that currently
     synchronized (lock) {
       final String namespace = clazz.getPackage().getName();
@@ -310,7 +308,7 @@ public class IntermediateServiceDocument {
     }
   }
 
-  public IntermediateEnityTypeDTO createDTOType(final Class<?> clazz) throws ODataJPAModelException {
+  public <T> IntermediateEnityTypeDTO<T> createDTOEntityType(final Class<T> clazz) throws ODataJPAModelException {
     synchronized (lock) {
       if (clazz == null) {
         throw new ODataJPAModelException(MessageKeys.GENERAL);
@@ -321,13 +319,38 @@ public class IntermediateServiceDocument {
         // DTO's can be defined only in custom schemas
         throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
       }
+      if(((IntermediateCustomSchema) schema).getEntityType(clazz) != null) {
+        //already existing
+        throw new ODataJPAModelException(MessageKeys.GENERAL);
+      }
       // this will affect the number of entity set's so we have to refresh the container
       intermediateContainer.reset();
-      return ((IntermediateCustomSchema) schema).findOrCreateDTOType(clazz);
+      return ((IntermediateCustomSchema) schema).findOrCreateDTOEntityType(clazz);
     }
   }
 
-  public JPAElement getEntitySet(final JPAEntityType entityType) throws ODataJPAModelException {
+  public <T> AbstractIntermediateComplexTypeDTO<T> createDTOComplexType(final Class<T> clazz) throws ODataJPAModelException {
+    synchronized (lock) {
+      if (clazz == null) {
+        throw new ODataJPAModelException(MessageKeys.GENERAL);
+      }
+      final String namespace = clazz.getPackage().getName();
+      final AbstractJPASchema schema = findOrCreateCustomSchema(namespace);
+      if (!IntermediateCustomSchema.class.isInstance(schema)) {
+        // DTO's can be defined only in custom schemas
+        throw new ODataJPAModelException(MessageKeys.RUNTIME_PROBLEM);
+      }
+      if(((IntermediateCustomSchema) schema).getComplexType(clazz) != null) {
+        //already existing
+        throw new ODataJPAModelException(MessageKeys.GENERAL);
+      }
+      // this will affect the number of entity set's so we have to refresh the container
+      intermediateContainer.reset();
+      return ((IntermediateCustomSchema) schema).findOrCreateDTOComplexType(clazz);
+    }
+  }
+  
+  public JPAEntitySet getEntitySet(final JPAEntityType<?> entityType) throws ODataJPAModelException {
     synchronized (lock) {
       resolveSchemas();
       for (final AbstractJPASchema schema : schemaListInternalKey.values()) {

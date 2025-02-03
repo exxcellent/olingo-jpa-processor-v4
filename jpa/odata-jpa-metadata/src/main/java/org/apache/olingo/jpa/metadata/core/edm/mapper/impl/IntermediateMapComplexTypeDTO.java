@@ -18,20 +18,15 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAParameterizedElemen
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-class IntermediateMapComplexTypeDTO extends AbstractIntermediateComplexTypeDTO implements JPADynamicPropertyContainer {
+class IntermediateMapComplexTypeDTO<Y> extends AbstractIntermediateComplexTypeDTO<Map<String, Y>> implements JPADynamicPropertyContainer {
   final private EdmPrimitiveTypeKind mapValueKind;
   final private DynamicJPAParameterizedElement dynamicProperty;
 
-  public IntermediateMapComplexTypeDTO(final JPAEdmNameBuilder nameBuilder, final String typeName,
-      final Class<?> mapKeyType, final Class<?> mapValueType, final boolean valueIsCollection,
+  public IntermediateMapComplexTypeDTO(final JPAEdmNameBuilder nameBuilder, final String typeName, final Class<Y> mapValueType, final boolean valueIsCollection,
       final IntermediateServiceDocument serviceDocument)
           throws ODataJPAModelException {
     super(nameBuilder, typeName, true, true, serviceDocument);
     this.setExternalName(typeName);
-    if (!String.class.isAssignableFrom(mapKeyType)) {
-      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
-          "Map key parameter " + mapKeyType.getTypeName() + " must be a String");
-    }
     try {
       // provoke exception for not simple types
       this.mapValueKind = TypeMapping.convertToEdmSimpleType(mapValueType);
@@ -52,9 +47,10 @@ class IntermediateMapComplexTypeDTO extends AbstractIntermediateComplexTypeDTO i
     dynamicProperty.setAnnotatedElement(element);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public Class<?> getTypeClass() {
-    return Map.class;
+  public Class<Map<String, Y>> getTypeClass() {
+    return (Class<Map<String,Y>>)(Class<?>) Map.class;
   }
 
   @Override

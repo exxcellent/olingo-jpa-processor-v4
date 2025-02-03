@@ -47,7 +47,8 @@ class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataG
     di.registerDependencyMapping(JPAEdmProvider.class, jpaEdm);
     di.registerDependencyMapping(JPAODataGlobalContext.class, this);
 
-    registerDTOs();
+    registerDTOEntityTypes();
+    registerDTOComplexTypes();
   }
 
   void dispose() {
@@ -61,18 +62,30 @@ class JPAODataGlobalContextImpl extends AbstractContextImpl implements JPAODataG
     return serverDebugger;
   }
 
-  private void registerDTOs() throws ODataJPAModelException {
-    final Collection<Class<?>> dtos = mappingAdapter.getDTOs();
+  private void registerDTOEntityTypes() throws ODataJPAModelException {
+    final Collection<Class<?>> dtos = mappingAdapter.getDTOEntityTypes();
     if (dtos == null || dtos.isEmpty()) {
       return;
     }
 
     final IntermediateServiceDocument sd = jpaEdm.getServiceDocument();
     for (final Class<?> dtoClass : dtos) {
-      sd.createDTOType(dtoClass);
+      sd.createDTOEntityType(dtoClass);
     }
   }
 
+  private void registerDTOComplexTypes() throws ODataJPAModelException {
+    final Collection<Class<?>> cts = mappingAdapter.getDTOComplexTypes();
+    if (cts == null || cts.isEmpty()) {
+      return;
+    }
+
+    final IntermediateServiceDocument sd = jpaEdm.getServiceDocument();
+    for (final Class<?> ctClass : cts) {
+      sd.createDTOComplexType(ctClass);
+    }
+  }
+  
   @Override
   public OData getOdata() {
     if (disposed) {

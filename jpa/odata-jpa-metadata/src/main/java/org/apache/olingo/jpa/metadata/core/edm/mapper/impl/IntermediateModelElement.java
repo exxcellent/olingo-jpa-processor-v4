@@ -160,9 +160,8 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
     final Class<?> typeClass = TypeMapping.determineClassType(collectionUnwrappedType);
     if (Map.class.isAssignableFrom(typeClass)) {
       // map as dynamic type?
-      final Triple<Class<?>, Class<?>, Boolean> typeInfo = checkMapTypeArgumentsMustBeSimple(type, typeOwnerName);
-      final IntermediateMapComplexTypeDTO jpaMapType = serviceDocument.createDynamicJavaUtilMapType(typeInfo
-          .getLeft(), typeInfo.getMiddle(), typeInfo.getRight().booleanValue());
+      final Triple<Class<String>, Class<?>, Boolean> typeInfo = checkMapTypeArgumentsMustBeSimple(type, typeOwnerName);
+      final IntermediateMapComplexTypeDTO<?> jpaMapType = serviceDocument.createDynamicJavaUtilMapType(typeInfo.getMiddle(), typeInfo.getRight().booleanValue());
       jpaMapType.setAnnotatedElement(typeOwner);
       return jpaMapType.getExternalFQN();
     } else if (typeClass.getAnnotation(ODataDTO.class) != null || isTargetingJPA(serviceDocument, typeClass)) {
@@ -202,7 +201,8 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
     return schema.getStructuredType(typeClass) != null;
   }
 
-  static Triple<Class<?>, Class<?>, Boolean> checkMapTypeArgumentsMustBeSimple(final Type theType,
+  @SuppressWarnings("unchecked")
+  static Triple<Class<String>, Class<?>, Boolean> checkMapTypeArgumentsMustBeSimple(final Type theType,
       final String elementNameForErrorMessages)
           throws ODataJPAModelException {
     if (!ParameterizedType.class.isInstance(theType)) {
@@ -216,11 +216,15 @@ abstract class IntermediateModelElement<CDSLType extends CsdlAbstractEdmItem> im
           "Map<x,y>, having two type arguments expected");
     }
     final Type keyType = extractTypeOfGenericType(typeArguments[0]);
+    if (!Class.class.isInstance(keyType) || !String.class.isAssignableFrom((Class<?>)keyType)) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER,
+          "Map key parameter " + keyType.getTypeName() + " must be a String");
+    }
     final Type valueType = extractTypeOfGenericType(typeArguments[1]);
     final boolean isCollection = Class.class.isInstance(typeArguments[1]) && Collection.class.isAssignableFrom(
         Class.class.cast(typeArguments[1])) || ParameterizedType.class.isInstance(typeArguments[1]) && Collection.class
         .isAssignableFrom((Class<?>) ParameterizedType.class.cast(typeArguments[1]).getRawType());
-    return new Triple<Class<?>, Class<?>, Boolean>(Class.class.cast(keyType), Class.class.cast(valueType), Boolean
+    return new Triple<Class<String>, Class<?>, Boolean>(Class.class.cast(keyType), Class.class.cast(valueType), Boolean
         .valueOf(isCollection));
   }
 

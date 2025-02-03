@@ -6,11 +6,15 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.metamodel.Metamodel;
 
+import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
+import org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO;
 import org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.AbstractJPADatabaseProcessor;
 import org.apache.olingo.jpa.processor.core.database.JPA_DefaultDatabaseProcessor;
@@ -29,6 +33,7 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
   private final AbstractJPADatabaseProcessor dbAccessor;
   private final EntityManagerFactory emf;
   private final Set<Class<?>> dtos = new LinkedHashSet<>();
+  private final Set<Class<?>> cts = new LinkedHashSet<>();
 
   /**
    * Convenience constructor to use the {@link JPA_DefaultDatabaseProcessor} for database access.
@@ -93,22 +98,43 @@ public abstract class AbstractJPAAdapter implements JPAAdapter {
   }
 
   @Override
-  public Collection<Class<?>> getDTOs() {
+  public final Collection<Class<?>> getDTOEntityTypes() {
     return Collections.unmodifiableCollection(dtos);
   }
 
+  @Override
+  public final Collection<Class<?>> getDTOComplexTypes() {
+    return Collections.unmodifiableCollection(cts);
+  }
+  
   /**
-   *
    * @param dto The class must have the annotation
    * {@link org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO @ODataDTO}.
    */
-  public void registerDTO(final Class<?> dto) {
-    if (dto == null) {
+  public final void registerDTOEntityType(final Class<?> dto) {
+    if (dto == null || !dto.isAnnotationPresent(ODataDTO.class)) {
       throw new IllegalArgumentException("DTO class required");
+    }
+    if(dto.isAnnotationPresent(Entity.class) || dto.isAnnotationPresent(Embeddable.class)) {
+      throw new IllegalArgumentException("DTO must not be an @Entity or @Embeddable");
     }
     dtos.add(dto);
   }
 
+  /**
+   * @param ct The class must have the annotation
+   * {@link org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType @ODataComplexType}.
+   */
+  public final void registerDTOComplexType(final Class<?> ct) {
+    if (ct == null || !ct.isAnnotationPresent(ODataComplexType.class)) {
+      throw new IllegalArgumentException("ComplexType class required");
+    }
+    if(ct.isAnnotationPresent(Entity.class) || ct.isAnnotationPresent(Embeddable.class)) {
+      throw new IllegalArgumentException("ComplexType must not be an @Entity or @Embeddable");
+    }
+    cts.add(ct);
+  }
+  
   @Override
   public void dispose() {
     emf.close();

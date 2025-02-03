@@ -88,8 +88,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Before
   public void setup() throws ODataJPAModelException {
-    persistenceAdapter.registerDTO(DefaultResourceSecurityDto.class);
-    persistenceAdapter.registerDTO(ActionInResourceSecuredDto.class);
+    persistenceAdapter.registerDTOEntityType(DefaultResourceSecurityDto.class);
+    persistenceAdapter.registerDTOEntityType(ActionInResourceSecuredDto.class);
   }
 
   @Test
@@ -160,8 +160,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
 
   @Test
   public void testDTOUnsecureActionCall() throws IOException, ODataException, NoSuchMethodException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithNoSecurity");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
@@ -172,8 +172,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testDTOAuthenticatedActionCall() throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyAuthentication");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.setSecurityInceptor(new AnnotationBasedSecurityInceptor());
@@ -188,8 +188,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   public void testDTOAuthenticatedActionCallRejectedWithoutUser()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyAuthentication");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.UNAUTHORIZED.getStatusCode());
@@ -199,8 +199,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   public void testDTOAuthenticatedActionCallRejectedWrongRole()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyRole");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     final String userName = "abcUser";
@@ -211,8 +211,8 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
   @Test
   public void testDTOAuthenticatedActionCallAcceptRightRole()
       throws IOException, ODataException, NoSuchMethodException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithOnlyRole");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     final String userName = "superUser";
