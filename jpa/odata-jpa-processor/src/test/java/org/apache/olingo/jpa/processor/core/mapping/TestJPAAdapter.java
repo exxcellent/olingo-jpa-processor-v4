@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.mapping;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.assertThrows;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,11 +21,10 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.metamodel.Metamodel;
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Metamodel;
 
 public class TestJPAAdapter extends TestBase {
 
@@ -85,7 +84,7 @@ public class TestJPAAdapter extends TestBase {
     final EvilJPAAdapter myPersistenceAdapter = new EvilJPAAdapter();
     myPersistenceAdapter.dtos.add(TestDTOs.class);
     // must throw an exception on further processing
-    Assertions.assertThrows(ODataJPAModelException.class, () -> {
+    assertThrows(ODataJPAModelException.class, () -> {
       final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
       final ServerCallSimulator helper = new ServerCallSimulator(myPersistenceAdapter, uriBuilder);
       helper.execute(HttpStatusCode.OK.getStatusCode());

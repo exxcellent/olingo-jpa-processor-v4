@@ -59,4 +59,11 @@ public @interface ODataEntity {
    * Define the name of the entity set for this entity manually.
    */
   String edmEntitySetName() default "";
+
+  /**
+   * Mark the OData representation of entity as 'open type'. This is necessary for any entity getting additional
+   * properties from a {@link org.apache.olingo.jpa.processor.core.api.QueryResponseCustomizer QueryResponseCustomizer}
+   * to serialize that properties in the response.
+   */
+  boolean openType() default false;
 }

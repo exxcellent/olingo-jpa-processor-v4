@@ -1,13 +1,17 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.time.chrono.IsoEra;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Arrays;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.data.ComplexValue;
@@ -32,16 +36,11 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.RecordAsComplexType;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriResourceCount;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
 
 public class TestCustomizer extends TestBase {
 
@@ -171,7 +170,7 @@ public class TestCustomizer extends TestBase {
           Property pNewPrimitive = new Property();
           pNewPrimitive.setName(propertyNameToAddPrimitive);
           pNewPrimitive.setType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName().getFullQualifiedNameAsString());
-          pNewPrimitive.setValue(ValueType.COLLECTION_PRIMITIVE, List.of(Integer.valueOf(4), Integer.valueOf(2)));
+          pNewPrimitive.setValue(ValueType.COLLECTION_PRIMITIVE, Arrays.asList(Integer.valueOf(4), Integer.valueOf(2)));
           e.addProperty(pNewPrimitive);
                     
           Property pNewGeospatial = new Property();

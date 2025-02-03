@@ -21,7 +21,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
  * @author Ralf Zozmann
  *
  */
-abstract class AbstractStructuredTypeDTO<CsdlType extends CsdlStructuralType> extends AbstractStructuredType<CsdlType> {
+abstract class AbstractStructuredTypeDTO<X, CsdlType extends CsdlStructuralType> extends AbstractStructuredType<X, CsdlType> {
 
   private final IntermediateServiceDocument serviceDocument;
   private final boolean isAbstract;

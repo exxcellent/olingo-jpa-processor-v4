@@ -19,10 +19,10 @@ public abstract class AbstractEntityQueryResult {
 
   private final Map<JPAAssociationPath, ExpandQueryEntityResult> resultRelationshipTargets = new HashMap<>();
   private final Map<JPAAttribute<?>, QueryElementCollectionResult> resultElementCollectionTargets = new HashMap<>();
-  private final JPAEntityType jpaEntityType;
+  private final JPAEntityType<?> jpaEntityType;
   private Integer count = null;
 
-  protected AbstractEntityQueryResult(final JPAEntityType jpaEntityType) {
+  protected AbstractEntityQueryResult(final JPAEntityType<?> jpaEntityType) {
     super();
     assert jpaEntityType != null;
     this.jpaEntityType = jpaEntityType;
@@ -61,7 +61,7 @@ public abstract class AbstractEntityQueryResult {
     return resultElementCollectionTargets;
   }
 
-  public final JPAEntityType getEntityType() {
+  public final JPAEntityType<?> getEntityType() {
     return jpaEntityType;
   }
 

@@ -22,10 +22,11 @@ jobs:
       - name: Create code coverage report
         run: mvn clean verify -Duse-eclipselink -Ddisable.jetty=false -Dmaven.source.skip -Dmaven.javadoc.skip
       - name: Archive code coverage results for download
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
           path: code-coverage-report/target/jacoco-aggregate-ut/jacoco.xml
+          overwrite: true
       - name: Upload code coverage report
         uses: codecov/codecov-action@v5
         with:

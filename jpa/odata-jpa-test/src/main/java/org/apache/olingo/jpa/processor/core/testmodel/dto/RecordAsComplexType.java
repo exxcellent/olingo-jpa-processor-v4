@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType;
 
 @ODataComplexType
-public record RecordAsComplexType(String By, Map<String, String> parameters) {
-
+public class RecordAsComplexType {
+  String By;
+  Map<String, String> parameters;
 }

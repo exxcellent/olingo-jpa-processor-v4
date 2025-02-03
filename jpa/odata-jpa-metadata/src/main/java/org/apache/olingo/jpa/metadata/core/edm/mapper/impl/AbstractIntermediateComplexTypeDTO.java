@@ -7,8 +7,8 @@ import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-abstract class AbstractIntermediateComplexTypeDTO extends AbstractStructuredTypeDTO<CsdlComplexType> implements
-JPAComplexType {
+abstract class AbstractIntermediateComplexTypeDTO<X> extends AbstractStructuredTypeDTO<X, CsdlComplexType> implements
+JPAComplexType<X> {
 
   private CsdlComplexType edmComplexType;
 

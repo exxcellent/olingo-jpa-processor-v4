@@ -22,8 +22,8 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
-abstract class AbstractStructuredType<CsdlType extends CsdlStructuralType> extends IntermediateModelElement<CsdlType>
-implements JPAStructuredType {
+abstract class AbstractStructuredType<X, CsdlType extends CsdlStructuralType> extends IntermediateModelElement<CsdlType>
+implements JPAStructuredType<X> {
 
   protected final static Logger LOG = Logger.getLogger(AbstractStructuredType.class.getName());
 
@@ -182,7 +182,7 @@ implements JPAStructuredType {
         return associationPathMap.get(externalName);
       }
     }
-    final JPAStructuredType baseType = getBaseType();
+    final JPAStructuredType<?> baseType = getBaseType();
     if (baseType != null) {
       return baseType.getDeclaredAssociation(externalName);
     }
@@ -254,7 +254,7 @@ implements JPAStructuredType {
 
   final protected FullQualifiedName determineBaseType() throws ODataJPAModelException {
 
-    final JPAStructuredType baseEntity = getBaseType();
+    final JPAStructuredType<?> baseEntity = getBaseType();
     if (baseEntity != null && !baseEntity.isAbstract() && isAbstract()) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INHERITANCE_NOT_ALLOWED,
           this.getInternalName(), baseEntity.getInternalName());
@@ -262,7 +262,7 @@ implements JPAStructuredType {
     return baseEntity != null ? baseEntity.getExternalFQN() : null;
   }
 
-  abstract protected JPAStructuredType getBaseType() throws ODataJPAModelException;
+  abstract protected JPAStructuredType<?> getBaseType() throws ODataJPAModelException;
 
   @Override
   final public List<JPAAssociationAttribute> getAssociations() throws ODataJPAModelException {
@@ -274,7 +274,7 @@ implements JPAStructuredType {
         jpaAttributes.add(property);
       }
     }
-    final JPAStructuredType baseType = getBaseType();
+    final JPAStructuredType<?> baseType = getBaseType();
     if (baseType != null) {
       jpaAttributes.addAll(baseType.getAssociations());
     }
@@ -285,6 +285,7 @@ implements JPAStructuredType {
    * Internal method to access also {@link IntermediateProperty#ignore() ignored}
    * properties.
    */
+  @SuppressWarnings("unchecked")
   final JPAMemberAttribute getPropertyByDBField(final String dbFieldName) throws ODataJPAModelException {
     initializeType();
     for (final String internalName : declaredPropertiesList.keySet()) {
@@ -295,7 +296,7 @@ implements JPAStructuredType {
     }
     if (getBaseType() != null) {
       // TODO: base class must be a JPA type, so we can cast... but has a bad smell
-      return ((AbstractStructuredType<?>) getBaseType()).getPropertyByDBField(dbFieldName);
+      return ((AbstractStructuredType<X, ?>) getBaseType()).getPropertyByDBField(dbFieldName);
     }
     return null;
   }
@@ -329,7 +330,7 @@ implements JPAStructuredType {
         if (attributePath.getPathElements().size() == 1) {
           // Only direct attributes
           final JPAAttribute<?> property = attributePath.getLeaf();
-          final AbstractStructuredType<?> nestedComplexType = (AbstractStructuredType<?>) property
+          final AbstractStructuredType<?, ?> nestedComplexType = (AbstractStructuredType<?, ?>) property
               .getStructuredType();
           // the 'nested complex type' is in the DB handled by same table (of me), so we
           // have to build association paths
@@ -363,7 +364,7 @@ implements JPAStructuredType {
         // for @EmbeddedId also
         complexAttributePathMap.put(property.getExternalName(),
             new JPAPathImpl(property.getExternalName(), null, property));
-        final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((AbstractStructuredType<?>) property
+        final Map<String, JPAPathImpl> nestedComplexAttributePathMap = ((AbstractStructuredType<?, ?>) property
             .getStructuredType()).getComplexAttributePathMap();
         for (final Entry<String, JPAPathImpl> entry : nestedComplexAttributePathMap.entrySet()) {
           externalName = entry.getKey();
@@ -375,7 +376,7 @@ implements JPAStructuredType {
         }
 
         // add the (simple) properties of complex type as path to this type
-        final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((AbstractStructuredType<?>) property
+        final Map<String, JPAPathImpl> nestedSimpleAttributePathMap = ((AbstractStructuredType<?, ?>) property
             .getStructuredType()).getSimpleAttributePathMap();
         JPAPathImpl newPath;
         for (final Entry<String, JPAPathImpl> entry : nestedSimpleAttributePathMap.entrySet()) {
@@ -397,7 +398,7 @@ implements JPAStructuredType {
       }
     }
     // TODO: base class must be a JPA type, so we can cast... but has a bad smell
-    final AbstractStructuredType<?> baseType = (AbstractStructuredType<?>) getBaseType();
+    final AbstractStructuredType<?, ?> baseType = (AbstractStructuredType<?, ?>) getBaseType();
     if (baseType != null) {
       simpleAttributePathMap.putAll(baseType.getSimpleAttributePathMap());
       complexAttributePathMap.putAll(baseType.getComplexAttributePathMap());
@@ -420,7 +421,7 @@ implements JPAStructuredType {
     }
     if (this.getBaseType() != null) {
       // TODO: base class must be a JPA type, so we can cast... but has a bad smell
-      final JPAMemberAttribute superResult = ((AbstractStructuredType<?>) getBaseType())
+      final JPAMemberAttribute superResult = ((AbstractStructuredType<?, ?>) getBaseType())
           .getStreamProperty();
       if (superResult != null) {
         count += 1;

@@ -57,7 +57,7 @@ class IntermediateProperty extends AbstractProperty<CsdlProperty> implements JPA
   protected final Attribute<?, ?> jpaAttribute;
   protected final IntermediateServiceDocument serviceDocument;
   protected CsdlProperty edmProperty;
-  private JPAStructuredType type = null;
+  private JPAStructuredType<?> type = null;
   private String dbFieldName;
   private boolean searchable;
   private boolean isVersion = false;
@@ -112,7 +112,7 @@ class IntermediateProperty extends AbstractProperty<CsdlProperty> implements JPA
   }
 
   @Override
-  public JPAStructuredType getStructuredType() {
+  public JPAStructuredType<?> getStructuredType() {
     return type;
   }
 

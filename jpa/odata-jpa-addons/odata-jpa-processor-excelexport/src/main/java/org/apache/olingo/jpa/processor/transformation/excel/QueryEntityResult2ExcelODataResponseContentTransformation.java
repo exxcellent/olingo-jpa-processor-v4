@@ -57,17 +57,6 @@ Transformation<QueryEntityResult, ODataResponseContent> {
     return ODataResponseContent.class;
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public <I> Transformation<I, ODataResponseContent> createSubTransformation(final Class<I> newStart)
-      throws SerializerException {
-    if (newStart.isAssignableFrom(getInputType())) {
-      return (Transformation<I, ODataResponseContent>) this;
-    }
-    throw new SerializerException("Sub transformation not supported",
-        SerializerException.MessageKeys.UNSUPPORTED_FORMAT);
-  }
-
   @Override
   public final ODataResponseContent transform(final QueryEntityResult input) throws SerializerException {
     if (!input.getExpandChildren().isEmpty()) {

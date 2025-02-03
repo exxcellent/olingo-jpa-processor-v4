@@ -184,7 +184,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       cq.groupBy(createGroupBy(allSelectionPaths));
     }
 
-    involveCustomizer();// as last before querying
+    involveQueryCustomizer();// as last before querying
 
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
     if (hasQueryLimits()) {
@@ -287,7 +287,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     return groupBy;
   }
 
-  private final PathSelectors buildEntityPathList(final JPAEntityType jpaEntity)
+  private final PathSelectors buildEntityPathList(final JPAEntityType<?> jpaEntity)
       throws ODataApplicationException {
 
     try {
@@ -301,7 +301,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
   protected final PathSelectors buildSelectionPathList(final UriInfoResource uriResource)
       throws ODataApplicationException {
-    final JPAEntityType jpaEntityType = getQueryEndType();
+    final JPAEntityType<?> jpaEntityType = getQueryEndType();
     // TODO It is also possible to request all actions or functions available for each returned entity:
     // http://host/service/Products?$select=DemoService.*
 
@@ -351,7 +351,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
   }
 
-  private PathSelectors buildPathValue(final JPAEntityType jpaEntity, final String select)
+  private PathSelectors buildPathValue(final JPAEntityType<?> jpaEntity, final String select)
       throws ODataApplicationException {
 
     String selectString;
@@ -373,14 +373,14 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     }
   }
 
-  private PathSelectors buildPathList(final JPAEntityType jpaEntity, final String select)
+  private PathSelectors buildPathList(final JPAEntityType<?> jpaEntity, final String select)
       throws ODataApplicationException {
 
     final String[] selectList = select.split(SELECT_ITEM_SEPERATOR); // OData separator for $select
     return buildPathList(jpaEntity, selectList);
   }
 
-  private PathSelectors buildPathList(final JPAEntityType jpaEntity, final String[] selectList)
+  private PathSelectors buildPathList(final JPAEntityType<?> jpaEntity, final String[] selectList)
       throws ODataApplicationException {
 
     final PathSelectors paths = new PathSelectors();
@@ -448,13 +448,13 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final List<Order> orders = new ArrayList<Order>();
     if (orderByOption != null) {
       final CriteriaBuilder cb = getCriteriaBuilder();
-      final JPAEntityType jpaEntityType = getQueryEndType();
+      final JPAEntityType<?> jpaEntityType = getQueryEndType();
 
       for (final OrderByItem orderByItem : orderByOption.getOrders()) {
         final Expression expression = orderByItem.getExpression();
         if (expression instanceof Member) {
           final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
-          JPAStructuredType type = jpaEntityType;
+          JPAStructuredType<?> type = jpaEntityType;
           Path<?> p = joinTables.get(jpaEntityType.getInternalName());
           assert p != null;
           for (final UriResource uriResource : resourcePath.getUriResourceParts()) {

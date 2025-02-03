@@ -119,7 +119,7 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
 
   private Expression<?>[] createAggregationSelect() throws ODataApplicationException {
     final List<Expression<? extends Number>> selects = new ArrayList<>(aggregateExpressions.size());
-    final JPAEntityType targetType = getQueryEndType();
+    final JPAEntityType<?> targetType = getQueryEndType();
     final FilterQueryBuilderContext filterContext = new FilterQueryBuilderContext(targetType, getQueryEndFrom());
     final JPAODataDatabaseProcessor dbProcessor = getContext().getDatabaseProcessor();
 
@@ -175,7 +175,7 @@ public class EntityAggregationQueryBuilder extends AbstractCriteriaQueryBuilder<
       cq.where(whereClause);
     }
 
-    involveCustomizer();// as last before querying
+    involveQueryCustomizer();// as last before querying
 
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
 

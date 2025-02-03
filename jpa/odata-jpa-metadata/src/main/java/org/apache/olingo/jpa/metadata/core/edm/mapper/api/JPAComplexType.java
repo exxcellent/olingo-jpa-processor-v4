@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.metadata.core.edm.mapper.api;
 
-public interface JPAComplexType extends JPAStructuredType {
+public interface JPAComplexType<T> extends JPAStructuredType<T> {
   /**
    * Identifier of annotation term, the qualifier will contain the type.<br/>
    * Annotation value will be one of the simple types as defined in

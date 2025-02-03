@@ -109,7 +109,7 @@ class IntermediatePropertyDTOField extends AbstractProperty<CsdlProperty> implem
   }
 
   @Override
-  public JPAStructuredType getStructuredType() {
+  public JPAStructuredType<?> getStructuredType() {
     try {
       return serviceDocument.getStructuredType(initializePropertyType());
     } catch (final ODataJPAModelException e) {

@@ -10,7 +10,7 @@ public interface JPAAttribute<CDSLType extends CsdlAbstractEdmItem> extends JPAE
    * @return The type of the attribute represented by the intermediate api or <code>null</code> of not an structured or
    * complex type.
    */
-  public JPAStructuredType getStructuredType();
+  public JPAStructuredType<?> getStructuredType();
 
   /**
    *
