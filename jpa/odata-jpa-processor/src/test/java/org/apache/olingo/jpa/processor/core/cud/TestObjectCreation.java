@@ -32,8 +32,8 @@ public class TestObjectCreation extends TestBase {
 
   @BeforeEach
   public void setup() throws ODataJPAModelException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
   }
 
   @Disabled("Keys are currently not forbidden, because OData<->JPA conversion is also used for internal loading (bound actions for example)")

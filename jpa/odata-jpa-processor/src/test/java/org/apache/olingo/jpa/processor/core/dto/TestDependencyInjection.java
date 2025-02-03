@@ -98,7 +98,7 @@ public class TestDependencyInjection extends TestBase {
 
   @BeforeEach
   public void setup() throws ODataJPAModelException {
-    persistenceAdapter.registerDTO(Dto.class);
+    persistenceAdapter.registerDTOEntityType(Dto.class);
   }
 
   @Test

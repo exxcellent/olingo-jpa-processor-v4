@@ -202,8 +202,8 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testUnboundVoidAction() throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("unboundVoidAction");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null,
@@ -216,7 +216,7 @@ public class TestJPAActions extends TestBase {
   public void testUnboundEntityActionWithoutComplexTypesAndAssociations()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(ActionDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionDTO.class);
 
     final String testId = "3";
     final StringBuffer requestBody = new StringBuffer("{");
@@ -243,8 +243,8 @@ public class TestJPAActions extends TestBase {
   public void testUnboundEntityActionWithComplexTypesAndAssociations()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(ActionDTO.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(ActionDTO.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final StringBuffer requestBody = new StringBuffer("{");
     final String testId = "5";
@@ -336,8 +336,8 @@ public class TestJPAActions extends TestBase {
   public void testActionThrowingCustomHttpStatusErrorCode()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("throwODataApplicationException");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter,
@@ -452,8 +452,8 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testUnboundActionWithPrimitiveCollectionResult() throws IOException, ODataException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithPrimitiveCollectionResult");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null,
@@ -465,8 +465,8 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testActionWithDTOResultCollection() throws IOException, ODataException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilderFillAction = newUriBuilder().appendActionCallSegment("fillDTOWithNestedComplexType");
     final ServerCallSimulator helperFillAction = new ServerCallSimulator(persistenceAdapter, uriBuilderFillAction, null, HttpMethod.POST);
@@ -593,7 +593,7 @@ public class TestJPAActions extends TestBase {
   @Test
   public void testNestedStructureTransferBackendToFrontend() throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(NestedStructureWithoutId.class);
+    persistenceAdapter.registerDTOEntityType(NestedStructureWithoutId.class);
 
     StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"numberOfLevels\": 4");
@@ -621,7 +621,7 @@ public class TestJPAActions extends TestBase {
   public void testUnboundEntityActionWithDTOCollectionParameter()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(ActionDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionDTO.class);
 
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"params\": [");
@@ -644,7 +644,7 @@ public class TestJPAActions extends TestBase {
   public void testUnboundEntityActionWithEntityCollectionParameter()
       throws IOException, ODataException, NoSuchMethodException {
 
-    persistenceAdapter.registerDTO(ActionDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionDTO.class);
 
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"params\": [");
@@ -682,7 +682,7 @@ public class TestJPAActions extends TestBase {
   public void testNestedStructureWithoutIdAndMetadataUsingOlingoSerialization() throws IOException, ODataException, NoSuchMethodException,
   URISyntaxException {
 
-    persistenceAdapter.registerDTO(NestedStructureWithoutId.class);
+    persistenceAdapter.registerDTOEntityType(NestedStructureWithoutId.class);
 
     // produce server side content
     StringBuffer requestBody = new StringBuffer("{");
@@ -725,8 +725,8 @@ public class TestJPAActions extends TestBase {
   NoSuchMethodException,
   URISyntaxException {
 
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     // produce server side content
     URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("fillDTOWithNestedComplexType");
@@ -946,7 +946,7 @@ public class TestJPAActions extends TestBase {
   public void testNestedStructureWithIdUsingOlingoSerialization() throws IOException, ODataException,
   NoSuchMethodException, URISyntaxException {
 
-    persistenceAdapter.registerDTO(NestedStructureWithId.class);
+    persistenceAdapter.registerDTOEntityType(NestedStructureWithId.class);
 
     // produce server side content
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createNestedStructureWithShared");
@@ -968,7 +968,7 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testActionWithSingleComplexTypeResult() throws IOException, ODataException, SQLException {
-    persistenceAdapter.registerDTO(ActionWithComplexTypeResultDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionWithComplexTypeResultDTO.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("useComplexTypeAsActionSingleResult");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
@@ -979,7 +979,7 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testActionWithCollectionComplexTypeResult() throws IOException, ODataException, SQLException {
-    persistenceAdapter.registerDTO(ActionWithComplexTypeResultDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionWithComplexTypeResultDTO.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("useComplexTypeAsActionCollectionResult");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
@@ -990,8 +990,8 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testActionWithMapResult() throws IOException, ODataException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("actionWithMapResult");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
@@ -1002,7 +1002,7 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testActionWithFloatinPointParamsMetadata() throws IOException, ODataException {
-    persistenceAdapter.registerDTO(ActionDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionDTO.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
@@ -1045,7 +1045,7 @@ public class TestJPAActions extends TestBase {
 
   @Test
   public void testActionWithFloatinPointParams() throws IOException, ODataException {
-    persistenceAdapter.registerDTO(ActionDTO.class);
+    persistenceAdapter.registerDTOEntityType(ActionDTO.class);
 
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"" + ActionDTO.PARAM1_NAME + "\": 123.456,");

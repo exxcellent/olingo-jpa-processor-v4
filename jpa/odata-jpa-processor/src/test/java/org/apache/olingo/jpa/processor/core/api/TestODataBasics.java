@@ -24,8 +24,8 @@ public class TestODataBasics extends TestBase {
 
   @Test
   public void testMetadata() throws IOException, ODataException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
@@ -37,15 +37,15 @@ public class TestODataBasics extends TestBase {
     final ObjectNode metadadataJson = helper.getJsonObjectValue();
     // check the presence of a few additional name spaces...
     assertNotNull(metadadataJson.get(EnvironmentInfo.class.getPackage().getName()));
-    assertNotNull(metadadataJson.get(Map.class.getPackage().getName()));
+    assertNotNull(metadadataJson.get("odata.dynamic"));//the name space of dynamic (open) data types (Map)
     assertNotNull(metadadataJson.get(TestEnum.class.getPackage().getName()));
     assertNotNull(metadadataJson.get(IsoEra.class.getPackage().getName()));
   }
 
   @Test
   public void testMetadataXML() throws IOException, ODataException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
@@ -55,7 +55,7 @@ public class TestODataBasics extends TestBase {
     final String metadataString = helper.getRawResult();
     assertNotNull(metadataString);
     assertTrue(metadataString.contains(
-        "ComplexType Name=\"Map{1}\" Abstract=\"true\" OpenType=\"true\""),
+        "ComplexType Name=\"MapType{1}\" Abstract=\"true\" OpenType=\"true\""),
         "EnvironmentInfo declares a Map, that must be present in meta data");
   }
 

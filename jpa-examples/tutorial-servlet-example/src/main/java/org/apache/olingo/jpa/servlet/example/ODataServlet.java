@@ -28,6 +28,7 @@ import org.apache.olingo.jpa.processor.core.mapping.AbstractJPAAdapter;
 import org.apache.olingo.jpa.processor.core.mapping.ResourceLocalPersistenceAdapter;
 import org.apache.olingo.jpa.processor.core.security.AnnotationBasedSecurityInceptor;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.RecordAsComplexType;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.apache.olingo.server.api.ODataResponse;
@@ -92,8 +93,9 @@ public class ODataServlet extends HttpServlet {
         org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME,
         elProperties,
         new JPA_DERBYDatabaseProcessor());
-    mappingAdapter.registerDTO(EnvironmentInfo.class);
-    mappingAdapter.registerDTO(SystemRequirement.class);
+    mappingAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    mappingAdapter.registerDTOEntityType(SystemRequirement.class);
+    mappingAdapter.registerDTOComplexType(RecordAsComplexType.class);
 
     final JPAODataServletHandler handler = new JPAODataServletHandler(mappingAdapter) {
 

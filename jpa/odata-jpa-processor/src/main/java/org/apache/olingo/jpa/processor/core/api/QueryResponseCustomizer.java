@@ -32,7 +32,7 @@ public interface QueryResponseCustomizer {
    * values. Entities (and also DTO's) cannot be used for dynamic properties. A complex type can be every
    * JPA @Embeddable or every other class annotated with
    * {@link org.apache.olingo.jpa.metadata.core.edm.complextype.ODataComplexType @ODataComplexType} and known to meta
-   * model via DTO registration in {@link org.apache.olingo.jpa.processor.core.mapping.JPAAdapter#getDTOs()
+   * model via registration in {@link org.apache.olingo.jpa.processor.core.mapping.JPAAdapter#getDTOComplexTypes()
    * JPAAdapter}. The complex type cannot have more dynamic properties, because it not markable as open type.</li>
    * <li>Add additional entities to collection: This should not happen as replacement for usage of
    * {@link org.apache.olingo.jpa.metadata.core.edm.dto.ODataDTO DTO}'s.</li>

@@ -11,7 +11,6 @@ import java.net.StandardProtocolFamily;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.zip.Deflater;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -30,10 +29,7 @@ import org.apache.olingo.jpa.processor.core.testmodel.dto.EnvironmentInfo;
 import org.apache.olingo.jpa.processor.core.testmodel.dto.sub.SystemRequirement;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
-import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapter;
 import org.apache.olingo.jpa.test.util.Constant;
-import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -78,12 +74,6 @@ public class TestDTOs extends TestBase {
     private String attribute2;
   }
 
-  @ODataDTO
-  public static class DtoWithInvalidComplexType {
-    @SuppressWarnings("unused")
-    private Deflater invalidComplexType;
-  }
-
   @ODataDTO(attributeNaming = NamingStrategy.AsIs)
   public static class DtoWithNestedComplexType {
     private final Collection<NestedComplexType> cts = new LinkedList<>();
@@ -119,23 +109,8 @@ public class TestDTOs extends TestBase {
 
   @BeforeEach
   public void setup() throws ODataJPAModelException {
-    persistenceAdapter.registerDTO(EnvironmentInfo.class);
-    persistenceAdapter.registerDTO(SystemRequirement.class);
-  }
-
-  @Test
-  public void testNonDTOThrowsError() throws IOException, ODataException, SQLException {
-    // create own instance to avoid pollution of other tests
-    final TestGenericJPAPersistenceAdapter myPersistenceAdapter = new TestGenericJPAPersistenceAdapter(
-        Constant.PUNIT_NAME,
-        DataSourceHelper.DatabaseType.HSQLDB);
-    myPersistenceAdapter.registerDTO(TestDTOs.class);
-    // must throw an exception on further processing
-    Assertions.assertThrows(ODataJPAModelException.class, () -> {
-      final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-      final ServerCallSimulator helper = new ServerCallSimulator(myPersistenceAdapter, uriBuilder);
-      helper.execute(HttpStatusCode.OK.getStatusCode());
-    });
+    persistenceAdapter.registerDTOEntityType(EnvironmentInfo.class);
+    persistenceAdapter.registerDTOEntityType(SystemRequirement.class);
   }
 
   @Test
@@ -190,7 +165,7 @@ public class TestDTOs extends TestBase {
 
   @Test
   public void testDTOWithEnumAttribute() throws IOException, ODataException, SQLException {
-    persistenceAdapter.registerDTO(EnumDto.class);
+    persistenceAdapter.registerDTOEntityType(EnumDto.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
@@ -200,7 +175,7 @@ public class TestDTOs extends TestBase {
 
   @Test
   public void testDTOWithInheritance() throws IOException, ODataException, SQLException {
-    persistenceAdapter.registerDTO(InheritanceDto.class);
+    persistenceAdapter.registerDTOEntityType(InheritanceDto.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("produceOne");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
@@ -212,30 +187,8 @@ public class TestDTOs extends TestBase {
   }
 
   @Test
-  public void testInvalidRegisteredDTOComplexType() throws ODataException, IOException {
-    // a DTO must have the @ODataDTO annotation
-    persistenceAdapter.registerDTO(NestedComplexType.class);
-    // trigger metamodel building and exception...
-    Assertions.assertThrows(ODataJPAModelException.class, () -> {
-      final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-      final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
-      helper.execute(HttpStatusCode.OK.getStatusCode());
-    });
-  }
-
-  @Test
-  public void testInvalidDTOComplexType() throws ODataException, IOException {
-    // a complex type must have the @ODataComplexType annotation
-    persistenceAdapter.registerDTO(DtoWithInvalidComplexType.class);
-    // trigger metamodel building and exception...
-    final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();
-    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.GET);
-    helper.execute(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
-  }
-
-  @Test
   public void testDTOWithNestedComplexType() throws IOException, ODataException, SQLException {
-    persistenceAdapter.registerDTO(DtoWithNestedComplexType.class);
+    persistenceAdapter.registerDTOEntityType(DtoWithNestedComplexType.class);
 
     final URIBuilder uriBuilder = newUriBuilder().appendActionCallSegment("createDtoWithNestedComplexType");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
@@ -273,7 +226,7 @@ public class TestDTOs extends TestBase {
 
   @Test
   public void testMixedEmbeddableComplexType() throws ODataException, IOException {
-    persistenceAdapter.registerDTO(DtoUsingMixedEmbeddableComplexType.class);
+    persistenceAdapter.registerDTOEntityType(DtoUsingMixedEmbeddableComplexType.class);
 
     // trigger metamodel building...
     final URIBuilder uriBuilder = newUriBuilder().appendMetadataSegment();

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.chrono.IsoEra;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
@@ -27,6 +28,7 @@ import org.apache.olingo.jpa.processor.core.api.QueryRequestCustomizer;
 import org.apache.olingo.jpa.processor.core.api.QueryResponseCustomizer;
 import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.jpa.processor.core.testmodel.Person;
+import org.apache.olingo.jpa.processor.core.testmodel.dto.RecordAsComplexType;
 import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriResourceCount;
@@ -122,6 +124,9 @@ public class TestCustomizer extends TestBase {
 
   @Test
   public void testResponseCustomizer() throws IOException, ODataException {
+    
+    persistenceAdapter.registerDTOComplexType(RecordAsComplexType.class);
+    
     final String propertyNameToRemove = "AdministrativeInformation";
     final String propertyNameToAddPrimitive = "ResponseModifiedAddedPropertyPrimitive";
     final String propertyNameToAddComplex = "ResponseModifiedAddedPropertyComplex";
@@ -140,16 +145,28 @@ public class TestCustomizer extends TestBase {
           e.getProperties().remove(pRemove);
           assertEquals(e.getProperties().size(), sizeBefore - 1);
           
-          Property pNewComplex = new Property();
-          pNewComplex.setName(propertyNameToAddComplex);
-          pNewComplex.setType("org.apache.olingo.jpa.ChangeInformation");
-          ComplexValue cNew =  new ComplexValue();
-          Property pComplexNested = new Property();
-          pComplexNested.setName("By"); //the property is not dynamic -> use existing property name, but type is already known
-          pComplexNested.setValue(ValueType.PRIMITIVE, propertyValueComplexBy);
-          cNew.getValue().add(pComplexNested);
-          pNewComplex.setValue(ValueType.COLLECTION_COMPLEX, List.of(cNew));
-          e.addProperty(pNewComplex);
+          Property pAdditionalRecordComplex = new Property();
+          pAdditionalRecordComplex.setName(propertyNameToAddComplex);
+          pAdditionalRecordComplex.setType(RecordAsComplexType.class.getName());
+          ComplexValue cvRecord =  new ComplexValue();
+          Property pRecordNestedBy = new Property();
+          pRecordNestedBy.setName("By"); //the property is not dynamic -> use existing property name, type is already known
+          pRecordNestedBy.setValue(ValueType.PRIMITIVE, propertyValueComplexBy);
+          cvRecord.getValue().add(pRecordNestedBy);
+          Property pRecordNestedParameters = new Property();
+          pRecordNestedParameters.setName("Parameters"); //the property is not dynamic -> but is open type
+          ComplexValue cvNestedParameters =  new ComplexValue();
+          pRecordNestedParameters.setValue(ValueType.COMPLEX, cvNestedParameters);
+          cvRecord.getValue().add(pRecordNestedParameters);
+          //simulate the map entries
+          for(int i=0;i<3;i++) {
+            Property pComplexNestedMapEntry = new Property();
+            pComplexNestedMapEntry.setName("K"+Integer.toString(i));
+            pComplexNestedMapEntry.setValue(ValueType.PRIMITIVE, "V"+Integer.toString(i));
+            cvNestedParameters.getValue().add(pComplexNestedMapEntry);
+          }          
+          pAdditionalRecordComplex.setValue(ValueType.COMPLEX, cvRecord);
+          e.addProperty(pAdditionalRecordComplex);
 
           Property pNewPrimitive = new Property();
           pNewPrimitive.setName(propertyNameToAddPrimitive);
@@ -187,15 +204,16 @@ public class TestCustomizer extends TestBase {
       JsonNode org = result.get(i);
       assertTrue( org.get(propertyNameToRemove).isNull());//null node (present, but without value)
       assertNotNull( org.get(propertyNameToAddPrimitive));
-      JsonNode nComplex = org.get(propertyNameToAddComplex); 
-      assertNotNull(nComplex);
-      assertTrue(nComplex.isArray());
-      ObjectNode cCI = (ObjectNode) ((ArrayNode)nComplex).get(0);
-      assertNotNull(cCI);
-      assertEquals("#org.apache.olingo.jpa.ChangeInformation", cCI.get("@odata.type").asText());
-      assertEquals(propertyValueComplexBy, cCI.get("By").asText());
       assertNotNull(org.get(propertyNameToAddEnum));
-      assertNotNull(org.get(propertyNameToAddGeospatial));
+      assertNotNull(org.get(propertyNameToAddGeospatial));      
+      JsonNode nComplexRecord = org.get(propertyNameToAddComplex); 
+      assertNotNull(nComplexRecord);
+      assertTrue(!nComplexRecord.isArray());
+      assertTrue(nComplexRecord.isObject());
+      assertEquals("#" + RecordAsComplexType.class.getName(), nComplexRecord.get("@odata.type").asText());
+      assertEquals(propertyValueComplexBy, nComplexRecord.get("By").asText());
+      ObjectNode pParameters = (ObjectNode) nComplexRecord.get("Parameters");
+      assertEquals("V1", pParameters.get("K1").asText());
     }
   }
 }

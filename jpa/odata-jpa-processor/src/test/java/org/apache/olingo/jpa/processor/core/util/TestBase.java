@@ -79,8 +79,8 @@ public abstract class TestBase {
    * Register a DTO class in meta model for later use. Must be called after {@link #setupTest()}.
    */
   @SuppressWarnings("unchecked")
-  protected <T extends JPAEntityType<?>> T registerDTO(final Class<?> dtoClass) throws ODataJPAModelException {
-    return (T) helper.getEdmProvider().getServiceDocument().createDTOType(dtoClass);
+  protected <T extends JPAEntityType<?>> T registerDTOEntity(final Class<?> dtoClass) throws ODataJPAModelException {
+    return (T) helper.getEdmProvider().getServiceDocument().createDTOEntityType(dtoClass);
   }
 
   protected JPAProvider getJPAProvider() {

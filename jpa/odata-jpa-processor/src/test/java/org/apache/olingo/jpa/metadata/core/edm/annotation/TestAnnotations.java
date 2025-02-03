@@ -30,7 +30,7 @@ public class TestAnnotations extends TestBase {
     assertEquals(EdmPrimitiveTypeKind.TimeOfDay, anno.odataType());
     assertEquals(EdmAttributeConversion.DEFAULT.class, anno.converter());
 
-    assertThrows(UnsupportedOperationException.class, () -> anno.converter().newInstance().convertToJPA(null));
+    assertThrows(UnsupportedOperationException.class, () -> anno.converter().getConstructor().newInstance().convertToJPA(null));
 
   }
 
@@ -42,7 +42,7 @@ public class TestAnnotations extends TestBase {
         DataSourceHelper.DatabaseType.H2);
     final JPAEdmProvider otherEdmProvider = new JPAEdmProvider(namespace, otherPersistenceAdapter.getMetamodel());
 
-    final JPAEntityType type = otherEdmProvider.getServiceDocument().getEntityType("GenericBusinessPartners");
+    final JPAEntityType<?> type = otherEdmProvider.getServiceDocument().getEntityType("GenericBusinessPartners");
     final DataAccessConditioner<?> dac = type.getDataAccessConditioner();
     assertEquals(GenericBusinessPartnerDataAccessConditioner.class, dac.getClass());
     AbstractGenericBusinessPartner.class.getAnnotation(ODataEntity.class);
