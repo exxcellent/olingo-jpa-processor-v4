@@ -84,7 +84,7 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
     // HANA does not work as expected on calculation views -> count only has the expected result if COUNT(*) or
     // COUNT(<with all distinct columns>) is used, but both is not possible with JPA 2.2
     final From<?, ?> targetFrom = getQueryEndFrom();
-    cq.select(getCriteriaBuilder().count(targetFrom));
+    cq.select(getCriteriaBuilder().countDistinct(targetFrom));
 
     final javax.persistence.criteria.Expression<Boolean> whereClause = createWhere();
     if (whereClause != null) {
