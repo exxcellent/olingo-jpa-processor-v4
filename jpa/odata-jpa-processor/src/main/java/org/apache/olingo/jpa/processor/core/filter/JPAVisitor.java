@@ -84,8 +84,12 @@ class JPAVisitor implements ExpressionVisitor<JPAExpressionElement<?>> {
     if (right.isEmpty()) {
       return visitBinaryOperator(operator, left, (JPAExpressionElement<?>) null);
     }
+    if(operator == BinaryOperatorKind.IN) {
+      //navigation will not work, but wee need a larger refactoring to support a list on one operator side and navigation on the other one
+      return new JPAInOperationImpl(this.filterProcessor, left, right);
+    }
     if (right.size() > 1) {
-      throw new UnsupportedOperationException("Multiple expressions on right side are currently not supported");
+      throw new UnsupportedOperationException("Multiple expressions on right side are currently only supported for IN");
     }
     return visitBinaryOperator(operator, left, right.get(0));
   }

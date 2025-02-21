@@ -41,7 +41,7 @@ abstract class AbstractMemberNavigation extends JPAExistsOperation {
    */
   abstract protected VisitableExpression buildResultingExpression(Member attribute);
 
-  private JPANavigationPath determineAssociationPath(final JPAEntityType parentType,
+  private JPANavigationPath determineAssociationPath(final JPAEntityType<?> parentType,
       final UriResourcePartTyped uriresource) throws ODataJPAModelException {
     if (uriresource instanceof UriResourceNavigation) {
       return parentType.getAssociationPath(((UriResourceNavigation) uriresource).getProperty().getName());
@@ -65,7 +65,7 @@ abstract class AbstractMemberNavigation extends JPAExistsOperation {
     final List<FilterSubQueryBuilder> queryList = new ArrayList<FilterSubQueryBuilder>();
 
     FilterSubQueryBuilder query;
-    JPAEntityType parentType = getQueryBuilder().getQueryResultType();
+    JPAEntityType<?> parentType = getQueryBuilder().getQueryResultType();
     for (int i = 0; i < navs.size(); i++) {
       final UriResourcePartTyped uriresource = navs.get(i);
       try {
