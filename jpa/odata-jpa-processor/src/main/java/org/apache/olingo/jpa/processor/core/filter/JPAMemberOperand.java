@@ -17,10 +17,10 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
 public class JPAMemberOperand<T> implements JPAExpression<T> {
   private final Member member;
-  private final JPAStructuredType jpaEntityType;
+  private final JPAStructuredType<?> jpaEntityType;
   private final From<?, ?> root;
 
-  JPAMemberOperand(final JPAStructuredType jpaEntityType, final From<?, ?> root, final Member member) {
+  JPAMemberOperand(final JPAStructuredType<?> jpaEntityType, final From<?, ?> root, final Member member) {
     super();
     this.member = member;
     this.jpaEntityType = jpaEntityType;

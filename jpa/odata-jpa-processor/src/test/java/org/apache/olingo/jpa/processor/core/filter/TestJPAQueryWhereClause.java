@@ -841,4 +841,25 @@ public class TestJPAQueryWhereClause extends TestBase {
     assertEquals(2, entities.size(), "With escaping only one result expected");
   }
 
+  @Test
+  public void testFilterStringIn() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Persons").filter(
+        "FirstName in ('John', 'Urs')");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode entities = helper.getJsonObjectValues();
+    assertEquals(2, entities.size());
+  }
+
+  @Test
+  public void testFilterIntIn() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(
+        "AIntegerYear in (12345, 0)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode entities = helper.getJsonObjectValues();
+    assertEquals(1, entities.size());
+  }
 }

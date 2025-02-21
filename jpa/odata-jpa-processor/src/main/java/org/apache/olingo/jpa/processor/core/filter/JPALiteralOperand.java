@@ -92,6 +92,7 @@ public class JPALiteralOperand implements JPAExpressionElement<Object> {
     return cb.literal(value);
   }
 
+  //TODO should return the Expression not the raw value
   @Override
   public Comparable get() throws ODataApplicationException {
     final JPAParameterizedElement typeInformation = new AnonymousSimpleTypeElement(null);
