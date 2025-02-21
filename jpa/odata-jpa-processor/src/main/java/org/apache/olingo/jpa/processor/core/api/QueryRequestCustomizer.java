@@ -27,6 +27,17 @@ public interface QueryRequestCustomizer {
    */
   public interface QueryCustomization {
 
+    public enum SelectionKind {
+      /**
+       * For query with COUNT, SUM, ...
+       */
+      AGGREGATION,
+      /**
+       * For normal queries selection columns in a table.
+       */
+      COLUMN
+    }
+    
     /**
      *
      * @return The currently used entity manager for query handling.
@@ -105,6 +116,8 @@ public interface QueryRequestCustomizer {
      * @return The currently defined selection of columns for result set, maybe <code>null</code>.
      */
     public <T> Selection<T> getSelection();
+    
+    public SelectionKind getSelectionKind();
   }
 
   /**
