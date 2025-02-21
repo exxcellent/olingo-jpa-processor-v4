@@ -81,8 +81,6 @@ public class EntityCountQueryBuilder extends AbstractCriteriaQueryBuilder<Criter
     final List<JPAAssociationAttribute> orderByNaviAttributes = extractOrderByNaviAttributes();
     /* final Map<String, From<?, ?>> resultsetAffectingTables = */ createFromClause(orderByNaviAttributes);
 
-    // HANA does not work as expected on calculation views -> count only has the expected result if COUNT(*) or
-    // COUNT(<with all distinct columns>) is used, but both is not possible with JPA 2.2
     final From<?, ?> targetFrom = getQueryEndFrom();
     //also for count queries we may have joins that will affect the number of result row, with COUNT(DISTINCT ...)
     //on the target table we can limit the result to the distinct key rows of target table
