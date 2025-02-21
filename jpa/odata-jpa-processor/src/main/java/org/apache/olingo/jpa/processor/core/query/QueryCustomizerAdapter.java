@@ -13,9 +13,17 @@ import jakarta.persistence.criteria.Subquery;
 public class QueryCustomizerAdapter<DT> implements QueryCustomization {
 
   private final AbstractCriteriaQueryBuilder<?, DT> caller;
+  private final SelectionKind kind;
 
   public QueryCustomizerAdapter(final AbstractCriteriaQueryBuilder<?, DT> caller) {
     this.caller = caller;
+    if(caller instanceof ElementCollectionQueryBuilder || caller instanceof EntityQueryBuilder) {
+      this.kind = SelectionKind.COLUMN;
+    } else if (caller instanceof EntityAggregationQueryBuilder || caller instanceof EntityCountQueryBuilder) {
+      this.kind = SelectionKind.AGGREGATION;      
+    } else {
+      throw new UnsupportedOperationException("Selection kind cannot be determined from unknown quer builder class "+caller.getClass().getSimpleName());
+    }
   }
 
   @Override
@@ -97,5 +105,10 @@ public class QueryCustomizerAdapter<DT> implements QueryCustomization {
   @Override
   public Selection<DT> getSelection() {
     return caller.getQuery().getSelection();
+  }
+  
+  @Override
+  public SelectionKind getSelectionKind() {
+    return kind;
   }
 }
