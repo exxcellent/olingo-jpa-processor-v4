@@ -70,7 +70,7 @@ public class TestAssociations extends AbstractTest {
   }
 
   @Test
-  public void getAdministrativeDivisionDescriptions() {
+  public void testAdministrativeDivisionDescriptions() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
@@ -90,7 +90,7 @@ public class TestAssociations extends AbstractTest {
   }
 
   @Test
-  public void getBuPaRoles() {
+  public void testBuPaRoles() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
@@ -102,7 +102,7 @@ public class TestAssociations extends AbstractTest {
   }
 
   @Test
-  public void getBuPaLocation() {
+  public void testBuPaLocation() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
@@ -113,22 +113,9 @@ public class TestAssociations extends AbstractTest {
     assertNotNull(act);
   }
 
-  @Disabled("This is simply a JPA provider test, but not an test for us... and it will not work in Hibernate")
-  @Test
-  public void getRoleBuPa() {
-    final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-    final Root<BusinessPartnerRole> root = cq.from(BusinessPartnerRole.class);
-
-    cq.multiselect(root.get("businessPartner").alias("BuPa"));
-    final TypedQuery<Tuple> tq = em.createQuery(cq);
-    final List<Tuple> result = tq.getResultList();
-    final BusinessPartner bp = (BusinessPartner) result.get(0).get("BuPa");
-    assertNotNull(bp);
-  }
-
   @Disabled("'countryName' is temporary removed from datamodel to fix the O/R mapping")
   @Test
-  public void getBuPaCountryName() {
+  public void testBuPaCountryName() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
@@ -141,7 +128,7 @@ public class TestAssociations extends AbstractTest {
 
   @Disabled("'regionName' is temporary removed from datamodel to fix the O/R mapping")
   @Test
-  public void getBuPaRegionName() {
+  public void testBuPaRegionName() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
@@ -153,7 +140,7 @@ public class TestAssociations extends AbstractTest {
   }
 
   @Test
-  public void getAdministrativeDivisionParent() {
+  public void testAdministrativeDivisionParent() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<AdministrativeDivision> root = cq.from(AdministrativeDivision.class);
 
@@ -165,7 +152,7 @@ public class TestAssociations extends AbstractTest {
   }
 
   @Test
-  public void getAdministrativeDivisionOneParent() {
+  public void testAdministrativeDivisionOneParent() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<AdministrativeDivision> root = cq.from(AdministrativeDivision.class);
     root.alias("Source");
@@ -185,7 +172,7 @@ public class TestAssociations extends AbstractTest {
   }
 
   @Test
-  public void getAdministrativeDivisionChildrenOfOneParent() {
+  public void testAdministrativeDivisionChildrenOfOneParent() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<AdministrativeDivision> root = cq.from(AdministrativeDivision.class);
     root.alias("Source");

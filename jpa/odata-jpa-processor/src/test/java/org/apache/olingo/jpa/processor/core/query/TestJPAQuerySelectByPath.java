@@ -69,7 +69,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     assertEquals("98", created.get("By").asText());
   }
 
-  @Disabled
+  @Disabled("User is not an attribute in ChangeInformation")
   @Test
   public void testNavigationViaComplexAndNaviPropertyToPrimitive() throws IOException, ODataException {
 
