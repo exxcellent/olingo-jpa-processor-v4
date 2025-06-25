@@ -352,7 +352,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final Integer topValue = determineTopValue();
     if (topValue != null) {
       tq.setMaxResults(topValue.intValue());
-      if(getNavigation().getUriResourceParts().size() > 1) {
+      if(getNavigation().isPartOfExpand() && getNavigation().getUriResourceParts().size() > 1) {
           throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
                   HttpStatusCode.PRECONDITION_FAILED, "$skip not supported for nested parts");    	
       }
@@ -361,7 +361,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final Integer skipValue = determineSkipValue();
     if (skipValue != null) {
       tq.setFirstResult(skipValue.intValue());
-      if(getNavigation().getUriResourceParts().size() > 1) {
+      if(getNavigation().isPartOfExpand() && getNavigation().getUriResourceParts().size() > 1) {
           throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
                   HttpStatusCode.PRECONDITION_FAILED, "$skip not supported for nested parts");    	
       }

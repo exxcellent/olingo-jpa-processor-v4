@@ -53,4 +53,9 @@ public class NavigationRoot implements NavigationIfc {
     }
     return context.getFilterOption();
   }
+
+  @Override
+  public boolean isPartOfExpand() {
+    return false; //never
+  }
 }

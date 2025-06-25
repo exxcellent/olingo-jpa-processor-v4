@@ -79,4 +79,9 @@ public class NavigationViaExpand implements NavigationIfc {
     }
     return expandWrapper.getFilterOption();
   }
+  
+  @Override
+  public boolean isPartOfExpand() {
+    return true; //of course
+  }
 }

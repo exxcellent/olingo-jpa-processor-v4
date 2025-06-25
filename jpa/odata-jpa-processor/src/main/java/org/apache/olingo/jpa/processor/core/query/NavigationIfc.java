@@ -44,5 +44,11 @@ public interface NavigationIfc {
    * @return The filter option or <code>null</code>
    */
   public FilterOption getFilterOption(UriResource uriResource);
+  
+  /**
+   * 
+   * @return TRUE if this navigation or one of the parents represents an $expand.
+   */
+  public boolean isPartOfExpand();
 }
 
