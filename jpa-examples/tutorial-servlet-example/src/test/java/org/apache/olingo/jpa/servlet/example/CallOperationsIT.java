@@ -109,7 +109,6 @@ public class CallOperationsIT {
     response.close();
   }
 
-  @Ignore
   @Test
   public void testDataConversionUnboundActionUnbound() throws Exception {
     final URIBuilder uriBuilder = endpoint.newUri().appendOperationCallSegment("unboundActionCheckAllValueSettings");

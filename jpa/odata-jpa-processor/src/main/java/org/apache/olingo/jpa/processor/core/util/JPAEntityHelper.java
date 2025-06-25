@@ -1,5 +1,6 @@
 package org.apache.olingo.jpa.processor.core.util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
+import javax.persistence.IdClass;
 import javax.persistence.LockModeType;
 import javax.persistence.metamodel.Metamodel;
 
@@ -31,6 +33,7 @@ import org.apache.olingo.jpa.processor.DependencyInjector;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
 import org.apache.olingo.jpa.processor.core.exception.ODataJPAConversionException;
 import org.apache.olingo.jpa.processor.core.query.EntityConverter;
+import org.apache.olingo.jpa.util.FieldAccess;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.apache.olingo.server.api.uri.UriHelper;
 import org.apache.olingo.server.api.uri.UriInfoResource;
@@ -203,10 +206,10 @@ public class JPAEntityHelper {
   @SuppressWarnings("unchecked")
   public final <O> O lookupJPAEntity(final JPAStructuredType<?> jpaType, final Entity oDataEntity)
       throws ODataJPAModelException {
-    final List<Object> listPrimaryKeyValues = new LinkedList<>();
+    final Map<String, Object> mapPrimaryKeyValues = new HashMap<>();
     try {
       for (final JPAAttribute<?> jpaAttribute : jpaType.getKeyAttributes(false)) {
-        if (jpaAttribute.isComplex() && !listPrimaryKeyValues.isEmpty()) {
+        if (jpaAttribute.isComplex() && !mapPrimaryKeyValues.isEmpty()) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_COMPLEX_TYPE);
         }
         if (jpaAttribute.isAssociation()) {
@@ -216,21 +219,38 @@ public class JPAEntityHelper {
         if (value == null) {
           throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.INVALID_PARAMETER);
         }
-        listPrimaryKeyValues.add(value);
+        mapPrimaryKeyValues.put(jpaAttribute.getInternalName(), value);
       }
     } catch (final IllegalAccessException | NoSuchFieldException | ODataApplicationException ex) {
       throw new ODataJPAModelException(ex);
     }
-    if (listPrimaryKeyValues.isEmpty()) {
+    if (mapPrimaryKeyValues.isEmpty()) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.NOT_SUPPORTED_EMBEDDED_KEY);
     }
-    if (listPrimaryKeyValues.size() == 1) {
-      return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues.get(0), LockModeType.NONE);
+    if (mapPrimaryKeyValues.size() == 1) {
+      return em.find((Class<O>) jpaType.getTypeClass(), mapPrimaryKeyValues.values().iterator().next(), LockModeType.NONE);
+    } else if(jpaType.getTypeClass().getAnnotation(IdClass.class) != null) {
+      //compound key via IdClass 
+      Object compoundKey = toIdClassKey(mapPrimaryKeyValues, jpaType.getTypeClass().getAnnotation(IdClass.class));
+      return em.find((Class<O>) jpaType.getTypeClass(), compoundKey, LockModeType.NONE);
     } else {
       log.warning(jpaType.getInternalName()
-          + " has multiple id properties, this is supported only by a few JPA providers and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
-      return em.find((Class<O>) jpaType.getTypeClass(), listPrimaryKeyValues, LockModeType.NONE);
+          + " has multiple id properties, this is supported only by a few JPA providers (like EclipseLink) and not JPA compliant! Use @EmbeddedId or @IdClass instead.");
+      return em.find((Class<O>) jpaType.getTypeClass(), new LinkedList<Object>(mapPrimaryKeyValues.values()), LockModeType.NONE);
     }
   }
 
+  private Object toIdClassKey(Map<String, Object> keyAttributes, IdClass annotation) throws ODataJPAModelException {
+    try {
+      Class<?> keyClass = annotation.value();
+      Object instance = keyClass.newInstance();
+      for(Map.Entry<String, Object> entry: keyAttributes.entrySet()) {
+        Field field = keyClass.getDeclaredField(entry.getKey());
+        FieldAccess.writeFieldValue(instance, field, entry.getValue());
+      }
+      return instance;
+    } catch (InstantiationException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+      throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM, e, "Cannot build IdClass '"+annotation.value().getName()+"' instance");
+    }
+  }
 }
