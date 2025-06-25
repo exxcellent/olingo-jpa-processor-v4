@@ -316,4 +316,17 @@ public class TestJPAQueryNavigation extends TestBase {
     assertNotNull(ads);
     assertEquals(2, ads.size());
   }
+  
+  @Test
+  public void testNavigationSupportingSkipAndTop() throws IOException, ODataException {
+
+    final Map<String, Object> keysAD = new HashMap<String, Object>();
+    keysAD.put("DivisionCode", "BE352");
+    keysAD.put("CodeID", "NUTS3");
+    keysAD.put("CodePublisher", "Eurostat");
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions").appendKeySegment(
+        keysAD).appendNavigationSegment("Children").orderBy("Population desc").skip(0).top(10);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+  }
 }

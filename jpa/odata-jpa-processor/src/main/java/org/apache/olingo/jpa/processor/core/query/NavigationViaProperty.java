@@ -51,4 +51,9 @@ public class NavigationViaProperty implements /* NavigationUriInfoResourceIfc, *
     return parent.getFilterOption(uriResource);
   }
 
+  @Override
+  public boolean isPartOfExpand() {
+    //we not, but maybe the parent?
+    return parent.isPartOfExpand();
+  }
 }
