@@ -40,6 +40,9 @@ import org.apache.olingo.server.api.uri.queryoption.CountOption;
 import org.apache.olingo.server.api.uri.queryoption.OrderByItem;
 import org.apache.olingo.server.api.uri.queryoption.OrderByOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
+import org.apache.olingo.server.api.uri.queryoption.ApplyItem.Kind;
+import org.apache.olingo.server.api.uri.queryoption.apply.GroupBy;
+import org.apache.olingo.server.api.uri.queryoption.apply.GroupByItem;
 import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
 import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 
@@ -163,12 +166,17 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final Map<String, From<?, ?>> resultsetAffectingTables = createFromClause(orderByNaviAttributes);
 
     final PathSelectors paths = buildSelectionPathList(uriResource);
-    final List<JPASelector> allSelectionPaths = paths.determineAllPaths();
-    final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = separateElementCollectionPaths(
-        allSelectionPaths);
+    List<JPASelector> usedPaths = new LinkedList<JPASelector>(paths.getRequestedPaths());    
+    boolean hasExpands = processExpandOption && !Util.determineExpands(getServiceDocument(), getNavigation()).isEmpty();
+    if(hasExpands || getQueryEndType().hasStream()) {
+      //for expands and streams we have to select at least also the key and stream attributes for later... 
+      usedPaths.addAll(paths.getAdditionalPaths());
+    }
+    
+    final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap = separateElementCollectionPaths(usedPaths);
 
     // use selection for reduced list
-    final List<Selection<?>> joinSelections = createSelectClause(allSelectionPaths);
+    final List<Selection<?>> joinSelections = createSelectClause(usedPaths);
 
     cq.multiselect(joinSelections);
 
@@ -180,10 +188,35 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     // TODO force orderBy if 'hasLimits'
     cq.orderBy(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
 
-    if (!orderByNaviAttributes.isEmpty()) {
-      cq.groupBy(createGroupBy(allSelectionPaths));
+    List<JPASelector> groupByAttributes = extractGroupByNaviAttributes();
+    
+    if (!orderByNaviAttributes.isEmpty() && !groupByAttributes.isEmpty()) {
+      // groupBy must have the same attributes as orderBy
+      if(usedPaths.size() != groupByAttributes.size()) {
+        throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+            HttpStatusCode.BAD_REQUEST, new IllegalStateException("groupby and orderby/select must list the same attributes"));        
+      }
+      for(JPAAssociationAttribute obA: orderByNaviAttributes) {
+        if(groupByAttributes.stream().filter(gbA -> gbA.getPathElements().get(gbA.getPathElements().size()-1).getInternalName().equals(obA.getInternalName())).count() < 1) {
+          throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+              HttpStatusCode.BAD_REQUEST, new IllegalStateException("groupby and orderby/select must list the same attributes: "+obA.getExternalName()+" missing"));        
+          
+        }
+      }
+    }
+    
+    if(!groupByAttributes.isEmpty()) {
+      if(uriResource.getSelectOption() == null) {
+        throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,
+            HttpStatusCode.BAD_REQUEST, new IllegalStateException("groupby requires explicitly an select option (with subset of grouping attributes)"));        
+      }
+      cq.groupBy(createGroupBy(groupByAttributes));
+    }  else if (!orderByNaviAttributes.isEmpty()) {
+      //sorting requires also grouping?!
+      cq.groupBy(createGroupBy(usedPaths));
     }
 
+    
     involveQueryCustomizer();// as last before querying
 
     final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
@@ -192,7 +225,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     }
 
     final List<Tuple> intermediateResult = tq.getResultList();
-    final Collection<String> requestedAttributes = paths.requestedPaths.stream().map(s -> s.getAlias()).collect(
+    final Collection<String> requestedAttributes = usedPaths.stream().map(s -> s.getAlias()).collect(
         Collectors.toList());
     final QueryEntityResult queryResult = new QueryEntityResult(intermediateResult, requestedAttributes,
         getQueryEndType());
@@ -202,7 +235,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     if (processExpandOption && !intermediateResult.isEmpty()) {
       // generate expand queries only for non empty entity result list
-      queryResult.putExpandResults(readExpandEntities(null));
+      queryResult.putExpandResults(readExpandEntities());
     }
     // Count entities affected by f$filter+$search etc. if requested
     final CountOption countOption = uriResource.getCountOption();
@@ -216,6 +249,24 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     return queryResult;
   }
 
+  private final List<JPASelector> extractGroupByNaviAttributes() throws ODataApplicationException {
+
+    if(!Util.hasApplyGroupByOption(getNavigation().getLastStep())) {
+      return Collections.emptyList();
+    }
+    final GroupBy groupByOption = (GroupBy) getNavigation().getLastStep().getApplyOption().getApplyItems().stream().filter(i -> i.getKind() == Kind.GROUP_BY).findFirst().get();
+    if (groupByOption == null) {
+      return Collections.emptyList();
+    }
+    final List<JPASelector> attributes = new LinkedList<JPASelector>();
+    for (final GroupByItem groupByItem : groupByOption.getGroupByItems()) {
+      PathSelectors selectors = buildSelectionPathList(groupByItem.getPath(), null);
+      attributes.addAll(selectors.getRequestedPaths());
+    }
+    return attributes;
+  }
+  
+  
   /**
    * $expand is implemented as a recursively processing of all expands with a DB
    * round trip per expand item. Alternatively also a <i>big</i> join could be
@@ -240,18 +291,15 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities(
-      final List<JPANavigationPropertyInfo> parentHops)
+  private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities()
           throws ODataApplicationException, ODataJPAModelException {
 
     final Map<JPAAssociationPath, ExpandQueryEntityResult> allExpResults =
         new HashMap<JPAAssociationPath, ExpandQueryEntityResult>();
     // x/a?$expand=b/c($expand=d,e/f)
 
-    final NavigationIfc uriInfo = getNavigation();
-
     final Map<NavigationViaExpand, JPAAssociationPath> expandMapList = Util.determineExpands(
-        getServiceDocument(), uriInfo);
+        getServiceDocument(), getNavigation());
 
     final JPAODataRequestContext context = getContext();
     final EntityManager em = getEntityManager();
@@ -301,21 +349,25 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
   protected final PathSelectors buildSelectionPathList(final UriInfoResource uriResource)
       throws ODataApplicationException {
+    return this.buildSelectionPathList(uriResource.getUriResourceParts(), uriResource.getSelectOption());
+  }
+  
+  /**
+   * @param select Optional argument
+   */
+  protected final PathSelectors buildSelectionPathList(final List<UriResource> resources, SelectOption select)
+      throws ODataApplicationException {
     final JPAEntityType<?> jpaEntityType = getQueryEndType();
     // TODO It is also possible to request all actions or functions available for each returned entity:
     // http://host/service/Products?$select=DemoService.*
 
     // Convert uri select options into a list of jpa attributes
     String selectionText = null;
-    final List<UriResource> resources = uriResource.getUriResourceParts();
 
     selectionText = Util.determinePropertyPath(resources);
     // TODO Combine path selection and $select e.g. Organizations('4')/Address?$select=Country,Region
-    if (selectionText == null || selectionText.isEmpty()) {
-      final SelectOption select = uriResource.getSelectOption();
-      if (select != null) {
-        selectionText = select.getText();
-      }
+    if ((selectionText == null || selectionText.isEmpty()) && select != null) {
+      selectionText = select.getText();
     }
 
     final PathSelectors jpaSelectionPaths;

@@ -452,7 +452,6 @@ public class Util {
 
   /**
    *
-   * @param uriInfo
    * @return TRUE if uri contains a $apply=aggregate(...) expression
    */
   public static boolean hasApplyAggregateOption(final UriInfoResource uriInfo) {
@@ -462,6 +461,23 @@ public class Util {
     }
     for (final ApplyItem item : applyOption.getApplyItems()) {
       if (item.getKind() == Kind.AGGREGATE) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /**
+  *
+  * @return TRUE if uri contains a $apply=groupby(...) expression
+  */
+  public static boolean hasApplyGroupByOption(final UriInfoResource uriInfo) {
+    final ApplyOption applyOption = uriInfo.getApplyOption();
+    if (applyOption == null) {
+      return false;
+    }
+    for (final ApplyItem item : applyOption.getApplyItems()) {
+      if (item.getKind() == Kind.GROUP_BY) {
         return true;
       }
     }

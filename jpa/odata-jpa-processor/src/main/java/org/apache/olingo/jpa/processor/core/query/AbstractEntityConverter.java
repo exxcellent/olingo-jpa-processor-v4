@@ -103,6 +103,22 @@ public abstract class AbstractEntityConverter extends AbstractConverter {
   }
 
   /**
+   * 
+   * @return TRUE if all key (@Id) attributes of JPA type are present (selected by database) in OData entity
+   */
+  protected final boolean areAllKeyAttributesPresent(final Entity odataEntity, final JPAEntityType<?> jpaEntityType) throws ODataJPAModelException {
+    final String setName = sd.getEntitySet(jpaEntityType).getExternalName();
+    final EdmEntitySet set = serviceMetadata.getEdm().getEntityContainer().getEntitySet(setName);
+    final List<String> keyNames = set.getEntityType().getKeyPredicateNames();
+    for(String key: keyNames) {
+      if(odataEntity.getProperty(key) == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  /**
    *
    * @param complexValueBuffer
    *            A map containing elements of type:
