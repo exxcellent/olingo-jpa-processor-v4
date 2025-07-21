@@ -396,6 +396,8 @@ ComplexProcessor, PrimitiveValueProcessor {
         throw new ODataJPAProcessorException(ODataJPAProcessorException.MessageKeys.QUERY_PREPARATION_ERROR,
             HttpStatusCode.INTERNAL_SERVER_ERROR, e);
       }
+    } else if(Util.hasApplyGroupByOption(uriInfo)) {
+      //simply continue, because is handled by normal query builder 
     } else if (uriInfo.getApplyOption() != null) {
       // all other $apply transformations are not supported
       throw new ODataJPAQueryException(ODataJPAQueryException.MessageKeys.QUERY_PREPARATION_ERROR,

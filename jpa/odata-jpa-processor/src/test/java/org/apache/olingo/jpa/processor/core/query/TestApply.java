@@ -1,10 +1,12 @@
 package org.apache.olingo.jpa.processor.core.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
+import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.ex.ODataException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -97,4 +99,37 @@ public class TestApply extends TestBase {
     assertEquals(11.0, aggNode.get("Sum").asDouble(), 0.0);
   }
 
+  @Test
+  public void testGroupBySimple() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartnerRoles")
+        .addQueryOption("apply", "groupby((RoleCategory))", false)
+        .filter("contains(RoleCategory, 'A')")
+        .select("RoleCategory")
+        .count(true);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.setRequestedResponseContentType(ContentType.JSON_FULL_METADATA.toContentTypeString());
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertEquals(3, result.get(Constants.JSON_COUNT).asInt());
+    final ArrayNode response = (ArrayNode) result.get("value");
+    assertNotNull(response);
+    assertEquals(1, response.size());
+  }
+
+  @Test
+  public void testGroupByMultiple() throws IOException, ODataException {
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("AdministrativeDivisions")
+        .addQueryOption("apply", "groupby((CodePublisher,CodeID))", false)
+        .select("CodePublisher,CodeID")
+        .filter("contains(DivisionCode, 'BE')")
+        .count(true);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+    final ObjectNode result = helper.getJsonObjectValue();
+    assertEquals(74, result.get(Constants.JSON_COUNT).asInt());
+    final ArrayNode response = (ArrayNode) result.get("value");
+    assertNotNull(response);
+    assertEquals(5, response.size()); /*NUTS1..3 + 3166-1..2 in combination for Eurostat and ISO*/
+  }
+  
 }
