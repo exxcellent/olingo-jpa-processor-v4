@@ -508,65 +508,68 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     // TODO Functions and orderBy: Part 1 - 11.5.3.1 Invoking a Function
 
-    final List<Order> orders = new ArrayList<Order>();
-    if (orderByOption != null) {
-      final CriteriaBuilder cb = getCriteriaBuilder();
-      final JPAEntityType<?> jpaEntityType = getQueryEndType();
+    final List<Order> orders = new ArrayList<>();
+    if (orderByOption == null) {
+      return orders;
+    }
+    final CriteriaBuilder cb = getCriteriaBuilder();
+    final JPAEntityType<?> jpaEntityType = getQueryEndType();
 
-      for (final OrderByItem orderByItem : orderByOption.getOrders()) {
-        final Expression expression = orderByItem.getExpression();
-        if (expression instanceof Member) {
-          final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
-          JPAStructuredType<?> type = jpaEntityType;
-          Path<?> p = joinTables.get(jpaEntityType.getInternalName());
-          assert p != null;
-          for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
-            if (uriResource instanceof UriResourcePrimitiveProperty) {
-              final EdmProperty edmProperty = ((UriResourcePrimitiveProperty) uriResource).getProperty();
-              try {
-                final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
-                p = p.get(attribute.getInternalName());
-              } catch (final ODataJPAModelException e) {
-                throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-              }
-              if (orderByItem.isDescending()) {
-                orders.add(cb.desc(p));
-              } else {
-                orders.add(cb.asc(p));
-              }
-            } else if (uriResource instanceof UriResourceComplexProperty) {
-              final EdmProperty edmProperty = ((UriResourceComplexProperty) uriResource).getProperty();
-              try {
-                final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
-                p = p.get(attribute.getInternalName());
-                type = attribute.getStructuredType();
-              } catch (final ODataJPAModelException e) {
-                throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-              }
-            } else if (uriResource instanceof UriResourceNavigation) {
-              final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource).getProperty();
-              From<?, ?> join;
-              try {
-                final JPAAssociationPath associationPath = jpaEntityType
-                        .getAssociationPath(edmNaviProperty.getName());
-                join = joinTables.get(associationPath.getLeaf().getInternalName());
-                type = associationPath.getTargetType();
-              } catch (final ODataJPAModelException e) {
-                throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-              }
-              p = join;
-            } else if (uriResource instanceof UriResourceCount) {
-              // $orderby=NavigationProperty/$count - sort by count of related entities
-              if (orderByItem.isDescending()) {
-                orders.add(cb.desc(cb.count(p)));
-              } else {
-                orders.add(cb.asc(cb.count(p)));
-              }
-            }
+    for (final OrderByItem orderByItem : orderByOption.getOrders()) {
+      final Expression expression = orderByItem.getExpression();
+      if (!(expression instanceof Member)) {
+        continue;
+      }
+      final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
+      JPAStructuredType<?> type = jpaEntityType;
+      Path<?> currentPath = joinTables.get(jpaEntityType.getInternalName());
+      assert currentPath != null;
+      for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
+        if (uriResource instanceof UriResourcePrimitiveProperty) {
+          final EdmProperty edmProperty = ((UriResourcePrimitiveProperty) uriResource).getProperty();
+          try {
+            final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
+            currentPath = currentPath.get(attribute.getInternalName());
+          } catch (final ODataJPAModelException e) {
+            throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+          }
+          if (orderByItem.isDescending()) {
+            orders.add(cb.desc(currentPath));
+          } else {
+            orders.add(cb.asc(currentPath));
+          }
+        } else if (uriResource instanceof UriResourceComplexProperty) {
+          final EdmProperty edmProperty = ((UriResourceComplexProperty) uriResource).getProperty();
+          try {
+            final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
+            currentPath = currentPath.get(attribute.getInternalName());
+            type = attribute.getStructuredType();
+          } catch (final ODataJPAModelException e) {
+            throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+          }
+        } else if (uriResource instanceof UriResourceNavigation) {
+          final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource).getProperty();
+          From<?, ?> join;
+          try {
+            final JPAAssociationPath associationPath = jpaEntityType
+                    .getAssociationPath(edmNaviProperty.getName());
+            join = joinTables.get(associationPath.getLeaf().getInternalName());
+            type = associationPath.getTargetType();
+          } catch (final ODataJPAModelException e) {
+            throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+          }
+          currentPath = join;
+        } else if (uriResource instanceof UriResourceCount) {
+          // for $orderby=NavigationProperty/$count: sort by count of related entities
+          if (orderByItem.isDescending()) {
+            orders.add(cb.desc(cb.count(currentPath)));
+          } else {
+            orders.add(cb.asc(cb.count(currentPath)));
           }
         }
       }
     }
+
     return orders;
   }
 
