@@ -1,6 +1,8 @@
 package org.apache.olingo.jpa.processor.core.query;
 
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -293,6 +295,25 @@ public class TestJPAProcessorExpand extends TestBase {
   }
 
   @Test
+  public void testExpandWithCountAndSecondOrderByCriteria() throws IOException, ODataException {
+    // Regression test for combined $orderby with $count and a second criteria:
+    // $orderby=Roles/$count desc,Address/Country asc
+    final Map<QueryOption, Object> expandOptions = new HashMap<>();
+    expandOptions.put(QueryOption.COUNT, Boolean.TRUE);
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("Organizations")
+            .orderBy("Roles/$count desc,Address/Country asc")
+            .expandWithOptions("Roles", expandOptions);
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(HttpStatusCode.OK.getStatusCode());
+
+    final ArrayNode orgs = helper.getJsonObjectValues();
+    assertFalse("Expected at least one result", orgs.isEmpty());
+    // Organization with most roles must still be first
+    final ObjectNode orgWithMostRoles = (ObjectNode) orgs.get(0);
+    assertEquals("3", orgWithMostRoles.get("ID").asText());
+  }
+
+  @Test
   public void testExpandWithInvalidNestedSkip() throws IOException, ODataException {
     final Map<QueryOption, Object> expandOptionsTargets = new HashMap<>();
     expandOptionsTargets.put(QueryOption.SKIP, 1);
@@ -329,6 +350,48 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(3, roles.size());
     final ObjectNode firstRole = (ObjectNode) roles.get(0);
     assertEquals("C", firstRole.get("RoleCategory").asText());
+  }
+
+  @Test
+  public void testOrderByNavigationPropertyPrimitivePropertyDescending() throws IOException, ODataException {
+    // Regression test: $orderby=BusinessPartner/Country on BusinessPartnerRoles
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartnerRoles")
+            .orderBy("BusinessPartner/Country desc")
+            .expand("BusinessPartner($select=Country)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(SC_OK);
+
+    final ArrayNode roles = helper.getJsonObjectValues();
+    assertFalse("Expected at least one result", roles.isEmpty());
+    // Verify actual descending sort order by the navigation target's Country (alphabetically Z -> A)
+    for (int i = 0; i < roles.size() - 1; i++) {
+      final String countryCurrent = roles.get(i).get("BusinessPartner").get("Country").asText();
+      final String countryNext = roles.get(i + 1).get("BusinessPartner").get("Country").asText();
+      assertTrue("Expected descending alphabetical order by BusinessPartner/Country but got '"
+                      + countryCurrent + "' before '" + countryNext + "' at index " + i,
+              countryCurrent.compareTo(countryNext) >= 0);
+    }
+  }
+
+  @Test
+  public void testOrderByNavigationPropertyPrimitivePropertyAscending() throws IOException, ODataException {
+    // Regression test: $orderby=BusinessPartner/Country on BusinessPartnerRoles (ascending, default direction)
+    final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("BusinessPartnerRoles")
+            .orderBy("BusinessPartner/Country")
+            .expand("BusinessPartner($select=Country)");
+    final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
+    helper.execute(SC_OK);
+
+    final ArrayNode roles = helper.getJsonObjectValues();
+    assertFalse("Expected at least one result", roles.isEmpty());
+    // Verify actual ascending sort order by the navigation target's Country (alphabetically A -> Z)
+    for (int i = 0; i < roles.size() - 1; i++) {
+      final String countryCurrent = roles.get(i).get("BusinessPartner").get("Country").asText();
+      final String countryNext = roles.get(i + 1).get("BusinessPartner").get("Country").asText();
+      assertTrue("Expected ascending alphabetical order by BusinessPartner/Country but got '"
+                      + countryCurrent + "' before '" + countryNext + "' at index " + i,
+              countryCurrent.compareTo(countryNext) <= 0);
+    }
   }
 
   @Test

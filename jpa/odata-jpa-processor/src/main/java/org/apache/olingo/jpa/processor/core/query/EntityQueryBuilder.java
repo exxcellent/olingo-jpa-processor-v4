@@ -46,6 +46,7 @@ import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceComplexProperty;
+import org.apache.olingo.server.api.uri.UriResourceCount;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
@@ -186,7 +187,8 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     }
 
     // TODO force orderBy if 'hasLimits'
-    cq.orderBy(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
+    final List<Order> orderByList = createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption());
+    cq.orderBy(orderByList);
 
     List<JPASelector> groupByAttributes = extractGroupByNaviAttributes();
     
@@ -212,8 +214,17 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       }
       cq.groupBy(createGroupBy(groupByAttributes));
     }  else if (!orderByNaviAttributes.isEmpty()) {
-      //sorting requires also grouping?!
-      cq.groupBy(createGroupBy(usedPaths));
+      //sorting requires also grouping. Otherwise, strict SQL engines
+      // (e.g. SQL Server) reject the query with "not contained in GROUP BY clause".
+      // Skip aggregate expressions (e.g. COUNT) as they must not appear in GROUP BY.
+      final List<javax.persistence.criteria.Expression<?>> groupBy = createGroupBy(usedPaths);
+      for (final Order order : orderByList) {
+        final javax.persistence.criteria.Expression<?> orderExpr = order.getExpression();
+        if (orderExpr instanceof javax.persistence.criteria.Path && !groupBy.contains(orderExpr)) {
+          groupBy.add(orderExpr);
+        }
+      }
+      cq.groupBy(groupBy);
     }
 
     
@@ -536,18 +547,22 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
               final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource).getProperty();
               From<?, ?> join;
               try {
-                join = joinTables
-                    .get(jpaEntityType.getAssociationPath(edmNaviProperty.getName()).getLeaf()
-                        .getInternalName());
+                final JPAAssociationPath associationPath = jpaEntityType
+                        .getAssociationPath(edmNaviProperty.getName());
+                join = joinTables.get(associationPath.getLeaf().getInternalName());
+                type = associationPath.getTargetType();
               } catch (final ODataJPAModelException e) {
                 throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
               }
+              p = join;
+            } else if (uriResource instanceof UriResourceCount) {
+              // $orderby=NavigationProperty/$count - sort by count of related entities
               if (orderByItem.isDescending()) {
-                orders.add(cb.desc(cb.count(join)));
+                orders.add(cb.desc(cb.count(p)));
               } else {
-                orders.add(cb.asc(cb.count(join)));
+                orders.add(cb.asc(cb.count(p)));
               }
-            } // else if (uriResource instanceof UriResourceCount) {}
+            }
           }
         }
       }
