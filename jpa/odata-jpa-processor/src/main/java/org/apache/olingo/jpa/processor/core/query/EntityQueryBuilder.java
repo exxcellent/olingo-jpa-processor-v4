@@ -34,6 +34,7 @@ import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.uri.UriInfoResource;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceComplexProperty;
+import org.apache.olingo.server.api.uri.UriResourceCount;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 import org.apache.olingo.server.api.uri.UriResourcePrimitiveProperty;
 import org.apache.olingo.server.api.uri.queryoption.CountOption;
@@ -186,7 +187,8 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     }
 
     // TODO force orderBy if 'hasLimits'
-    cq.orderBy(createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption()));
+    final List<Order> orderByList = createOrderByList(resultsetAffectingTables, uriResource.getOrderByOption());
+    cq.orderBy(orderByList);
 
     List<JPASelector> groupByAttributes = extractGroupByNaviAttributes();
     
@@ -212,8 +214,17 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       }
       cq.groupBy(createGroupBy(groupByAttributes));
     }  else if (!orderByNaviAttributes.isEmpty()) {
-      //sorting requires also grouping?!
-      cq.groupBy(createGroupBy(usedPaths));
+      //sorting requires also grouping. Otherwise, strict SQL engines
+      // (e.g. SQL Server) reject the query with "not contained in GROUP BY clause".
+      // Skip aggregate expressions (e.g. COUNT) as they must not appear in GROUP BY.
+      final List<jakarta.persistence.criteria.Expression<?>> groupBy = createGroupBy(usedPaths);
+      for (final Order order : orderByList) {
+        final jakarta.persistence.criteria.Expression<?> orderExpr = order.getExpression();
+        if (orderExpr instanceof jakarta.persistence.criteria.Path && !groupBy.contains(orderExpr)) {
+          groupBy.add(orderExpr);
+        }
+      }
+      cq.groupBy(groupBy);
     }
 
     
@@ -497,61 +508,68 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     // TODO Functions and orderBy: Part 1 - 11.5.3.1 Invoking a Function
 
-    final List<Order> orders = new ArrayList<Order>();
-    if (orderByOption != null) {
-      final CriteriaBuilder cb = getCriteriaBuilder();
-      final JPAEntityType<?> jpaEntityType = getQueryEndType();
+    final List<Order> orders = new ArrayList<>();
+    if (orderByOption == null) {
+      return orders;
+    }
+    final CriteriaBuilder cb = getCriteriaBuilder();
+    final JPAEntityType<?> jpaEntityType = getQueryEndType();
 
-      for (final OrderByItem orderByItem : orderByOption.getOrders()) {
-        final Expression expression = orderByItem.getExpression();
-        if (expression instanceof Member) {
-          final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
-          JPAStructuredType<?> type = jpaEntityType;
-          Path<?> p = joinTables.get(jpaEntityType.getInternalName());
-          assert p != null;
-          for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
-            if (uriResource instanceof UriResourcePrimitiveProperty) {
-              final EdmProperty edmProperty = ((UriResourcePrimitiveProperty) uriResource).getProperty();
-              try {
-                final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
-                p = p.get(attribute.getInternalName());
-              } catch (final ODataJPAModelException e) {
-                throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-              }
-              if (orderByItem.isDescending()) {
-                orders.add(cb.desc(p));
-              } else {
-                orders.add(cb.asc(p));
-              }
-            } else if (uriResource instanceof UriResourceComplexProperty) {
-              final EdmProperty edmProperty = ((UriResourceComplexProperty) uriResource).getProperty();
-              try {
-                final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
-                p = p.get(attribute.getInternalName());
-                type = attribute.getStructuredType();
-              } catch (final ODataJPAModelException e) {
-                throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-              }
-            } else if (uriResource instanceof UriResourceNavigation) {
-              final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource).getProperty();
-              From<?, ?> join;
-              try {
-                join = joinTables
-                    .get(jpaEntityType.getAssociationPath(edmNaviProperty.getName()).getLeaf()
-                        .getInternalName());
-              } catch (final ODataJPAModelException e) {
-                throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
-              }
-              if (orderByItem.isDescending()) {
-                orders.add(cb.desc(cb.count(join)));
-              } else {
-                orders.add(cb.asc(cb.count(join)));
-              }
-            } // else if (uriResource instanceof UriResourceCount) {}
+    for (final OrderByItem orderByItem : orderByOption.getOrders()) {
+      final Expression expression = orderByItem.getExpression();
+      if (!(expression instanceof Member)) {
+        continue;
+      }
+      final UriInfoResource resourcePath = ((Member) expression).getResourcePath();
+      JPAStructuredType<?> type = jpaEntityType;
+      Path<?> currentPath = joinTables.get(jpaEntityType.getInternalName());
+      assert currentPath != null;
+      for (final UriResource uriResource : resourcePath.getUriResourceParts()) {
+        if (uriResource instanceof UriResourcePrimitiveProperty) {
+          final EdmProperty edmProperty = ((UriResourcePrimitiveProperty) uriResource).getProperty();
+          try {
+            final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
+            currentPath = currentPath.get(attribute.getInternalName());
+          } catch (final ODataJPAModelException e) {
+            throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+          }
+          if (orderByItem.isDescending()) {
+            orders.add(cb.desc(currentPath));
+          } else {
+            orders.add(cb.asc(currentPath));
+          }
+        } else if (uriResource instanceof UriResourceComplexProperty) {
+          final EdmProperty edmProperty = ((UriResourceComplexProperty) uriResource).getProperty();
+          try {
+            final JPAAttribute<?> attribute = type.getPath(edmProperty.getName()).getLeaf();
+            currentPath = currentPath.get(attribute.getInternalName());
+            type = attribute.getStructuredType();
+          } catch (final ODataJPAModelException e) {
+            throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+          }
+        } else if (uriResource instanceof UriResourceNavigation) {
+          final EdmNavigationProperty edmNaviProperty = ((UriResourceNavigation) uriResource).getProperty();
+          From<?, ?> join;
+          try {
+            final JPAAssociationPath associationPath = jpaEntityType
+                    .getAssociationPath(edmNaviProperty.getName());
+            join = joinTables.get(associationPath.getLeaf().getInternalName());
+            type = associationPath.getTargetType();
+          } catch (final ODataJPAModelException e) {
+            throw new ODataJPAQueryException(e, HttpStatusCode.BAD_REQUEST);
+          }
+          currentPath = join;
+        } else if (uriResource instanceof UriResourceCount) {
+          // for $orderby=NavigationProperty/$count: sort by count of related entities
+          if (orderByItem.isDescending()) {
+            orders.add(cb.desc(cb.count(currentPath)));
+          } else {
+            orders.add(cb.asc(cb.count(currentPath)));
           }
         }
       }
     }
+
     return orders;
   }
 
