@@ -5,9 +5,10 @@ import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.internal.jdbc.DriverDataSource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 public class DataSourceHelper {
 
@@ -88,17 +89,17 @@ public class DataSourceHelper {
       ObjectNode hanaInfo;
       try {
         hanaInfo = (ObjectNode) mapper.readTree(env);
-      } catch (final JsonProcessingException e) {
+      } catch (final JacksonException e) {
         return null;
       }
       String url = REMOTE_URL;
-      url = url.replace("$Host$", hanaInfo.get("hostname").asText());
-      url = url.replace("$Port$", hanaInfo.get("port").asText());
-      url = url.replace("$DBNAME$", hanaInfo.get("dbname").asText());
-      final String driver = hanaInfo.get("driver").asText();
+      url = url.replace("$Host$", hanaInfo.get("hostname").asString());
+      url = url.replace("$Port$", hanaInfo.get("port").asString());
+      url = url.replace("$DBNAME$", hanaInfo.get("dbname").asString());
+      final String driver = hanaInfo.get("driver").asString();
       ds = new DriverDataSource(Thread.currentThread().getContextClassLoader(), driver, url, hanaInfo.get("username")
-          .asText(), hanaInfo.get(
-              "password").asText());
+          .asString(), hanaInfo.get(
+              "password").asString());
       return ds;
     default:
       return null;
