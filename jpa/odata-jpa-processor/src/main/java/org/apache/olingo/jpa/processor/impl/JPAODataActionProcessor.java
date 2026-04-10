@@ -34,6 +34,7 @@ import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAAction;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
+import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAOperationParameter.ParameterKind;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.processor.JPAODataRequestContext;
@@ -351,8 +352,8 @@ ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, 
     final ServiceMetadata serviceMetadata = getServiceMetadata();
     Map<String, Parameter> parameters = Collections.emptyMap();
     try {
-      if (!jpaAction.getParameters().isEmpty() && request.getBody().available() > 0) {
-
+      //don't respect request.getBody().available(), because socket based streams may return always 0, but stream is readable
+      if (jpaAction.getParameters().stream().filter(p -> p.getParameterKind() == ParameterKind.OData).count() > 0 && request.getBody() != null) {
         InputStream is = request.getBody();
         if (log.isLoggable(Level.FINER)) {
           // wrap input stream for debugging
@@ -362,7 +363,7 @@ ActionEntityProcessor, ActionEntityCollectionProcessor, ActionComplexProcessor, 
           @SuppressWarnings("resource")
           final String bodyContent = new BufferedReader(new InputStreamReader(is)).lines().parallel()
           .collect(Collectors.joining("\n"));
-          log.log(Level.FINER, "Request body for action call: " + bodyContent);
+          log.log(Level.FINER, "Request parameters (body) for action call: " + bodyContent);
           is.reset();
         }
         final ODataDeserializer deserializer;
