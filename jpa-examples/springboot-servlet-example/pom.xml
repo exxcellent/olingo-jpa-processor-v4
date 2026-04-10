@@ -16,7 +16,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<springboot.version>3.3.3</springboot.version>
+		<springboot.version>4.0.5</springboot.version>
 	</properties>
 
   <dependencies>
@@ -95,10 +95,22 @@
 	    </dependency>
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-test</artifactId>
+		    <artifactId>spring-boot-starter-webmvc-test</artifactId>
 		    <scope>test</scope>
             <version>${springboot.version}</version>
 		</dependency>
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-starter-restclient</artifactId>
+            <version>${springboot.version}</version>
+			<scope>test</scope>
+	    </dependency>
+		<!--dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-resttestclient</artifactId>
+		    <version>${springboot.version}</version>
+		    <scope>test</scope>
+		</dependency-->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>

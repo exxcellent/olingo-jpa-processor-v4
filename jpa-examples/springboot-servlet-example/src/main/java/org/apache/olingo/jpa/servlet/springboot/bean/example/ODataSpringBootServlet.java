@@ -45,7 +45,7 @@ public class ODataSpringBootServlet extends HttpServlet {
       throw new ServletException("Initialization of request handler failed", e);
     }
 
-    log("oData endpoint prepared, call http://localhost:8080/odata/$metadata");
+    log("oData endpoint prepared, call http://localhost:8080/odata/$metadata for test");
   }
 
   @Override

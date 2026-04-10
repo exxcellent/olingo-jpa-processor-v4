@@ -20,7 +20,7 @@
 		<olingo.version>5.0.0</olingo.version>
 		<jetty.version>11.0.24</jetty.version>
         <jersey.version>3.1.8</jersey.version>
-		<jackson.version>2.17.2</jackson.version>
+		<jackson.version>3.1.1</jackson.version>
 		<eclipselink.version>4.0.5</eclipselink.version>
 		<openjpa.version>4.0.0</openjpa.version>
 		<hibernate.version>5.6.15.Final</hibernate.version>
@@ -41,7 +41,7 @@
 	        <dependency>
 	            <groupId>org.junit</groupId>
 	            <artifactId>junit-bom</artifactId>
-	            <version>5.11.3</version>
+	            <version>6.0.3</version>
 	            <type>pom</type>
 	            <scope>import</scope>
 	        </dependency>
@@ -168,22 +168,22 @@
 			    <version>6.1.0</version>
 			</dependency>
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
+				<groupId>tools.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
 				<!-- declare core because of conflicts -->
-				<groupId>com.fasterxml.jackson.core</groupId>
+				<groupId>tools.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
-			<dependency>
 				<!-- declare core because of conflicts -->
-				<groupId>com.fasterxml.jackson.core</groupId>
+			<!--dependency>
+				<groupId>tools.jackson.core</groupId>
 				<artifactId>jackson-annotations</artifactId>
 				<version>${jackson.version}</version>
-			</dependency>
+			</dependency-->
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
