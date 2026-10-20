@@ -241,12 +241,14 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     final QueryEntityResult queryResult = new QueryEntityResult(intermediateResult, requestedAttributes,
         getQueryEndType());
 
+    final List<Tuple> startEntityRows = determineStartEntityRowsForDependentQueries(intermediateResult);
+
     // load not yet processed @ElementCollection attribute content
-    queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap));
+    queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap, startEntityRows));
 
     if (processExpandOption && !intermediateResult.isEmpty()) {
       // generate expand queries only for non empty entity result list
-      queryResult.putExpandResults(readExpandEntities());
+      queryResult.putExpandResults(readExpandEntities(startEntityRows));
     }
     // Count entities affected by f$filter+$search etc. if requested
     final CountOption countOption = uriResource.getCountOption();
@@ -302,7 +304,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
    * @throws ODataApplicationException
    * @throws ODataJPAModelException
    */
-  private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities()
+  private Map<JPAAssociationPath, ExpandQueryEntityResult> readExpandEntities(final List<Tuple> startEntityRows)
           throws ODataApplicationException, ODataJPAModelException {
 
     final Map<JPAAssociationPath, ExpandQueryEntityResult> allExpResults =
@@ -318,6 +320,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
     for (final Entry<NavigationViaExpand, JPAAssociationPath> itemExpand : expandMapList.entrySet()) {
       // an expand is handled as navigation to that entity type, so we can (re)use the entity query
       final EntityQueryBuilder expandQuery = new EntityQueryBuilder(context, itemExpand.getKey(), em, serviceMetadata);
+      expandQuery.setStartEntityRows(startEntityRows);
       LOG.log(Level.FINE, "Process $expand for: " + getQueryResultNavigationKeyBuilder().getNavigationLabel() + "#"
           + itemExpand.getValue().getAlias());
       final QueryEntityResult expandResult = expandQuery.executeInternal(true);
@@ -607,8 +610,8 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
   }
 
   private final Map<JPAAttribute<?>, QueryElementCollectionResult> readElementCollections(
-      final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap) throws ODataApplicationException,
-  ODataJPAModelException {
+      final Map<JPAAttribute<?>, List<JPASelector>> elementCollectionMap, final List<Tuple> startEntityRows)
+          throws ODataApplicationException, ODataJPAModelException {
     if (elementCollectionMap.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -622,6 +625,7 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
       final JPAAttribute<?> attribute = entry.getKey();
       final ElementCollectionQueryBuilder query = new ElementCollectionQueryBuilder(owningType, attribute,
           entry.getValue(), getContext(), getNavigation(), getEntityManager());
+      query.setStartEntityRows(startEntityRows);
       final QueryElementCollectionResult result = query.execute();
       allResults.put(attribute, result);
     }

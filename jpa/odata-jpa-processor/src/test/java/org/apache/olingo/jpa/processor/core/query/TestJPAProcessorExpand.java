@@ -390,6 +390,49 @@ public class TestJPAProcessorExpand extends TestBase {
   }
 
   @Test
+  public void testExpandWithTopSkip() throws IOException, ODataException {
+    assertPageHasSameContentAsCompleteResult("Organizations", "ID", "Roles", Map.of(QueryOption.ORDERBY,
+        "RoleCategory asc"), 2, 3);
+  }
+
+  @Test
+  public void testNestedExpandWithTopSkipCompoundKey() throws IOException, ODataException {
+    final Map<QueryOption, Object> expandOptions = new HashMap<>();
+    expandOptions.put(QueryOption.ORDERBY, "DivisionCode asc");
+    expandOptions.put(QueryOption.EXPAND, "Children($orderby=DivisionCode asc)");
+    // the countries of ISO 3166-1 having children with children
+    assertPageHasSameContentAsCompleteResult("AdministrativeDivisions", "CodeID asc,DivisionCode desc", "Children",
+        expandOptions, 2, 2);
+  }
+
+  /**
+   * The $expand of a page ($top/$skip) must be the same as for the same entities without paging.
+   */
+  private void assertPageHasSameContentAsCompleteResult(final String entitySet, final String orderBy,
+      final String expand, final Map<QueryOption, Object> expandOptions, final int skip, final int top)
+          throws IOException, ODataException {
+    final ServerCallSimulator complete = new ServerCallSimulator(persistenceAdapter, newUriBuilder()
+        .appendEntitySetSegment(entitySet).orderBy(orderBy).expandWithOptions(expand, expandOptions));
+    complete.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode all = complete.getJsonObjectValues();
+    assertTrue(all.size() > skip + top);
+
+    final ServerCallSimulator paged = new ServerCallSimulator(persistenceAdapter, newUriBuilder()
+        .appendEntitySetSegment(entitySet).orderBy(orderBy).expandWithOptions(expand, expandOptions).skip(skip).top(
+            top));
+    paged.execute(HttpStatusCode.OK.getStatusCode());
+    final ArrayNode page = paged.getJsonObjectValues();
+
+    assertEquals(top, page.size());
+    int numberOfExpanded = 0;
+    for (int i = 0; i < top; i++) {
+      assertEquals(all.get(skip + i), page.get(i));
+      numberOfExpanded += page.get(i).get(expand).size();
+    }
+    assertTrue(numberOfExpanded > 0);
+  }
+
+  @Test
   public void testExpandWithNavigationFilter() throws IOException, ODataException {
     final URIBuilder uriBuilder = newUriBuilder().appendEntitySetSegment("RelationshipSourceEntities").filter(
         "targets/any(d:contains(d/Name, 'rel'))")

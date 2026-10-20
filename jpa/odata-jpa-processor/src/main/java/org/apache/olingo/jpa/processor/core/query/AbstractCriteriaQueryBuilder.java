@@ -112,6 +112,12 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private final List<UriParameter> keyPredicates;
   private final NavigationKeyBuilder jpaStartNavigationKeyBuilder;
   private List<NavigationBuilder> navigationQueryList = null;
+  /**
+   * Databases have different limits for the number of parameters in a statement, so with more values the dependent
+   * queries are not limited to the rows of the query having $top/$skip.
+   */
+  private static final int MAX_START_ENTITY_KEY_VALUES = 1000;
+  private List<Tuple> startEntityRows = null;
   private InitializationState initStateType = InitializationState.NotInitialized;
   @Inject
   private QueryRequestCustomizer queryCustomizer = null;
@@ -369,6 +375,75 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     }
   }
 
+  /**
+   * $top/$skip cannot be applied to dependent queries ($expand, @ElementCollection), because they select another number
+   * of rows. So a query with {@link #hasQueryLimits() limits} has to hand over its result to limit the dependent
+   * queries to the entities of that result.
+   *
+   * @param queryResult The result of this query.
+   * @return The rows to {@link #setStartEntityRows(List) limit} dependent queries or an empty list if dependent
+   * queries must not be limited.
+   */
+  protected final List<Tuple> determineStartEntityRowsForDependentQueries(final List<Tuple> queryResult)
+      throws ODataJPAQueryException {
+    if (startEntityRows != null) {
+      // we are already a dependent query, the limitation is still the same for our dependent queries
+      return startEntityRows;
+    }
+    // with navigation the rows are no longer rows of the starting entity
+    if (!hasQueryLimits() || !navigationQueryList.isEmpty() || queryResult.isEmpty()) {
+      return Collections.emptyList();
+    }
+    final int numberOfKeyValues = queryResult.size() * jpaStartNavigationKeyBuilder.getNavigationKeyPaths().size();
+    if (numberOfKeyValues > MAX_START_ENTITY_KEY_VALUES) {
+      LOG.log(Level.WARNING, "The result of {0} with $top/$skip has {1} rows ({2} key values, maximum is {3}), the "
+          + "queries for $expand/@ElementCollection will not be limited to these rows and may load much more rows than "
+          + "required", new Object[] { jpaStartNavigationKeyBuilder.getNavigationLabel(), queryResult.size(),
+              numberOfKeyValues, MAX_START_ENTITY_KEY_VALUES });
+      return Collections.emptyList();
+    }
+    return queryResult;
+  }
+
+  /**
+   * @param rows The rows of {@link #getQueryStartFrom() starting} entity the query must be limited to.
+   * @see #determineStartEntityRowsForDependentQueries(List)
+   */
+  protected final void setStartEntityRows(final List<Tuple> rows) {
+    this.startEntityRows = rows;
+  }
+
+  private jakarta.persistence.criteria.Expression<Boolean> createWhereFromStartEntityRows() {
+    if (startEntityRows == null || startEntityRows.isEmpty()) {
+      return null;
+    }
+    final List<JPASelector> keyPaths = jpaStartNavigationKeyBuilder.getNavigationKeyPaths();
+    if (keyPaths.size() == 1) {
+      final List<Object> keyValues = new ArrayList<>(startEntityRows.size());
+      for (final Tuple row : startEntityRows) {
+        keyValues.add(row.get(keyPaths.get(0).getAlias()));
+      }
+      return createStartEntityKeyPath(keyPaths.get(0)).in(keyValues);
+    }
+    // multiple key columns cannot be expressed as IN
+    jakarta.persistence.criteria.Expression<Boolean> whereCondition = null;
+    for (final Tuple row : startEntityRows) {
+      jakarta.persistence.criteria.Expression<Boolean> rowCondition = null;
+      for (final JPASelector keyPath : keyPaths) {
+        rowCondition = combineAND(rowCondition,
+            getCriteriaBuilder().equal(createStartEntityKeyPath(keyPath), row.get(keyPath.getAlias())));
+      }
+      whereCondition = combineOR(whereCondition, rowCondition);
+    }
+    return whereCondition;
+  }
+
+  private Path<?> createStartEntityKeyPath(final JPASelector keyPath) {
+    // same path as used to select the keys of starting entity
+    return convertToCriteriaAliasPath(getQueryStartFrom(), keyPath, jpaStartNavigationKeyBuilder
+        .getNavigationAliasPrefix());
+  }
+
   private List<NavigationBuilder> createNavigationElements() throws ODataJPAModelException, ODataApplicationException {
 
     final List<UriResource> resourceParts = uriNavigation.getUriResourceParts();
@@ -447,6 +522,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
     final jakarta.persistence.criteria.Expression<Boolean> accessConditionerClause =
         createWhereFromAccessConditioner();
     whereCondition = combineAND(whereCondition, accessConditionerClause);
+    whereCondition = combineAND(whereCondition, createWhereFromStartEntityRows());
 
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html#_Toc406398301
     // http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part2-url-conventions/odata-v4.0-errata02-os-part2-url-conventions-complete.html#_Toc406398094
