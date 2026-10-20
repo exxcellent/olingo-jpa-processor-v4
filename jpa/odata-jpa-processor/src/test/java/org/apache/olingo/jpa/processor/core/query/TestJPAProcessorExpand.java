@@ -9,9 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 import org.apache.olingo.client.api.domain.ClientComplexValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
@@ -391,8 +394,8 @@ public class TestJPAProcessorExpand extends TestBase {
 
   @Test
   public void testExpandWithTopSkip() throws IOException, ODataException {
-    assertPageHasSameContentAsCompleteResult("Organizations", "ID", "Roles", Map.of(QueryOption.ORDERBY,
-        "RoleCategory asc"), 2, 3);
+    assertPageHasSameContentAsCompleteResult("Organizations", "ID", b -> b.expandWithOptions("Roles", Map.of(
+        QueryOption.ORDERBY, "RoleCategory asc")), "Roles", 2, 3);
   }
 
   @Test
@@ -401,35 +404,55 @@ public class TestJPAProcessorExpand extends TestBase {
     expandOptions.put(QueryOption.ORDERBY, "DivisionCode asc");
     expandOptions.put(QueryOption.EXPAND, "Children($orderby=DivisionCode asc)");
     // the countries of ISO 3166-1 having children with children
-    assertPageHasSameContentAsCompleteResult("AdministrativeDivisions", "CodeID asc,DivisionCode desc", "Children",
-        expandOptions, 2, 2);
+    assertPageHasSameContentAsCompleteResult("AdministrativeDivisions", "CodeID asc,DivisionCode desc", b -> b
+        .expandWithOptions("Children", expandOptions), "Children", 2, 2);
+  }
+
+  @Test
+  public void testElementCollectionWithTopSkip() throws IOException, ODataException {
+    // the page contains the persons 97 and 98 having phone numbers, but not 96 and 99
+    assertPageHasSameContentAsCompleteResult("Persons", "ID", UnaryOperator.identity(), "PhoneNumbers", 1, 2);
   }
 
   /**
-   * The $expand of a page ($top/$skip) must be the same as for the same entities without paging.
+   * The $expand or @ElementCollection of a page ($top/$skip) must be the same as for the same entities without
+   * paging.
+   *
+   * @param options Additional query options, used for the complete and the paged request.
+   * @param collection The $expand or @ElementCollection attribute that must not be empty for the page. Compared without
+   * order, because an @ElementCollection cannot be sorted.
    */
   private void assertPageHasSameContentAsCompleteResult(final String entitySet, final String orderBy,
-      final String expand, final Map<QueryOption, Object> expandOptions, final int skip, final int top)
+      final UnaryOperator<URIBuilder> options, final String collection, final int skip, final int top)
           throws IOException, ODataException {
-    final ServerCallSimulator complete = new ServerCallSimulator(persistenceAdapter, newUriBuilder()
-        .appendEntitySetSegment(entitySet).orderBy(orderBy).expandWithOptions(expand, expandOptions));
+    final ServerCallSimulator complete = new ServerCallSimulator(persistenceAdapter, options.apply(newUriBuilder()
+        .appendEntitySetSegment(entitySet).orderBy(orderBy)));
     complete.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode all = complete.getJsonObjectValues();
     assertTrue(all.size() > skip + top);
 
-    final ServerCallSimulator paged = new ServerCallSimulator(persistenceAdapter, newUriBuilder()
-        .appendEntitySetSegment(entitySet).orderBy(orderBy).expandWithOptions(expand, expandOptions).skip(skip).top(
-            top));
+    final ServerCallSimulator paged = new ServerCallSimulator(persistenceAdapter, options.apply(newUriBuilder()
+        .appendEntitySetSegment(entitySet).orderBy(orderBy)).skip(skip).top(top));
     paged.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode page = paged.getJsonObjectValues();
 
     assertEquals(top, page.size());
-    int numberOfExpanded = 0;
+    int numberOfCollectionEntries = 0;
     for (int i = 0; i < top; i++) {
-      assertEquals(all.get(skip + i), page.get(i));
-      numberOfExpanded += page.get(i).get(expand).size();
+      final ObjectNode expected = ((ObjectNode) all.get(skip + i)).deepCopy();
+      final ObjectNode actual = ((ObjectNode) page.get(i)).deepCopy();
+      assertEquals(sortedEntries(expected.remove(collection)), sortedEntries(actual.remove(collection)));
+      assertEquals(expected, actual);
+      numberOfCollectionEntries += page.get(i).get(collection).size();
     }
-    assertTrue(numberOfExpanded > 0);
+    assertTrue(numberOfCollectionEntries > 0);
+  }
+
+  private static List<String> sortedEntries(final JsonNode collection) {
+    final List<String> entries = new ArrayList<>();
+    collection.forEach(entry -> entries.add(entry.toString()));
+    Collections.sort(entries);
+    return entries;
   }
 
   @Test
