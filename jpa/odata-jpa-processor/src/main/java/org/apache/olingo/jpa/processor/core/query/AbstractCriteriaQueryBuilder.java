@@ -59,6 +59,12 @@ import jakarta.persistence.criteria.Subquery;
 
 public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>, DT> extends AbstractQueryBuilder {
 
+  /**
+   * Maximum number of key values (rows x key columns) bound as parameters to restrict dependent queries.
+   * Uses lowest element limit of IN list (Oracle: 1000)
+   */
+  private static final int MAX_START_ENTITY_KEY_VALUES = 1000;
+
   protected static enum InitializationState {
     NotInitialized, Initialized;
   }
@@ -113,11 +119,10 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   private final NavigationKeyBuilder jpaStartNavigationKeyBuilder;
   private List<NavigationBuilder> navigationQueryList = null;
   /**
-   * Databases have different limits for the number of parameters in a statement, so with more values the dependent
-   * queries are not limited to the rows of the query having $top/$skip.
+   * The rows of the starting entity this query is restricted to, empty for no restriction.
+   * @see #setStartEntityRows(List)
    */
-  private static final int MAX_START_ENTITY_KEY_VALUES = 1000;
-  private List<Tuple> startEntityRows = null;
+  private List<Tuple> startEntityRows = Collections.emptyList();
   private InitializationState initStateType = InitializationState.NotInitialized;
   @Inject
   private QueryRequestCustomizer queryCustomizer = null;
@@ -386,17 +391,18 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
    */
   protected final List<Tuple> determineStartEntityRowsForDependentQueries(final List<Tuple> queryResult)
       throws ODataJPAQueryException {
-    if (startEntityRows != null) {
-      // we are already a dependent query, the limitation is still the same for our dependent queries
+    if (!startEntityRows.isEmpty()) {
+      // we are a restricted dependent query, the restriction is still the same for our dependent queries
       return startEntityRows;
     }
-    // with navigation the rows are no longer rows of the starting entity
+    // with navigation the rows are no longer rows of the starting entity (this is always the case for dependent
+    // queries, so an unrestricted dependent query never restricts its own dependent queries)
     if (!hasQueryLimits() || !navigationQueryList.isEmpty() || queryResult.isEmpty()) {
       return Collections.emptyList();
     }
     final int numberOfKeyValues = queryResult.size() * jpaStartNavigationKeyBuilder.getNavigationKeyPaths().size();
     if (numberOfKeyValues > MAX_START_ENTITY_KEY_VALUES) {
-      LOG.log(Level.WARNING, "The result of {0} with $top/$skip has {1} rows ({2} key values, maximum is {3}), the "
+      LOG.log(Level.INFO, "The result of {0} with $top/$skip has {1} rows ({2} key values, maximum is {3}), the "
           + "queries for $expand/@ElementCollection will not be limited to these rows and may load much more rows than "
           + "required", new Object[] { jpaStartNavigationKeyBuilder.getNavigationLabel(), queryResult.size(),
               numberOfKeyValues, MAX_START_ENTITY_KEY_VALUES });
@@ -414,7 +420,7 @@ public abstract class AbstractCriteriaQueryBuilder<QT extends CriteriaQuery<DT>,
   }
 
   private jakarta.persistence.criteria.Expression<Boolean> createWhereFromStartEntityRows() {
-    if (startEntityRows == null || startEntityRows.isEmpty()) {
+    if (startEntityRows.isEmpty()) {
       return null;
     }
     final List<JPASelector> keyPaths = jpaStartNavigationKeyBuilder.getNavigationKeyPaths();

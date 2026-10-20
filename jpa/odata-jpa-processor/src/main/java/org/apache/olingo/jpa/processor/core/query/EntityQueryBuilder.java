@@ -243,8 +243,10 @@ public class EntityQueryBuilder extends AbstractCriteriaQueryBuilder<CriteriaQue
 
     final List<Tuple> startEntityRows = determineStartEntityRowsForDependentQueries(intermediateResult);
 
-    // load not yet processed @ElementCollection attribute content
-    queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap, startEntityRows));
+    if (!intermediateResult.isEmpty()) {
+      // load not yet processed @ElementCollection attribute content, only if result is not empty
+      queryResult.putElementCollectionResults(readElementCollections(elementCollectionMap, startEntityRows));
+    }
 
     if (processExpandOption && !intermediateResult.isEmpty()) {
       // generate expand queries only for non empty entity result list

@@ -113,8 +113,9 @@ class ElementCollectionQueryBuilder extends AbstractCriteriaQueryBuilder<Criteri
       involveQueryCustomizer();// as last before querying
 
       final TypedQuery<Tuple> tq = getEntityManager().createQuery(cq);
-      // FIXME how to add TOP or SKIP for elements of another table? (do not work as
-      // in JPAExpandQuery, because we have to avoid loading of too much rows)
+      // $top/$skip of the owning entity cannot be applied here, because the number of rows differs. Instead, the query
+      // is restricted to the keys of the owning entity rows if the owning query has $top/$skip (see
+      // setStartEntityRows())
       final List<Tuple> intermediateResult = tq.getResultList();
       return new QueryElementCollectionResult(intermediateResult, getLastAffectingNavigationKeyBuilder());
     } catch (final ODataJPAModelException e) {
