@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.chrono.IsoEra;
-import java.util.Map;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.ex.ODataException;
@@ -18,7 +17,7 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestODataBasics extends TestBase {
 

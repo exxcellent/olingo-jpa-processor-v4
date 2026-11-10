@@ -13,7 +13,7 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ArrayNode;
 
 public class TestJPAQueryNavigationFilter extends TestBase {
 
@@ -137,7 +137,7 @@ public class TestJPAQueryNavigationFilter extends TestBase {
 
     final ArrayNode locations = helper.getJsonObjectValues();
     assertEquals(1, locations.size());
-    assertEquals("Basel-Landschaft", locations.get(0).get("Name").asText());
+    assertEquals("Basel-Landschaft", locations.get(0).get("Name").asString());
   }
 
 }

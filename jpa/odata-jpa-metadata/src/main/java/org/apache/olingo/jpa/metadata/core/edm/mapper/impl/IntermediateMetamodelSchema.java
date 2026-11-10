@@ -185,7 +185,7 @@ class IntermediateMetamodelSchema extends AbstractJPASchema {
         throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.UNIQUE_NAME_VIOLATION, entity
             .getEntitySetName());
       }
-      final IntermediateEntitySet es = new IntermediateEntitySet(entity);
+      final IntermediateEntitySet<?> es = new IntermediateEntitySet<>(entity);
       esList.put(es.getExternalName(), es);
     }
     return esList;

@@ -15,8 +15,8 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestJPACount extends TestBase {
 
@@ -98,7 +98,7 @@ public class TestJPACount extends TestBase {
     final ArrayNode persons = helper.getJsonObjectValues();
     assertEquals(4, persons.size());
     final ObjectNode person = (ObjectNode) persons.get(3);
-    assertEquals("DEU", person.get("Country").asText());
+    assertEquals("DEU", person.get("Country").asString());
     assertEquals(2, person.get("Roles@odata.count").asInt());
     assertTrue(person.get("Roles") == null);
   }
@@ -115,7 +115,7 @@ public class TestJPACount extends TestBase {
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
     final ObjectNode org = (ObjectNode) orgs.get(1); // after skipping '1' and '10' this should be '3'
-    assertEquals("3", org.get("ID").asText());
+    assertEquals("3", org.get("ID").asString());
     assertEquals(3, org.get("Roles@odata.count").asInt());// "Third Org." must have 3 roles
     assertNull(org.get("Roles"));
   }

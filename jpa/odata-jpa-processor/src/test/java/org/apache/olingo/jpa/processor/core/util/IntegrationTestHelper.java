@@ -32,11 +32,11 @@ import org.apache.olingo.server.api.processor.DefaultProcessor;
 import org.apache.olingo.server.api.processor.ErrorProcessor;
 import org.apache.olingo.server.api.processor.Processor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class IntegrationTestHelper {
 
@@ -216,7 +216,7 @@ public class IntegrationTestHelper {
     }
   }
 
-  public ArrayNode getValues() throws JsonProcessingException, IOException {
+  public ArrayNode getValues() throws JacksonException, IOException {
     if (!executed) {
       throw new IllegalStateException("call execute() before");
     }
@@ -229,7 +229,7 @@ public class IntegrationTestHelper {
     return values;
   }
 
-  public ObjectNode getValue() throws JsonProcessingException, IOException {
+  public ObjectNode getValue() throws JacksonException, IOException {
     if (!executed) {
       throw new IllegalStateException("call execute() before");
     }

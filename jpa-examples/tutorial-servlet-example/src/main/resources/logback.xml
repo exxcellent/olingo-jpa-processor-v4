@@ -12,16 +12,16 @@
       </evaluator>
       <OnMismatch>NEUTRAL</OnMismatch>
       <OnMatch>DENY</OnMatch>
-    </filter>    
-	<layout class="ch.qos.logback.classic.PatternLayout">
+    </filter>
+	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
       <pattern>SERVER %-5level - %logger{15}: %m%n</pattern>
-	</layout>
+	</encoder>
   </appender>
 
   <logger name="org.apache.olingo" level="DEBUG"/>
   <logger name="org.eclipse.persistence.session" level="DEBUG"/>
 
-  <root level="INFO">
+  <root level="WARN">
   	<!-- this definition will work only for true slf4j loggers, JUL will log directly to the appender -->
     <appender-ref ref="STDOUT" />
   </root>

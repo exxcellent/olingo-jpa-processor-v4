@@ -180,7 +180,7 @@ public class TestAnnotationBasedSecurityInceptor extends TestBase {
     final String userName = "abcUser";
     helper.setUser(new PrincipalMock(userName));
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(userName.equals(helper.getJsonObjectValue().get("value").asText()));
+    assertTrue(userName.equals(helper.getJsonObjectValue().get("value").asString()));
 
   }
 

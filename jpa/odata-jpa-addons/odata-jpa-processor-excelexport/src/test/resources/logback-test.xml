@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+  <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener> 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>CLIENT: %m%n</pattern>
+	</encoder>
+  </appender>
+
+	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateActionFactory" level="ERROR"/>
+	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType" level="ERROR"/>
+	<logger name="org.apache.olingo.server.api.processor.ErrorProcessor" level="OFF"/>
+	<!-- required to get SQL params in Hibernate -->
+	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+  <root level="WARN">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

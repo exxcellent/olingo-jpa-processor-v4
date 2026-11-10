@@ -32,10 +32,10 @@ class URIBuilderWriter extends AbstractWriter {
   final static String METHODNAME_SINGLEENTITYCALL = "isSingleEntityCall";
 
   private final AbstractJPASchema schema;
-  private final JPAStructuredType type;
+  private final JPAStructuredType<?> type;
 
   public URIBuilderWriter(final File generationBaseDirectory, final AbstractJPASchema schema,
-      final JPAStructuredType et) {
+      final JPAStructuredType<?> et) {
     super(generationBaseDirectory, et.getTypeClass().getPackage().getName(), determineAccessBuilderName(et));
     this.schema = schema;
     this.type = et;
@@ -52,7 +52,7 @@ class URIBuilderWriter extends AbstractWriter {
     generateRepresentsEntityCallMethod();
   }
 
-  static String determineAccessBuilderName(final JPAStructuredType type) {
+  static String determineAccessBuilderName(final JPAStructuredType<?> type) {
     return type.getTypeClass().getSimpleName() + "URIBuilder";
   }
 

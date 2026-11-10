@@ -15,7 +15,7 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public class TestBatchRequests extends TestBase {
 
@@ -52,7 +52,7 @@ public class TestBatchRequests extends TestBase {
         uriBuilder, requestBody, HttpMethod.POST);
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     final JsonNode value = helper.getBatchResult(1);
-    assertEquals("3", value.get("ID").asText());
+    assertEquals("3", value.get("ID").asString());
   }
 
   @Test
@@ -76,7 +76,7 @@ public class TestBatchRequests extends TestBase {
 
     helper.execute(HttpStatusCode.ACCEPTED.getStatusCode());
     final JsonNode value = helper.getBatchResult(2);
-    assertEquals("5", value.get("ID").asText());
+    assertEquals("5", value.get("ID").asString());
   }
 
   private String createBodyTwoGetOneFail() {

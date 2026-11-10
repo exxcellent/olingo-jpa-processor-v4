@@ -141,11 +141,11 @@ class IntermediateFunction extends IntermediateModelElement<CsdlFunction> implem
     final CsdlReturnType edmResultType = new CsdlReturnType();
     FullQualifiedName fqn;
     if (returnType.type() == Object.class) {
-      final JPAStructuredType et = isd.getStructuredType(jpaDefiningPOJO);
+      final JPAStructuredType<?> et = isd.getStructuredType(jpaDefiningPOJO);
       fqn = getNameBuilder().buildFQN(et.getExternalName());
       this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it
     } else {
-      final JPAStructuredType et = isd.getStructuredType(returnType.type());
+      final JPAStructuredType<?> et = isd.getStructuredType(returnType.type());
       if (et != null) {
         fqn = getNameBuilder().buildFQN(et.getExternalName());
         this.setIgnore(et.ignore()); // If the result type shall be ignored, ignore also a function that returns it

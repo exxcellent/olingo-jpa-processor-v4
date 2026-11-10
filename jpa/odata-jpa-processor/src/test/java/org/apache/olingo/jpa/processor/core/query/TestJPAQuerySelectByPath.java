@@ -15,8 +15,8 @@ import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestJPAQuerySelectByPath extends TestBase {
 
@@ -28,7 +28,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
-    assertEquals("Third Org.", org.get("value").asText());
+    assertEquals("Third Org.", org.get("value").asString());
   }
 
   @Disabled
@@ -41,7 +41,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
-    assertEquals("Vereinigte Staaten von Amerika", org.get("value").asText());
+    assertEquals("Vereinigte Staaten von Amerika", org.get("value").asString());
   }
 
   @Test
@@ -53,7 +53,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
-    assertEquals("USA", org.get("Country").asText());
+    assertEquals("USA", org.get("Country").asString());
   }
 
   @Test
@@ -66,7 +66,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
     final ObjectNode org = helper.getJsonObjectValue();
     final JsonNode created = org.get("Created");
-    assertEquals("98", created.get("By").asText());
+    assertEquals("98", created.get("By").asString());
   }
 
   @Disabled("User is not an attribute in ChangeInformation")
@@ -80,7 +80,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
-    assertEquals("Max", org.get("value").asText());
+    assertEquals("Max", org.get("value").asString());
   }
 
   @Test
@@ -93,8 +93,8 @@ public class TestJPAQuerySelectByPath extends TestBase {
 
     final ObjectNode org = helper.getJsonObjectValue();
     assertEquals(3, org.size()); // Node "@odata.context" is also counted
-    assertEquals("USA", org.get("Country").asText());
-    assertEquals("US-UT", org.get("Region").asText());
+    assertEquals("USA", org.get("Country").asString());
+    assertEquals("US-UT", org.get("Region").asString());
   }
 
   @Test
@@ -106,7 +106,7 @@ public class TestJPAQuerySelectByPath extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
-    assertEquals("USA", org.get("Country").asText());
+    assertEquals("USA", org.get("Country").asString());
   }
 
   @Test
@@ -118,8 +118,8 @@ public class TestJPAQuerySelectByPath extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode org = helper.getJsonObjectValue();
-    assertEquals("US-UT", org.get("value").asText());
-    assertEquals("../../$metadata#Organizations/Address/Region", org.get("@odata.context").asText());
+    assertEquals("US-UT", org.get("value").asString());
+    assertEquals("../../$metadata#Organizations/Address/Region", org.get("@odata.context").asString());
   }
 
   @Disabled("MediaEntityProcessor required")

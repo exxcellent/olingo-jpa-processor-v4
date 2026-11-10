@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.olingo.jpa.processor.core.testmodel.AdministrativeDivision;
+import org.apache.olingo.jpa.test.util.AbstractTest;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,9 @@ public class TestFunctionsDerby {
     final Map<String, Object> properties = new HashMap<String, Object>();
 
     ds = DataSourceHelper.createDataSource(DataSourceHelper.DatabaseType.DERBY);
+    if(AbstractTest.isHibernate()) {
+      properties.put("hibernate.dialect", "org.hibernate.annotations.processing.GenericDialect");
+    }
 
     properties.put(ENTITY_MANAGER_DATA_SOURCE, ds);
     emf = Persistence.createEntityManagerFactory(org.apache.olingo.jpa.test.util.Constant.PUNIT_NAME, properties);
@@ -57,7 +61,7 @@ public class TestFunctionsDerby {
     cb = em.getCriteriaBuilder();
   }
 
-  @Disabled
+  @Disabled("There is currently no procedure in database")
   @Test
   public void TestProcedure() throws SQLException {
     final StoredProcedureQuery pc = em.createStoredProcedureQuery("\"OLINGO\".\"org.apache.olingo.jpa::Siblings\"");
@@ -143,10 +147,9 @@ public class TestFunctionsDerby {
 
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
     final Root<?> adminDiv = count.from(AdministrativeDivision.class);
-    count.multiselect(adminDiv);
+    count.select(cb.tuple(adminDiv));
     count.where(cb.equal(
-        cb.function("IS_PRIME", boolean.class, cb.literal(Integer.valueOf(5))),
-        new Boolean(true)));
+        cb.function("IS_PRIME", boolean.class, cb.literal(Integer.valueOf(5))), Boolean.TRUE));
     // cb.literal
     final TypedQuery<Tuple> tq = em.createQuery(count);
     final List<Tuple> act = tq.getResultList();

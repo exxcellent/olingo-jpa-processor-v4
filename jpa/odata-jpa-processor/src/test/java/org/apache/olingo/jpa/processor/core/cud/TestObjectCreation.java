@@ -23,10 +23,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestObjectCreation extends TestBase {
 
@@ -77,8 +77,8 @@ public class TestObjectCreation extends TestBase {
 
     final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
-    assertNotNull(object.get("ID").asText());
-    assertEquals(name, object.get("Name").asText());
+    assertNotNull(object.get("ID").asString());
+    assertEquals(name, object.get("Name").asString());
   }
 
   @Test
@@ -114,7 +114,7 @@ public class TestObjectCreation extends TestBase {
     assertTrue(((ArrayNode) entity.get("PhoneNumbersAsString")).size() == 0);
     assertTrue(((ArrayNode) entity.get("PartnerTelephoneConnections")).size() == 0);
     assertEquals(ADMINSITRATIVEINFORMATION_CREATED_BY, entity.get("AdministrativeInformation").get("Created").get("By")
-        .asText());
+        .asString());
   }
 
   @Test
@@ -236,16 +236,16 @@ public class TestObjectCreation extends TestBase {
     final ObjectNode entityRoot = helper.getJsonObjectValue();
     assertNotNull(entityRoot);
     assertEquals("AdministrativeDivisions(DivisionCode='DEU',CodeID='12345',CodePublisher='ISO')", entityRoot.get(
-        "@odata.id").asText());
+        "@odata.id").asString());
     final ArrayNode rootChildren = (ArrayNode) entityRoot.get("Children");
     assertNotNull(rootChildren);
     assertEquals(1, rootChildren.size());
     assertEquals("AdministrativeDivisions(DivisionCode='USA',CodeID='23456',CodePublisher='ISO')", rootChildren.get(0)
-        .get("@odata.id").asText());
+        .get("@odata.id").asString());
     final ArrayNode childrenChildren = (ArrayNode) rootChildren.get(0).get("Children");
     assertNotNull(childrenChildren);
     assertEquals(2, childrenChildren.size());
-    assertEquals("POR", childrenChildren.get(0).get("CountryCode").asText());
+    assertEquals("POR", childrenChildren.get(0).get("CountryCode").asString());
   }
 
   @Test

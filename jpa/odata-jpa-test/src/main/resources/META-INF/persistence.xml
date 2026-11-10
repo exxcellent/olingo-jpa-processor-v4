@@ -44,6 +44,7 @@
 		
 		<properties>
 			<!--  EclipselInk properties -->
+			<property name="eclipselink.logging.logger" value="JavaLogger"/>
 			<property name="eclipselink.logging.level.sql" value="FINEST" />
 			<!-- <property name="eclipselink.logging.level" value="FINER"/> -->
 			<property name="eclipselink.logging.parameters" value="true" />
@@ -80,6 +81,7 @@
 		
 		<properties>
 			<!--  EclipselInk properties -->
+			<property name="eclipselink.logging.logger" value="JavaLogger"/>
 			<property name="eclipselink.logging.level.sql" value="FINEST" />
 			<property name="eclipselink.logging.parameters" value="true" />
 			<property name="eclipselink.logging.timestamp" value="true" />

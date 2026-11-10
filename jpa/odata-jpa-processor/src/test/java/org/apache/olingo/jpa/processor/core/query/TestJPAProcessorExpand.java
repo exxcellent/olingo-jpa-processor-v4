@@ -1,6 +1,6 @@
 package org.apache.olingo.jpa.processor.core.query;
 
-import static org.apache.http.HttpStatus.SC_OK;
+import jakarta.servlet.http.HttpServletResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -24,10 +24,10 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestJPAProcessorExpand extends TestBase {
 
@@ -60,8 +60,8 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(2, roles.size());
     int found = 0;
     for (final JsonNode role : roles) {
-      final String id = role.get("BusinessPartnerID").asText();
-      final String code = role.get("RoleCategory").asText();
+      final String id = role.get("BusinessPartnerID").asString();
+      final String code = role.get("RoleCategory").asString();
       if (id.equals("2") && (code.equals("A") || code.equals("C"))) {
         found++;
       }
@@ -82,7 +82,7 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final ObjectNode divsion = helper.getJsonObjectValue();
     final ObjectNode parent = (ObjectNode) divsion.get("Parent");
-    assertEquals("BE2", parent.get("DivisionCode").asText());
+    assertEquals("BE2", parent.get("DivisionCode").asString());
 
   }
 
@@ -100,7 +100,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final ObjectNode divsion = helper.getJsonObjectValue();
     final ArrayNode parent = (ArrayNode) divsion.get("Children");
     assertEquals(8, parent.size());
-    assertEquals("BE251", parent.get(0).get("DivisionCode").asText());
+    assertEquals("BE251", parent.get(0).get("DivisionCode").asString());
 
   }
 
@@ -126,8 +126,8 @@ public class TestJPAProcessorExpand extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode ad = helper.getJsonObjectValue();
-    assertEquals("NUTS1", ad.get("CodeID").asText());// top level!
-    assertEquals("BE2", ad.get("DivisionCode").asText());// top level!
+    assertEquals("NUTS1", ad.get("CodeID").asString());// top level!
+    assertEquals("BE2", ad.get("DivisionCode").asString());// top level!
     assertEquals(5, ad.withArray("Children").size());// NUTS1/BE2/BEL has 5 children
   }
 
@@ -139,9 +139,9 @@ public class TestJPAProcessorExpand extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode address = helper.getJsonObjectValue();
-    assertEquals("223", address.get("HouseNumber").asText());
+    assertEquals("223", address.get("HouseNumber").asString());
     final ObjectNode ad = (ObjectNode) address.get("AdministrativeDivision");
-    assertEquals("USA", ad.get("ParentDivisionCode").asText());
+    assertEquals("USA", ad.get("ParentDivisionCode").asString());
   }
 
   @Test
@@ -156,7 +156,7 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(parent.get("Children"));
     final ArrayNode children = (ArrayNode) parent.get("Children");
     assertEquals(8, children.size());
-    assertEquals("NUTS3", children.get(0).get("CodeID").asText());
+    assertEquals("NUTS3", children.get(0).get("CodeID").asString());
   }
 
   @Test
@@ -170,15 +170,15 @@ public class TestJPAProcessorExpand extends TestBase {
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("Parent"));
     assertNotNull(parent.get("Parent").get("CodeID"));
-    assertEquals("NUTS3", parent.get("CodeID").asText());
+    assertEquals("NUTS3", parent.get("CodeID").asString());
     final ObjectNode grandParent = (ObjectNode) parent.get("Parent");
     assertNotNull(grandParent);
     assertNotNull(grandParent.get("CodeID"));
-    assertEquals("NUTS2", grandParent.get("CodeID").asText());
+    assertEquals("NUTS2", grandParent.get("CodeID").asString());
     final ObjectNode greateGrandParent = (ObjectNode) grandParent.get("Parent");
     assertNotNull(greateGrandParent);
     assertNotNull(greateGrandParent.get("CodeID"));
-    assertEquals("NUTS1", greateGrandParent.get("CodeID").asText());
+    assertEquals("NUTS1", greateGrandParent.get("CodeID").asString());
   }
 
   @Test
@@ -191,12 +191,12 @@ public class TestJPAProcessorExpand extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode div = helper.getJsonObjectValue();
-    assertEquals("USA", div.get("Country").asText());
+    assertEquals("USA", div.get("Country").asString());
     assertNull(div.get("CityName"));
     final ObjectNode admin = (ObjectNode) div.get("AdministrativeDivision");
     assertNotNull(admin);
     final ObjectNode parent = (ObjectNode) admin.get("Parent");
-    assertEquals("3166-1", parent.get("CodeID").asText());
+    assertEquals("3166-1", parent.get("CodeID").asString());
   }
 
   @Test
@@ -210,7 +210,7 @@ public class TestJPAProcessorExpand extends TestBase {
     assertNotNull(div.get("Area"));
     final ObjectNode parent = (ObjectNode) div.get("Parent");
     assertNotNull(parent.get("CodeID"));
-    assertEquals("NUTS2", parent.get("CodeID").asText());
+    assertEquals("NUTS2", parent.get("CodeID").asString());
     // only the keys must be selected (see $select)
     assertNull(parent.get("Area"));
   }
@@ -231,7 +231,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
     assertEquals(5, children.size());
-    assertEquals("BE21", children.get(0).get("DivisionCode").asText());
+    assertEquals("BE21", children.get(0).get("DivisionCode").asString());
   }
 
   @Test
@@ -245,8 +245,8 @@ public class TestJPAProcessorExpand extends TestBase {
     final ObjectNode div = helper.getJsonObjectValue();
     final ArrayNode children = (ArrayNode) div.get("Children");
     assertEquals(5, children.size());
-    assertEquals("BE25", children.get(0).get("DivisionCode").asText());
-    assertEquals("BE21", children.get(4).get("DivisionCode").asText());
+    assertEquals("BE25", children.get(0).get("DivisionCode").asString());
+    assertEquals("BE21", children.get(4).get("DivisionCode").asString());
   }
 
   @Test
@@ -259,7 +259,7 @@ public class TestJPAProcessorExpand extends TestBase {
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(10, orgs.size());
     final ObjectNode orgWithMostRoles = (ObjectNode) orgs.get(0);
-    assertEquals("3", orgWithMostRoles.get("ID").asText());
+    assertEquals("3", orgWithMostRoles.get("ID").asString());
     assertEquals(3, orgWithMostRoles.withArray("Roles").size());// 3 roles
     assertEquals(3, orgWithMostRoles.get("Roles@odata.count").asInt());// must be present
   }
@@ -278,7 +278,7 @@ public class TestJPAProcessorExpand extends TestBase {
     assertFalse(orgs.isEmpty(), "Expected at least one result");
     // Organization with most roles must still be first
     final ObjectNode orgWithMostRoles = (ObjectNode) orgs.get(0);
-    assertEquals("3", orgWithMostRoles.get("ID").asText());
+    assertEquals("3", orgWithMostRoles.get("ID").asString());
   }
 
   @Test
@@ -306,12 +306,12 @@ public class TestJPAProcessorExpand extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
-    assertEquals("3", org.get("ID").asText());
+    assertEquals("3", org.get("ID").asString());
     assertNotNull(org.get("Roles"));
     final ArrayNode roles = (ArrayNode) org.get("Roles");
     assertEquals(3, roles.size());
     final ObjectNode firstRole = (ObjectNode) roles.get(0);
-    assertEquals("C", firstRole.get("RoleCategory").asText());
+    assertEquals("C", firstRole.get("RoleCategory").asString());
   }
 
   @Test
@@ -321,14 +321,14 @@ public class TestJPAProcessorExpand extends TestBase {
         .orderBy("BusinessPartner/Country desc")
         .expand("BusinessPartner($select=Country)");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    helper.execute(SC_OK);
+    helper.execute(HttpServletResponse.SC_OK);
 
     final ArrayNode roles = helper.getJsonObjectValues();
     assertFalse(roles.isEmpty(), "Expected at least one result");
     // Verify actual descending sort order by the navigation target's Country (alphabetically Z -> A)
     for (int i = 0; i < roles.size() - 1; i++) {
-      final String countryCurrent = roles.get(i).get("BusinessPartner").get("Country").asText();
-      final String countryNext = roles.get(i + 1).get("BusinessPartner").get("Country").asText();
+      final String countryCurrent = roles.get(i).get("BusinessPartner").get("Country").asString();
+      final String countryNext = roles.get(i + 1).get("BusinessPartner").get("Country").asString();
       assertTrue(countryCurrent.compareTo(countryNext) >= 0,
           "Expected descending alphabetical order by BusinessPartner/Country but got '"
               + countryCurrent + "' before '" + countryNext + "' at index " + i);
@@ -342,14 +342,14 @@ public class TestJPAProcessorExpand extends TestBase {
         .orderBy("BusinessPartner/Country")
         .expand("BusinessPartner($select=Country)");
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
-    helper.execute(SC_OK);
+    helper.execute(HttpServletResponse.SC_OK);
 
     final ArrayNode roles = helper.getJsonObjectValues();
     assertFalse(roles.isEmpty(), "Expected at least one result");
     // Verify actual ascending sort order by the navigation target's Country (alphabetically A -> Z)
     for (int i = 0; i < roles.size() - 1; i++) {
-      final String countryCurrent = roles.get(i).get("BusinessPartner").get("Country").asText();
-      final String countryNext = roles.get(i + 1).get("BusinessPartner").get("Country").asText();
+      final String countryCurrent = roles.get(i).get("BusinessPartner").get("Country").asString();
+      final String countryNext = roles.get(i + 1).get("BusinessPartner").get("Country").asString();
       assertTrue(countryCurrent.compareTo(countryNext) <= 0,
           "Expected ascending alphabetical order by BusinessPartner/Country but got '"
               + countryCurrent + "' before '" + countryNext + "' at index " + i);
@@ -366,12 +366,12 @@ public class TestJPAProcessorExpand extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
 
     final ObjectNode division = helper.getJsonObjectValue();
-    assertEquals("BE25", division.get("DivisionCode").asText());
+    assertEquals("BE25", division.get("DivisionCode").asString());
     assertNotNull(division.get("Children"));
     final ArrayNode children = (ArrayNode) division.get("Children");
     assertEquals(1, children.size());
     final ObjectNode firstChild = (ObjectNode) children.get(0);
-    assertEquals("BE252", firstChild.get("DivisionCode").asText());
+    assertEquals("BE252", firstChild.get("DivisionCode").asString());
   }
 
   @Test
@@ -414,12 +414,12 @@ public class TestJPAProcessorExpand extends TestBase {
     // check json reponse
     final ArrayNode orgs = helper.getJsonObjectValues();
     final ObjectNode org = (ObjectNode) orgs.get(0);
-    assertEquals("1", org.get("ID").asText());
+    assertEquals("1", org.get("ID").asString());
     assertNotNull(org.get("Roles"));
     final ArrayNode roles = (ArrayNode) org.get("Roles");
     assertEquals(1, roles.size());
     final ObjectNode firstRole = (ObjectNode) roles.get(0);
-    assertEquals("A", firstRole.get("RoleCategory").asText());
+    assertEquals("A", firstRole.get("RoleCategory").asString());
 
     // Olingo client response
     final ClientEntitySet set = helper.getOlingoEntityCollectionValues();
@@ -547,9 +547,9 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(2, pis.size());
     final ObjectNode pi1 = (ObjectNode) pis.get(0);
     final ObjectNode pi2 = (ObjectNode) pis.get(1);
-    assertNotEquals(pi1.get("PID").asText(), pi2.get("PID").asText());
-    assertNotEquals(pi1.get("PersonReferenceWithoutMappedAttribute").get("ID").asText(),
-        pi2.get("PersonReferenceWithoutMappedAttribute").get("ID").asText());
+    assertNotEquals(pi1.get("PID").asString(), pi2.get("PID").asString());
+    assertNotEquals(pi1.get("PersonReferenceWithoutMappedAttribute").get("ID").asString(),
+        pi2.get("PersonReferenceWithoutMappedAttribute").get("ID").asString());
   }
 
   @Test
@@ -749,7 +749,7 @@ public class TestJPAProcessorExpand extends TestBase {
     assertEquals(1, ewp.size());
     final ObjectNode op = (ObjectNode) ewp.get(0).get("OwningPerson");
     assertNotNull(op);
-    assertEquals("97", op.get("ID").asText());// owning person must be Urs Müller
+    assertEquals("97", op.get("ID").asString());// owning person must be Urs Müller
   }
 
   @Test

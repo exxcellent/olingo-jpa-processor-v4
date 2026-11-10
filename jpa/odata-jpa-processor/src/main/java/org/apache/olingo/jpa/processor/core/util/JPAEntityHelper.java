@@ -243,13 +243,13 @@ public class JPAEntityHelper {
   private Object toIdClassKey(Map<String, Object> keyAttributes, IdClass annotation) throws ODataJPAModelException {
     try {
       Class<?> keyClass = annotation.value();
-      Object instance = keyClass.newInstance();
+      Object instance = keyClass.getDeclaredConstructor().newInstance();
       for(Map.Entry<String, Object> entry: keyAttributes.entrySet()) {
         Field field = keyClass.getDeclaredField(entry.getKey());
         FieldAccess.writeFieldValue(instance, field, entry.getValue());
       }
       return instance;
-    } catch (InstantiationException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+    } catch (InstantiationException | IllegalAccessException | NoSuchFieldException | SecurityException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException e) {
       throw new ODataJPAModelException(ODataJPAModelException.MessageKeys.RUNTIME_PROBLEM, e, "Cannot build IdClass '"+annotation.value().getName()+"' instance");
     }
   }

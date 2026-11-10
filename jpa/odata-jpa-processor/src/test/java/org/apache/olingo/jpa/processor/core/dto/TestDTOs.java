@@ -33,7 +33,7 @@ import org.apache.olingo.jpa.test.util.Constant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestDTOs extends TestBase {
 
@@ -132,7 +132,7 @@ public class TestDTOs extends TestBase {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     assertTrue(helper.getJsonObjectValues().size() > 0);
-    assertEquals(System.getProperty("java.version"), helper.getJsonObjectValues().get(0).get("JavaVersion").asText());
+    assertEquals(System.getProperty("java.version"), helper.getJsonObjectValues().get(0).get("JavaVersion").asString());
   }
 
   @Test
@@ -151,7 +151,7 @@ public class TestDTOs extends TestBase {
     final StringBuffer requestBody = new StringBuffer("{");
     requestBody.append("\"EnvNames\": [\"envA\"], ");
     requestBody.append("\"JavaVersion\": \"0.0.ex\", ");
-    requestBody.append("\"MapOfNumberCollections\": {\"NullTest\": null, \"numberOfEnv\": [0, 1]},");
+    requestBody.append("\"MapOfNumberCollections\": {\"NullTest\": null, \"numberOfEnv\": [0, 1], \"emptyArray\": []},");
     requestBody.append("\"Id\": " + sId);
     requestBody.append("}");
 
@@ -160,7 +160,7 @@ public class TestDTOs extends TestBase {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder,
         requestBody.toString(), HttpMethod.PUT);
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertEquals(sId, helper.getJsonObjectValue().get("Id").asText());
+    assertEquals(sId, helper.getJsonObjectValue().get("Id").asString());
   }
 
   @Test
@@ -181,8 +181,8 @@ public class TestDTOs extends TestBase {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
-    assertNotNull(result.get("Any").asText());// starting upper case
-    assertNotNull(result.get("requirementName").asText()); // starting lower case
+    assertNotNull(result.get("Any").asString());// starting upper case
+    assertNotNull(result.get("requirementName").asString()); // starting lower case
     assertNotNull(result);
   }
 
@@ -195,8 +195,8 @@ public class TestDTOs extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
     assertFalse(result.withArray("cts").isEmpty());
-    assertEquals("a1", result.withArray("cts").get(0).get("attribute1").asText());
-    assertEquals("a2", result.withArray("cts").get(0).get("attribute2").asText());
+    assertEquals("a1", result.withArray("cts").get(0).get("attribute1").asString());
+    assertEquals("a2", result.withArray("cts").get(0).get("attribute2").asString());
 
     // send same structure as input for action
     final URIBuilder uriBuilderSend = newUriBuilder().appendActionCallSegment("countCompleteCTs");
@@ -237,10 +237,10 @@ public class TestDTOs extends TestBase {
     // 1. check the type name of Phone referenced by the DTO
     assertEquals(Constant.PUNIT_NAME + "." + Phone.class.getSimpleName(), metamodel.get(
         DtoUsingMixedEmbeddableComplexType.class.getPackage().getName()).get(
-            DtoUsingMixedEmbeddableComplexType.class.getSimpleName()).get("phone").get("$Type").asText());
+            DtoUsingMixedEmbeddableComplexType.class.getSimpleName()).get("phone").get("$Type").asString());
     // 2. check the type name of Phone referenced by an JPA entity
     assertEquals(Constant.PUNIT_NAME + "." + Phone.class.getSimpleName(), metamodel.get(Constant.PUNIT_NAME).get(
-        BusinessPartner.class.getSimpleName()).get("PhoneNumbers").get("$Type").asText());
+        BusinessPartner.class.getSimpleName()).get("PhoneNumbers").get("$Type").asString());
     // Phone must not create a new custom schema with it's package, because is only registered via JPA's 'persistence
     // unit' name
     assertNull(metamodel.get(Phone.class.getPackage().getName()));

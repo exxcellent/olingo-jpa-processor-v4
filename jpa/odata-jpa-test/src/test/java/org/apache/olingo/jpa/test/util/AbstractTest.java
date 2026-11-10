@@ -1,12 +1,16 @@
 package org.apache.olingo.jpa.test.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.spi.PersistenceProvider;
+import jakarta.persistence.spi.PersistenceProviderResolver;
+import jakarta.persistence.spi.PersistenceProviderResolverHolder;
 
 public abstract class AbstractTest implements Constant {
 
@@ -14,6 +18,21 @@ public abstract class AbstractTest implements Constant {
     EclipseLink, Hibernate, OpenJPA;
   }
 
+  /**
+   * Check for Hibernate as JPA provider
+   */
+  public static boolean isHibernate() {
+    PersistenceProviderResolver resolver = PersistenceProviderResolverHolder.getPersistenceProviderResolver();
+    List<PersistenceProvider> providers = resolver.getPersistenceProviders();
+    if(providers.size() > 1) {
+      throw new IllegalStateException("Cannot worj with more than 1 JPA provider at the same time");
+    }
+    if(!providers.get(0).getClass().getName().startsWith("org.hibernate")) {
+      return false;
+    }
+    return true;
+  }
+    
   public final static class EntityManagerProperty {
 
     private final String key;

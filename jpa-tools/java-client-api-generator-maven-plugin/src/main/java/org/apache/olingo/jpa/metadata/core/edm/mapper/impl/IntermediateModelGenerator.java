@@ -29,7 +29,7 @@ public class IntermediateModelGenerator {
     this.generationBaseDirectory = generationDirectory;
   }
 
-  private void generate4Type(final AbstractJPASchema schema, final JPAStructuredType et,
+  private void generate4Type(final AbstractJPASchema schema, final JPAStructuredType<?> et,
       final boolean generateProtocolCode)
           throws ODataJPAModelException, IOException {
     log.debug("Generate client side type code for " + et.getInternalName() + "...");
@@ -70,16 +70,16 @@ public class IntermediateModelGenerator {
   }
 
   public void generateTypeAPI(final boolean generateProtocolCode) throws IOException, ODataException {
-    for (final Map.Entry<AbstractJPASchema, List<JPAEntityType>> entry : getEntityTypes().entrySet()) {
-      for (final JPAEntityType et : entry.getValue()) {
+    for (final Map.Entry<AbstractJPASchema, List<JPAEntityType<?>>> entry : getEntityTypes().entrySet()) {
+      for (final JPAEntityType<?> et : entry.getValue()) {
         if (et.ignore()) {
           continue;
         }
         generate4Type(entry.getKey(), et, generateProtocolCode);
       }
     }
-    for (final Map.Entry<AbstractJPASchema, List<JPAComplexType>> entry : getComplexTypes().entrySet()) {
-      for (final JPAComplexType ct : entry.getValue()) {
+    for (final Map.Entry<AbstractJPASchema, List<JPAComplexType<?>>> entry : getComplexTypes().entrySet()) {
+      for (final JPAComplexType<?> ct : entry.getValue()) {
         if (ct.ignore()) {
           continue;
         }
@@ -119,22 +119,22 @@ public class IntermediateModelGenerator {
     return enums;
   }
 
-  private Map<AbstractJPASchema, List<JPAEntityType>> getEntityTypes() {
-    final Map<AbstractJPASchema, List<JPAEntityType>> map = new HashMap<>();
+  private Map<AbstractJPASchema, List<JPAEntityType<?>>> getEntityTypes() {
+    final Map<AbstractJPASchema, List<JPAEntityType<?>>> map = new HashMap<>();
     final Collection<AbstractJPASchema> schemas = isd.getJPASchemas();
     for (final AbstractJPASchema s : schemas) {
-      final List<JPAEntityType> types = new LinkedList<>();
+      final List<JPAEntityType<?>> types = new LinkedList<>();
       types.addAll(s.getEntityTypes());
       map.put(s, types);
     }
     return map;
   }
 
-  private Map<AbstractJPASchema, List<JPAComplexType>> getComplexTypes() {
-    final Map<AbstractJPASchema, List<JPAComplexType>> map = new HashMap<>();
+  private Map<AbstractJPASchema, List<JPAComplexType<?>>> getComplexTypes() {
+    final Map<AbstractJPASchema, List<JPAComplexType<?>>> map = new HashMap<>();
     final Collection<AbstractJPASchema> schemas = isd.getJPASchemas();
     for (final AbstractJPASchema s : schemas) {
-      final List<JPAComplexType> types = new LinkedList<>();
+      final List<JPAComplexType<?>> types = new LinkedList<>();
       types.addAll(s.getComplexTypes());
       map.put(s, types);
     }

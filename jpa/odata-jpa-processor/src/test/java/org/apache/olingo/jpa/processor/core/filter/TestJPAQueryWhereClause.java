@@ -16,7 +16,7 @@ import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ArrayNode;
 
 public class TestJPAQueryWhereClause extends TestBase {
 
@@ -82,7 +82,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
-    assertEquals("3", orgs.get(0).get("ID").asText());
+    assertEquals("3", orgs.get(0).get("ID").asString());
   }
 
   @Test
@@ -93,7 +93,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
-    assertEquals("10", orgs.get(0).get("ID").asText());
+    assertEquals("10", orgs.get(0).get("ID").asString());
   }
 
   @Disabled("LocationName currently not available")
@@ -107,7 +107,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
-    assertEquals("10", orgs.get(0).get("ID").asText());
+    assertEquals("10", orgs.get(0).get("ID").asString());
   }
 
   @Test
@@ -131,7 +131,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
-    assertEquals("3", orgs.get(0).get("ID").asText());
+    assertEquals("3", orgs.get(0).get("ID").asString());
   }
 
   @Test
@@ -252,7 +252,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(1, orgs.size());
-    assertEquals("BEL", orgs.get(0).get("CountryCode").asText());
+    assertEquals("BEL", orgs.get(0).get("CountryCode").asString());
   }
 
   @Test
@@ -264,7 +264,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
-    assertEquals("BE25", orgs.get(0).get("DivisionCode").asText());
+    assertEquals("BE25", orgs.get(0).get("DivisionCode").asString());
   }
 
   @Test
@@ -276,7 +276,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(5, orgs.size());
-    assertEquals("USA", orgs.get(0).get("DivisionCode").asText());
+    assertEquals("USA", orgs.get(0).get("DivisionCode").asString());
   }
 
   @Test
@@ -547,7 +547,7 @@ public class TestJPAQueryWhereClause extends TestBase {
 
     final ArrayNode relSources = helper.getJsonObjectValues();
     assertTrue(relSources.size() == 1);
-    assertEquals("USA", relSources.get(0).get("Country").asText());
+    assertEquals("USA", relSources.get(0).get("Country").asString());
   }
 
   @Test
@@ -822,7 +822,7 @@ public class TestJPAQueryWhereClause extends TestBase {
     servercallQuery1.execute(HttpStatusCode.OK.getStatusCode());
     entities = servercallQuery1.getJsonObjectValues();
     assertEquals(1, entities.size(), "With escaping only one result expected");
-    assertTrue(entities.get(0).get("AUrl").asText().contains("my_underscore"));
+    assertTrue(entities.get(0).get("AUrl").asString().contains("my_underscore"));
 
     // query entity '?' having 0 valid result
     final URIBuilder uriBuilderQuery2 = newUriBuilder().appendEntitySetSegment("DatatypeConversionEntities").filter(

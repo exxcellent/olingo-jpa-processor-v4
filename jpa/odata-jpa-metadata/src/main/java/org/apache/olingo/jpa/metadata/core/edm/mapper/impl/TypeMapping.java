@@ -314,6 +314,7 @@ public final class TypeMapping {
     if (javaMember == null) {
       return null;
     }
+    @SuppressWarnings("deprecation")
     final Temporal temporal = javaMember.getAnnotation(Temporal.class);
     if (temporal == null) {
       return null;

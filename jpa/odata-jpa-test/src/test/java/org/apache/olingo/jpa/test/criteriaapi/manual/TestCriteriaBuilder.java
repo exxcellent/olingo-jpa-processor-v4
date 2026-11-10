@@ -61,7 +61,7 @@ public class TestCriteriaBuilder {
     final Expression<Integer> sum = cb.sum(cb.literal(Integer.valueOf(1)), cb.literal(Integer.valueOf(4)));
 
     adminQ.where(cb.equal(cb.substring((Expression<String>) (p), cb.literal(Integer.valueOf(1)), sum), "North"));
-    adminQ.multiselect(adminRoot1.get("name"));
+    adminQ.select(cb.tuple(adminRoot1.get("name")));
     final TypedQuery<Tuple> tq = em.createQuery(adminQ);
     tq.getResultList();
   }
@@ -90,7 +90,7 @@ public class TestCriteriaBuilder {
     adminQ2.select(cb.literal(Long.valueOf(1)));
 
     adminQ1.where(cb.exists(adminQ2));
-    adminQ1.multiselect(adminRoot1.get("divisionCode"));
+    adminQ1.select(cb.tuple(adminRoot1.get("divisionCode")));
 
     final TypedQuery<Tuple> tq = em.createQuery(adminQ1);
     tq.getResultList();
@@ -102,7 +102,7 @@ public class TestCriteriaBuilder {
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
     final Root<?> roles = count.from(BusinessPartnerRole.class);
 
-    count.multiselect(roles.get("businessPartnerID"), cb.count(roles).alias("c"));
+    count.select(cb.tuple(roles.get("businessPartnerID"), cb.count(roles).alias("c")));
     count.groupBy(roles.get("businessPartnerID"));
     count.orderBy(cb.desc(cb.count(roles)));
     final TypedQuery<Tuple> tq = em.createQuery(count);
@@ -117,7 +117,7 @@ public class TestCriteriaBuilder {
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
     final Root<?> adminDiv = count.from(AdministrativeDivision.class);
 
-    count.multiselect(adminDiv);
+    count.select(cb.tuple(adminDiv));
     final Predicate[] restrictions = new Predicate[3];
     restrictions[0] = cb.equal(adminDiv.get("codeID"), "NUTS2");
     restrictions[1] = cb.equal(adminDiv.get("divisionCode"), "BE34");
@@ -134,7 +134,7 @@ public class TestCriteriaBuilder {
   public void TestSearchNoSubquery() {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<?> adminDiv = cq.from(AdministrativeDivisionDescription.class);
-    cq.multiselect(adminDiv);
+    cq.select(cb.tuple(adminDiv));
 
     // Predicate[] restrictions = new Predicate[2];
     cq.where(

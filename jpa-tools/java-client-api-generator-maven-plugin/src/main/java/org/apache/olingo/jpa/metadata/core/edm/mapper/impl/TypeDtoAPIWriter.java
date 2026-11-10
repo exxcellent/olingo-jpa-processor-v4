@@ -17,12 +17,14 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAMemberAttribute;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAStructuredType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 
+import jakarta.validation.constraints.NotNull;
+
 class TypeDtoAPIWriter extends AbstractWriter {
 
-  private final JPAStructuredType type;
+  private final JPAStructuredType<?> type;
   private final LogWrapper log;
 
-  public TypeDtoAPIWriter(final File generationBaseDirectory, final JPAStructuredType st, final LogWrapper log) {
+  public TypeDtoAPIWriter(final File generationBaseDirectory, final JPAStructuredType<?> st, final LogWrapper log) {
     super(generationBaseDirectory, st.getTypeClass().getPackage().getName(), determineTypeName(st.getTypeClass()
         .getSimpleName()));
     this.type = st;
@@ -54,7 +56,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     return "get" + determineBeanPropertyName(attribute);
   }
 
-  private static <T extends JPAAttribute<?>> String determineServerSideTypeName(final T attribute,
+  private static <T extends JPAAttribute<?>> String determineServerSideTypeName(@NotNull final T attribute,
       final boolean convertPrimitiveClassToObjectClass)
           throws ODataJPAModelException {
     if (JPAMemberAttribute.class.isInstance(attribute)) {
@@ -111,7 +113,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     return clazz;
   }
 
-  static <T extends JPAAttribute<?>> String determineClientSidePropertyRawJavaTypeName(final T attribute,
+  static <T extends JPAAttribute<?>> String determineClientSidePropertyRawJavaTypeName(@NotNull final T attribute,
       final boolean convertPrimitiveClassToObjectClass)
           throws ODataJPAModelException {
     switch (attribute.getAttributeMapping()) {
@@ -179,7 +181,7 @@ class TypeDtoAPIWriter extends AbstractWriter {
     }
   }
 
-  private void internalWriteDtoTypeProperty(final JPAAttribute<?> attribute) throws IOException,
+  private void internalWriteDtoTypeProperty(@NotNull final JPAAttribute<?> attribute) throws IOException,
   ODataJPAModelException {
     final String memberName = attribute.getInternalName();
     final String propClientType = determineClientSidePropertyJavaTypeName(attribute, false);
