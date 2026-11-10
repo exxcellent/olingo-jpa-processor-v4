@@ -35,10 +35,10 @@ class HandlerAPIWriter extends AbstractWriter {
 
   @SuppressWarnings("unused")
   private final AbstractJPASchema schema;
-  private final JPAStructuredType type;
+  private final JPAStructuredType<?> type;
 
   public HandlerAPIWriter(final File generationBaseDirectory, final AbstractJPASchema schema,
-      final JPAStructuredType et) {
+      final JPAStructuredType<?> et) {
     super(generationBaseDirectory, et.getTypeClass().getPackage().getName(), determineHandlerName(et));
     this.schema = schema;
     this.type = et;
@@ -119,7 +119,7 @@ class HandlerAPIWriter extends AbstractWriter {
     write(NEWLINE + "\t" + "}");
   }
 
-  static String determineHandlerName(final JPAStructuredType type) {
+  static String determineHandlerName(final JPAStructuredType<?> type) {
     return type.getTypeClass().getSimpleName() + "AbstractHandler";
   }
 

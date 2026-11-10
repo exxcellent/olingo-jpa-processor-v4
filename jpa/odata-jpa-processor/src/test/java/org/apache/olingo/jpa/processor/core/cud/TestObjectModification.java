@@ -21,8 +21,8 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestObjectModification extends TestBase {
 
@@ -36,7 +36,7 @@ public class TestObjectModification extends TestBase {
 
     final ObjectNode dceFirstRead = callRead.getJsonObjectValue();
     assertEquals(2, ((ArrayNode) dceFirstRead.get("EnumCollection")).size());
-    assertEquals(DayOfWeek.TUESDAY.name(), dceFirstRead.withArray("EnumCollection").get(0).asText());
+    assertEquals(DayOfWeek.TUESDAY.name(), dceFirstRead.withArray("EnumCollection").get(0).asString());
 
     ((ArrayNode) dceFirstRead.get("EnumCollection")).removeAll().add(DayOfWeek.WEDNESDAY.name());
     dceFirstRead.put("AStringMappedEnum", IsoEra.BCE.name());
@@ -52,9 +52,9 @@ public class TestObjectModification extends TestBase {
     // execute again
     callRead.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode dceSecondRead = callRead.getJsonObjectValue();
-    assertEquals(IsoEra.BCE.name(), dceSecondRead.get("AStringMappedEnum").asText());
+    assertEquals(IsoEra.BCE.name(), dceSecondRead.get("AStringMappedEnum").asString());
     assertEquals(1, dceSecondRead.withArray("EnumCollection").size());
-    assertEquals(DayOfWeek.WEDNESDAY.name(), dceSecondRead.withArray("EnumCollection").get(0).asText());
+    assertEquals(DayOfWeek.WEDNESDAY.name(), dceSecondRead.withArray("EnumCollection").get(0).asString());
   }
   
   @Test
@@ -91,7 +91,7 @@ public class TestObjectModification extends TestBase {
     final ServerCallSimulator callRead = new ServerCallSimulator(persistenceAdapter, uriBuilderResource);
     callRead.execute(HttpStatusCode.OK.getStatusCode());
     ObjectNode object = callRead.getJsonObjectValue();
-    assertEquals("Deutschland", object.get("Name").asText());
+    assertEquals("Deutschland", object.get("Name").asString());
     
     object.put("Name", "Bundesrepublik Deutschland");
     final StringBuffer requestBody = new StringBuffer(object.toString());
@@ -99,7 +99,7 @@ public class TestObjectModification extends TestBase {
         requestBody.toString(), HttpMethod.PUT);
     callUpdate.execute(HttpStatusCode.OK.getStatusCode());
     object = callUpdate.getJsonObjectValue();
-    assertEquals("Bundesrepublik Deutschland", object.get("Name").asText());
+    assertEquals("Bundesrepublik Deutschland", object.get("Name").asString());
   }
 
 }

@@ -51,7 +51,7 @@ public class TestAssociations extends AbstractTest {
   public void testIdClassHandling() throws IOException, ODataException {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<?> root = cq.from(BusinessPartner.class);
-    cq.multiselect(root.get("ID").alias("ID"), root.get("country"));
+    cq.select(cb.tuple(root.get("ID").alias("ID"), root.get("country")));
 
     final Subquery<?> subQuery = cq.subquery(BusinessPartnerRoleKey.class);
     final Root<BusinessPartnerRole> subQueryRoot = subQuery.from(BusinessPartnerRole.class);
@@ -75,7 +75,7 @@ public class TestAssociations extends AbstractTest {
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
     final ParameterExpression<String> p = cb.parameter(String.class);
-    cq.multiselect(root.get("locations").alias("locations")).where(cb.equal(root.get("ID"), p));
+    cq.select(cb.tuple(root.get("locations").alias("locations"))).where(cb.equal(root.get("ID"), p));
 
     final TypedQuery<Tuple> tq = em.createQuery(cq);
     tq.setParameter(p, "3");// BusinessPartner with that Id
@@ -94,7 +94,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
-    cq.multiselect(root.get("roles").alias("roles"));
+    cq.select(cb.tuple(root.get("roles").alias("roles")));
     final TypedQuery<Tuple> tq = em.createQuery(cq);
     final List<Tuple> result = tq.getResultList();
     final BusinessPartnerRole role = (BusinessPartnerRole) result.get(0).get("roles");
@@ -106,7 +106,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
-    cq.multiselect(root.get("locations").alias("L"));
+    cq.select(cb.tuple(root.get("locations").alias("L")));
     final TypedQuery<Tuple> tq = em.createQuery(cq);
     final List<Tuple> result = tq.getResultList();
     final AdministrativeDivisionDescription act = (AdministrativeDivisionDescription) result.get(0).get("L");
@@ -119,7 +119,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
-    cq.multiselect(root.get("address").get("countryName").alias("CN"));
+    cq.select(cb.tuple(root.get("address").get("countryName").alias("CN")));
     final TypedQuery<Tuple> tq = em.createQuery(cq);
     final List<Tuple> result = tq.getResultList();
     final Country region = (Country) result.get(0).get("CN");
@@ -132,7 +132,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<BusinessPartner> root = cq.from(BusinessPartner.class);
 
-    cq.multiselect(root.get("address").get("regionName").alias("RN"));
+    cq.select(cb.tuple(root.get("address").get("regionName").alias("RN")));
     final TypedQuery<Tuple> tq = em.createQuery(cq);
     final List<Tuple> result = tq.getResultList();
     final AdministrativeDivisionDescription region = (AdministrativeDivisionDescription) result.get(0).get("RN");
@@ -144,7 +144,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<AdministrativeDivision> root = cq.from(AdministrativeDivision.class);
 
-    cq.multiselect(root.get("parent").alias("P"));
+    cq.select(cb.tuple(root.get("parent").alias("P")));
     final TypedQuery<Tuple> tq = em.createQuery(cq);
     final List<Tuple> result = tq.getResultList();
     final AdministrativeDivision act = (AdministrativeDivision) result.get(0).get("P");
@@ -156,7 +156,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<AdministrativeDivision> root = cq.from(AdministrativeDivision.class);
     root.alias("Source");
-    cq.multiselect(root.get("parent").alias("P"));
+    cq.select(cb.tuple(root.get("parent").alias("P")));
     // cq.select((Selection<? extends Tuple>) root);
     cq.where(cb.and(
         cb.equal(root.get("codePublisher"), "Eurostat"),
@@ -176,7 +176,7 @@ public class TestAssociations extends AbstractTest {
     final CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     final Root<AdministrativeDivision> root = cq.from(AdministrativeDivision.class);
     root.alias("Source");
-    cq.multiselect(root.get("children").alias("C"));
+    cq.select(cb.tuple(root.get("children").alias("C")));
     cq.where(cb.and(
         cb.equal(root.get("codePublisher"), "Eurostat"),
         cb.and(

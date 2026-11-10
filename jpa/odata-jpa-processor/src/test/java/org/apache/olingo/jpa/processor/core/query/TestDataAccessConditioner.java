@@ -17,8 +17,8 @@ import org.apache.olingo.jpa.processor.core.util.TestGenericJPAPersistenceAdapte
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestDataAccessConditioner extends TestBase {
 

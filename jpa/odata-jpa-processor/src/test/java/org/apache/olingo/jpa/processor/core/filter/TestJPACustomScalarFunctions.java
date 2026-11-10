@@ -17,7 +17,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ArrayNode;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -71,7 +71,7 @@ public class TestJPACustomScalarFunctions {
 
     final ArrayNode orgs = helper.getJsonObjectValues();
     assertEquals(2, orgs.size());
-    assertEquals("35002", orgs.get(0).get("DivisionCode").asText());
+    assertEquals("35002", orgs.get(0).get("DivisionCode").asString());
   }
 
   @Test

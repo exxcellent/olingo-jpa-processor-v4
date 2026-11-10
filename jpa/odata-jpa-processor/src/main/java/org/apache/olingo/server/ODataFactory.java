@@ -4,14 +4,16 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
+import org.apache.olingo.commons.api.edm.DynamicEdmProperty;
 import org.apache.olingo.commons.api.edm.EdmAnnotation;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.EdmProperty;
 import org.apache.olingo.commons.api.edm.EdmStructuredType;
+import org.apache.olingo.commons.api.edm.EdmType;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
+import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAComplexType;
 import org.apache.olingo.server.api.OData;
-import org.apache.olingo.server.core.DynamicEdmProperty;
 
 /**
  * Factory to create custom {@link OData} instances. This class was introduced to workaround
@@ -51,9 +53,11 @@ public class ODataFactory {
       if (optionalAnnotationType.isPresent() && optionalAnnotationCollectionFlag.isPresent()) {
         final String sType = optionalAnnotationType.get().getQualifier();
         final EdmPrimitiveTypeKind kind = EdmPrimitiveTypeKind.valueOf(sType);
+        EdmType type = EdmPrimitiveTypeFactory.getInstance(kind);
         final boolean isCollection = Boolean.valueOf(optionalAnnotationCollectionFlag.get().getQualifier())
             .booleanValue();
-        return new DynamicEdmProperty(propertyName, kind, isCollection);
+        boolean isNullable = true;
+        return new DynamicEdmProperty(propertyName, type, isCollection, isNullable);
 
       }
     }

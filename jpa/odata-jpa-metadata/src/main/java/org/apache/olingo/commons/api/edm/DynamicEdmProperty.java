@@ -11,11 +11,13 @@ public class DynamicEdmProperty implements EdmProperty {
   private final String name;
   private final EdmType type;
   private final boolean isCollection;
+  private final boolean isNullable;
   
-  public DynamicEdmProperty(String name, EdmType type, boolean isCollection) {
+  public DynamicEdmProperty(String name, EdmType type, boolean isCollection, boolean isNullable) {
     this.name = name;
     this.type = type;
     this.isCollection = isCollection;
+    this.isNullable = isNullable;
   }
   
   @Override
@@ -60,7 +62,7 @@ public class DynamicEdmProperty implements EdmProperty {
 
   @Override
   public boolean isNullable() {
-    return false;
+    return isNullable;
   }
 
   @Override

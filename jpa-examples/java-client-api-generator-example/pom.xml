@@ -32,6 +32,15 @@
 		    <artifactId>odata-client-core</artifactId>
 		</dependency>
 		<dependency>
+			<!--for generated code-->
+		    <groupId>org.apache.olingo</groupId>
+		    <artifactId>odata-client-api</artifactId>
+		</dependency>
+		<!--dependency>
+		    <groupId>org.apache.olingo</groupId>
+		    <artifactId>odata-commons-api</artifactId>
+		</dependency-->
+		<dependency>
 			<groupId>de.exxcellent.odata.jpa</groupId>
 			<artifactId>odata-jpa-processor</artifactId>
 			<version>${project.version}</version>
@@ -104,6 +113,11 @@
 			<artifactId>flyway-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+	    <dependency>
+	      <groupId>org.apache.httpcomponents.client5</groupId>
+	      <artifactId>httpclient5</artifactId>
+		  <scope>test</scope>
+	    </dependency>
 	</dependencies>
 	
 	<build>

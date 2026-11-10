@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ public class EnvironmentInfo {
     this.envNames.addAll(envNames);
     mapOfNumberCollections.put("numberOfEnv", Collections.singletonList(Integer.valueOf(envNames.size())));
     mapOfNumberCollections.put("NullTest", null);
+    mapOfNumberCollections.put("emptyArry", new LinkedList<Integer>());
   }
 
   public void setJavaVersion(final String jv) {

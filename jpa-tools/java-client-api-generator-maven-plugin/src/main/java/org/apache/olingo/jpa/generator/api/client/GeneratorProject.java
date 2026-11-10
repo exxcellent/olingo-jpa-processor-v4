@@ -10,13 +10,12 @@ import java.net.URLClassLoader;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 class GeneratorProject {
 
-  private final List<Artifact> classpathEntries = new LinkedList<>();
+  private final List<File> classpathEntries = new LinkedList<>();
   private final File generationDirectory;
   private final Log log;
   private final Boolean generateProtocolCode;
@@ -38,7 +37,7 @@ class GeneratorProject {
     }
   }
 
-  public void addClasspath(final Artifact dependency) {
+  public void addClasspath(final File dependency) {
     if (!classpathEntries.contains(dependency)) {
       classpathEntries.add(dependency);
     }
@@ -76,9 +75,9 @@ class GeneratorProject {
     final URL[] urls = new URL[classpathEntries.size()];
     for (int i = 0; i < classpathEntries.size(); i++) {
       try {
-        urls[i] = classpathEntries.get(i).getFile().toURI().toURL();
+        urls[i] = classpathEntries.get(i).toURI().toURL();
       } catch (final MalformedURLException e) {
-        throw new MojoExecutionException("Couldn't convert file path " + classpathEntries.get(i).getFile() + " to URL",
+        throw new MojoExecutionException("Couldn't convert file path " + classpathEntries.get(i) + " to URL",
             e);
       }
     }

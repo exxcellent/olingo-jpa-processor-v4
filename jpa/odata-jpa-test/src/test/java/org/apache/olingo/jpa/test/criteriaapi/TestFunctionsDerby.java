@@ -143,10 +143,9 @@ public class TestFunctionsDerby {
 
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
     final Root<?> adminDiv = count.from(AdministrativeDivision.class);
-    count.multiselect(adminDiv);
+    count.select(cb.tuple(adminDiv));
     count.where(cb.equal(
-        cb.function("IS_PRIME", boolean.class, cb.literal(Integer.valueOf(5))),
-        new Boolean(true)));
+        cb.function("IS_PRIME", boolean.class, cb.literal(Integer.valueOf(5))), Boolean.TRUE));
     // cb.literal
     final TypedQuery<Tuple> tq = em.createQuery(count);
     final List<Tuple> act = tq.getResultList();

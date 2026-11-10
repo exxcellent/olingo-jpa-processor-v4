@@ -51,6 +51,6 @@ public class EnvironmentInfoHandler implements ODataDTOHandler<EnvironmentInfo> 
       throw new IllegalStateException("Existing DTO a sparameter expected");
     }
     // check open type handling
-    assert dto.getMapOfNumberCollections().size() == 2;
+    assert dto.getMapOfNumberCollections().size() == 3;
   }
 }

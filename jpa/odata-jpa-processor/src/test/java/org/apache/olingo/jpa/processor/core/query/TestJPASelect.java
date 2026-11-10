@@ -16,8 +16,8 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestJPASelect extends TestBase {
 
@@ -48,12 +48,12 @@ public class TestJPASelect extends TestBase {
     final ObjectNode p = helper.getJsonObjectValue();
     assertEquals(1, p.get("ID").asLong());
     // check unexpected time zone conversion
-    assertEquals("2016-01-20T09:21:23Z", p.get("ATimestamp2").asText());
+    assertEquals("2016-01-20T09:21:23Z", p.get("ATimestamp2").asString());
     assertEquals(1, p.withArray("EnumCollection").size());
-    assertEquals(DayOfWeek.MONDAY.name(), p.withArray("EnumCollection").get(0).asText());
+    assertEquals(DayOfWeek.MONDAY.name(), p.withArray("EnumCollection").get(0).asString());
     assertEquals(5, p.withArray("UuidFragments").size());
-    assertEquals("11e3", p.withArray("UuidFragments").get(2).asText());
-    assertEquals("000000000000", p.withArray("UuidFragments").get(4).asText());
+    assertEquals("11e3", p.withArray("UuidFragments").get(2).asString());
+    assertEquals("000000000000", p.withArray("UuidFragments").get(4).asString());
   }
 
   @Test
@@ -83,13 +83,13 @@ public class TestJPASelect extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode entity = helper.getJsonObjectValue();
     assertNotNull(entity);
-    assertEquals("97", entity.get("ID").asText());
-    assertEquals("Müller", entity.get("lastName").asText());
+    assertEquals("97", entity.get("ID").asString());
+    assertEquals("Müller", entity.get("lastName").asString());
     // simple attribute from other table
-    assertEquals("MY DATA", entity.get("data").asText());
+    assertEquals("MY DATA", entity.get("data").asString());
     // complex values from other table
-    assertEquals("99", entity.get("editInformation").get("Created").get("By").asText());
-    assertEquals("98", entity.get("editInformation").get("Updated").get("By").asText());
+    assertEquals("99", entity.get("editInformation").get("Created").get("By").asString());
+    assertEquals("98", entity.get("editInformation").get("Updated").get("By").asString());
   }
 
   @Test

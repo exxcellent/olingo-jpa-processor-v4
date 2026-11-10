@@ -83,4 +83,9 @@ public class EdmNavigationPropertyDouble implements EdmNavigationProperty {
     fail();
     return null;
   }
+
+  @Override
+  public boolean isKeyAsSegmentAllowed() {
+    return false;
+  }
 }

@@ -54,12 +54,12 @@ public class TestFunctionsHSQLDB {
 
     final CriteriaQuery<Tuple> count = cb.createTupleQuery();
     final Root<?> adminDiv = count.from(AdministrativeDivision.class);
-    count.multiselect(adminDiv);
+    count.select(cb.tuple(adminDiv));
 
     count.where(cb.and(cb.greaterThan(
         //
         cb.function("PopulationDensity", Integer.class, adminDiv.get("area"), adminDiv.get("population")),
-        new Integer(60))), cb.equal(adminDiv.get("countryCode"), cb.literal("BEL")));
+        Integer.valueOf(60))), cb.equal(adminDiv.get("countryCode"), cb.literal("BEL")));
     // cb.literal
     final TypedQuery<Tuple> tq = em.createQuery(count);
     final List<Tuple> act = tq.getResultList();

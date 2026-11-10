@@ -1,6 +1,8 @@
 package org.apache.olingo.jpa.processor.core.testmodel.converter.jpa;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import jakarta.persistence.AttributeConverter;
@@ -23,8 +25,8 @@ public class JPAUrlConverter implements AttributeConverter<URL, String> {
 			return null;
 		}
 		try {
-			return new URL(dbData);
-		} catch (final MalformedURLException e) {
+			return new URI(dbData).toURL();
+		} catch (final MalformedURLException | URISyntaxException e) {
 			throw new IllegalStateException(e);
 		}
 	}

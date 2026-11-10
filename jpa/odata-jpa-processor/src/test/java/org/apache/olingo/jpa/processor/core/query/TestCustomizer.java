@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.chrono.IsoEra;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.olingo.client.api.uri.URIBuilder;
@@ -34,14 +33,13 @@ import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.apache.olingo.server.api.uri.UriResourceCount;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestCustomizer extends TestBase {
 
@@ -210,10 +208,10 @@ public class TestCustomizer extends TestBase {
       assertNotNull(nComplexRecord);
       assertTrue(!nComplexRecord.isArray());
       assertTrue(nComplexRecord.isObject());
-      assertEquals("#" + RecordAsComplexType.class.getName(), nComplexRecord.get("@odata.type").asText());
-      assertEquals(propertyValueComplexBy, nComplexRecord.get("By").asText());
+      assertEquals("#" + RecordAsComplexType.class.getName(), nComplexRecord.get("@odata.type").asString());
+      assertEquals(propertyValueComplexBy, nComplexRecord.get("By").asString());
       ObjectNode pParameters = (ObjectNode) nComplexRecord.get("Parameters");
-      assertEquals("V1", pParameters.get("K1").asText());
+      assertEquals("V1", pParameters.get("K1").asString());
     }
   }
 }

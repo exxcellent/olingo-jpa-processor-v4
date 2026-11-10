@@ -6,18 +6,22 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPAEntityType;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.api.JPASelector;
 import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelException;
 import org.apache.olingo.jpa.metadata.test.util.TestMappingRoot;
+import org.apache.olingo.jpa.processor.core.testmodel.Organization;
 import org.apache.olingo.server.api.ODataApplicationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jakarta.persistence.metamodel.EntityType;
+
 public class TestJPAPath extends TestMappingRoot {
-  private JPAEntityType organization;
+  private JPAEntityType<Organization> organization;
   private TestHelper helper;
 
+  @SuppressWarnings("unchecked")
   @BeforeEach
   public void setup() throws ODataJPAModelException {
     helper = new TestHelper(emf.getMetamodel(), PUNIT_NAME);
-    organization = new IntermediateEntityTypeJPA(new JPAEdmNameBuilder(PUNIT_NAME), helper.getEntityType(
+    organization = new IntermediateEntityTypeJPA<>(new JPAEdmNameBuilder(PUNIT_NAME), (EntityType<Organization>)helper.getEntityType(
         "Organization"), helper.getEdmProvider().getServiceDocument());
   }
 

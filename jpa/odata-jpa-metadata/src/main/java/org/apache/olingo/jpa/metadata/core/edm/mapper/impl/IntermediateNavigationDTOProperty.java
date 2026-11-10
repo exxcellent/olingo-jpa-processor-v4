@@ -26,7 +26,7 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
 
   private CsdlNavigationProperty edmNaviProperty;
-  private JPAStructuredType targetType;
+  private JPAStructuredType<?> targetType;
   private final IntermediateServiceDocument serviceDocument;
   private final JPAAttributeAccessor accessor;
   private final Field field;
@@ -59,7 +59,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
   }
 
   @Override
-  public JPAStructuredType getStructuredType() {
+  public JPAStructuredType<?> getStructuredType() {
     try {
       return getTargetEntity();
     } catch (final ODataJPAModelException e) {
@@ -68,7 +68,7 @@ class IntermediateNavigationDTOProperty extends AbstractNavigationProperty {
   }
 
   @Override
-  public JPAStructuredType getTargetEntity() throws ODataJPAModelException {
+  public JPAStructuredType<?> getTargetEntity() throws ODataJPAModelException {
     lazyBuildEdmItem();
     return targetType;
   }

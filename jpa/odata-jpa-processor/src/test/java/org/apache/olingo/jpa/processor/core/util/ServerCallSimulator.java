@@ -42,11 +42,11 @@ import org.apache.olingo.server.api.processor.DefaultProcessor;
 import org.apache.olingo.server.api.processor.ErrorProcessor;
 import org.apache.olingo.server.api.processor.Processor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class ServerCallSimulator {
 
@@ -211,7 +211,7 @@ public class ServerCallSimulator {
     }
   }
 
-  public ArrayNode getJsonObjectValues() throws JsonProcessingException, IOException, ODataDeserializerException {
+  public ArrayNode getJsonObjectValues() throws JacksonException, IOException, ODataDeserializerException {
     if (!executed) {
       throw new IllegalStateException("call execute() before");
     }
@@ -224,7 +224,7 @@ public class ServerCallSimulator {
     return values;
   }
 
-  public ObjectNode getJsonObjectValue() throws JsonProcessingException, IOException, ODataDeserializerException {
+  public ObjectNode getJsonObjectValue() throws JacksonException, IOException, ODataDeserializerException {
     if (!executed) {
       throw new IllegalStateException("call execute() before");
     }

@@ -12,11 +12,11 @@ import org.apache.olingo.jpa.metadata.core.edm.mapper.exception.ODataJPAModelExc
 
 public class JPAAssociationPathDTOImpl implements JPAAssociationPath {
 
-	private final JPAStructuredType sourceType;
+	private final JPAStructuredType<?> sourceType;
 	private final JPAAssociationAttribute navProperty;
 	final private List<JPAAttribute<?>> pathElements;
 
-	public JPAAssociationPathDTOImpl(final JPAStructuredType source, final JPAAssociationAttribute navProperty) {
+	public JPAAssociationPathDTOImpl(final JPAStructuredType<?> source, final JPAAssociationAttribute navProperty) {
 		this.sourceType = source;
 		this.navProperty = navProperty;
 		this.pathElements = Collections.singletonList(navProperty);
@@ -56,12 +56,12 @@ public class JPAAssociationPathDTOImpl implements JPAAssociationPath {
 	}
 
 	@Override
-	public JPAStructuredType getTargetType() {
+	public JPAStructuredType<?> getTargetType() {
 		return navProperty.getStructuredType();
 	}
 
 	@Override
-	public JPAStructuredType getSourceType() {
+	public JPAStructuredType<?> getSourceType() {
 		return sourceType;
 	}
 

@@ -80,7 +80,7 @@ class IntermediateEntityContainer extends IntermediateModelElement<CsdlEntityCon
         if (es.getEntityType().ignore()) {
           continue;
         }
-        csdlEs = ((IntermediateEntitySet) es).getEdmItem();
+        csdlEs = ((IntermediateEntitySet<?>) es).getEdmItem();
         csdlEntitySets.add(csdlEs);
       }
     }

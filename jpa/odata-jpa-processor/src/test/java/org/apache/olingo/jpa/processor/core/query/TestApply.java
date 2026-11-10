@@ -14,8 +14,8 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class TestApply extends TestBase {
 
@@ -34,7 +34,7 @@ public class TestApply extends TestBase {
     final ArrayNode valueArray = response.withArray("value");
     assertEquals(1, valueArray.size());
     final ObjectNode aggNode = (ObjectNode) valueArray.get(0);
-    assertEquals("#Decimal", aggNode.get("Sum@odata.type").asText());
+    assertEquals("#Decimal", aggNode.get("Sum@odata.type").asString());
     // for Double no metadata is written
     assertEquals(-12.34, aggNode.get("Min").asDouble(), 0.0);
     assertEquals(98989886.00698, aggNode.get("Sum").asDouble(), 0.0);

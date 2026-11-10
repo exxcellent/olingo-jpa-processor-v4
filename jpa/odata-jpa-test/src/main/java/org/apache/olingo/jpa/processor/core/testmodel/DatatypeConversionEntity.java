@@ -49,6 +49,7 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
   // be aware: this datatype depends on gregorian calendar and time zone effects and is bad -> the result maybe
   // unexpected
+  @SuppressWarnings("deprecation")
   @Column(name = "\"ADate1\"")
   @Temporal(TemporalType.DATE)
   private java.util.Date aDate1;
@@ -58,10 +59,12 @@ public class DatatypeConversionEntity extends AbstractEntity {
 
   // be aware: this datatype depends on gregorian calendar and time zone effects and is bad -> the result maybe
   // unexpected
+  @SuppressWarnings("deprecation")
   @Column(name = "\"ADate3\"")
   @Temporal(TemporalType.DATE)
   private java.util.Calendar aDate3;
 
+  @SuppressWarnings("deprecation")
   @Column(name = "\"ATimestamp1\"")
   @Temporal(TemporalType.TIMESTAMP)
   private java.util.Date aTimestamp1UtilDate;

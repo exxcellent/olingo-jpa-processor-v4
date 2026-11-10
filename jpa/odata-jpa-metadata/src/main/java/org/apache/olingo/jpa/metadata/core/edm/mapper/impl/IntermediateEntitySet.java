@@ -22,13 +22,13 @@ import org.apache.olingo.server.api.etag.CustomETagSupport;
  * @author Oliver Grande
  *
  */
-class IntermediateEntitySet extends IntermediateModelElement<CsdlEntitySet> implements JPAEntitySet, CustomETagSupport {
+class IntermediateEntitySet<T> extends IntermediateModelElement<CsdlEntitySet> implements JPAEntitySet, CustomETagSupport {
   private final static Logger LOG = Logger.getLogger(IntermediateEntitySet.class.getName());
 
-  private final JPAEntityType entityType;
+  private final JPAEntityType<T> entityType;
   private CsdlEntitySet edmEntitySet;
 
-  IntermediateEntitySet(final JPAEntityType et)
+  IntermediateEntitySet(final JPAEntityType<T> et)
       throws ODataJPAModelException {
     // use same name builder as the entity is using
     super(((IntermediateModelElement<?>) et).getNameBuilder(), ((IntermediateModelElement<?>) et).getNameBuilder()
@@ -40,7 +40,7 @@ class IntermediateEntitySet extends IntermediateModelElement<CsdlEntitySet> impl
   }
 
   @Override
-  public JPAEntityType getEntityType() {
+  public JPAEntityType<T> getEntityType() {
     return entityType;
   }
 
@@ -64,7 +64,7 @@ class IntermediateEntitySet extends IntermediateModelElement<CsdlEntitySet> impl
         final List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
         for (final JPAAssociationPath naviPropertyPath : naviPropertyList) {
           final JPAAttribute<?> naviProperty = naviPropertyPath.getLeaf();
-          final JPAStructuredType target = naviProperty.getStructuredType();
+          final JPAStructuredType<?> target = naviProperty.getStructuredType();
           if (JPAEntityType.class.isInstance(target)) {
             final CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
             navPropBinding.setPath(naviPropertyPath.getAlias());

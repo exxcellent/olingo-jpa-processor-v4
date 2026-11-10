@@ -1,6 +1,8 @@
 package org.apache.olingo.jpa.processor.core.testmodel.converter.odata;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.olingo.jpa.metadata.core.edm.converter.ODataAttributeConverter;
@@ -20,8 +22,8 @@ public class EdmUrlConverter implements ODataAttributeConverter<URL, String> {
 			return null;
 		}
 		try {
-			return new URL(oDataValue);
-		} catch (final MalformedURLException e) {
+			return new URI(oDataValue).toURL();
+		} catch (final MalformedURLException | URISyntaxException e) {
 			throw new IllegalStateException(e);
 		}
 	}

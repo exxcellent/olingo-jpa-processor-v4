@@ -12,7 +12,7 @@ import org.apache.olingo.jpa.processor.core.util.ServerCallSimulator;
 import org.apache.olingo.jpa.processor.core.util.TestBase;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ArrayNode;
 
 public class TestJPAEnumFilter extends TestBase {
 
@@ -26,7 +26,7 @@ public class TestJPAEnumFilter extends TestBase {
 
     final ArrayNode dces = helper.getJsonObjectValues();
     assertEquals(1, dces.size());
-    assertEquals("CE", dces.get(0).get("AStringMappedEnum").asText());
+    assertEquals("CE", dces.get(0).get("AStringMappedEnum").asString());
   }
 
   @Test
@@ -51,7 +51,7 @@ public class TestJPAEnumFilter extends TestBase {
 
     final ArrayNode dces = helper.getJsonObjectValues();
     assertEquals(1, dces.size());
-    assertEquals("NANOS", dces.get(0).get("AOrdinalMappedEnum").asText());
+    assertEquals("NANOS", dces.get(0).get("AOrdinalMappedEnum").asString());
   }
 
   @Test

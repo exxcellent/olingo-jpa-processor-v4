@@ -61,9 +61,9 @@ import org.apache.olingo.jpa.test.util.AbstractTest.JPAProvider;
 import org.apache.olingo.jpa.test.util.Constant;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import jakarta.persistence.Id;
 
@@ -196,7 +196,7 @@ public class TestJPAActions extends TestBase {
 
     final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
-    assertEquals("DEU", object.get("value").asText());
+    assertEquals("DEU", object.get("value").asString());
   }
 
   @Test
@@ -231,7 +231,7 @@ public class TestJPAActions extends TestBase {
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
-    assertEquals(testId, object.get("ID").asText());
+    assertEquals(testId, object.get("ID").asString());
     assertTrue(object.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
     assertNotNull(object.get("PhoneNumbersAsString"));
     assertNotNull(object.get("PhoneNumbers"));
@@ -262,7 +262,7 @@ public class TestJPAActions extends TestBase {
     // check json reponse
     final ObjectNode organization = helper.getJsonObjectValue();
     assertNotNull(organization);
-    assertEquals(testId, organization.get("ID").asText());
+    assertEquals(testId, organization.get("ID").asString());
     assertTrue(organization.get("CommunicationData").get("MobilePhoneNumber") instanceof NullNode);
     assertNotNull(organization.get("PhoneNumbersAsString"));
     assertNotNull(organization.get("PhoneNumbers"));
@@ -295,7 +295,7 @@ public class TestJPAActions extends TestBase {
 
     final ObjectNode object = helper.getJsonObjectValue();
     assertNotNull(object);
-    assertEquals(testValue, object.get("value").asText());
+    assertEquals(testValue, object.get("value").asString());
   }
 
   @Test
@@ -477,7 +477,7 @@ public class TestJPAActions extends TestBase {
     assertTrue(((ObjectNode) results.get(0)).get("SystemRequirements").size() == 3);
 
     final ObjectNode jsonMapNode = (ObjectNode) ((ObjectNode) results.get(0)).get("MapOfNumberCollections");
-    assertTrue(jsonMapNode.size() == 2);
+    assertTrue(jsonMapNode.size() == 3);
 
     // second part of test: use map as action parameter
     final StringBuffer requestBody = new StringBuffer("{");
@@ -527,7 +527,7 @@ public class TestJPAActions extends TestBase {
     helper.setRequestContentType("multipart/form-data; boundary=" + boundary);// global content type
 
     helper.execute(HttpStatusCode.OK.getStatusCode());
-    assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(0).asText().equals(fileName));
+    assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(0).asString().equals(fileName));
     assertTrue(((ArrayNode) helper.getJsonObjectValue().get("value")).get(1).asInt() == binaryData.getBytes().length);
   }
 
@@ -803,7 +803,7 @@ public class TestJPAActions extends TestBase {
     assertTrue(target.get("SOURCE").isNull());
 
     final String sourceNameBefore = "client side modified source name";
-    sourceCreated.replace("Name", sourceCreated.textNode(sourceNameBefore));
+    sourceCreated.replace("Name", sourceCreated.stringNode(sourceNameBefore));
     final String saveBody = "{\"source\": " + sourceCreated.toString() + "}";
     final URIBuilder uriBuilderSave = newUriBuilder().appendActionCallSegment("saveEntities");
     final ServerCallSimulator simulatorSave = new ServerCallSimulator(persistenceAdapter,
@@ -814,7 +814,7 @@ public class TestJPAActions extends TestBase {
     final ObjectNode sourceSaved = simulatorSave.getJsonObjectValue();
     assertNotNull(sourceSaved);
     // source name must be modified on server side
-    assertNotEquals(sourceNameBefore, sourceSaved.get("Name").asText());
+    assertNotEquals(sourceNameBefore, sourceSaved.get("Name").asString());
   }
 
   @Test
@@ -886,7 +886,7 @@ public class TestJPAActions extends TestBase {
 
     // now send back the shared target entity (must be merged on backend side)
     final String sourceNameBefore = "client side modified source1 name";
-    source1.replace("Name", source1.textNode(sourceNameBefore));
+    source1.replace("Name", source1.stringNode(sourceNameBefore));
     final String saveBody = "{\"entities\": " + sourcesCreated.toString() + "}";
     final URIBuilder uriBuilderSave = newUriBuilder().appendActionCallSegment("validateEntityCollection");
     final ServerCallSimulator simulatorSave = new ServerCallSimulator(persistenceAdapter,
@@ -913,7 +913,7 @@ public class TestJPAActions extends TestBase {
 
     // now modify shared target and send back the shared target entity (merge must be failing on backend side)
     final ObjectNode sharedTargetOnSource1 = (ObjectNode) sourcesCreated.get(0).withArray("leftM2Ns").get(0);
-    sharedTargetOnSource1.replace("Name", sharedTargetOnSource1.textNode(
+    sharedTargetOnSource1.replace("Name", sharedTargetOnSource1.stringNode(
         "client side modified target name on source 1"));
     final String saveBody = "{\"entities\": " + sourcesCreated.toString() + "}";
     final URIBuilder uriBuilderSave = newUriBuilder().appendActionCallSegment("validateEntityCollection");
@@ -974,7 +974,7 @@ public class TestJPAActions extends TestBase {
     final ServerCallSimulator helper = new ServerCallSimulator(persistenceAdapter, uriBuilder, null, HttpMethod.POST);
     helper.execute(HttpStatusCode.OK.getStatusCode());
     final ObjectNode result = helper.getJsonObjectValue();
-    assertEquals("dummy", result.get("attribute").asText());
+    assertEquals("dummy", result.get("attribute").asString());
   }
 
   @Test
@@ -1014,31 +1014,31 @@ public class TestJPAActions extends TestBase {
         "actionWithFloatingPointParameters").get(0);
 
     assertEquals(EdmDecimal.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.withArray(
-        "$Parameter").get(0).get("$Type").asText());
+        "$Parameter").get(0).get("$Type").asString());
     assertEquals(6, actionMeta.withArray(
         "$Parameter").get(0).get("$Precision").asInt());
     assertEquals(3, actionMeta.withArray(
         "$Parameter").get(0).get("$Scale").asInt());
-    assertEquals(ActionDTO.PARAM1_NAME, actionMeta.withArray("$Parameter").get(0).get("$Name").asText());
+    assertEquals(ActionDTO.PARAM1_NAME, actionMeta.withArray("$Parameter").get(0).get("$Name").asString());
 
     assertEquals(EdmDouble.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.withArray(
-        "$Parameter").get(1).get("$Type").asText());
+        "$Parameter").get(1).get("$Type").asString());
     assertEquals(4, actionMeta.withArray(
         "$Parameter").get(1).get("$Precision").asInt());
     assertEquals(2, actionMeta.withArray(
         "$Parameter").get(1).get("$Scale").asInt());
-    assertEquals(ActionDTO.PARAM2_NAME, actionMeta.withArray("$Parameter").get(1).get("$Name").asText());
+    assertEquals(ActionDTO.PARAM2_NAME, actionMeta.withArray("$Parameter").get(1).get("$Name").asString());
 
     assertEquals(EdmSingle.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.withArray(
-        "$Parameter").get(2).get("$Type").asText());
+        "$Parameter").get(2).get("$Type").asString());
     assertEquals(2, actionMeta.withArray(
         "$Parameter").get(2).get("$Precision").asInt());
     assertEquals(1, actionMeta.withArray(
         "$Parameter").get(2).get("$Scale").asInt());
-    assertEquals(ActionDTO.PARAM3_NAME, actionMeta.withArray("$Parameter").get(2).get("$Name").asText());
+    assertEquals(ActionDTO.PARAM3_NAME, actionMeta.withArray("$Parameter").get(2).get("$Name").asString());
 
     assertEquals(EdmDecimal.getInstance().getFullQualifiedName().getFullQualifiedNameAsString(), actionMeta.get(
-        "$ReturnType").get("$Type").asText());
+        "$ReturnType").get("$Type").asString());
     assertEquals(9, actionMeta.get("$ReturnType").get("$Precision").asInt());
     assertEquals(5, actionMeta.get("$ReturnType").get("$Scale").asInt());
   }

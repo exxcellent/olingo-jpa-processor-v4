@@ -35,7 +35,7 @@ import org.apache.olingo.server.core.serializer.utils.ContentTypeHelper;
 import org.apache.olingo.server.core.serializer.utils.ExpandSelectHelper;
 import org.apache.olingo.server.core.uri.UriHelperImpl;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonGenerator;
 
 public class JPAODataJsonSerializer extends ODataJsonSerializer {
 
@@ -172,7 +172,7 @@ public class JPAODataJsonSerializer extends ODataJsonSerializer {
         throw new SerializerException("Cannot determine type for dynamic property value", SerializerException.MessageKeys.UNKNOWN_TYPE, sType);
     }
     //use OUR dynamic property impl
-    return new DynamicEdmProperty(property.getName(), pType, isCollection);
+    return new DynamicEdmProperty(property.getName(), pType, isCollection, true);
   }
 
   protected void writeEntity(final ServiceMetadata metadata, final EdmEntityType entityType, final Entity entity,
@@ -196,40 +196,40 @@ public class JPAODataJsonSerializer extends ODataJsonSerializer {
           writeMetadataETag(metadata, json);
         }
         if (entity.getETag() != null) {
-          json.writeStringField(constants.getEtag(), entity.getETag());
+          json.writeStringProperty(constants.getEtag(), entity.getETag());
         }
         if (entityType.hasStream()) {
           if (entity.getMediaETag() != null) {
-            json.writeStringField(constants.getMediaEtag(), entity.getMediaETag());
+            json.writeStringProperty(constants.getMediaEtag(), entity.getMediaETag());
           }
           if (entity.getMediaContentType() != null) {
-            json.writeStringField(constants.getMediaContentType(), entity.getMediaContentType());
+            json.writeStringProperty(constants.getMediaContentType(), entity.getMediaContentType());
           }
           if (entity.getMediaContentSource() != null) {
-            json.writeStringField(constants.getMediaReadLink(), entity.getMediaContentSource().toString());
+            json.writeStringProperty(constants.getMediaReadLink(), entity.getMediaContentSource().toString());
           }
           if (entity.getMediaEditLinks() != null && !entity.getMediaEditLinks().isEmpty()) {
-            json.writeStringField(constants.getMediaEditLink(), entity.getMediaEditLinks().get(0).getHref());
+            json.writeStringProperty(constants.getMediaEditLink(), entity.getMediaEditLinks().get(0).getHref());
           }
         }
       }
       if (cycle || onlyReference) {
-        json.writeStringField(constants.getId(), getEntityId(entity, entityType, name));
+        json.writeStringProperty(constants.getId(), getEntityId(entity, entityType, name));
       } else {
         final EdmEntityType resolvedType = resolveEntityType(metadata, entityType, entity.getType());
         if ((!isODataMetadataNone && !resolvedType.equals(entityType)) || isODataMetadataFull) {
-          json.writeStringField(constants.getType(), "#" + entity.getType());
+          json.writeStringProperty(constants.getType(), "#" + entity.getType());
         }
         if ((!isODataMetadataNone && !areKeyPredicateNamesSelected(select, resolvedType)) || isODataMetadataFull) {
-          json.writeStringField(constants.getId(), getEntityId(entity, resolvedType, name));
+          json.writeStringProperty(constants.getId(), getEntityId(entity, resolvedType, name));
         }
         
         if (isODataMetadataFull) {
           if (entity.getSelfLink() != null) {
-            json.writeStringField(constants.getReadLink(), entity.getSelfLink().getHref());
+            json.writeStringProperty(constants.getReadLink(), entity.getSelfLink().getHref());
           }
           if (entity.getEditLink() != null) {
-            json.writeStringField(constants.getEditLink(), entity.getEditLink().getHref());
+            json.writeStringProperty(constants.getEditLink(), entity.getEditLink().getHref());
           }
         }
         instanceAnnotSerializer.writeInstanceAnnotationsOnEntity(entity.getAnnotations(), json);        
@@ -253,7 +253,7 @@ public class JPAODataJsonSerializer extends ODataJsonSerializer {
     for (final Entity entity : entitySet) {
       if (onlyReference) {
         json.writeStartObject();
-        json.writeStringField(constants.getId(), getEntityId(entity, entityType, name));
+        json.writeStringProperty(constants.getId(), getEntityId(entity, entityType, name));
         json.writeEndObject();
       } else {
         writeEntity(metadata, entityType, entity, null, expand, toDepth, select, false, ancestors, name, json);
@@ -266,9 +266,9 @@ public class JPAODataJsonSerializer extends ODataJsonSerializer {
       throws IOException {
     if (isODataMetadataFull) {
       for (Operation operation : operations) {
-        json.writeObjectFieldStart(operation.getMetadataAnchor());
-        json.writeStringField(Constants.ATTR_TITLE, operation.getTitle());
-        json.writeStringField(Constants.ATTR_TARGET, operation.getTarget().toASCIIString());
+        json.writeObjectPropertyStart(operation.getMetadataAnchor());
+        json.writeStringProperty(Constants.ATTR_TITLE, operation.getTitle());
+        json.writeStringProperty(Constants.ATTR_TARGET, operation.getTarget().toASCIIString());
         json.writeEndObject();
       }
     }
