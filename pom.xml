@@ -25,7 +25,7 @@
 		<openjpa.version>4.1.1</openjpa.version>
 		<hibernate.version>5.6.15.Final</hibernate.version>
 		<maven.plugin.version>3.9.14</maven.plugin.version>
-		<derby.version>10.16.1.1</derby.version><!--latest version for Java 17-->
+		<derby.version>10.17.1.0</derby.version><!--latest version for Java 17-->
 		<flyway.version>12.3.0</flyway.version>
 	</properties>
 
