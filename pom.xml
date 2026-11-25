@@ -24,7 +24,7 @@
 		<eclipselink.version>5.0.2</eclipselink.version>
 		<openjpa.version>4.1.1</openjpa.version>
 		<hibernate.version>7.4.15.Final</hibernate.version>
-		<derby.version>10.15.2.0</derby.version>
+		<derby.version>10.17.1.0</derby.version>
 		<flyway.version>13.12.1</flyway.version>
 	</properties>
 
