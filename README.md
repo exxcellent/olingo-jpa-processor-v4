@@ -1,4 +1,4 @@
-![Build Status (javax)](https://github.com/exxcellent/olingo-jpa-processor-v4/actions/workflows/build-jakarta.yml/badge.svg?branch=main-jakarta&event=push)
+![Build Status](https://github.com/exxcellent/olingo-jpa-processor-v4/actions/workflows/build-jakarta.yml/badge.svg?branch=main-jakarta&event=push&cache-control=no-cache)
 [![codecov](https://codecov.io/gh/exxcellent/olingo-jpa-processor-v4/branch/main-jakarta/graph/badge.svg)](https://app.codecov.io/github/exxcellent/olingo-jpa-processor-v4/tree/main-jakarta/jpa)
 
 # First words...
