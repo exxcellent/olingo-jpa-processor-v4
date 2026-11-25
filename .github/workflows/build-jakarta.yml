@@ -35,7 +35,9 @@ jobs:
       max-parallel: 1
       matrix:
         java-version: [ 21, 25 ]
-        jpa-provider: ["eclipselink", "hibernate"]
+        # Hibernate 7 cannot work with the actual JPA model, we have to wait for versions of both JPA providers using peristence-api 4.0
+        #jpa-provider: ["eclipselink", "hibernate"]
+        jpa-provider: ["eclipselink"]
     name: Build with Java ${{ matrix.java-version }} and ${{ matrix.jpa-provider }}
     steps:
       - uses: haya14busa/action-cond@v1
