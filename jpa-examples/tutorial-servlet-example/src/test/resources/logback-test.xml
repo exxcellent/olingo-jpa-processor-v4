@@ -13,6 +13,7 @@
 
 	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateActionFactory" level="ERROR"/>
 	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType" level="ERROR"/>
+	<logger name="org.apache.olingo.jpa.servlet.example.ExampleErrorProcessor" level="OFF"/>
 	<!-- required to get SQL params in Hibernate -->
 	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
 

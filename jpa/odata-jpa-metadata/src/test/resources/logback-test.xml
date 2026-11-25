@@ -20,7 +20,9 @@
 	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateActionFactory" level="ERROR"/>
 	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType" level="ERROR"/>
 	<logger name="org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor" level="ERROR"/>
+	<logger name="org.apache.olingo.jpa.processor.core.query.AbstractQueryBuilder" level="ERROR"/>
 	<logger name="org.apache.olingo.server.api.processor.ErrorProcessor" level="OFF"/>
+	<logger name="org.flywaydb.core.internal.command.clean.CleanExecutor" level="ERROR"/>
 	<!-- required to get SQL params in Hibernate -->
 	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
 
