@@ -565,6 +565,9 @@
 		<repository>
 			<id>packagecloud</id>
 			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jpa-processor-v4</url>
+  		    <releases>
+              <checksumPolicy>ignore</checksumPolicy>
+			</releases>
 		</repository>
 		<snapshotRepository>
 			<id>packagecloud</id>
