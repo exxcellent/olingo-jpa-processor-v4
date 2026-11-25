@@ -17,20 +17,17 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.apache.olingo" level="DEBUG"/>
+	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateActionFactory" level="ERROR"/>
 	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateStructuredType" level="ERROR"/>
-	<logger name="org.apache.olingo.jpa.metadata.core.edm.mapper.impl.IntermediateProperty" level="WARN"/>
-	<logger name="org.apache.olingo.jpa.processor.core.processor.AbstractProcessor" level="TRACE"/>
-	<logger name="org.eclipse.persistence.session" level="DEBUG"/>
-	<logger name="com.googlecode.flyway" level="WARN"/>
-	<logger name="org.jboss.logging" level="WARN"/>
-	<logger name="org.hibernate" level="WARN"/>
+	<logger name="org.apache.olingo.jpa.processor.core.api.JPAODataDatabaseProcessor" level="ERROR"/>
+	<logger name="org.apache.olingo.jpa.processor.core.query.AbstractQueryBuilder" level="ERROR"/>
+	<logger name="org.apache.olingo.server.api.processor.ErrorProcessor" level="OFF"/>
+	<logger name="org.flywaydb.core.internal.command.clean.CleanExecutor" level="ERROR"/>
 	<!-- required to get SQL params in Hibernate -->
 	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
-	<logger name="org.flywaydb" level="INFO"/>
 
-	<root level="DEBUG">
+	<root level="WARN">
 		<!-- this definition will work only for true slf4j loggers, JUL will log directly to the appender -->
-	  <appender-ref ref="STDOUT" />
+    	<appender-ref ref="STDOUT" />
 	</root>
 </configuration>

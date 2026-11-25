@@ -15,9 +15,9 @@ import org.apache.olingo.jpa.processor.core.testmodel.BusinessPartnerRoleKey;
 import org.apache.olingo.jpa.processor.core.testmodel.Country;
 import org.apache.olingo.jpa.test.util.AbstractTest;
 import org.apache.olingo.jpa.test.util.DataSourceHelper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import jakarta.persistence.EntityManager;
