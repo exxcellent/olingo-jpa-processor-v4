@@ -17,7 +17,7 @@
 
 		<slf4j.version>2.0.20</slf4j.version>
 		<logback.version>1.6.6</logback.version>
-		<olingo.version>6.0.0</olingo.version>
+		<olingo.version>6.0.1</olingo.version>
 		<jetty.version>11.0.26</jetty.version>
         <jersey.version>4.0.3</jersey.version>
 		<jackson.version>3.3.0</jackson.version>
@@ -181,12 +181,6 @@
 				<artifactId>jackson-core</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
-			<!-- declare core because of conflicts -->
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>2.23</version>
-			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
@@ -261,14 +255,6 @@
 	</dependencyManagement>
 
 	<build>
-		<extensions>
-			<extension>
-				<groupId>io.packagecloud.maven.wagon</groupId>
-				<artifactId>maven-packagecloud-wagon</artifactId>
-				<version>0.0.6</version>
-			</extension>
-		</extensions>
-		
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -564,14 +550,11 @@
 	<distributionManagement>
 		<repository>
 			<id>packagecloud</id>
-			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jpa-processor-v4</url>
-  		    <releases>
-              <checksumPolicy>ignore</checksumPolicy>
-			</releases>
+			<url>https://packagecloud.io/eXXcellent/olingo-jpa-processor-v4/maven2</url>
 		</repository>
 		<snapshotRepository>
 			<id>packagecloud</id>
-			<url>packagecloud+https://packagecloud.io/exxcellent/olingo-jpa-processor-v4</url>
+			<url>https://packagecloud.io/eXXcellent/olingo-jpa-processor-v4/maven2</url>
 		</snapshotRepository>
 	</distributionManagement>
 	
